@@ -1,0 +1,9 @@
+.idea
+.DS_Store
+tmp
+scratch
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
