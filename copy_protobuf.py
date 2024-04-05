@@ -46,11 +46,11 @@ def copy_module(core_repo: Path, clients_repo: Path, service_folder: str, packag
     search_path = core_repo / service_folder / "protogen" / "go" / package / "v1"
     for file in search_path.glob(f"{module}*"):
         if file.is_dir():
-            for subfile in file.glob("*"):
+            for subfile in file.glob(f"{module}*"):
                 target_file = target_path / file.name / subfile.name
                 target_file.parent.mkdir(parents=True, exist_ok=True)
                 target_file.write_text(fix_imports(subfile.read_text()))
-                print(f"A Copied and fixed file: {target_file}")
+                print(f"Copied and fixed file: {target_file}")
             continue
 
         target_file = target_path / file.name
