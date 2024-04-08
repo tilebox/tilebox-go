@@ -8,8 +8,6 @@ require (
 	github.com/axiomhq/axiom-go v0.17.5
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.5
-	github.com/integrii/flaggy v1.5.2
-	github.com/remychantenay/slog-otel v1.3.0
 	go.opentelemetry.io/otel v1.24.0
 	go.opentelemetry.io/otel/sdk v1.24.0
 	go.opentelemetry.io/otel/trace v1.24.0
