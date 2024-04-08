@@ -1,0 +1,46 @@
+// The externally facing API allowing users to interact with workflows.
+
+syntax = "proto3";
+
+package workflows.v1;
+
+import "workflows/v1/core.proto";
+
+// CreateClusterRequest creates a new cluster.
+message CreateClusterRequest {
+  // The name of the cluster.
+  string name = 1;
+}
+
+// GetClusterRequest requests details for a cluster.
+message GetClusterRequest {
+  // The slug of the cluster to get details for.
+  string cluster_slug = 1;
+}
+
+// DeleteClusterRequest deletes an existing cluster.
+message DeleteClusterRequest {
+  // The slug of the cluster to delete.
+  string cluster_slug = 1;
+}
+
+// DeleteClusterResponse is the response to DeleteClusterRequest.
+message DeleteClusterResponse {
+}
+
+// ListClustersRequest lists all clusters.
+message ListClustersRequest {
+}
+
+// ListClustersResponse is the response to ListClustersRequest.
+message ListClustersResponse {
+  // The clusters.
+  repeated Cluster clusters = 1;
+}
+
+service WorkflowsService {
+  rpc CreateCluster(CreateClusterRequest) returns (Cluster);
+  rpc GetCluster(GetClusterRequest) returns (Cluster);
+  rpc DeleteCluster(DeleteClusterRequest) returns (DeleteClusterResponse);
+  rpc ListClusters(ListClustersRequest) returns (ListClustersResponse);
+}

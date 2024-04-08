@@ -1,0 +1,63 @@
+// The externally facing API allowing users to interact with jobs.
+
+syntax = "proto3";
+
+package workflows.v1;
+
+import "workflows/v1/core.proto";
+import "workflows/v1/diagram.proto";
+
+// SubmitJobRequest submits and schedules a job for execution. The job can have multiple root tasks.
+message SubmitJobRequest {
+  // The root tasks for the job.
+  repeated TaskSubmission tasks = 1;
+  // The name of the job.
+  string job_name = 2;
+  // Tracing information for the job. This is used to propagate tracing information to the workers that execute the job.
+  string trace_parent = 3;
+}
+
+// GetJobRequest requests details for a job.
+message GetJobRequest {
+  // The ID of the job to get details for.
+  UUID job_id = 1;
+}
+
+// RetryJobRequest requests a retry of a job that has failed.
+message RetryJobRequest {
+  // The job to retry.
+  UUID job_id = 1;
+}
+
+// RetryJobResponse is the response to a RetryJobRequest.
+message RetryJobResponse {
+  // The number of tasks that were rescheduled.
+  int64 num_tasks_rescheduled = 1;
+}
+
+// CancelJobRequest requests a cancel of a job.
+message CancelJobRequest {
+  // The job to cancel.
+  UUID job_id = 1;
+}
+
+// CancelJobResponse is the response to a CancelJobRequest.
+message CancelJobResponse {
+  // no fields at the moment
+}
+
+// VisualizeJobRequest requests a cancel of a job.
+message VisualizeJobRequest {
+  // The job to cancel.
+  UUID job_id = 1;
+  // The options for rendering the diagram
+  RenderOptions render_options = 2;
+}
+
+service JobService {
+  rpc SubmitJob(SubmitJobRequest) returns (Job);
+  rpc GetJob(GetJobRequest) returns (Job);
+  rpc RetryJob(RetryJobRequest) returns (RetryJobResponse);
+  rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
+  rpc VisualizeJob(VisualizeJobRequest) returns (Diagram);
+}
