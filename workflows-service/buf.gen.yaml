@@ -2,7 +2,7 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: github.com/tilebox/tilebox-go/task-runner/protogen/go
+    default: github.com/tilebox/tilebox-go/workflows-service/protogen/go
     except:
       - buf.build/googleapis/googleapis
 plugins:

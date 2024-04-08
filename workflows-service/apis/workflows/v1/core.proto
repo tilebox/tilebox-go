@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package workflows.v1;
+
+import "google/protobuf/duration.proto";
+
+// A cluster is a grouping of tasks that are related.
+message Cluster {
+  // 1 is reserved for a potential id field in the future.
+  string slug = 2; // The unique slug of the cluster within the namespace.
+  string display_name = 3; // The display name of the cluster.
+}
+
+// A job is a logical grouping of tasks that are related.
+message Job {
+  UUID id = 1;
+  string name = 2;
+  string trace_parent = 3;
+  bool completed = 4;
+}
+
+// A task is a single unit of work.
+message Task {
+  UUID id = 1;  // The id of the task instance. Contains the submission timestamp as the time part of the ULID.
+  TaskIdentifier identifier = 2;  // Unique identifier for the task. Used by runners to match tasks to specific functions.
+  TaskState state = 3;  // The current state of the task.
+  optional bytes input = 4; // The serialized input parameters for the task in the format that this task expects.
+  optional string display = 5; // Display is a human readable representation of the Task used for printing or visualizations
+  Job job = 6;  // The job that this task belongs to.
+  UUID parent_id = 7;  // The id of the parent task.
+  repeated UUID depends_on = 8;  // The ids of the tasks that this task depends on.
+  TaskLease lease = 9; // The lease of the task.
+  int64 retry_count = 10; // The number of times this task has been retried.
+}
+
+// The state of a task.
+enum TaskState {
+  UNDEFINED = 0;
+  QUEUED = 1;  // The task is queued and waiting to be run.
+  RUNNING = 2;  // The task is currently running on some task runner.
+  COMPUTED = 3;  // The task has been computed and the output is available. If the task also has no more outstanding children, it is considered COMPLETED.
+  FAILED = 4;  // The task has failed.
+  CANCELLED = 5;  // The task has been cancelled due to user request.
+}
+
+// An identifier for a task.
+message TaskIdentifier {
+  string name = 1;  // A unique name of a task (unique within a namespace).
+  string version = 2;  // Version of the task.
+}
+
+// A list of tasks.
+message Tasks {
+  repeated Task tasks = 1;
+}
+
+// TaskSubmission is a message of a task that is just about to be submitted, either by submitting a job or as a subtask.
+message TaskSubmission {
+  string cluster_slug = 1; // The cluster that this task should be run on
+  TaskIdentifier identifier = 2; // The task identifier
+  bytes input = 3; // The serialized task instance
+  string display = 4; // A human-readable description of the task
+  repeated int64 dependencies = 5; // A list of indices, corresponding to tasks in the list of sub_tasks that this SubTask is part of.
+  int64 max_retries = 6; // The maximum number of retries for this task.
+}
+
+// Bytes field (in message)
+message UUID {
+  bytes uuid = 1;
+}
+
+message TaskLease {
+  google.protobuf.Duration lease = 1;
+  google.protobuf.Duration recommended_wait_until_next_extension = 2;
+}

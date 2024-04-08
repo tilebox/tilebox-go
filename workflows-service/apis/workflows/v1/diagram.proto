@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package workflows.v1;
+
+import "workflows/v1/core.proto";
+
+message RenderDiagramRequest {
+  string diagram = 1;  // The diagram graph in the D2 syntax
+  RenderOptions render_options = 2;  // The options for rendering the diagram
+}
+
+message RenderOptions {
+  string layout = 1;  // The layout to use for rendering the diagram: https://d2lang.com/tour/layouts/. "dagre" or "elk". Defaults to "dagre"
+  optional int64 theme_id = 2;  // The theme to use for rendering the diagram: https://d2lang.com/tour/themes/
+  bool sketchy = 3;  // Whether to render the diagram in a sketchy (hand-drawn) style
+  int64 padding = 4;  // The padding around the diagram
+  string direction = 5;  // Set explicitly the direction of the diagram: https://d2lang.com/tour/layouts/#direction. "up", "down", "right", "left".
+}
+
+message Diagram {
+  bytes svg = 1;
+}
+
+service DiagramService {
+  rpc Render(RenderDiagramRequest) returns (Diagram);
+}
