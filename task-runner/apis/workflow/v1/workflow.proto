@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package workflow.v1;
-
-message SpawnWorkflowTreeTask {
-  int64 current_level = 1;
-  int64 depth = 2;
-  int64 branch_factor = 3;
-}
