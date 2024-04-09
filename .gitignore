@@ -7,3 +7,6 @@ scratch
 *.db
 *.db-shm
 *.db-wal
+
+# generated python files
+protogen/python
