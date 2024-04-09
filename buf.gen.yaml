@@ -15,3 +15,10 @@ plugins:
   - plugin: buf.build/connectrpc/go
     out: protogen/go
     opt: paths=source_relative
+
+  - plugin: buf.build/grpc/python
+    out: protogen/python
+  - plugin: buf.build/protocolbuffers/python
+    out: protogen/python
+  - plugin: buf.build/protocolbuffers/pyi
+    out: protogen/python
