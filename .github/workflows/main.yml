@@ -29,10 +29,10 @@ jobs:
           go install github.com/jstemmer/go-junit-report@latest
       - name: Build
         run: go build -v ./...
-      #- name: Run Tests
-      #  run: go test -v ./... | go-junit-report -set-exit-code > test-report.xml
-      #- name: Test Summary
-      #  uses: test-summary/action@v2
-      #  with:
-      #    paths: "test-report.xml"
-      #  if: always()
+      - name: Run Tests
+        run: go test -v ./... | go-junit-report -set-exit-code > test-report.xml
+      - name: Test Summary
+        uses: test-summary/action@v2
+        with:
+          paths: "test-report.xml"
+        if: always()

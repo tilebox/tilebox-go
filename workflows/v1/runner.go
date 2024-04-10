@@ -57,8 +57,8 @@ func (t *TaskRunner) RegisterTask(task ExecutableTask) error {
 	return nil
 }
 
-func (t *TaskRunner) RegisterTasks(task ...ExecutableTask) error {
-	for _, task := range task {
+func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
+	for _, task := range tasks {
 		err := t.RegisterTask(task)
 		if err != nil {
 			return err
