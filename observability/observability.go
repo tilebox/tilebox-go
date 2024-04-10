@@ -2,6 +2,8 @@ package observability
 
 import (
 	"context"
+	"log/slog"
+
 	adapter "github.com/axiomhq/axiom-go/adapters/slog"
 	"github.com/axiomhq/axiom-go/axiom"
 	axiotel "github.com/axiomhq/axiom-go/axiom/otel"
@@ -13,7 +15,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
-	"log/slog"
 )
 
 var propagator = propagation.TraceContext{}
@@ -37,7 +38,7 @@ func AxiomTraceExporter(ctx context.Context, dataset, token string) (trace.SpanE
 	return axiotel.TraceExporter(ctx, dataset, axiotel.SetToken(token))
 }
 
-func SetupOtelTracing(serviceName, serviceVersion string, exporters ...trace.SpanExporter) (shutdown func(ctx context.Context), err error) {
+func SetupOtelTracing(serviceName, serviceVersion string, exporters ...trace.SpanExporter) func(ctx context.Context) {
 	tp := tracerProvider(serviceName, serviceVersion, exporters)
 	otel.SetTracerProvider(tp)
 
@@ -45,7 +46,7 @@ func SetupOtelTracing(serviceName, serviceVersion string, exporters ...trace.Spa
 		_ = tp.Shutdown(ctx)
 	}
 
-	return shutDownFunc, err
+	return shutDownFunc
 }
 
 // tracerProvider configures and returns a new OpenTelemetry tracer provider.
@@ -75,15 +76,15 @@ func GetTraceParentOfCurrentSpan(ctx context.Context) string {
 	return carrier.Get("traceparent")
 }
 
-func StartJobSpan[Result any](tracer oteltrace.Tracer, ctx context.Context, spanName string, job *workflowsv1.Job, f func(ctx context.Context) (Result, error)) (Result, error) {
-	carrier := propagation.MapCarrier{"traceparent": job.TraceParent}
+func StartJobSpan[Result any](ctx context.Context, tracer oteltrace.Tracer, spanName string, job *workflowsv1.Job, f func(ctx context.Context) (Result, error)) (Result, error) {
+	carrier := propagation.MapCarrier{"traceparent": job.GetTraceParent()}
 	ctx = propagator.Extract(ctx, carrier)
 
-	return WithSpanResult(tracer, ctx, spanName, f)
+	return WithSpanResult(ctx, tracer, spanName, f)
 }
 
 // WithSpanResult wraps a function call that returns a result and an error with a tracing span of the given name
-func WithSpanResult[Result any](tracer oteltrace.Tracer, ctx context.Context, name string, f func(ctx context.Context) (Result, error)) (Result, error) {
+func WithSpanResult[Result any](ctx context.Context, tracer oteltrace.Tracer, name string, f func(ctx context.Context) (Result, error)) (Result, error) {
 	ctx, span := tracer.Start(ctx, name)
 	defer span.End()
 

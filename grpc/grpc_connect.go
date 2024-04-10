@@ -1,15 +1,16 @@
 package grpc
 
 import (
-	"connectrpc.com/connect"
 	"context"
 	"errors"
-	"github.com/hashicorp/go-retryablehttp"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"connectrpc.com/connect"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 // RetryOnStatusUnavailable provides a retry policy for retrying requests if the server is unavailable.
@@ -43,7 +44,7 @@ func RetryOnStatusUnavailable(ctx context.Context, resp *http.Response, err erro
 	return false, err
 }
 
-func RetryHttpClient() connect.HTTPClient {
+func RetryHTTPClient() connect.HTTPClient {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryWaitMin = 20 * time.Millisecond
 	retryClient.RetryWaitMax = 5 * time.Second

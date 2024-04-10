@@ -2,10 +2,11 @@ package workflows
 
 import (
 	"context"
-	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
-	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 	"reflect"
 	"testing"
+
+	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 )
 
 type mockClient struct {
@@ -211,7 +212,6 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("withTaskExecutionContext() = %v, want %v", got, tt.want)
 			}
-
 		})
 	}
 }

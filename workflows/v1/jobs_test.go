@@ -1,12 +1,13 @@
 package workflows
 
 import (
-	"connectrpc.com/connect"
 	"context"
-	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
-	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 	"reflect"
 	"testing"
+
+	"connectrpc.com/connect"
+	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 )
 
 type mockJobServiceClient struct {
@@ -14,11 +15,11 @@ type mockJobServiceClient struct {
 	reqs []*workflowsv1.SubmitJobRequest
 }
 
-func (m *mockJobServiceClient) SubmitJob(ctx context.Context, req *connect.Request[workflowsv1.SubmitJobRequest]) (*connect.Response[workflowsv1.Job], error) {
+func (m *mockJobServiceClient) SubmitJob(_ context.Context, req *connect.Request[workflowsv1.SubmitJobRequest]) (*connect.Response[workflowsv1.Job], error) {
 	m.reqs = append(m.reqs, req.Msg)
 
 	return connect.NewResponse(&workflowsv1.Job{
-		Name: req.Msg.JobName,
+		Name: req.Msg.GetJobName(),
 	}), nil
 }
 

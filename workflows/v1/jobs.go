@@ -1,10 +1,12 @@
 package workflows
 
 import (
-	"connectrpc.com/connect"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+
+	"connectrpc.com/connect"
 	"github.com/tilebox/tilebox-go/observability"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
@@ -16,7 +18,6 @@ import (
 type JobService struct {
 	client workflowsv1connect.JobServiceClient
 	tracer trace.Tracer
-	a      int
 }
 
 func NewJobService(client workflowsv1connect.JobServiceClient) *JobService {
@@ -28,7 +29,7 @@ func NewJobService(client workflowsv1connect.JobServiceClient) *JobService {
 
 func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, tasks ...Task) (*workflowsv1.Job, error) {
 	if len(tasks) == 0 {
-		return nil, fmt.Errorf("no tasks to submit")
+		return nil, errors.New("no tasks to submit")
 	}
 
 	rootTasks := make([]*workflowsv1.TaskSubmission, 0)
@@ -67,7 +68,7 @@ func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, t
 		})
 	}
 
-	return observability.WithSpanResult(js.tracer, ctx, fmt.Sprintf("job/%s", jobName), func(ctx context.Context) (*workflowsv1.Job, error) {
+	return observability.WithSpanResult(ctx, js.tracer, fmt.Sprintf("job/%s", jobName), func(ctx context.Context) (*workflowsv1.Job, error) {
 		traceParent := observability.GetTraceParentOfCurrentSpan(ctx)
 
 		job, err := js.client.SubmitJob(ctx, connect.NewRequest(
