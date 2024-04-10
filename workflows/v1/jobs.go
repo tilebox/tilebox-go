@@ -16,6 +16,7 @@ import (
 type JobService struct {
 	client workflowsv1connect.JobServiceClient
 	tracer trace.Tracer
+	a      int
 }
 
 func NewJobService(client workflowsv1connect.JobServiceClient) *JobService {

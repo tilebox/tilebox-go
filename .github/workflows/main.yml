@@ -7,6 +7,9 @@ on:
   merge_group:
     branches: ["**"]
 
+permissions:
+  contents: read # for golangci-lint-action
+
 jobs:
   tests:
     name: Run tests
@@ -36,3 +39,7 @@ jobs:
         with:
           paths: "test-report.xml"
         if: always()
+      - name: Lint
+        uses: golangci/golangci-lint-action@v4
+        with:
+          version: v1.57
