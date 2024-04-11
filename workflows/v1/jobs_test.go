@@ -81,9 +81,13 @@ func TestJobService_Submit(t *testing.T) {
 			if len(client.reqs) != 1 {
 				t.Fatalf("Submit() expected 1 request, got %d", len(client.reqs))
 			}
-			if !reflect.DeepEqual(client.reqs[0], tt.wantReq) {
+			if !reflect.DeepEqual(client.reqs[0].GetTasks(), tt.wantReq.GetTasks()) {
 				t.Errorf("Submit() request = %v, want %v", client.reqs[0], tt.wantReq)
 			}
+			if !reflect.DeepEqual(client.reqs[0].GetJobName(), tt.wantReq.GetJobName()) {
+				t.Errorf("Submit() request = %v, want %v", client.reqs[0], tt.wantReq)
+			}
+			// We don't compare traceparent because it's generated randomly
 		})
 	}
 }
