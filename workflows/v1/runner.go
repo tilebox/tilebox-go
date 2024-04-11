@@ -1,10 +1,18 @@
 package workflows
 
 import (
-	"connectrpc.com/connect"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log/slog"
+	"math/rand/v2"
+	"os/signal"
+	"reflect"
+	"syscall"
+	"time"
+
+	"connectrpc.com/connect"
 	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
@@ -14,12 +22,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
-	"log/slog"
-	"math/rand/v2"
-	"os/signal"
-	"reflect"
-	"syscall"
-	"time"
 )
 
 type ContextKeyTaskExecutionType string
@@ -28,7 +30,7 @@ const ContextKeyTaskExecution ContextKeyTaskExecutionType = "x-tilebox-task-exec
 
 const DefaultClusterSlug = "testing-4qgCk4qHH85qR7"
 
-//const DefaultClusterSlug = "workflow-dev-EifhUozDpwAJDL"
+// const DefaultClusterSlug = "workflow-dev-EifhUozDpwAJDL"
 
 const pollingInterval = 5 * time.Second
 const jitterInterval = 5 * time.Second
@@ -57,8 +59,8 @@ func (t *TaskRunner) RegisterTask(task ExecutableTask) error {
 	return nil
 }
 
-func (t *TaskRunner) RegisterTasks(task ...ExecutableTask) error {
-	for _, task := range task {
+func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
+	for _, task := range tasks {
 		err := t.RegisterTask(task)
 		if err != nil {
 			return err
@@ -67,12 +69,12 @@ func (t *TaskRunner) RegisterTasks(task ...ExecutableTask) error {
 	return nil
 }
 
-func protobufToUuid(id *workflowsv1.UUID) (uuid.UUID, error) {
-	if id == nil || len(id.Uuid) == 0 {
+func protobufToUUID(id *workflowsv1.UUID) (uuid.UUID, error) {
+	if id == nil || len(id.GetUuid()) == 0 {
 		return uuid.Nil, nil
 	}
 
-	bytes, err := uuid.FromBytes(id.Uuid)
+	bytes, err := uuid.FromBytes(id.GetUuid())
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -81,11 +83,11 @@ func protobufToUuid(id *workflowsv1.UUID) (uuid.UUID, error) {
 }
 
 func isEmpty(id *workflowsv1.UUID) bool {
-	taskId, err := protobufToUuid(id)
+	taskID, err := protobufToUUID(id)
 	if err != nil {
 		return false
 	}
-	return taskId == uuid.Nil
+	return taskID == uuid.Nil
 }
 
 // Run runs the task runner forever, looking for new tasks to run and polling for new tasks when idle.
@@ -115,12 +117,12 @@ func (t *TaskRunner) Run(ctx context.Context) {
 				slog.ErrorContext(ctx, "failed to work-steal a task", "error", err)
 				// return  // should we even try again, or just stop here?
 			} else {
-				task = taskResponse.Msg.NextTask
+				task = taskResponse.Msg.GetNextTask()
 			}
 		}
 
 		if task != nil { // we have a task to execute
-			if isEmpty(task.Id) {
+			if isEmpty(task.GetId()) {
 				slog.ErrorContext(ctx, "got a task without an ID - skipping to the next task")
 				task = nil
 				continue
@@ -129,7 +131,7 @@ func (t *TaskRunner) Run(ctx context.Context) {
 			stopExecution := false
 			if err == nil { // in case we got no error, let's mark the task as computed and get the next one
 				computedTask := &workflowsv1.ComputedTask{
-					Id:       task.Id,
+					Id:       task.GetId(),
 					SubTasks: nil,
 				}
 				if executionContext != nil && len(executionContext.Subtasks) > 0 {
@@ -153,7 +155,7 @@ func (t *TaskRunner) Run(ctx context.Context) {
 							slog.ErrorContext(ctx, "failed to mark task as computed, retrying", "error", err)
 							return nil, err
 						}
-						return taskResponse.Msg.NextTask, nil
+						return taskResponse.Msg.GetNextTask(), nil
 					}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
 				)
 				if err != nil {
@@ -165,7 +167,7 @@ func (t *TaskRunner) Run(ctx context.Context) {
 				err = retry.Do(
 					func() error {
 						_, err := t.Client.TaskFailed(ctx, connect.NewRequest(&workflowsv1.TaskFailedRequest{
-							TaskId:    task.Id,
+							TaskId:    task.GetId(),
 							CancelJob: true,
 						}))
 						if err != nil {
@@ -197,38 +199,37 @@ func (t *TaskRunner) Run(ctx context.Context) {
 			case <-timer.C: // the timer expired, let's try to work-steal a task again
 			}
 		}
-
 	}
 }
 
 func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*taskExecutionContext, error) {
 	// start a goroutine to extend the lease of the task continuously until the task execution is finished
 	leaseCtx, stopLeaseExtensions := context.WithCancel(ctx)
-	go extendTaskLease(leaseCtx, t.Client, task.Id, task.Lease.Lease.AsDuration(), task.Lease.RecommendedWaitUntilNextExtension.AsDuration())
+	go extendTaskLease(leaseCtx, t.Client, task.GetId(), task.GetLease().GetLease().AsDuration(), task.GetLease().GetRecommendedWaitUntilNextExtension().AsDuration())
 	defer stopLeaseExtensions()
 
 	// actually execute the task
-	if task.Identifier == nil {
-		return nil, fmt.Errorf("task has no identifier")
+	if task.GetIdentifier() == nil {
+		return nil, errors.New("task has no identifier")
 	}
-	identifier := TaskIdentifier{Name: task.Identifier.Name, Version: task.Identifier.Version}
+	identifier := TaskIdentifier{Name: task.GetIdentifier().GetName(), Version: task.GetIdentifier().GetVersion()}
 	taskPrototype, found := t.taskDefinitions[identifier]
 	if !found {
-		return nil, fmt.Errorf("task %s is not registered on this runner", task.Identifier.Name)
+		return nil, fmt.Errorf("task %s is not registered on this runner", task.GetIdentifier().GetName())
 	}
 
-	return observability.StartJobSpan(t.tracer, ctx, fmt.Sprintf("task/%s", identifier.Name), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
+	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
 		slog.DebugContext(ctx, "executing task", "task", identifier.Name, "version", identifier.Version)
 		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
 
 		_, isProtobuf := taskStruct.(proto.Message)
 		if isProtobuf {
-			err := proto.Unmarshal(task.Input, taskStruct.(proto.Message))
+			err := proto.Unmarshal(task.GetInput(), taskStruct.(proto.Message))
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal protobuf task: %w", err)
 			}
 		} else {
-			err := json.Unmarshal(task.Input, taskStruct)
+			err := json.Unmarshal(task.GetInput(), taskStruct)
 			if err != nil {
 				return nil, fmt.Errorf("failed to unmarshal json task: %w", err)
 			}
@@ -251,7 +252,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 
 // extendTaskLease is a function designed to be run as a goroutine, extending the lease of a task continuously until the
 // context is cancelled, which indicates that the execution of the task is finished.
-func extendTaskLease(ctx context.Context, client workflowsv1connect.TaskServiceClient, taskId *workflowsv1.UUID, initialLease, initialWait time.Duration) {
+func extendTaskLease(ctx context.Context, client workflowsv1connect.TaskServiceClient, taskID *workflowsv1.UUID, initialLease, initialWait time.Duration) {
 	wait := initialWait
 	lease := initialLease
 	for {
@@ -262,26 +263,26 @@ func extendTaskLease(ctx context.Context, client workflowsv1connect.TaskServiceC
 			return
 		case <-timer.C: // the timer expired, let's try to extend the lease
 		}
-		slog.DebugContext(ctx, "extending task lease", "task_id", uuid.Must(uuid.FromBytes(taskId.Uuid)), "lease", lease, "wait", wait)
+		slog.DebugContext(ctx, "extending task lease", "task_id", uuid.Must(uuid.FromBytes(taskID.GetUuid())), "lease", lease, "wait", wait)
 		req := &workflowsv1.TaskLeaseRequest{
-			TaskId:         taskId,
+			TaskId:         taskID,
 			RequestedLease: durationpb.New(2 * lease), // double the current lease duration for the next extension
 		}
 		extension, err := client.ExtendTaskLease(ctx, connect.NewRequest(req))
 		if err != nil {
-			slog.ErrorContext(ctx, "failed to extend task lease", "error", err, "task_id", uuid.Must(uuid.FromBytes(taskId.Uuid)))
+			slog.ErrorContext(ctx, "failed to extend task lease", "error", err, "task_id", uuid.Must(uuid.FromBytes(taskID.GetUuid())))
 			// The server probably has an internal error, but there is no point in trying to extend the lease again
 			// because it will be expired then, so let's just return
 			return
 		}
-		if extension.Msg.Lease == nil {
+		if extension.Msg.GetLease() == nil {
 			// the server did not return a lease extension, it means that there is no need in trying to extend the lease
-			slog.DebugContext(ctx, "task lease extension not granted", "task_id", uuid.Must(uuid.FromBytes(taskId.Uuid)))
+			slog.DebugContext(ctx, "task lease extension not granted", "task_id", uuid.Must(uuid.FromBytes(taskID.GetUuid())))
 			return
 		}
 		// will probably be double the previous lease (since we requested that) or capped by the server at maxLeaseDuration
-		lease = extension.Msg.Lease.AsDuration()
-		wait = extension.Msg.RecommendedWaitUntilNextExtension.AsDuration()
+		lease = extension.Msg.GetLease().AsDuration()
+		wait = extension.Msg.GetRecommendedWaitUntilNextExtension().AsDuration()
 	}
 }
 
@@ -306,7 +307,7 @@ func getTaskExecutionContext(ctx context.Context) *taskExecutionContext {
 func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil {
-		return fmt.Errorf("cannot submit subtask without task execution context")
+		return errors.New("cannot submit subtask without task execution context")
 	}
 
 	for _, task := range tasks {

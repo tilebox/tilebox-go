@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -36,7 +37,7 @@ type ExplicitlyIdentifiableTask interface {
 
 // ExecutableTask is the interface for a task that can be executed, and therefore be registered with a task runner.
 type ExecutableTask interface {
-	Execute(context.Context) error
+	Execute(ctx context.Context) error
 }
 
 func identifierFromTask(task Task) TaskIdentifier {
@@ -52,10 +53,10 @@ func identifierFromTask(task Task) TaskIdentifier {
 // ValidateIdentifier performs client-side validation on a task identifier.
 func ValidateIdentifier(identifier TaskIdentifier) error {
 	if identifier.Name == "" {
-		return fmt.Errorf("task name is empty")
+		return errors.New("task name is empty")
 	}
 	if len(identifier.Name) > 256 {
-		return fmt.Errorf("task name is too long")
+		return errors.New("task name is too long")
 	}
 	_, _, err := parseVersion(identifier.Version)
 	if err != nil {
@@ -87,9 +88,9 @@ func parseVersion(version string) (int64, int64, error) {
 // getStructName returns the name of the struct type of a task. If the task is a pointer, the name of the pointed-to type is returned.
 // This function is used to generate a default identifier name for a task if it doesn't provide an explicit identifier.
 func getStructName(task interface{}) string {
-	if t := reflect.TypeOf(task); t.Kind() == reflect.Ptr {
+	t := reflect.TypeOf(task)
+	if t.Kind() == reflect.Ptr {
 		return t.Elem().Name()
-	} else {
-		return t.Name()
 	}
+	return t.Name()
 }

@@ -1,8 +1,9 @@
 package grpc
 
 import (
-	"connectrpc.com/connect"
 	"context"
+
+	"connectrpc.com/connect"
 )
 
 type addAuthTokenInterceptor struct {
