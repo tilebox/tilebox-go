@@ -2,6 +2,8 @@ package observability
 
 import (
 	"context"
+	"crypto/rand"
+	"fmt"
 	"log/slog"
 
 	adapter "github.com/axiomhq/axiom-go/adapters/slog"
@@ -68,12 +70,41 @@ func tracerProvider(serviceName, serviceVersion string, exporters []trace.SpanEx
 	return trace.NewTracerProvider(opts...)
 }
 
+// generateTraceParent generates a random traceparent.
+// ex: 00-51651128eabd3c6f7695b9e6ee0e337d-03e60705fdf5efe0-01
+func generateTraceParent() (string, error) {
+	traceID := oteltrace.TraceID{}
+	_, err := rand.Read(traceID[:])
+	if err != nil {
+		return "", err
+	}
+
+	spanID := oteltrace.SpanID{}
+	_, err = rand.Read(spanID[:])
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("00-%s-%s-01", traceID, spanID), nil
+}
+
 func GetTraceParentOfCurrentSpan(ctx context.Context) string {
 	carrier := propagation.MapCarrier{}
 
 	propagator.Inject(ctx, carrier)
 
-	return carrier.Get("traceparent")
+	traceparent := carrier.Get("traceparent")
+	if traceparent == "" {
+		// If the tracer is from a NoopTracerProvider, it will not generate a traceparent.
+		// In this case, we generate a random one.
+		traceparent, err := generateTraceParent()
+		if err != nil {
+			slog.ErrorContext(ctx, "failed to generate traceparent", "error", err)
+			return ""
+		}
+		return traceparent
+	}
+	return traceparent
 }
 
 func StartJobSpan[Result any](ctx context.Context, tracer oteltrace.Tracer, spanName string, job *workflowsv1.Job, f func(ctx context.Context) (Result, error)) (Result, error) {
