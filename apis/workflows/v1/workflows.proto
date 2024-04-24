@@ -38,6 +38,7 @@ message ListClustersResponse {
   repeated Cluster clusters = 1;
 }
 
+// A service for managing workflows.
 service WorkflowsService {
   rpc CreateCluster(CreateClusterRequest) returns (Cluster);
   rpc GetCluster(GetClusterRequest) returns (Cluster);

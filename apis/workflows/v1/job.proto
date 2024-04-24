@@ -54,6 +54,7 @@ message VisualizeJobRequest {
   RenderOptions render_options = 2;
 }
 
+// A service for interacting with jobs.
 service JobService {
   rpc SubmitJob(SubmitJobRequest) returns (Job);
   rpc GetJob(GetJobRequest) returns (Job);

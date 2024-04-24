@@ -29,8 +29,9 @@ type NextTaskRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ComputedTask  *ComputedTask  `protobuf:"bytes,1,opt,name=computed_task,json=computedTask,proto3,oneof" json:"computed_task,omitempty"`        // The task that has been computed. If not set, the next task will
-	NextTaskToRun *NextTaskToRun `protobuf:"bytes,2,opt,name=next_task_to_run,json=nextTaskToRun,proto3,oneof" json:"next_task_to_run,omitempty"` // The capabilities of the task runner, and therefore the potential tasks that can be run by that task runner.
+	ComputedTask *ComputedTask `protobuf:"bytes,1,opt,name=computed_task,json=computedTask,proto3,oneof" json:"computed_task,omitempty"` // The task that has been computed. If not set, the next task will
+	// The capabilities of the task runner, and therefore the potential tasks that can be run by that task runner.
+	NextTaskToRun *NextTaskToRun `protobuf:"bytes,2,opt,name=next_task_to_run,json=nextTaskToRun,proto3,oneof" json:"next_task_to_run,omitempty"`
 }
 
 func (x *NextTaskRequest) Reset() {
@@ -142,8 +143,10 @@ type ComputedTask struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id       *UUID             `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                             // The id of the task that has been computed.
-	Display  string            `protobuf:"bytes,2,opt,name=display,proto3" json:"display,omitempty"`                   // A display name for the task that has been computed for visualization purposes. If not set, the display message specified upon task submission will be kept.
+	Id *UUID `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"` // The id of the task that has been computed.
+	// A display name for the task that has been computed for visualization purposes.
+	// If not set, the display message specified upon task submission will be kept.
+	Display  string            `protobuf:"bytes,2,opt,name=display,proto3" json:"display,omitempty"`
 	SubTasks []*TaskSubmission `protobuf:"bytes,3,rep,name=sub_tasks,json=subTasks,proto3" json:"sub_tasks,omitempty"` // A list of sub-tasks that the just computed task spawned.
 }
 
@@ -313,7 +316,8 @@ func (x *TaskFailedRequest) GetCancelJob() bool {
 	return false
 }
 
-// TaskStateResponse is the response to the TaskFailed request, indicating the current state of the task marked as failed.
+// TaskStateResponse is the response to the TaskFailed request,
+// indicating the current state of the task marked as failed.
 type TaskStateResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -358,9 +362,10 @@ func (x *TaskStateResponse) GetState() TaskState {
 	if x != nil {
 		return x.State
 	}
-	return TaskState_UNDEFINED
+	return TaskState_TASK_STATE_UNSPECIFIED
 }
 
+// TaskLease is a message specifying the new lease expiration time of a task.
 type TaskLeaseRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
