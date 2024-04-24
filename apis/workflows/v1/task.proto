@@ -12,7 +12,8 @@ import "workflows/v1/core.proto";
 // NextTaskRequest is the request for requesting the next task to run and marking a task as computed.
 message NextTaskRequest {
   optional ComputedTask computed_task = 1;  // The task that has been computed. If not set, the next task will
-  optional NextTaskToRun next_task_to_run = 2;  // The capabilities of the task runner, and therefore the potential tasks that can be run by that task runner.
+  // The capabilities of the task runner, and therefore the potential tasks that can be run by that task runner.
+  optional NextTaskToRun next_task_to_run = 2;
 }
 
 // NextTaskToRun is a message specifying the capabilities of the task runner, and therefore the potential
@@ -25,7 +26,9 @@ message NextTaskToRun {
 // ComputedTask is a message specifying a task that has been computed by the task runner.
 message ComputedTask {
   UUID id = 1;  // The id of the task that has been computed.
-  string display = 2;  // A display name for the task that has been computed for visualization purposes. If not set, the display message specified upon task submission will be kept.
+  // A display name for the task that has been computed for visualization purposes.
+  // If not set, the display message specified upon task submission will be kept.
+  string display = 2;
   repeated TaskSubmission sub_tasks = 3;  // A list of sub-tasks that the just computed task spawned.
 }
 
@@ -43,16 +46,19 @@ message TaskFailedRequest {
   bool cancel_job = 3;
 }
 
-// TaskStateResponse is the response to the TaskFailed request, indicating the current state of the task marked as failed.
+// TaskStateResponse is the response to the TaskFailed request,
+// indicating the current state of the task marked as failed.
 message TaskStateResponse {
   TaskState state = 1;
 }
 
+// TaskLease is a message specifying the new lease expiration time of a task.
 message TaskLeaseRequest {
   UUID task_id = 1;
   optional google.protobuf.Duration requested_lease = 2;
 }
 
+// A service for task runners to communicate with the workflows service.
 service TaskService {
   // NextTask marks a task as computed and asks for the next task to run.
   // If no task marked as computed is sent, it is assumed that the task runner just started up or was idling so
@@ -64,7 +70,8 @@ service TaskService {
   rpc NextTask(NextTaskRequest) returns (NextTaskResponse);
 
   // TaskFailed tells the task server that we have failed to compute a task.
-  // The task server will then mark the task as queued or failed, depending on the retry policy, and possibly cancel the job.
+  // The task server will then mark the task as queued or failed, depending on the retry policy,
+  // and possibly cancel the job.
   // If a task runner wants to continue executing tasks, it should afterwards fetch a new one using GetTaskToRun.
   rpc TaskFailed(TaskFailedRequest) returns (TaskStateResponse);
 

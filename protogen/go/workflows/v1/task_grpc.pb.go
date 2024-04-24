@@ -39,7 +39,8 @@ type TaskServiceClient interface {
 	// can still be marked as computed this way.
 	NextTask(ctx context.Context, in *NextTaskRequest, opts ...grpc.CallOption) (*NextTaskResponse, error)
 	// TaskFailed tells the task server that we have failed to compute a task.
-	// The task server will then mark the task as queued or failed, depending on the retry policy, and possibly cancel the job.
+	// The task server will then mark the task as queued or failed, depending on the retry policy,
+	// and possibly cancel the job.
 	// If a task runner wants to continue executing tasks, it should afterwards fetch a new one using GetTaskToRun.
 	TaskFailed(ctx context.Context, in *TaskFailedRequest, opts ...grpc.CallOption) (*TaskStateResponse, error)
 	// ExtendTaskLease is called by the task runner to extend the lease on a task.
@@ -96,7 +97,8 @@ type TaskServiceServer interface {
 	// can still be marked as computed this way.
 	NextTask(context.Context, *NextTaskRequest) (*NextTaskResponse, error)
 	// TaskFailed tells the task server that we have failed to compute a task.
-	// The task server will then mark the task as queued or failed, depending on the retry policy, and possibly cancel the job.
+	// The task server will then mark the task as queued or failed, depending on the retry policy,
+	// and possibly cancel the job.
 	// If a task runner wants to continue executing tasks, it should afterwards fetch a new one using GetTaskToRun.
 	TaskFailed(context.Context, *TaskFailedRequest) (*TaskStateResponse, error)
 	// ExtendTaskLease is called by the task runner to extend the lease on a task.

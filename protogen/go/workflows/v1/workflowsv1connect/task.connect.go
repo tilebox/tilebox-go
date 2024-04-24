@@ -63,7 +63,8 @@ type TaskServiceClient interface {
 	// can still be marked as computed this way.
 	NextTask(context.Context, *connect.Request[v1.NextTaskRequest]) (*connect.Response[v1.NextTaskResponse], error)
 	// TaskFailed tells the task server that we have failed to compute a task.
-	// The task server will then mark the task as queued or failed, depending on the retry policy, and possibly cancel the job.
+	// The task server will then mark the task as queued or failed, depending on the retry policy,
+	// and possibly cancel the job.
 	// If a task runner wants to continue executing tasks, it should afterwards fetch a new one using GetTaskToRun.
 	TaskFailed(context.Context, *connect.Request[v1.TaskFailedRequest]) (*connect.Response[v1.TaskStateResponse], error)
 	// ExtendTaskLease is called by the task runner to extend the lease on a task.
@@ -136,7 +137,8 @@ type TaskServiceHandler interface {
 	// can still be marked as computed this way.
 	NextTask(context.Context, *connect.Request[v1.NextTaskRequest]) (*connect.Response[v1.NextTaskResponse], error)
 	// TaskFailed tells the task server that we have failed to compute a task.
-	// The task server will then mark the task as queued or failed, depending on the retry policy, and possibly cancel the job.
+	// The task server will then mark the task as queued or failed, depending on the retry policy,
+	// and possibly cancel the job.
 	// If a task runner wants to continue executing tasks, it should afterwards fetch a new one using GetTaskToRun.
 	TaskFailed(context.Context, *connect.Request[v1.TaskFailedRequest]) (*connect.Response[v1.TaskStateResponse], error)
 	// ExtendTaskLease is called by the task runner to extend the lease on a task.
