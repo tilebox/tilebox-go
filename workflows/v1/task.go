@@ -9,18 +9,40 @@ import (
 	"strconv"
 )
 
+type TaskIdentifier interface {
+	Name() string
+	Version() string
+	Display() string
+}
+
 // TaskIdentifier is the struct that defines the unique identifier of a task.
 // It is used to uniquely identify a task and specify its version.
-type TaskIdentifier struct {
-	Name    string
-	Version string
+type taskIdentifier struct {
+	name    string
+	version string
 }
 
 func NewTaskIdentifier(name, version string) TaskIdentifier {
-	return TaskIdentifier{
-		Name:    name,
-		Version: version,
+	return taskIdentifier{
+		name:    name,
+		version: version,
 	}
+}
+
+// Name returns the name of the task.
+func (t taskIdentifier) Name() string {
+	return t.name
+}
+
+// Version returns the version of the task.
+func (t taskIdentifier) Version() string {
+	return t.version
+}
+
+// Display returns a human-readable string representation of the task identifier, to be used in graph visualizations.
+// Can be overridden during task execution to provide a more descriptive name.
+func (t taskIdentifier) Display() string {
+	return t.name
 }
 
 // Task is the interface for a task that can be submitted to the workflow service.
@@ -44,21 +66,21 @@ func identifierFromTask(task Task) TaskIdentifier {
 	if identifiableTask, ok := task.(ExplicitlyIdentifiableTask); ok {
 		return identifiableTask.Identifier()
 	}
-	return TaskIdentifier{
-		Name:    getStructName(task),
-		Version: "v0.0", // default version if not otherwise specified
+	return &taskIdentifier{
+		name:    getStructName(task),
+		version: "v0.0", // default version if not otherwise specified
 	}
 }
 
 // ValidateIdentifier performs client-side validation on a task identifier.
 func ValidateIdentifier(identifier TaskIdentifier) error {
-	if identifier.Name == "" {
+	if identifier.Name() == "" {
 		return errors.New("task name is empty")
 	}
-	if len(identifier.Name) > 256 {
+	if len(identifier.Name()) > 256 {
 		return errors.New("task name is too long")
 	}
-	_, _, err := parseVersion(identifier.Version)
+	_, _, err := parseVersion(identifier.Version())
 	if err != nil {
 		return err
 	}

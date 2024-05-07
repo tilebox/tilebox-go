@@ -101,8 +101,8 @@ func (t *TaskRunner) Run(ctx context.Context) {
 	for _, task := range t.taskDefinitions {
 		identifier := identifierFromTask(task)
 		identifiers = append(identifiers, &workflowsv1.TaskIdentifier{
-			Name:    identifier.Name,
-			Version: identifier.Version,
+			Name:    identifier.Name(),
+			Version: identifier.Version(),
 		})
 	}
 
@@ -212,7 +212,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 	if task.GetIdentifier() == nil {
 		return nil, errors.New("task has no identifier")
 	}
-	identifier := TaskIdentifier{Name: task.GetIdentifier().GetName(), Version: task.GetIdentifier().GetVersion()}
+	identifier := NewTaskIdentifier(task.GetIdentifier().GetName(), task.GetIdentifier().GetVersion())
 	taskPrototype, found := t.taskDefinitions[identifier]
 	if !found {
 		return nil, fmt.Errorf("task %s is not registered on this runner", task.GetIdentifier().GetName())
@@ -336,12 +336,12 @@ func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
 		executionContext.Subtasks = append(executionContext.Subtasks, &workflowsv1.TaskSubmission{
 			ClusterSlug: DefaultClusterSlug,
 			Identifier: &workflowsv1.TaskIdentifier{
-				Name:    identifier.Name,
-				Version: identifier.Version,
+				Name:    identifier.Name(),
+				Version: identifier.Version(),
 			},
 			Input:        subtaskInput,
 			Dependencies: nil,
-			Display:      identifier.Name,
+			Display:      identifier.Display(),
 		})
 	}
 

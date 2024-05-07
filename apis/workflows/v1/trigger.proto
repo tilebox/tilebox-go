@@ -50,10 +50,11 @@ message BucketTriggers {
   repeated BucketTrigger triggers = 1;
 }
 
+// BucketTask is a task that is triggered by a bucket trigger.
 message BucketTask {
-  string bucket = 1;
-  string object = 2;
-  bytes args = 3;
+  string bucket = 1;  // The bucket that triggered the task
+  string object = 2;  // The object that triggered the task
+  bytes args = 3;  // Additional arguments for the task, to be deserialized by the task
 }
 
 // CronTrigger is a trigger that will trigger a task submission on a schedule.
@@ -77,9 +78,10 @@ message CronTriggers {
   repeated CronTrigger triggers = 1;
 }
 
+// CronTask is a task that is triggered by a cron trigger.
 message CronTask {
-  google.protobuf.Timestamp trigger_time = 1;
-  bytes args = 2;
+  google.protobuf.Timestamp trigger_time = 1;  // The time the cron trigger fired
+  bytes args = 2;  // Additional arguments for the task, to be deserialized by the task
 }
 
 // TriggerService is a service for managing NRT triggers. Currently, we support two types of triggers:

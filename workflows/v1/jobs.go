@@ -60,11 +60,11 @@ func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, t
 		rootTasks = append(rootTasks, &workflowsv1.TaskSubmission{
 			ClusterSlug: clusterSlug,
 			Identifier: &workflowsv1.TaskIdentifier{
-				Name:    identifier.Name,
-				Version: identifier.Version,
+				Name:    identifier.Name(),
+				Version: identifier.Version(),
 			},
 			Input:   subtaskInput,
-			Display: identifier.Name,
+			Display: identifier.Display(),
 		})
 	}
 
