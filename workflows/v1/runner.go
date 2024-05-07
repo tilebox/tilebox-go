@@ -37,14 +37,14 @@ const jitterInterval = 5 * time.Second
 
 type TaskRunner struct {
 	Client          workflowsv1connect.TaskServiceClient
-	taskDefinitions map[TaskIdentifier]ExecutableTask
+	taskDefinitions map[taskIdentifier]ExecutableTask
 	tracer          trace.Tracer
 }
 
 func NewTaskRunner(client workflowsv1connect.TaskServiceClient) *TaskRunner {
 	return &TaskRunner{
 		Client:          client,
-		taskDefinitions: make(map[TaskIdentifier]ExecutableTask),
+		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 		tracer:          otel.Tracer("tilebox.com/observability"),
 	}
 }
@@ -55,8 +55,13 @@ func (t *TaskRunner) RegisterTask(task ExecutableTask) error {
 	if err != nil {
 		return err
 	}
-	t.taskDefinitions[identifier] = task
+	t.taskDefinitions[taskIdentifier{name: identifier.Name(), version: identifier.Version()}] = task
 	return nil
+}
+
+func (t *TaskRunner) GetRegisteredTask(identifier TaskIdentifier) (ExecutableTask, bool) {
+	registeredTask, found := t.taskDefinitions[taskIdentifier{name: identifier.Name(), version: identifier.Version()}]
+	return registeredTask, found
 }
 
 func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
@@ -101,8 +106,8 @@ func (t *TaskRunner) Run(ctx context.Context) {
 	for _, task := range t.taskDefinitions {
 		identifier := identifierFromTask(task)
 		identifiers = append(identifiers, &workflowsv1.TaskIdentifier{
-			Name:    identifier.Name,
-			Version: identifier.Version,
+			Name:    identifier.Name(),
+			Version: identifier.Version(),
 		})
 	}
 
@@ -212,13 +217,13 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 	if task.GetIdentifier() == nil {
 		return nil, errors.New("task has no identifier")
 	}
-	identifier := TaskIdentifier{Name: task.GetIdentifier().GetName(), Version: task.GetIdentifier().GetVersion()}
-	taskPrototype, found := t.taskDefinitions[identifier]
+	identifier := NewTaskIdentifier(task.GetIdentifier().GetName(), task.GetIdentifier().GetVersion())
+	taskPrototype, found := t.GetRegisteredTask(identifier)
 	if !found {
 		return nil, fmt.Errorf("task %s is not registered on this runner", task.GetIdentifier().GetName())
 	}
 
-	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
+	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
 		slog.DebugContext(ctx, "executing task", "task", identifier.Name, "version", identifier.Version)
 		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
 
@@ -336,12 +341,12 @@ func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
 		executionContext.Subtasks = append(executionContext.Subtasks, &workflowsv1.TaskSubmission{
 			ClusterSlug: DefaultClusterSlug,
 			Identifier: &workflowsv1.TaskIdentifier{
-				Name:    identifier.Name,
-				Version: identifier.Version,
+				Name:    identifier.Name(),
+				Version: identifier.Version(),
 			},
 			Input:        subtaskInput,
 			Dependencies: nil,
-			Display:      identifier.Name,
+			Display:      identifier.Display(),
 		})
 	}
 
