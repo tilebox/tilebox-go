@@ -45,6 +45,10 @@ func (t taskIdentifier) Display() string {
 	return t.name
 }
 
+func (t taskIdentifier) String() string {
+	return fmt.Sprintf("%s@%s", t.name, t.version)
+}
+
 // Task is the interface for a task that can be submitted to the workflow service.
 // It doesn't need to be identifiable or executable, but it can be both.
 type Task interface {

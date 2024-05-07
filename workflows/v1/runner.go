@@ -37,14 +37,14 @@ const jitterInterval = 5 * time.Second
 
 type TaskRunner struct {
 	Client          workflowsv1connect.TaskServiceClient
-	taskDefinitions map[TaskIdentifier]ExecutableTask
+	taskDefinitions map[taskIdentifier]ExecutableTask
 	tracer          trace.Tracer
 }
 
 func NewTaskRunner(client workflowsv1connect.TaskServiceClient) *TaskRunner {
 	return &TaskRunner{
 		Client:          client,
-		taskDefinitions: make(map[TaskIdentifier]ExecutableTask),
+		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 		tracer:          otel.Tracer("tilebox.com/observability"),
 	}
 }
@@ -55,8 +55,13 @@ func (t *TaskRunner) RegisterTask(task ExecutableTask) error {
 	if err != nil {
 		return err
 	}
-	t.taskDefinitions[identifier] = task
+	t.taskDefinitions[taskIdentifier{name: identifier.Name(), version: identifier.Version()}] = task
 	return nil
+}
+
+func (t *TaskRunner) GetRegisteredTask(identifier TaskIdentifier) (ExecutableTask, bool) {
+	registeredTask, found := t.taskDefinitions[taskIdentifier{name: identifier.Name(), version: identifier.Version()}]
+	return registeredTask, found
 }
 
 func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
@@ -213,12 +218,12 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 		return nil, errors.New("task has no identifier")
 	}
 	identifier := NewTaskIdentifier(task.GetIdentifier().GetName(), task.GetIdentifier().GetVersion())
-	taskPrototype, found := t.taskDefinitions[identifier]
+	taskPrototype, found := t.GetRegisteredTask(identifier)
 	if !found {
 		return nil, fmt.Errorf("task %s is not registered on this runner", task.GetIdentifier().GetName())
 	}
 
-	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
+	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
 		slog.DebugContext(ctx, "executing task", "task", identifier.Name, "version", identifier.Version)
 		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
 

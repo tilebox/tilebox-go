@@ -62,7 +62,7 @@ func TestTaskRunner_RegisterTask(t *testing.T) {
 			}
 
 			identifier := identifierFromTask(tt.args.task)
-			_, ok := runner.taskDefinitions[identifier]
+			_, ok := runner.GetRegisteredTask(identifier)
 			if ok && tt.wantErr {
 				t1.Errorf("RegisterTask() task found in taskDefinitions")
 			}
@@ -131,7 +131,7 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 			}
 			for _, task := range tt.wantTasks {
 				identifier := identifierFromTask(task)
-				_, ok := runner.taskDefinitions[identifier]
+				_, ok := runner.GetRegisteredTask(identifier)
 				if !ok {
 					t1.Errorf("RegisterTasks() task not found in taskDefinitions")
 				}

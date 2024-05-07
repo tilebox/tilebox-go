@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"reflect"
 	"strings"
 	"testing"
 )
@@ -22,16 +21,17 @@ func TestNewTaskIdentifier(t *testing.T) {
 				name:    "test",
 				version: "v0.0",
 			},
-			want: TaskIdentifier{
-				Name:    "test",
-				Version: "v0.0",
+			want: taskIdentifier{
+				name:    "test",
+				version: "v0.0",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := NewTaskIdentifier(tt.args.name, tt.args.version); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewTaskIdentifier() = %v, wantMajor %v", got, tt.want)
+			got := NewTaskIdentifier(tt.args.name, tt.args.version)
+			if got.Name() != tt.want.Name() || got.Version() != tt.want.Version() {
+				t.Errorf("NewTaskIdentifier() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -42,9 +42,9 @@ type emptyTask struct{}
 type identifiableTask struct{}
 
 func (t *identifiableTask) Identifier() TaskIdentifier {
-	return TaskIdentifier{
-		Name:    "myName",
-		Version: "v1.2",
+	return taskIdentifier{
+		name:    "myName",
+		version: "v1.2",
 	}
 }
 
@@ -62,9 +62,9 @@ func Test_identifierFromTask(t *testing.T) {
 			args: args{
 				task: &emptyTask{},
 			},
-			want: TaskIdentifier{
-				Name:    "emptyTask",
-				Version: "v0.0",
+			want: taskIdentifier{
+				name:    "emptyTask",
+				version: "v0.0",
 			},
 		},
 		{
@@ -72,15 +72,16 @@ func Test_identifierFromTask(t *testing.T) {
 			args: args{
 				task: &identifiableTask{},
 			},
-			want: TaskIdentifier{
-				Name:    "myName",
-				Version: "v1.2",
+			want: taskIdentifier{
+				name:    "myName",
+				version: "v1.2",
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := identifierFromTask(tt.args.task); !reflect.DeepEqual(got, tt.want) {
+			got := identifierFromTask(tt.args.task)
+			if got.Name() != tt.want.Name() || got.Version() != tt.want.Version() {
 				t.Errorf("identifierFromTask() = %v, wantMajor %v", got, tt.want)
 			}
 		})
@@ -100,9 +101,9 @@ func TestValidateIdentifier(t *testing.T) {
 		{
 			name: "ValidateIdentifier",
 			args: args{
-				identifier: TaskIdentifier{
-					Name:    "test",
-					Version: "v0.0",
+				identifier: taskIdentifier{
+					name:    "test",
+					version: "v0.0",
 				},
 			},
 			wantErr: false,
@@ -110,9 +111,9 @@ func TestValidateIdentifier(t *testing.T) {
 		{
 			name: "ValidateIdentifier name empty",
 			args: args{
-				identifier: TaskIdentifier{
-					Name:    "",
-					Version: "v0.0",
+				identifier: taskIdentifier{
+					name:    "",
+					version: "v0.0",
 				},
 			},
 			wantErr:        true,
@@ -121,9 +122,9 @@ func TestValidateIdentifier(t *testing.T) {
 		{
 			name: "ValidateIdentifier name too long",
 			args: args{
-				identifier: TaskIdentifier{
-					Name:    strings.Repeat("a", 257),
-					Version: "v0.0",
+				identifier: taskIdentifier{
+					name:    strings.Repeat("a", 257),
+					version: "v0.0",
 				},
 			},
 			wantErr:        true,
