@@ -50,6 +50,12 @@ message BucketTriggers {
   repeated BucketTrigger triggers = 1;
 }
 
+message BucketTask {
+  string bucket = 1;
+  string object = 2;
+  bytes args = 3;
+}
+
 // CronTrigger is a trigger that will trigger a task submission on a schedule.
 message CronTrigger {
   UUID id = 1;  // Unique identifier for the trigger
@@ -69,6 +75,11 @@ message CronTriggerDetail {
 // CronTriggers is a list of cron triggers
 message CronTriggers {
   repeated CronTrigger triggers = 1;
+}
+
+message CronTask {
+  google.protobuf.Timestamp trigger_time = 1;
+  bytes args = 2;
 }
 
 // TriggerService is a service for managing NRT triggers. Currently, we support two types of triggers:
