@@ -26,7 +26,7 @@ type badIdentifierTask struct {
 }
 
 func (t *badIdentifierTask) Identifier() TaskIdentifier {
-	return TaskIdentifier{Name: "", Version: ""}
+	return NewTaskIdentifier("", "")
 }
 
 func TestTaskRunner_RegisterTask(t *testing.T) {

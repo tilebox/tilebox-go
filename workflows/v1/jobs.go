@@ -27,7 +27,7 @@ func NewJobService(client workflowsv1connect.JobServiceClient) *JobService {
 	}
 }
 
-func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, tasks ...Task) (*workflowsv1.Job, error) {
+func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, maxRetries int, tasks ...Task) (*workflowsv1.Job, error) {
 	if len(tasks) == 0 {
 		return nil, errors.New("no tasks to submit")
 	}
@@ -63,8 +63,9 @@ func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, t
 				Name:    identifier.Name(),
 				Version: identifier.Version(),
 			},
-			Input:   subtaskInput,
-			Display: identifier.Display(),
+			Input:      subtaskInput,
+			Display:    identifier.Display(),
+			MaxRetries: int64(maxRetries),
 		})
 	}
 
