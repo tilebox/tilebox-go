@@ -12,15 +12,15 @@ import "google/protobuf/timestamp.proto";
 // BucketType specifies a kind of storage bucket that we support.
 enum BucketType {
   BUCKET_TYPE_UNSPECIFIED = 0;
-  BUCKET_TYPE_GCP = 1;
-  BUCKET_TYPE_AWS = 2;
+  BUCKET_TYPE_GCS = 1;  // Google Cloud Storage
+  BUCKET_TYPE_S3 = 2;  // Amazon Web Services S3
 }
 
 // Bucket is a storage bucket that can be used as a trigger source.
 message Bucket {
   UUID id = 1;  // Unique identifier for the bucket
   string name = 2;  // The name of the bucket
-  BucketType type = 3;  // The type of the bucket, e.g. GCP, AWS
+  BucketType type = 3;  // The type of the bucket, e.g. GCS, S3
 }
 
 // Buckets is a list of storage buckets
