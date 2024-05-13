@@ -267,7 +267,7 @@ func TestSubmitSubtasks(t *testing.T) {
 			},
 			wantSubtasks: []*workflowsv1.TaskSubmission{
 				{
-					ClusterSlug:  DefaultClusterSlug,
+					ClusterSlug:  cluster,
 					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
 					Input:        []byte("{\"ExecutableTask\":null}"),
 					Display:      "testTask1",
@@ -288,7 +288,7 @@ func TestSubmitSubtasks(t *testing.T) {
 			wantErr: true,
 			wantSubtasks: []*workflowsv1.TaskSubmission{
 				{
-					ClusterSlug:  DefaultClusterSlug,
+					ClusterSlug:  cluster,
 					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
 					Input:        []byte("{\"ExecutableTask\":null}"),
 					Display:      "testTask1",
