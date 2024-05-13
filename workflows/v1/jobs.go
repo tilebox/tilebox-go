@@ -51,8 +51,8 @@ func newJobServiceConfig(options []JobServiceOption) *jobServiceConfig {
 	return cfg
 }
 
-func NewJobService(client workflowsv1connect.JobServiceClient) *JobService {
-	cfg := newJobServiceConfig(nil)
+func NewJobService(client workflowsv1connect.JobServiceClient, options ...JobServiceOption) *JobService {
+	cfg := newJobServiceConfig(options)
 	return &JobService{
 		client: client,
 		tracer: cfg.tracerProvider.Tracer(cfg.tracerName),

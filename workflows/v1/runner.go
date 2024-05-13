@@ -29,10 +29,6 @@ type ContextKeyTaskExecutionType string
 
 const ContextKeyTaskExecution ContextKeyTaskExecutionType = "x-tilebox-task-execution-object"
 
-const DefaultClusterSlug = "testing-4qgCk4qHH85qR7"
-
-// const DefaultClusterSlug = "workflow-dev-EifhUozDpwAJDL"
-
 const pollingInterval = 5 * time.Second
 const jitterInterval = 5 * time.Second
 

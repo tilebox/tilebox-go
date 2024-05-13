@@ -1,13 +1,14 @@
 package workflows
 
 import (
-	"connectrpc.com/connect"
 	"context"
-	"github.com/tilebox/tilebox-go/grpc"
-	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 	"net"
 	"net/http"
 	"strings"
+
+	"connectrpc.com/connect"
+	"github.com/tilebox/tilebox-go/grpc"
+	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 )
 
 // clientConfig contains the configuration for a gRPC client to a workflows service.
