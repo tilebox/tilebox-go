@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"reflect"
 	"testing"
 
@@ -54,9 +55,13 @@ func TestTaskRunner_RegisterTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t1 *testing.T) {
-			runner := NewTaskRunner(mockClient{})
+			runner, err := NewTaskRunner(mockClient{}, WithCluster("testing-4qgCk4qHH85qR7"))
+			if err != nil {
+				t1.Fatalf("Failed to create TaskRunner: %v", err)
+				return
+			}
 
-			err := runner.RegisterTask(tt.args.task)
+			err = runner.RegisterTask(tt.args.task)
 			if (err != nil) != tt.wantErr {
 				t1.Errorf("RegisterTask() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -119,9 +124,13 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t1 *testing.T) {
-			runner := NewTaskRunner(mockClient{})
+			runner, err := NewTaskRunner(mockClient{}, WithCluster("testing-4qgCk4qHH85qR7"))
+			if err != nil {
+				t1.Fatalf("Failed to create TaskRunner: %v", err)
+				return
+			}
 
-			err := runner.RegisterTasks(tt.args.tasks...)
+			err = runner.RegisterTasks(tt.args.tasks...)
 			if (err != nil) != tt.wantErr {
 				t1.Errorf("RegisterTasks() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -181,42 +190,57 @@ func Test_isEmpty(t *testing.T) {
 }
 
 func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
+	cluster := "testing-4qgCk4qHH85qR7"
+
+	runner, err := NewTaskRunner(mockClient{}, WithCluster(cluster))
+	if err != nil {
+		t.Fatalf("Failed to create TaskRunner: %v", err)
+	}
+
+	taskId := uuid.New()
+
 	type args struct {
-		ctx    context.Context
-		client workflowsv1connect.TaskServiceClient
-		task   *workflowsv1.Task
+		ctx  context.Context
+		task *workflowsv1.Task
 	}
 	tests := []struct {
 		name string
 		args args
-		want *taskExecutionContext
 	}{
 		{
 			name: "withTaskExecutionContext",
 			args: args{
-				ctx:    context.Background(),
-				client: mockClient{},
-				task:   nil,
-			},
-			want: &taskExecutionContext{
-				CurrentTask: nil,
-				Client:      mockClient{},
-				Subtasks:    []*workflowsv1.TaskSubmission{},
+				ctx: context.Background(),
+				task: &workflowsv1.Task{
+					Id: &workflowsv1.UUID{Uuid: taskId[:]},
+				},
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			updatedCtx := withTaskExecutionContext(tt.args.ctx, tt.args.client, tt.args.task)
+			updatedCtx := runner.withTaskExecutionContext(tt.args.ctx, tt.args.task)
 			got := getTaskExecutionContext(updatedCtx)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("withTaskExecutionContext() = %v, want %v", got, tt.want)
+			if len(got.Subtasks) != 0 {
+				t.Errorf("withTaskExecutionContext() Subtasks length = %v, want 0", len(got.Subtasks))
+			}
+			if got.CurrentTask.Id != tt.args.task.Id {
+				t.Errorf("withTaskExecutionContext() CurrentTask = %v, want %v", got.CurrentTask, tt.args.task)
 			}
 		})
 	}
 }
 
 func TestSubmitSubtasks(t *testing.T) {
+	cluster := "testing-4qgCk4qHH85qR7"
+
+	runner, err := NewTaskRunner(mockClient{}, WithCluster(cluster))
+	if err != nil {
+		t.Fatalf("Failed to create TaskRunner: %v", err)
+	}
+
+	currentTaskId := uuid.New()
+
 	type args struct {
 		tasks []Task
 	}
@@ -275,7 +299,9 @@ func TestSubmitSubtasks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := withTaskExecutionContext(context.Background(), nil, nil)
+			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
+				Id: &workflowsv1.UUID{Uuid: currentTaskId[:]},
+			})
 
 			err := SubmitSubtasks(ctx, tt.args.tasks...)
 			if (err != nil) != tt.wantErr {

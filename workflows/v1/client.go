@@ -69,13 +69,13 @@ func (o *connectOptions) applyToClient(config *clientConfig) {
 	config.connectOptions = append(config.connectOptions, o.options...)
 }
 
-func newClientConfig(options []ClientOption) clientConfig {
-	cfg := clientConfig{
+func newClientConfig(options []ClientOption) *clientConfig {
+	cfg := &clientConfig{
 		httpClient: grpc.RetryHTTPClient(),
 		url:        "https://api.tilebox.com",
 	}
 	for _, opt := range options {
-		opt.applyToClient(&cfg)
+		opt.applyToClient(cfg)
 	}
 	return cfg
 }
