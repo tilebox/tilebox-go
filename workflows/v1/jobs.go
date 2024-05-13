@@ -15,15 +15,47 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+type jobServiceConfig struct {
+	tracerProvider trace.TracerProvider
+	tracerName     string
+}
+
+type JobServiceOption func(*jobServiceConfig)
+
+func WithJobServiceTracerProvider(tracerProvider trace.TracerProvider) JobServiceOption {
+	return func(cfg *jobServiceConfig) {
+		cfg.tracerProvider = tracerProvider
+	}
+}
+
+func WithJobServiceTracerName(tracerName string) JobServiceOption {
+	return func(cfg *jobServiceConfig) {
+		cfg.tracerName = tracerName
+	}
+}
+
 type JobService struct {
 	client workflowsv1connect.JobServiceClient
 	tracer trace.Tracer
 }
 
-func NewJobService(client workflowsv1connect.JobServiceClient) *JobService {
+func newJobServiceConfig(options []JobServiceOption) *jobServiceConfig {
+	cfg := &jobServiceConfig{
+		tracerProvider: otel.GetTracerProvider(),    // use the global tracer provider by default
+		tracerName:     "tilebox.com/observability", // the default tracer name we use
+	}
+	for _, option := range options {
+		option(cfg)
+	}
+
+	return cfg
+}
+
+func NewJobService(client workflowsv1connect.JobServiceClient, options ...JobServiceOption) *JobService {
+	cfg := newJobServiceConfig(options)
 	return &JobService{
 		client: client,
-		tracer: otel.Tracer("tilebox.com/observability"),
+		tracer: cfg.tracerProvider.Tracer(cfg.tracerName),
 	}
 }
 

@@ -56,14 +56,9 @@ import (
 	"log/slog"
 	"os"
 
-	"connectrpc.com/connect"
 	"github.com/google/uuid"
-	"github.com/tilebox/tilebox-go/grpc"
-	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
-
-const serverURL = "https://api.tilebox.com"
 
 type HelloTask struct {
 	Name string
@@ -72,10 +67,13 @@ type HelloTask struct {
 func main() {
 	ctx := context.Background()
 
-	jobsClient := clientFromConfig(serverURL, os.Getenv("TILEBOX_API_KEY"))
-	jobs := workflows.NewJobService(jobsClient)
+	jobs := workflows.NewJobService(
+		workflows.NewJobClient(
+			workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
+		),
+	)
 
-	job, err := jobs.Submit(ctx, "hello-world", workflows.DefaultClusterSlug,
+	job, err := jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0,
 		&HelloTask{
 			Name: "Tilebox",
 		},
@@ -87,16 +85,6 @@ func main() {
 
 	slog.InfoContext(ctx, "Job submitted", "job_id", uuid.Must(uuid.FromBytes(job.GetId().GetUuid())))
 }
-
-func clientFromConfig(serverURL, authToken string) workflowsv1connect.JobServiceClient {
-	return workflowsv1connect.NewJobServiceClient(
-		grpc.RetryHTTPClient(), serverURL, connect.WithInterceptors(
-			grpc.NewAddAuthTokenInterceptor(func() string {
-				return authToken
-			})),
-	)
-}
-
 ```
 
 ### Running a Worker
@@ -111,13 +99,8 @@ import (
 	"log/slog"
 	"os"
 
-	"connectrpc.com/connect"
-	"github.com/tilebox/tilebox-go/grpc"
-	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
-
-const serverURL = "https://api.tilebox.com"
 
 type HelloTask struct {
 	Name string
@@ -130,10 +113,18 @@ func (t *HelloTask) Execute(context.Context) error {
 }
 
 func main() {
-	taskClient := clientFromConfig(serverURL, os.Getenv("TILEBOX_API_KEY"))
-	runner := workflows.NewTaskRunner(taskClient)
+	runner, err := workflows.NewTaskRunner(
+		workflows.NewTaskClient(
+			workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
+		),
+		workflows.WithCluster("testing-4qgCk4qHH85qR7"),
+	)
+	if err != nil {
+		slog.Error("failed to create task runner", "error", err)
+		return
+	}
 
-	err := runner.RegisterTasks(
+	err = runner.RegisterTasks(
 		&HelloTask{},
 	)
 	if err != nil {
@@ -142,14 +133,5 @@ func main() {
 	}
 
 	runner.Run(context.Background())
-}
-
-func clientFromConfig(serverURL, authToken string) workflowsv1connect.TaskServiceClient {
-	return workflowsv1connect.NewTaskServiceClient(
-		grpc.RetryHTTPClient(), serverURL, connect.WithInterceptors(
-			grpc.NewAddAuthTokenInterceptor(func() string {
-				return authToken
-			})),
-	)
 }
 ```
