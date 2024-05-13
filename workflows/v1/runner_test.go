@@ -2,9 +2,10 @@ package workflows
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"reflect"
 	"testing"
+
+	"github.com/google/uuid"
 
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
@@ -197,7 +198,7 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 		t.Fatalf("Failed to create TaskRunner: %v", err)
 	}
 
-	taskId := uuid.New()
+	taskID := uuid.New()
 
 	type args struct {
 		ctx  context.Context
@@ -212,7 +213,7 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				task: &workflowsv1.Task{
-					Id: &workflowsv1.UUID{Uuid: taskId[:]},
+					Id: &workflowsv1.UUID{Uuid: taskID[:]},
 				},
 			},
 		},
@@ -224,7 +225,7 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 			if len(got.Subtasks) != 0 {
 				t.Errorf("withTaskExecutionContext() Subtasks length = %v, want 0", len(got.Subtasks))
 			}
-			if got.CurrentTask.Id != tt.args.task.Id {
+			if got.CurrentTask.GetId() != tt.args.task.GetId() {
 				t.Errorf("withTaskExecutionContext() CurrentTask = %v, want %v", got.CurrentTask, tt.args.task)
 			}
 		})
@@ -239,7 +240,7 @@ func TestSubmitSubtasks(t *testing.T) {
 		t.Fatalf("Failed to create TaskRunner: %v", err)
 	}
 
-	currentTaskId := uuid.New()
+	currentTaskID := uuid.New()
 
 	type args struct {
 		tasks []Task
@@ -300,7 +301,7 @@ func TestSubmitSubtasks(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
-				Id: &workflowsv1.UUID{Uuid: currentTaskId[:]},
+				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
 			})
 
 			err := SubmitSubtasks(ctx, tt.args.tasks...)
