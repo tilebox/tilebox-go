@@ -16,57 +16,32 @@ type clientConfig struct {
 
 // ClientOption is an interface for configuring a client. Using such options helpers is a
 // quite common pattern in Go, as it allows for optional parameters in constructors.
-// This concrete implementation here is inspired by how connect does its client configuration.
-type ClientOption interface {
-	applyToClient(config *clientConfig)
-}
-
-type httpClientOption struct {
-	httpClient connect.HTTPClient
-}
+// This concrete implementation here is inspired by how libraries such as axiom-go and connect do their
+// configuration.
+type ClientOption func(*clientConfig)
 
 func WithHTTPClient(httpClient connect.HTTPClient) ClientOption {
-	return &httpClientOption{httpClient}
-}
-
-func (o *httpClientOption) applyToClient(config *clientConfig) {
-	config.httpClient = o.httpClient
-}
-
-type apiKeyOption struct {
-	apiKey string
-}
-
-type urlOption struct {
-	url string
+	return func(cfg *clientConfig) {
+		cfg.httpClient = httpClient
+	}
 }
 
 func WithURL(url string) ClientOption {
-	return &urlOption{url}
-}
-
-func (o *urlOption) applyToClient(config *clientConfig) {
-	config.url = o.url
+	return func(cfg *clientConfig) {
+		cfg.url = url
+	}
 }
 
 func WithAPIKey(apiKey string) ClientOption {
-	return &apiKeyOption{apiKey}
-}
-
-func (o *apiKeyOption) applyToClient(config *clientConfig) {
-	config.apiKey = o.apiKey
-}
-
-type connectOptions struct {
-	options []connect.ClientOption
+	return func(cfg *clientConfig) {
+		cfg.apiKey = apiKey
+	}
 }
 
 func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
-	return &connectOptions{options}
-}
-
-func (o *connectOptions) applyToClient(config *clientConfig) {
-	config.connectOptions = append(config.connectOptions, o.options...)
+	return func(cfg *clientConfig) {
+		cfg.connectOptions = append(cfg.connectOptions, options...)
+	}
 }
 
 func newClientConfig(options []ClientOption) *clientConfig {
@@ -74,8 +49,8 @@ func newClientConfig(options []ClientOption) *clientConfig {
 		httpClient: grpc.RetryHTTPClient(),
 		url:        "https://api.tilebox.com",
 	}
-	for _, opt := range options {
-		opt.applyToClient(cfg)
+	for _, option := range options {
+		option(cfg)
 	}
 	return cfg
 }

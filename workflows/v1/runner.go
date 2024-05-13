@@ -12,13 +12,14 @@ import (
 	"syscall"
 	"time"
 
+	"go.opentelemetry.io/otel"
+
 	"connectrpc.com/connect"
 	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -36,58 +37,46 @@ const pollingInterval = 5 * time.Second
 const jitterInterval = 5 * time.Second
 
 type taskRunnerConfig struct {
-	clusterSlug string
-	tracer      trace.Tracer
-	log         *slog.Logger
+	clusterSlug    string
+	tracerProvider trace.TracerProvider
+	tracerName     string
+	logger         *slog.Logger
 }
 
-type TaskRunnerOption interface {
-	applyToRunner(config *taskRunnerConfig)
-}
-
-type withClusterSlogOption struct {
-	clusterSlug string
-}
+type TaskRunnerOption func(*taskRunnerConfig)
 
 func WithCluster(clusterSlug string) TaskRunnerOption {
-	return &withClusterSlogOption{clusterSlug}
+	return func(cfg *taskRunnerConfig) {
+		cfg.clusterSlug = clusterSlug
+	}
 }
 
-func (o *withClusterSlogOption) applyToRunner(config *taskRunnerConfig) {
-	config.clusterSlug = o.clusterSlug
+func WithRunnerTracerProvider(tracerProvider trace.TracerProvider) TaskRunnerOption {
+	return func(cfg *taskRunnerConfig) {
+		cfg.tracerProvider = tracerProvider
+	}
 }
 
-type withTracerOption struct {
-	tracer trace.Tracer
+func WithRunnerTracerName(tracerName string) TaskRunnerOption {
+	return func(cfg *taskRunnerConfig) {
+		cfg.tracerName = tracerName
+	}
 }
 
-func WithTracer(tracer trace.Tracer) TaskRunnerOption {
-	return &withTracerOption{tracer}
-}
-
-func (o *withTracerOption) applyToRunner(config *taskRunnerConfig) {
-	config.tracer = o.tracer
-}
-
-type withLoggerOption struct {
-	logger *slog.Logger
-}
-
-func WithLogger(logger *slog.Logger) TaskRunnerOption {
-	return &withLoggerOption{logger}
-}
-
-func (o *withLoggerOption) applyToRunner(config *taskRunnerConfig) {
-	config.log = o.logger
+func WithRunnerLogger(logger *slog.Logger) TaskRunnerOption {
+	return func(cfg *taskRunnerConfig) {
+		cfg.logger = logger
+	}
 }
 
 func newTaskRunnerConfig(options []TaskRunnerOption) (*taskRunnerConfig, error) {
 	cfg := &taskRunnerConfig{
-		tracer: otel.Tracer("tilebox.com/observability"),
-		log:    slog.Default(),
+		tracerProvider: otel.GetTracerProvider(),    // use the global tracer provider by default
+		tracerName:     "tilebox.com/observability", // the default tracer name we use
+		logger:         slog.Default(),
 	}
-	for _, opt := range options {
-		opt.applyToRunner(cfg)
+	for _, option := range options {
+		option(cfg)
 	}
 
 	if cfg.clusterSlug == "" {
@@ -116,8 +105,8 @@ func NewTaskRunner(client workflowsv1connect.TaskServiceClient, options ...TaskR
 		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 
 		cluster: cfg.clusterSlug,
-		tracer:  cfg.tracer,
-		logger:  cfg.log,
+		tracer:  cfg.tracerProvider.Tracer(cfg.tracerName),
+		logger:  cfg.logger,
 	}, nil
 }
 
