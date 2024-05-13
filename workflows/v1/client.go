@@ -2,8 +2,12 @@ package workflows
 
 import (
 	"connectrpc.com/connect"
+	"context"
 	"github.com/tilebox/tilebox-go/grpc"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
+	"net"
+	"net/http"
+	"strings"
 )
 
 // clientConfig contains the configuration for a gRPC client to a workflows service.
@@ -46,12 +50,26 @@ func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
 
 func newClientConfig(options []ClientOption) *clientConfig {
 	cfg := &clientConfig{
-		httpClient: grpc.RetryHTTPClient(),
-		url:        "https://api.tilebox.com",
+		url: "https://api.tilebox.com",
 	}
 	for _, option := range options {
 		option(cfg)
 	}
+
+	// if no http client is set by the user, we use a default one
+	if cfg.httpClient == nil {
+		// if the URL looks like an HTTP URL, we use a retrying HTTP client
+		if strings.HasPrefix(cfg.url, "https://") || strings.HasPrefix(cfg.url, "http://") {
+			cfg.httpClient = grpc.RetryHTTPClient()
+		} else { // we connect to a unix socket
+			dial := func(context.Context, string, string) (net.Conn, error) {
+				return net.Dial("unix", cfg.url)
+			}
+			transport := &http.Transport{DialContext: dial}
+			cfg.httpClient = &http.Client{Transport: transport}
+		}
+	}
+
 	return cfg
 }
 
