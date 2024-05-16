@@ -281,7 +281,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 	}
 
 	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
-		t.logger.DebugContext(ctx, "executing task", "task", identifier.Name, "version", identifier.Version)
+		t.logger.DebugContext(ctx, "executing task", "task", identifier.Name(), "version", identifier.Version())
 		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
 
 		_, isProtobuf := taskStruct.(proto.Message)
@@ -408,4 +408,27 @@ func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
 	}
 
 	return nil
+}
+
+func WithTaskSpanResult[Result any](ctx context.Context, name string, f func(ctx context.Context) (Result, error)) (Result, error) {
+	executionContext := getTaskExecutionContext(ctx)
+	var nilResult Result // the nil value of the result type, e.g. nil, "" or 0
+	if executionContext == nil {
+		return nilResult, errors.New("cannot start a task span: context is not a task execution context")
+	}
+	if executionContext.runner.tracer == nil {
+		return nilResult, errors.New("cannot start a task span: tracer is not configured")
+	}
+	return observability.WithSpanResult(ctx, executionContext.runner.tracer, name, f)
+}
+
+func WithTaskSpan(ctx context.Context, name string, f func(ctx context.Context) error) error {
+	executionContext := getTaskExecutionContext(ctx)
+	if executionContext == nil {
+		return errors.New("cannot start a task span: context is not a task execution context")
+	}
+	if executionContext.runner.tracer == nil {
+		return errors.New("cannot start a task span: tracer is not configured")
+	}
+	return observability.WithSpan(ctx, executionContext.runner.tracer, name, f)
 }

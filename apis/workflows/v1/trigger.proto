@@ -31,52 +31,43 @@ message Buckets {
 
 // BucketTrigger is NRT trigger registered on a bucket, that will trigger a task submission when an object matching
 // the glob pattern is uploaded.
-message BucketTrigger {
+message RecurrentTask {
   UUID id = 1;  // Unique identifier for the trigger
   string name = 2;  // A human-readable name for the trigger
-  Bucket bucket = 3;  // The bucket to watch
-  string glob_pattern = 4;  // A glob pattern to match objects in the bucket
-  TaskSubmission prototype = 5;  // The task submission to trigger
+  TaskSubmission prototype = 3;  // The task submission to trigger
+
+  repeated BucketTrigger bucket_triggers = 4;  // The bucket triggers that will trigger the task
+  repeated CronTrigger cron_triggers = 5;  // The cron triggers that will trigger the task
 }
 
-// BucketTriggerDetail is a bucket trigger with additional (auto-generated) information
-message BucketTriggerDetail {
-  BucketTrigger trigger = 1;  // The bucket trigger
-  string trace_parent = 2;  // A common trace parent for all jobs / tasks created by this trigger
-  optional UUID last_job = 3;  // The ID of the last job created by this trigger
+// RecurrentTasks is a list of recurrent tasks
+message RecurrentTasks {
+  repeated RecurrentTask tasks = 1;
 }
 
-// BucketTriggers is a list of bucket triggers
-message BucketTriggers {
-  repeated BucketTrigger triggers = 1;
+// BucketTrigger is a trigger that will trigger a task submission when an object matching the glob pattern is uploaded
+// to a bucket.
+message BucketTrigger {
+  UUID id = 1;  // Unique identifier for the trigger
+  Bucket bucket = 2;  // The bucket to watch
+  string glob_pattern = 3;  // A glob pattern to match objects in the bucket
 }
 
 // BucketTask is a task that is triggered by a bucket trigger.
 message BucketTask {
   string bucket = 1;  // The bucket that triggered the task
   string object = 2;  // The object that triggered the task
-  bytes args = 3;  // Additional arguments for the task, to be deserialized by the task
+  BucketType type = 3;  // The type of the bucket that triggered the task
+  bytes args = 4;  // Additional arguments for the task, to be deserialized by the task
 }
 
 // CronTrigger is a trigger that will trigger a task submission on a schedule.
 message CronTrigger {
   UUID id = 1;  // Unique identifier for the trigger
-  string name = 2; // A human-readable name for the trigger
-  string schedule = 3;  // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
-  TaskSubmission prototype = 4;  // The task submission to trigger
-}
+  string schedule = 2;  // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
 
-// CronTriggerDetail is a cron trigger with additional (auto-generated) information
-message CronTriggerDetail {
-  CronTrigger trigger = 1;  // The cron trigger
-  string trace_parent = 2;  // A common trace parent for all jobs / tasks created by this trigger
-  optional UUID last_job = 3;  // The ID of the last job created by this trigger
+  // auto-generated, read-only fields
   google.protobuf.Timestamp next = 4;  // The next time the trigger will fire
-}
-
-// CronTriggers is a list of cron triggers
-message CronTriggers {
-  repeated CronTrigger triggers = 1;
 }
 
 // CronTask is a task that is triggered by a cron trigger.
@@ -92,17 +83,14 @@ service TriggerService {
   // ListBuckets lists all the storage buckets that are available for use as bucket triggers.
   rpc ListBuckets(google.protobuf.Empty) returns (Buckets);
 
-  // UpsertBucketTrigger creates or updates a bucket trigger in a namespace.
-  rpc UpsertBucketTrigger(BucketTrigger) returns (BucketTrigger);
-  // ListBucketTriggers lists all the bucket triggers that are currently registered in a namespace.
-  rpc ListBucketTriggers(google.protobuf.Empty) returns (BucketTriggers);
-  // DeleteBucketTrigger deletes a bucket trigger from a namespace.
-  rpc DeleteBucketTrigger(UUID) returns (google.protobuf.Empty);
-
-  // UpsertCronTrigger creates or updates a cron trigger in a namespace.
-  rpc UpsertCronTrigger(CronTrigger) returns (CronTrigger);
-  // ListCronTriggers lists all the cron triggers that are currently registered in a namespace.
-  rpc ListCronTriggers(google.protobuf.Empty) returns (BucketTriggers);
-  // DeleteCronTrigger deletes a cron trigger from a namespace.
-  rpc DeleteCronTrigger(UUID) returns (google.protobuf.Empty);
+  // ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
+  rpc ListRecurrentTasks(google.protobuf.Empty) returns (RecurrentTask);
+  // GetRecurrentTask gets a recurrent task by its ID.
+  rpc GetRecurrentTask(UUID) returns (RecurrentTask);
+  // CreateRecurrentTask creates a new recurrent task in a namespace.
+  rpc CreateRecurrentTask(RecurrentTask) returns (RecurrentTask);
+  // UpdateRecurrentTask updates a recurrent task in a namespace.
+  rpc UpdateRecurrentTask(RecurrentTask) returns (RecurrentTask);
+  // DeleteRecurrentTask deletes a recurrent task from a namespace.
+  rpc DeleteRecurrentTask(UUID) returns (google.protobuf.Empty);
 }
