@@ -23,12 +23,11 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	TriggerService_ListBuckets_FullMethodName         = "/workflows.v1.TriggerService/ListBuckets"
-	TriggerService_UpsertBucketTrigger_FullMethodName = "/workflows.v1.TriggerService/UpsertBucketTrigger"
-	TriggerService_ListBucketTriggers_FullMethodName  = "/workflows.v1.TriggerService/ListBucketTriggers"
-	TriggerService_DeleteBucketTrigger_FullMethodName = "/workflows.v1.TriggerService/DeleteBucketTrigger"
-	TriggerService_UpsertCronTrigger_FullMethodName   = "/workflows.v1.TriggerService/UpsertCronTrigger"
-	TriggerService_ListCronTriggers_FullMethodName    = "/workflows.v1.TriggerService/ListCronTriggers"
-	TriggerService_DeleteCronTrigger_FullMethodName   = "/workflows.v1.TriggerService/DeleteCronTrigger"
+	TriggerService_ListRecurrentTasks_FullMethodName  = "/workflows.v1.TriggerService/ListRecurrentTasks"
+	TriggerService_GetRecurrentTask_FullMethodName    = "/workflows.v1.TriggerService/GetRecurrentTask"
+	TriggerService_CreateRecurrentTask_FullMethodName = "/workflows.v1.TriggerService/CreateRecurrentTask"
+	TriggerService_UpdateRecurrentTask_FullMethodName = "/workflows.v1.TriggerService/UpdateRecurrentTask"
+	TriggerService_DeleteRecurrentTask_FullMethodName = "/workflows.v1.TriggerService/DeleteRecurrentTask"
 )
 
 // TriggerServiceClient is the client API for TriggerService service.
@@ -37,18 +36,16 @@ const (
 type TriggerServiceClient interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Buckets, error)
-	// UpsertBucketTrigger creates or updates a bucket trigger in a namespace.
-	UpsertBucketTrigger(ctx context.Context, in *BucketTrigger, opts ...grpc.CallOption) (*BucketTrigger, error)
-	// ListBucketTriggers lists all the bucket triggers that are currently registered in a namespace.
-	ListBucketTriggers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*BucketTriggers, error)
-	// DeleteBucketTrigger deletes a bucket trigger from a namespace.
-	DeleteBucketTrigger(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
-	// UpsertCronTrigger creates or updates a cron trigger in a namespace.
-	UpsertCronTrigger(ctx context.Context, in *CronTrigger, opts ...grpc.CallOption) (*CronTrigger, error)
-	// ListCronTriggers lists all the cron triggers that are currently registered in a namespace.
-	ListCronTriggers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*BucketTriggers, error)
-	// DeleteCronTrigger deletes a cron trigger from a namespace.
-	DeleteCronTrigger(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
+	ListRecurrentTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RecurrentTask, error)
+	// GetRecurrentTask gets a recurrent task by its ID.
+	GetRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*RecurrentTask, error)
+	// CreateRecurrentTask creates a new recurrent task in a namespace.
+	CreateRecurrentTask(ctx context.Context, in *RecurrentTask, opts ...grpc.CallOption) (*RecurrentTask, error)
+	// UpdateRecurrentTask updates a recurrent task in a namespace.
+	UpdateRecurrentTask(ctx context.Context, in *RecurrentTask, opts ...grpc.CallOption) (*RecurrentTask, error)
+	// DeleteRecurrentTask deletes a recurrent task from a namespace.
+	DeleteRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type triggerServiceClient struct {
@@ -68,54 +65,45 @@ func (c *triggerServiceClient) ListBuckets(ctx context.Context, in *emptypb.Empt
 	return out, nil
 }
 
-func (c *triggerServiceClient) UpsertBucketTrigger(ctx context.Context, in *BucketTrigger, opts ...grpc.CallOption) (*BucketTrigger, error) {
-	out := new(BucketTrigger)
-	err := c.cc.Invoke(ctx, TriggerService_UpsertBucketTrigger_FullMethodName, in, out, opts...)
+func (c *triggerServiceClient) ListRecurrentTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RecurrentTask, error) {
+	out := new(RecurrentTask)
+	err := c.cc.Invoke(ctx, TriggerService_ListRecurrentTasks_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *triggerServiceClient) ListBucketTriggers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*BucketTriggers, error) {
-	out := new(BucketTriggers)
-	err := c.cc.Invoke(ctx, TriggerService_ListBucketTriggers_FullMethodName, in, out, opts...)
+func (c *triggerServiceClient) GetRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*RecurrentTask, error) {
+	out := new(RecurrentTask)
+	err := c.cc.Invoke(ctx, TriggerService_GetRecurrentTask_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *triggerServiceClient) DeleteBucketTrigger(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *triggerServiceClient) CreateRecurrentTask(ctx context.Context, in *RecurrentTask, opts ...grpc.CallOption) (*RecurrentTask, error) {
+	out := new(RecurrentTask)
+	err := c.cc.Invoke(ctx, TriggerService_CreateRecurrentTask_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *triggerServiceClient) UpdateRecurrentTask(ctx context.Context, in *RecurrentTask, opts ...grpc.CallOption) (*RecurrentTask, error) {
+	out := new(RecurrentTask)
+	err := c.cc.Invoke(ctx, TriggerService_UpdateRecurrentTask_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *triggerServiceClient) DeleteRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, TriggerService_DeleteBucketTrigger_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *triggerServiceClient) UpsertCronTrigger(ctx context.Context, in *CronTrigger, opts ...grpc.CallOption) (*CronTrigger, error) {
-	out := new(CronTrigger)
-	err := c.cc.Invoke(ctx, TriggerService_UpsertCronTrigger_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *triggerServiceClient) ListCronTriggers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*BucketTriggers, error) {
-	out := new(BucketTriggers)
-	err := c.cc.Invoke(ctx, TriggerService_ListCronTriggers_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *triggerServiceClient) DeleteCronTrigger(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, TriggerService_DeleteCronTrigger_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, TriggerService_DeleteRecurrentTask_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -128,18 +116,16 @@ func (c *triggerServiceClient) DeleteCronTrigger(ctx context.Context, in *UUID, 
 type TriggerServiceServer interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *emptypb.Empty) (*Buckets, error)
-	// UpsertBucketTrigger creates or updates a bucket trigger in a namespace.
-	UpsertBucketTrigger(context.Context, *BucketTrigger) (*BucketTrigger, error)
-	// ListBucketTriggers lists all the bucket triggers that are currently registered in a namespace.
-	ListBucketTriggers(context.Context, *emptypb.Empty) (*BucketTriggers, error)
-	// DeleteBucketTrigger deletes a bucket trigger from a namespace.
-	DeleteBucketTrigger(context.Context, *UUID) (*emptypb.Empty, error)
-	// UpsertCronTrigger creates or updates a cron trigger in a namespace.
-	UpsertCronTrigger(context.Context, *CronTrigger) (*CronTrigger, error)
-	// ListCronTriggers lists all the cron triggers that are currently registered in a namespace.
-	ListCronTriggers(context.Context, *emptypb.Empty) (*BucketTriggers, error)
-	// DeleteCronTrigger deletes a cron trigger from a namespace.
-	DeleteCronTrigger(context.Context, *UUID) (*emptypb.Empty, error)
+	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
+	ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTask, error)
+	// GetRecurrentTask gets a recurrent task by its ID.
+	GetRecurrentTask(context.Context, *UUID) (*RecurrentTask, error)
+	// CreateRecurrentTask creates a new recurrent task in a namespace.
+	CreateRecurrentTask(context.Context, *RecurrentTask) (*RecurrentTask, error)
+	// UpdateRecurrentTask updates a recurrent task in a namespace.
+	UpdateRecurrentTask(context.Context, *RecurrentTask) (*RecurrentTask, error)
+	// DeleteRecurrentTask deletes a recurrent task from a namespace.
+	DeleteRecurrentTask(context.Context, *UUID) (*emptypb.Empty, error)
 	mustEmbedUnimplementedTriggerServiceServer()
 }
 
@@ -150,23 +136,20 @@ type UnimplementedTriggerServiceServer struct {
 func (UnimplementedTriggerServiceServer) ListBuckets(context.Context, *emptypb.Empty) (*Buckets, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
 }
-func (UnimplementedTriggerServiceServer) UpsertBucketTrigger(context.Context, *BucketTrigger) (*BucketTrigger, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpsertBucketTrigger not implemented")
+func (UnimplementedTriggerServiceServer) ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTask, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRecurrentTasks not implemented")
 }
-func (UnimplementedTriggerServiceServer) ListBucketTriggers(context.Context, *emptypb.Empty) (*BucketTriggers, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListBucketTriggers not implemented")
+func (UnimplementedTriggerServiceServer) GetRecurrentTask(context.Context, *UUID) (*RecurrentTask, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRecurrentTask not implemented")
 }
-func (UnimplementedTriggerServiceServer) DeleteBucketTrigger(context.Context, *UUID) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteBucketTrigger not implemented")
+func (UnimplementedTriggerServiceServer) CreateRecurrentTask(context.Context, *RecurrentTask) (*RecurrentTask, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRecurrentTask not implemented")
 }
-func (UnimplementedTriggerServiceServer) UpsertCronTrigger(context.Context, *CronTrigger) (*CronTrigger, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpsertCronTrigger not implemented")
+func (UnimplementedTriggerServiceServer) UpdateRecurrentTask(context.Context, *RecurrentTask) (*RecurrentTask, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRecurrentTask not implemented")
 }
-func (UnimplementedTriggerServiceServer) ListCronTriggers(context.Context, *emptypb.Empty) (*BucketTriggers, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListCronTriggers not implemented")
-}
-func (UnimplementedTriggerServiceServer) DeleteCronTrigger(context.Context, *UUID) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteCronTrigger not implemented")
+func (UnimplementedTriggerServiceServer) DeleteRecurrentTask(context.Context, *UUID) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRecurrentTask not implemented")
 }
 func (UnimplementedTriggerServiceServer) mustEmbedUnimplementedTriggerServiceServer() {}
 
@@ -199,110 +182,92 @@ func _TriggerService_ListBuckets_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TriggerService_UpsertBucketTrigger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BucketTrigger)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(TriggerServiceServer).UpsertBucketTrigger(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: TriggerService_UpsertBucketTrigger_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TriggerServiceServer).UpsertBucketTrigger(ctx, req.(*BucketTrigger))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _TriggerService_ListBucketTriggers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TriggerService_ListRecurrentTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TriggerServiceServer).ListBucketTriggers(ctx, in)
+		return srv.(TriggerServiceServer).ListRecurrentTasks(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TriggerService_ListBucketTriggers_FullMethodName,
+		FullMethod: TriggerService_ListRecurrentTasks_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TriggerServiceServer).ListBucketTriggers(ctx, req.(*emptypb.Empty))
+		return srv.(TriggerServiceServer).ListRecurrentTasks(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TriggerService_DeleteBucketTrigger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TriggerService_GetRecurrentTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UUID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TriggerServiceServer).DeleteBucketTrigger(ctx, in)
+		return srv.(TriggerServiceServer).GetRecurrentTask(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TriggerService_DeleteBucketTrigger_FullMethodName,
+		FullMethod: TriggerService_GetRecurrentTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TriggerServiceServer).DeleteBucketTrigger(ctx, req.(*UUID))
+		return srv.(TriggerServiceServer).GetRecurrentTask(ctx, req.(*UUID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TriggerService_UpsertCronTrigger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CronTrigger)
+func _TriggerService_CreateRecurrentTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecurrentTask)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TriggerServiceServer).UpsertCronTrigger(ctx, in)
+		return srv.(TriggerServiceServer).CreateRecurrentTask(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TriggerService_UpsertCronTrigger_FullMethodName,
+		FullMethod: TriggerService_CreateRecurrentTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TriggerServiceServer).UpsertCronTrigger(ctx, req.(*CronTrigger))
+		return srv.(TriggerServiceServer).CreateRecurrentTask(ctx, req.(*RecurrentTask))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TriggerService_ListCronTriggers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+func _TriggerService_UpdateRecurrentTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RecurrentTask)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TriggerServiceServer).ListCronTriggers(ctx, in)
+		return srv.(TriggerServiceServer).UpdateRecurrentTask(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TriggerService_ListCronTriggers_FullMethodName,
+		FullMethod: TriggerService_UpdateRecurrentTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TriggerServiceServer).ListCronTriggers(ctx, req.(*emptypb.Empty))
+		return srv.(TriggerServiceServer).UpdateRecurrentTask(ctx, req.(*RecurrentTask))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TriggerService_DeleteCronTrigger_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TriggerService_DeleteRecurrentTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UUID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TriggerServiceServer).DeleteCronTrigger(ctx, in)
+		return srv.(TriggerServiceServer).DeleteRecurrentTask(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TriggerService_DeleteCronTrigger_FullMethodName,
+		FullMethod: TriggerService_DeleteRecurrentTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TriggerServiceServer).DeleteCronTrigger(ctx, req.(*UUID))
+		return srv.(TriggerServiceServer).DeleteRecurrentTask(ctx, req.(*UUID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -319,28 +284,24 @@ var TriggerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TriggerService_ListBuckets_Handler,
 		},
 		{
-			MethodName: "UpsertBucketTrigger",
-			Handler:    _TriggerService_UpsertBucketTrigger_Handler,
+			MethodName: "ListRecurrentTasks",
+			Handler:    _TriggerService_ListRecurrentTasks_Handler,
 		},
 		{
-			MethodName: "ListBucketTriggers",
-			Handler:    _TriggerService_ListBucketTriggers_Handler,
+			MethodName: "GetRecurrentTask",
+			Handler:    _TriggerService_GetRecurrentTask_Handler,
 		},
 		{
-			MethodName: "DeleteBucketTrigger",
-			Handler:    _TriggerService_DeleteBucketTrigger_Handler,
+			MethodName: "CreateRecurrentTask",
+			Handler:    _TriggerService_CreateRecurrentTask_Handler,
 		},
 		{
-			MethodName: "UpsertCronTrigger",
-			Handler:    _TriggerService_UpsertCronTrigger_Handler,
+			MethodName: "UpdateRecurrentTask",
+			Handler:    _TriggerService_UpdateRecurrentTask_Handler,
 		},
 		{
-			MethodName: "ListCronTriggers",
-			Handler:    _TriggerService_ListCronTriggers_Handler,
-		},
-		{
-			MethodName: "DeleteCronTrigger",
-			Handler:    _TriggerService_DeleteCronTrigger_Handler,
+			MethodName: "DeleteRecurrentTask",
+			Handler:    _TriggerService_DeleteRecurrentTask_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

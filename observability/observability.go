@@ -24,7 +24,7 @@ var propagator = propagation.TraceContext{}
 // NewAxiomLogger returns a slog.Logger that logs to Axiom.
 // It also returns a shutdown function that should be called when the logger is no longer needed, to ensure
 // all logs are flushed.
-func NewAxiomLogger(dataset, token string, level slog.Level) (*slog.Logger, func(), error) {
+func NewAxiomLogger(dataset, token string, level slog.Level, addTracing bool) (slog.Handler, func(), error) {
 	noShutdown := func() {}
 	client, err := axiom.NewClient(axiom.SetToken(token))
 	if err != nil {
@@ -40,7 +40,11 @@ func NewAxiomLogger(dataset, token string, level slog.Level) (*slog.Logger, func
 		return nil, noShutdown, err
 	}
 
-	return slog.New(slogotel.OtelHandler{Next: axiomHandler}), axiomHandler.Close, nil
+	if !addTracing {
+		return axiomHandler, axiomHandler.Close, nil
+	}
+
+	return slogotel.OtelHandler{Next: axiomHandler}, axiomHandler.Close, nil
 }
 
 func NewAxiomTracerProvider(ctx context.Context, dataset, token, serviceName, serviceVersion string) (oteltrace.TracerProvider, func(), error) {
@@ -121,4 +125,17 @@ func WithSpanResult[Result any](ctx context.Context, tracer oteltrace.Tracer, na
 		span.SetStatus(codes.Error, err.Error())
 	}
 	return result, err
+}
+
+// WithSpan wraps a function call with a tracing span of the given name
+func WithSpan(ctx context.Context, tracer oteltrace.Tracer, name string, f func(ctx context.Context) error) error {
+	ctx, span := tracer.Start(ctx, name)
+	defer span.End()
+
+	err := f(ctx)
+	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+	}
+	return err
 }

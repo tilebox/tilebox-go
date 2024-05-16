@@ -39,54 +39,48 @@ const (
 	// TriggerServiceListBucketsProcedure is the fully-qualified name of the TriggerService's
 	// ListBuckets RPC.
 	TriggerServiceListBucketsProcedure = "/workflows.v1.TriggerService/ListBuckets"
-	// TriggerServiceUpsertBucketTriggerProcedure is the fully-qualified name of the TriggerService's
-	// UpsertBucketTrigger RPC.
-	TriggerServiceUpsertBucketTriggerProcedure = "/workflows.v1.TriggerService/UpsertBucketTrigger"
-	// TriggerServiceListBucketTriggersProcedure is the fully-qualified name of the TriggerService's
-	// ListBucketTriggers RPC.
-	TriggerServiceListBucketTriggersProcedure = "/workflows.v1.TriggerService/ListBucketTriggers"
-	// TriggerServiceDeleteBucketTriggerProcedure is the fully-qualified name of the TriggerService's
-	// DeleteBucketTrigger RPC.
-	TriggerServiceDeleteBucketTriggerProcedure = "/workflows.v1.TriggerService/DeleteBucketTrigger"
-	// TriggerServiceUpsertCronTriggerProcedure is the fully-qualified name of the TriggerService's
-	// UpsertCronTrigger RPC.
-	TriggerServiceUpsertCronTriggerProcedure = "/workflows.v1.TriggerService/UpsertCronTrigger"
-	// TriggerServiceListCronTriggersProcedure is the fully-qualified name of the TriggerService's
-	// ListCronTriggers RPC.
-	TriggerServiceListCronTriggersProcedure = "/workflows.v1.TriggerService/ListCronTriggers"
-	// TriggerServiceDeleteCronTriggerProcedure is the fully-qualified name of the TriggerService's
-	// DeleteCronTrigger RPC.
-	TriggerServiceDeleteCronTriggerProcedure = "/workflows.v1.TriggerService/DeleteCronTrigger"
+	// TriggerServiceListRecurrentTasksProcedure is the fully-qualified name of the TriggerService's
+	// ListRecurrentTasks RPC.
+	TriggerServiceListRecurrentTasksProcedure = "/workflows.v1.TriggerService/ListRecurrentTasks"
+	// TriggerServiceGetRecurrentTaskProcedure is the fully-qualified name of the TriggerService's
+	// GetRecurrentTask RPC.
+	TriggerServiceGetRecurrentTaskProcedure = "/workflows.v1.TriggerService/GetRecurrentTask"
+	// TriggerServiceCreateRecurrentTaskProcedure is the fully-qualified name of the TriggerService's
+	// CreateRecurrentTask RPC.
+	TriggerServiceCreateRecurrentTaskProcedure = "/workflows.v1.TriggerService/CreateRecurrentTask"
+	// TriggerServiceUpdateRecurrentTaskProcedure is the fully-qualified name of the TriggerService's
+	// UpdateRecurrentTask RPC.
+	TriggerServiceUpdateRecurrentTaskProcedure = "/workflows.v1.TriggerService/UpdateRecurrentTask"
+	// TriggerServiceDeleteRecurrentTaskProcedure is the fully-qualified name of the TriggerService's
+	// DeleteRecurrentTask RPC.
+	TriggerServiceDeleteRecurrentTaskProcedure = "/workflows.v1.TriggerService/DeleteRecurrentTask"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
 	triggerServiceServiceDescriptor                   = v1.File_workflows_v1_trigger_proto.Services().ByName("TriggerService")
 	triggerServiceListBucketsMethodDescriptor         = triggerServiceServiceDescriptor.Methods().ByName("ListBuckets")
-	triggerServiceUpsertBucketTriggerMethodDescriptor = triggerServiceServiceDescriptor.Methods().ByName("UpsertBucketTrigger")
-	triggerServiceListBucketTriggersMethodDescriptor  = triggerServiceServiceDescriptor.Methods().ByName("ListBucketTriggers")
-	triggerServiceDeleteBucketTriggerMethodDescriptor = triggerServiceServiceDescriptor.Methods().ByName("DeleteBucketTrigger")
-	triggerServiceUpsertCronTriggerMethodDescriptor   = triggerServiceServiceDescriptor.Methods().ByName("UpsertCronTrigger")
-	triggerServiceListCronTriggersMethodDescriptor    = triggerServiceServiceDescriptor.Methods().ByName("ListCronTriggers")
-	triggerServiceDeleteCronTriggerMethodDescriptor   = triggerServiceServiceDescriptor.Methods().ByName("DeleteCronTrigger")
+	triggerServiceListRecurrentTasksMethodDescriptor  = triggerServiceServiceDescriptor.Methods().ByName("ListRecurrentTasks")
+	triggerServiceGetRecurrentTaskMethodDescriptor    = triggerServiceServiceDescriptor.Methods().ByName("GetRecurrentTask")
+	triggerServiceCreateRecurrentTaskMethodDescriptor = triggerServiceServiceDescriptor.Methods().ByName("CreateRecurrentTask")
+	triggerServiceUpdateRecurrentTaskMethodDescriptor = triggerServiceServiceDescriptor.Methods().ByName("UpdateRecurrentTask")
+	triggerServiceDeleteRecurrentTaskMethodDescriptor = triggerServiceServiceDescriptor.Methods().ByName("DeleteRecurrentTask")
 )
 
 // TriggerServiceClient is a client for the workflows.v1.TriggerService service.
 type TriggerServiceClient interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error)
-	// UpsertBucketTrigger creates or updates a bucket trigger in a namespace.
-	UpsertBucketTrigger(context.Context, *connect.Request[v1.BucketTrigger]) (*connect.Response[v1.BucketTrigger], error)
-	// ListBucketTriggers lists all the bucket triggers that are currently registered in a namespace.
-	ListBucketTriggers(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.BucketTriggers], error)
-	// DeleteBucketTrigger deletes a bucket trigger from a namespace.
-	DeleteBucketTrigger(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
-	// UpsertCronTrigger creates or updates a cron trigger in a namespace.
-	UpsertCronTrigger(context.Context, *connect.Request[v1.CronTrigger]) (*connect.Response[v1.CronTrigger], error)
-	// ListCronTriggers lists all the cron triggers that are currently registered in a namespace.
-	ListCronTriggers(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.BucketTriggers], error)
-	// DeleteCronTrigger deletes a cron trigger from a namespace.
-	DeleteCronTrigger(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
+	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
+	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTask], error)
+	// GetRecurrentTask gets a recurrent task by its ID.
+	GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error)
+	// CreateRecurrentTask creates a new recurrent task in a namespace.
+	CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error)
+	// UpdateRecurrentTask updates a recurrent task in a namespace.
+	UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error)
+	// DeleteRecurrentTask deletes a recurrent task from a namespace.
+	DeleteRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
 }
 
 // NewTriggerServiceClient constructs a client for the workflows.v1.TriggerService service. By
@@ -105,40 +99,34 @@ func NewTriggerServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(triggerServiceListBucketsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		upsertBucketTrigger: connect.NewClient[v1.BucketTrigger, v1.BucketTrigger](
+		listRecurrentTasks: connect.NewClient[emptypb.Empty, v1.RecurrentTask](
 			httpClient,
-			baseURL+TriggerServiceUpsertBucketTriggerProcedure,
-			connect.WithSchema(triggerServiceUpsertBucketTriggerMethodDescriptor),
+			baseURL+TriggerServiceListRecurrentTasksProcedure,
+			connect.WithSchema(triggerServiceListRecurrentTasksMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		listBucketTriggers: connect.NewClient[emptypb.Empty, v1.BucketTriggers](
+		getRecurrentTask: connect.NewClient[v1.UUID, v1.RecurrentTask](
 			httpClient,
-			baseURL+TriggerServiceListBucketTriggersProcedure,
-			connect.WithSchema(triggerServiceListBucketTriggersMethodDescriptor),
+			baseURL+TriggerServiceGetRecurrentTaskProcedure,
+			connect.WithSchema(triggerServiceGetRecurrentTaskMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		deleteBucketTrigger: connect.NewClient[v1.UUID, emptypb.Empty](
+		createRecurrentTask: connect.NewClient[v1.RecurrentTask, v1.RecurrentTask](
 			httpClient,
-			baseURL+TriggerServiceDeleteBucketTriggerProcedure,
-			connect.WithSchema(triggerServiceDeleteBucketTriggerMethodDescriptor),
+			baseURL+TriggerServiceCreateRecurrentTaskProcedure,
+			connect.WithSchema(triggerServiceCreateRecurrentTaskMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		upsertCronTrigger: connect.NewClient[v1.CronTrigger, v1.CronTrigger](
+		updateRecurrentTask: connect.NewClient[v1.RecurrentTask, v1.RecurrentTask](
 			httpClient,
-			baseURL+TriggerServiceUpsertCronTriggerProcedure,
-			connect.WithSchema(triggerServiceUpsertCronTriggerMethodDescriptor),
+			baseURL+TriggerServiceUpdateRecurrentTaskProcedure,
+			connect.WithSchema(triggerServiceUpdateRecurrentTaskMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		listCronTriggers: connect.NewClient[emptypb.Empty, v1.BucketTriggers](
+		deleteRecurrentTask: connect.NewClient[v1.UUID, emptypb.Empty](
 			httpClient,
-			baseURL+TriggerServiceListCronTriggersProcedure,
-			connect.WithSchema(triggerServiceListCronTriggersMethodDescriptor),
-			connect.WithClientOptions(opts...),
-		),
-		deleteCronTrigger: connect.NewClient[v1.UUID, emptypb.Empty](
-			httpClient,
-			baseURL+TriggerServiceDeleteCronTriggerProcedure,
-			connect.WithSchema(triggerServiceDeleteCronTriggerMethodDescriptor),
+			baseURL+TriggerServiceDeleteRecurrentTaskProcedure,
+			connect.WithSchema(triggerServiceDeleteRecurrentTaskMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -147,12 +135,11 @@ func NewTriggerServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 // triggerServiceClient implements TriggerServiceClient.
 type triggerServiceClient struct {
 	listBuckets         *connect.Client[emptypb.Empty, v1.Buckets]
-	upsertBucketTrigger *connect.Client[v1.BucketTrigger, v1.BucketTrigger]
-	listBucketTriggers  *connect.Client[emptypb.Empty, v1.BucketTriggers]
-	deleteBucketTrigger *connect.Client[v1.UUID, emptypb.Empty]
-	upsertCronTrigger   *connect.Client[v1.CronTrigger, v1.CronTrigger]
-	listCronTriggers    *connect.Client[emptypb.Empty, v1.BucketTriggers]
-	deleteCronTrigger   *connect.Client[v1.UUID, emptypb.Empty]
+	listRecurrentTasks  *connect.Client[emptypb.Empty, v1.RecurrentTask]
+	getRecurrentTask    *connect.Client[v1.UUID, v1.RecurrentTask]
+	createRecurrentTask *connect.Client[v1.RecurrentTask, v1.RecurrentTask]
+	updateRecurrentTask *connect.Client[v1.RecurrentTask, v1.RecurrentTask]
+	deleteRecurrentTask *connect.Client[v1.UUID, emptypb.Empty]
 }
 
 // ListBuckets calls workflows.v1.TriggerService.ListBuckets.
@@ -160,52 +147,45 @@ func (c *triggerServiceClient) ListBuckets(ctx context.Context, req *connect.Req
 	return c.listBuckets.CallUnary(ctx, req)
 }
 
-// UpsertBucketTrigger calls workflows.v1.TriggerService.UpsertBucketTrigger.
-func (c *triggerServiceClient) UpsertBucketTrigger(ctx context.Context, req *connect.Request[v1.BucketTrigger]) (*connect.Response[v1.BucketTrigger], error) {
-	return c.upsertBucketTrigger.CallUnary(ctx, req)
+// ListRecurrentTasks calls workflows.v1.TriggerService.ListRecurrentTasks.
+func (c *triggerServiceClient) ListRecurrentTasks(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTask], error) {
+	return c.listRecurrentTasks.CallUnary(ctx, req)
 }
 
-// ListBucketTriggers calls workflows.v1.TriggerService.ListBucketTriggers.
-func (c *triggerServiceClient) ListBucketTriggers(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.BucketTriggers], error) {
-	return c.listBucketTriggers.CallUnary(ctx, req)
+// GetRecurrentTask calls workflows.v1.TriggerService.GetRecurrentTask.
+func (c *triggerServiceClient) GetRecurrentTask(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error) {
+	return c.getRecurrentTask.CallUnary(ctx, req)
 }
 
-// DeleteBucketTrigger calls workflows.v1.TriggerService.DeleteBucketTrigger.
-func (c *triggerServiceClient) DeleteBucketTrigger(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
-	return c.deleteBucketTrigger.CallUnary(ctx, req)
+// CreateRecurrentTask calls workflows.v1.TriggerService.CreateRecurrentTask.
+func (c *triggerServiceClient) CreateRecurrentTask(ctx context.Context, req *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error) {
+	return c.createRecurrentTask.CallUnary(ctx, req)
 }
 
-// UpsertCronTrigger calls workflows.v1.TriggerService.UpsertCronTrigger.
-func (c *triggerServiceClient) UpsertCronTrigger(ctx context.Context, req *connect.Request[v1.CronTrigger]) (*connect.Response[v1.CronTrigger], error) {
-	return c.upsertCronTrigger.CallUnary(ctx, req)
+// UpdateRecurrentTask calls workflows.v1.TriggerService.UpdateRecurrentTask.
+func (c *triggerServiceClient) UpdateRecurrentTask(ctx context.Context, req *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error) {
+	return c.updateRecurrentTask.CallUnary(ctx, req)
 }
 
-// ListCronTriggers calls workflows.v1.TriggerService.ListCronTriggers.
-func (c *triggerServiceClient) ListCronTriggers(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.BucketTriggers], error) {
-	return c.listCronTriggers.CallUnary(ctx, req)
-}
-
-// DeleteCronTrigger calls workflows.v1.TriggerService.DeleteCronTrigger.
-func (c *triggerServiceClient) DeleteCronTrigger(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
-	return c.deleteCronTrigger.CallUnary(ctx, req)
+// DeleteRecurrentTask calls workflows.v1.TriggerService.DeleteRecurrentTask.
+func (c *triggerServiceClient) DeleteRecurrentTask(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
+	return c.deleteRecurrentTask.CallUnary(ctx, req)
 }
 
 // TriggerServiceHandler is an implementation of the workflows.v1.TriggerService service.
 type TriggerServiceHandler interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error)
-	// UpsertBucketTrigger creates or updates a bucket trigger in a namespace.
-	UpsertBucketTrigger(context.Context, *connect.Request[v1.BucketTrigger]) (*connect.Response[v1.BucketTrigger], error)
-	// ListBucketTriggers lists all the bucket triggers that are currently registered in a namespace.
-	ListBucketTriggers(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.BucketTriggers], error)
-	// DeleteBucketTrigger deletes a bucket trigger from a namespace.
-	DeleteBucketTrigger(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
-	// UpsertCronTrigger creates or updates a cron trigger in a namespace.
-	UpsertCronTrigger(context.Context, *connect.Request[v1.CronTrigger]) (*connect.Response[v1.CronTrigger], error)
-	// ListCronTriggers lists all the cron triggers that are currently registered in a namespace.
-	ListCronTriggers(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.BucketTriggers], error)
-	// DeleteCronTrigger deletes a cron trigger from a namespace.
-	DeleteCronTrigger(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
+	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
+	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTask], error)
+	// GetRecurrentTask gets a recurrent task by its ID.
+	GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error)
+	// CreateRecurrentTask creates a new recurrent task in a namespace.
+	CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error)
+	// UpdateRecurrentTask updates a recurrent task in a namespace.
+	UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error)
+	// DeleteRecurrentTask deletes a recurrent task from a namespace.
+	DeleteRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
 }
 
 // NewTriggerServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -220,58 +200,50 @@ func NewTriggerServiceHandler(svc TriggerServiceHandler, opts ...connect.Handler
 		connect.WithSchema(triggerServiceListBucketsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	triggerServiceUpsertBucketTriggerHandler := connect.NewUnaryHandler(
-		TriggerServiceUpsertBucketTriggerProcedure,
-		svc.UpsertBucketTrigger,
-		connect.WithSchema(triggerServiceUpsertBucketTriggerMethodDescriptor),
+	triggerServiceListRecurrentTasksHandler := connect.NewUnaryHandler(
+		TriggerServiceListRecurrentTasksProcedure,
+		svc.ListRecurrentTasks,
+		connect.WithSchema(triggerServiceListRecurrentTasksMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	triggerServiceListBucketTriggersHandler := connect.NewUnaryHandler(
-		TriggerServiceListBucketTriggersProcedure,
-		svc.ListBucketTriggers,
-		connect.WithSchema(triggerServiceListBucketTriggersMethodDescriptor),
+	triggerServiceGetRecurrentTaskHandler := connect.NewUnaryHandler(
+		TriggerServiceGetRecurrentTaskProcedure,
+		svc.GetRecurrentTask,
+		connect.WithSchema(triggerServiceGetRecurrentTaskMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	triggerServiceDeleteBucketTriggerHandler := connect.NewUnaryHandler(
-		TriggerServiceDeleteBucketTriggerProcedure,
-		svc.DeleteBucketTrigger,
-		connect.WithSchema(triggerServiceDeleteBucketTriggerMethodDescriptor),
+	triggerServiceCreateRecurrentTaskHandler := connect.NewUnaryHandler(
+		TriggerServiceCreateRecurrentTaskProcedure,
+		svc.CreateRecurrentTask,
+		connect.WithSchema(triggerServiceCreateRecurrentTaskMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	triggerServiceUpsertCronTriggerHandler := connect.NewUnaryHandler(
-		TriggerServiceUpsertCronTriggerProcedure,
-		svc.UpsertCronTrigger,
-		connect.WithSchema(triggerServiceUpsertCronTriggerMethodDescriptor),
+	triggerServiceUpdateRecurrentTaskHandler := connect.NewUnaryHandler(
+		TriggerServiceUpdateRecurrentTaskProcedure,
+		svc.UpdateRecurrentTask,
+		connect.WithSchema(triggerServiceUpdateRecurrentTaskMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	triggerServiceListCronTriggersHandler := connect.NewUnaryHandler(
-		TriggerServiceListCronTriggersProcedure,
-		svc.ListCronTriggers,
-		connect.WithSchema(triggerServiceListCronTriggersMethodDescriptor),
-		connect.WithHandlerOptions(opts...),
-	)
-	triggerServiceDeleteCronTriggerHandler := connect.NewUnaryHandler(
-		TriggerServiceDeleteCronTriggerProcedure,
-		svc.DeleteCronTrigger,
-		connect.WithSchema(triggerServiceDeleteCronTriggerMethodDescriptor),
+	triggerServiceDeleteRecurrentTaskHandler := connect.NewUnaryHandler(
+		TriggerServiceDeleteRecurrentTaskProcedure,
+		svc.DeleteRecurrentTask,
+		connect.WithSchema(triggerServiceDeleteRecurrentTaskMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/workflows.v1.TriggerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TriggerServiceListBucketsProcedure:
 			triggerServiceListBucketsHandler.ServeHTTP(w, r)
-		case TriggerServiceUpsertBucketTriggerProcedure:
-			triggerServiceUpsertBucketTriggerHandler.ServeHTTP(w, r)
-		case TriggerServiceListBucketTriggersProcedure:
-			triggerServiceListBucketTriggersHandler.ServeHTTP(w, r)
-		case TriggerServiceDeleteBucketTriggerProcedure:
-			triggerServiceDeleteBucketTriggerHandler.ServeHTTP(w, r)
-		case TriggerServiceUpsertCronTriggerProcedure:
-			triggerServiceUpsertCronTriggerHandler.ServeHTTP(w, r)
-		case TriggerServiceListCronTriggersProcedure:
-			triggerServiceListCronTriggersHandler.ServeHTTP(w, r)
-		case TriggerServiceDeleteCronTriggerProcedure:
-			triggerServiceDeleteCronTriggerHandler.ServeHTTP(w, r)
+		case TriggerServiceListRecurrentTasksProcedure:
+			triggerServiceListRecurrentTasksHandler.ServeHTTP(w, r)
+		case TriggerServiceGetRecurrentTaskProcedure:
+			triggerServiceGetRecurrentTaskHandler.ServeHTTP(w, r)
+		case TriggerServiceCreateRecurrentTaskProcedure:
+			triggerServiceCreateRecurrentTaskHandler.ServeHTTP(w, r)
+		case TriggerServiceUpdateRecurrentTaskProcedure:
+			triggerServiceUpdateRecurrentTaskHandler.ServeHTTP(w, r)
+		case TriggerServiceDeleteRecurrentTaskProcedure:
+			triggerServiceDeleteRecurrentTaskHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -285,26 +257,22 @@ func (UnimplementedTriggerServiceHandler) ListBuckets(context.Context, *connect.
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.ListBuckets is not implemented"))
 }
 
-func (UnimplementedTriggerServiceHandler) UpsertBucketTrigger(context.Context, *connect.Request[v1.BucketTrigger]) (*connect.Response[v1.BucketTrigger], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.UpsertBucketTrigger is not implemented"))
+func (UnimplementedTriggerServiceHandler) ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTask], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.ListRecurrentTasks is not implemented"))
 }
 
-func (UnimplementedTriggerServiceHandler) ListBucketTriggers(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.BucketTriggers], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.ListBucketTriggers is not implemented"))
+func (UnimplementedTriggerServiceHandler) GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.GetRecurrentTask is not implemented"))
 }
 
-func (UnimplementedTriggerServiceHandler) DeleteBucketTrigger(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.DeleteBucketTrigger is not implemented"))
+func (UnimplementedTriggerServiceHandler) CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.CreateRecurrentTask is not implemented"))
 }
 
-func (UnimplementedTriggerServiceHandler) UpsertCronTrigger(context.Context, *connect.Request[v1.CronTrigger]) (*connect.Response[v1.CronTrigger], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.UpsertCronTrigger is not implemented"))
+func (UnimplementedTriggerServiceHandler) UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.UpdateRecurrentTask is not implemented"))
 }
 
-func (UnimplementedTriggerServiceHandler) ListCronTriggers(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.BucketTriggers], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.ListCronTriggers is not implemented"))
-}
-
-func (UnimplementedTriggerServiceHandler) DeleteCronTrigger(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.DeleteCronTrigger is not implemented"))
+func (UnimplementedTriggerServiceHandler) DeleteRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.DeleteRecurrentTask is not implemented"))
 }
