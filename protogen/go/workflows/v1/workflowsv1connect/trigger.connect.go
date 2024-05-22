@@ -72,7 +72,7 @@ type TriggerServiceClient interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
-	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTask], error)
+	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error)
 	// GetRecurrentTask gets a recurrent task by its ID.
 	GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error)
 	// CreateRecurrentTask creates a new recurrent task in a namespace.
@@ -99,7 +99,7 @@ func NewTriggerServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(triggerServiceListBucketsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		listRecurrentTasks: connect.NewClient[emptypb.Empty, v1.RecurrentTask](
+		listRecurrentTasks: connect.NewClient[emptypb.Empty, v1.RecurrentTasks](
 			httpClient,
 			baseURL+TriggerServiceListRecurrentTasksProcedure,
 			connect.WithSchema(triggerServiceListRecurrentTasksMethodDescriptor),
@@ -135,7 +135,7 @@ func NewTriggerServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 // triggerServiceClient implements TriggerServiceClient.
 type triggerServiceClient struct {
 	listBuckets         *connect.Client[emptypb.Empty, v1.Buckets]
-	listRecurrentTasks  *connect.Client[emptypb.Empty, v1.RecurrentTask]
+	listRecurrentTasks  *connect.Client[emptypb.Empty, v1.RecurrentTasks]
 	getRecurrentTask    *connect.Client[v1.UUID, v1.RecurrentTask]
 	createRecurrentTask *connect.Client[v1.RecurrentTask, v1.RecurrentTask]
 	updateRecurrentTask *connect.Client[v1.RecurrentTask, v1.RecurrentTask]
@@ -148,7 +148,7 @@ func (c *triggerServiceClient) ListBuckets(ctx context.Context, req *connect.Req
 }
 
 // ListRecurrentTasks calls workflows.v1.TriggerService.ListRecurrentTasks.
-func (c *triggerServiceClient) ListRecurrentTasks(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTask], error) {
+func (c *triggerServiceClient) ListRecurrentTasks(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error) {
 	return c.listRecurrentTasks.CallUnary(ctx, req)
 }
 
@@ -177,7 +177,7 @@ type TriggerServiceHandler interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
-	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTask], error)
+	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error)
 	// GetRecurrentTask gets a recurrent task by its ID.
 	GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error)
 	// CreateRecurrentTask creates a new recurrent task in a namespace.
@@ -257,7 +257,7 @@ func (UnimplementedTriggerServiceHandler) ListBuckets(context.Context, *connect.
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.ListBuckets is not implemented"))
 }
 
-func (UnimplementedTriggerServiceHandler) ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTask], error) {
+func (UnimplementedTriggerServiceHandler) ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TriggerService.ListRecurrentTasks is not implemented"))
 }
 

@@ -67,6 +67,7 @@ message CronTrigger {
   string schedule = 2;  // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
 
   // auto-generated, read-only fields
+  google.protobuf.Timestamp previous = 3;  // The last time the trigger fired previously
   google.protobuf.Timestamp next = 4;  // The next time the trigger will fire
 }
 
@@ -84,7 +85,7 @@ service TriggerService {
   rpc ListBuckets(google.protobuf.Empty) returns (Buckets);
 
   // ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
-  rpc ListRecurrentTasks(google.protobuf.Empty) returns (RecurrentTask);
+  rpc ListRecurrentTasks(google.protobuf.Empty) returns (RecurrentTasks);
   // GetRecurrentTask gets a recurrent task by its ID.
   rpc GetRecurrentTask(UUID) returns (RecurrentTask);
   // CreateRecurrentTask creates a new recurrent task in a namespace.

@@ -37,7 +37,7 @@ type TriggerServiceClient interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Buckets, error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
-	ListRecurrentTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RecurrentTask, error)
+	ListRecurrentTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RecurrentTasks, error)
 	// GetRecurrentTask gets a recurrent task by its ID.
 	GetRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*RecurrentTask, error)
 	// CreateRecurrentTask creates a new recurrent task in a namespace.
@@ -65,8 +65,8 @@ func (c *triggerServiceClient) ListBuckets(ctx context.Context, in *emptypb.Empt
 	return out, nil
 }
 
-func (c *triggerServiceClient) ListRecurrentTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RecurrentTask, error) {
-	out := new(RecurrentTask)
+func (c *triggerServiceClient) ListRecurrentTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RecurrentTasks, error) {
+	out := new(RecurrentTasks)
 	err := c.cc.Invoke(ctx, TriggerService_ListRecurrentTasks_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ type TriggerServiceServer interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *emptypb.Empty) (*Buckets, error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
-	ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTask, error)
+	ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTasks, error)
 	// GetRecurrentTask gets a recurrent task by its ID.
 	GetRecurrentTask(context.Context, *UUID) (*RecurrentTask, error)
 	// CreateRecurrentTask creates a new recurrent task in a namespace.
@@ -136,7 +136,7 @@ type UnimplementedTriggerServiceServer struct {
 func (UnimplementedTriggerServiceServer) ListBuckets(context.Context, *emptypb.Empty) (*Buckets, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
 }
-func (UnimplementedTriggerServiceServer) ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTask, error) {
+func (UnimplementedTriggerServiceServer) ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTasks, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRecurrentTasks not implemented")
 }
 func (UnimplementedTriggerServiceServer) GetRecurrentTask(context.Context, *UUID) (*RecurrentTask, error) {

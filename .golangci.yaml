@@ -4,6 +4,12 @@
 run:
   timeout: '5m'
 linters-settings:
+  errcheck:
+    ignore: ""  # https://github.com/golangci/golangci-lint/issues/4733
+  gosec:
+    excludes:
+      - G601 # Not relevant anymore with Go 1.22 and later
+      - G404 # Use of weak random number generator (math/rand instead of crypto/rand)
   govet:
     enable-all: true
     disable:
@@ -11,13 +17,24 @@ linters-settings:
       - shadow # too strict
   perfsprint:
     strconcat: false
+  revive:
+    rules:
+      - name: var-naming
+        arguments:
+          - []
+          - []
+          - - skipPackageNameChecks: true
+  stylecheck:
+    checks: ["all", "-ST1003"]
 linters:
   enable:
     - asasalint # checks for pass []any as any in variadic func(...any)
     - asciicheck # checks that your code does not contain non-ASCII identifiers
     - bidichk # checks for dangerous unicode character sequences
     - bodyclose # checks whether HTTP response body is closed successfully
+    - canonicalheader # checks for canonical names in HTTP headers
     - copyloopvar # detects places where loop variables are copied
+    #- contextcheck # checks for inherited context.Context
     #- cyclop # checks function and package cyclomatic complexity
     - dupl # tool for code clone detection
     - durationcheck # checks for two durations multiplied together
@@ -25,6 +42,7 @@ linters:
     - errorlint # finds code that will cause problems with the error wrapping scheme introduced in Go 1.13
     - exhaustive # checks exhaustiveness of enum switch statements
     - exportloopref # checks for pointers to enclosing loop variables
+    - fatcontext # finds nested context.WithValue calls in loops
     - forbidigo # forbids identifiers
     - gocheckcompilerdirectives # validates go compiler directive comments (//go:)
     #- gochecknoglobals # checks that no global variables exist
@@ -33,7 +51,7 @@ linters:
     - goconst # finds repeated strings that could be replaced by a constant
     - gocritic # provides diagnostics that check for bugs, performance and style issues
     - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
-    # - gomnd # detects magic numbers
+    #- gomnd # detects magic numbers
     - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
     - gomodguard # allow and block lists linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations
     - goprintffuncname # checks that printf-like functions are named with f at the end
