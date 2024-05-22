@@ -67,6 +67,7 @@ message CronTrigger {
   string schedule = 2;  // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
 
   // auto-generated, read-only fields
+  google.protobuf.Timestamp previous = 3;  // The last time the trigger fired previously
   google.protobuf.Timestamp next = 4;  // The next time the trigger will fire
 }
 
