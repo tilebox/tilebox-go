@@ -84,7 +84,7 @@ service TriggerService {
   rpc ListBuckets(google.protobuf.Empty) returns (Buckets);
 
   // ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
-  rpc ListRecurrentTasks(google.protobuf.Empty) returns (RecurrentTask);
+  rpc ListRecurrentTasks(google.protobuf.Empty) returns (RecurrentTasks);
   // GetRecurrentTask gets a recurrent task by its ID.
   rpc GetRecurrentTask(UUID) returns (RecurrentTask);
   // CreateRecurrentTask creates a new recurrent task in a namespace.
