@@ -363,7 +363,11 @@ func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflo
 }
 
 func getTaskExecutionContext(ctx context.Context) *taskExecutionContext {
-	return ctx.Value(ContextKeyTaskExecution).(*taskExecutionContext)
+	executionContext := ctx.Value(ContextKeyTaskExecution)
+	if executionContext == nil {
+		return nil
+	}
+	return executionContext.(*taskExecutionContext)
 }
 
 func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
@@ -412,23 +416,18 @@ func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
 
 func WithTaskSpanResult[Result any](ctx context.Context, name string, f func(ctx context.Context) (Result, error)) (Result, error) {
 	executionContext := getTaskExecutionContext(ctx)
-	var nilResult Result // the nil value of the result type, e.g. nil, "" or 0
-	if executionContext == nil {
-		return nilResult, errors.New("cannot start a task span: context is not a task execution context")
-	}
-	if executionContext.runner.tracer == nil {
-		return nilResult, errors.New("cannot start a task span: tracer is not configured")
+	if executionContext == nil || executionContext.runner.tracer == nil {
+		// if we don't have a task execution context or the tracer is not configured, just run the function without creating a span
+		return f(ctx)
 	}
 	return observability.WithSpanResult(ctx, executionContext.runner.tracer, name, f)
 }
 
 func WithTaskSpan(ctx context.Context, name string, f func(ctx context.Context) error) error {
 	executionContext := getTaskExecutionContext(ctx)
-	if executionContext == nil {
-		return errors.New("cannot start a task span: context is not a task execution context")
-	}
-	if executionContext.runner.tracer == nil {
-		return errors.New("cannot start a task span: tracer is not configured")
+	if executionContext == nil || executionContext.runner.tracer == nil {
+		// if we don't have a task execution context or the tracer is not configured, just run the function without creating a span
+		return f(ctx)
 	}
 	return observability.WithSpan(ctx, executionContext.runner.tracer, name, f)
 }
