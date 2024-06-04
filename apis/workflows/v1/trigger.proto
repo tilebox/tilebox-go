@@ -14,6 +14,7 @@ enum BucketType {
   BUCKET_TYPE_UNSPECIFIED = 0;
   BUCKET_TYPE_GCS = 1;  // Google Cloud Storage
   BUCKET_TYPE_S3 = 2;  // Amazon Web Services S3
+  BUCKET_TYPE_FS = 3;  // Local filesystem
 }
 
 // Bucket is a storage bucket that can be used as a trigger source.
