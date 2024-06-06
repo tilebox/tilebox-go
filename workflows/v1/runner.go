@@ -237,7 +237,7 @@ func (t *TaskRunner) Run(ctx context.Context) {
 					return // we got a cancellation signal, so let's just stop here
 				}
 			} else { // err != nil
-				t.logger.ErrorContext(ctx, "task execution failed", "error", err)
+				// the error itself is already logged in executeTask, so we just need to report the task as failed
 				err = retry.Do(
 					func() error {
 						_, err := t.client.TaskFailed(ctx, connect.NewRequest(&workflowsv1.TaskFailedRequest{
@@ -315,12 +315,25 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 
 		executionContext := t.withTaskExecutionContext(ctx, task)
 		err := taskStruct.Execute(executionContext)
+
+		executionTime := time.Since(beforeTime)
+
+		log := t.logger.With(slog.String("task", identifier.Name()),
+			slog.String("version", identifier.Version()),
+			slog.Time("start_time", beforeTime),
+			slog.Duration("execution_time", executionTime),
+			slog.String("execution_time_human", roundDuration(executionTime, 2).String()),
+		)
+
 		if r := recover(); r != nil {
 			// recover from panics during task executions, so we can still report the error to the server and continue
 			// with other tasks
+			log.ErrorContext(ctx, "task execution failed", slog.String("error", "panic"), slog.Int64("retry_attempt", task.GetRetryCount()))
 			return nil, fmt.Errorf("task panicked: %v", r)
 		}
+
 		if err != nil {
+			log.ErrorContext(ctx, "task execution failed", slog.String("error", err.Error()), slog.Int64("retry_attempt", task.GetRetryCount()))
 			return nil, fmt.Errorf("failed to execute task: %w", err)
 		}
 
@@ -331,14 +344,8 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 		// for execution time, the right metric will probably be histogram:
 		// https://uptrace.dev/opentelemetry/metrics.html#histogram
 		if t.logExecutionTimes {
-			executionTime := time.Since(beforeTime)
-			// we log inside of the StartJobSpan function, so we can also get the trace ID and span ID attached in the logs
-			t.logger.InfoContext(ctx, "task execution succeeded",
-				slog.String("task", identifier.Name()),
-				slog.String("version", identifier.Version()),
-				slog.Time("start_time", beforeTime),
-				slog.Duration("execution_time", executionTime), slog.String("execution_time_human", executionTime.Round(time.Millisecond).String()),
-			)
+			// execution time already attached to log
+			log.InfoContext(ctx, "task execution succeeded")
 		}
 
 		return getTaskExecutionContext(executionContext), nil
@@ -463,4 +470,21 @@ func WithTaskSpan(ctx context.Context, name string, f func(ctx context.Context) 
 		return f(ctx)
 	}
 	return observability.WithSpan(ctx, executionContext.runner.tracer, name, f)
+}
+
+var divs = []time.Duration{
+	time.Duration(1), time.Duration(10), time.Duration(100), time.Duration(1000)}
+
+// human readable, rounded duration, taken from
+// https://stackoverflow.com/questions/58414820/limiting-significant-digits-in-formatted-durations
+func roundDuration(d time.Duration, digits int) time.Duration {
+	switch {
+	case d > time.Second:
+		d = d.Round(time.Second / divs[digits])
+	case d > time.Millisecond:
+		d = d.Round(time.Millisecond / divs[digits])
+	case d > time.Microsecond:
+		d = d.Round(time.Microsecond / divs[digits])
+	}
+	return d
 }
