@@ -33,10 +33,11 @@ const pollingInterval = 5 * time.Second
 const jitterInterval = 5 * time.Second
 
 type taskRunnerConfig struct {
-	clusterSlug    string
-	tracerProvider trace.TracerProvider
-	tracerName     string
-	logger         *slog.Logger
+	clusterSlug       string
+	tracerProvider    trace.TracerProvider
+	tracerName        string
+	logger            *slog.Logger
+	logExecutionTimes bool // let's replace this with opentelemetry metrics at some point, when axiom supports it
 }
 
 type TaskRunnerOption func(*taskRunnerConfig)
@@ -65,11 +66,18 @@ func WithRunnerLogger(logger *slog.Logger) TaskRunnerOption {
 	}
 }
 
+func WithLogExecutionTimes(logExecutionTimes bool) TaskRunnerOption {
+	return func(cfg *taskRunnerConfig) {
+		cfg.logExecutionTimes = logExecutionTimes
+	}
+}
+
 func newTaskRunnerConfig(options []TaskRunnerOption) (*taskRunnerConfig, error) {
 	cfg := &taskRunnerConfig{
-		tracerProvider: otel.GetTracerProvider(),    // use the global tracer provider by default
-		tracerName:     "tilebox.com/observability", // the default tracer name we use
-		logger:         slog.Default(),
+		tracerProvider:    otel.GetTracerProvider(),    // use the global tracer provider by default
+		tracerName:        "tilebox.com/observability", // the default tracer name we use
+		logger:            slog.Default(),
+		logExecutionTimes: false,
 	}
 	for _, option := range options {
 		option(cfg)
@@ -86,9 +94,10 @@ type TaskRunner struct {
 	client          workflowsv1connect.TaskServiceClient
 	taskDefinitions map[taskIdentifier]ExecutableTask
 
-	cluster string
-	tracer  trace.Tracer
-	logger  *slog.Logger
+	cluster           string
+	tracer            trace.Tracer
+	logger            *slog.Logger
+	logExecutionTimes bool
 }
 
 func NewTaskRunner(client workflowsv1connect.TaskServiceClient, options ...TaskRunnerOption) (*TaskRunner, error) {
@@ -100,9 +109,10 @@ func NewTaskRunner(client workflowsv1connect.TaskServiceClient, options ...TaskR
 		client:          client,
 		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 
-		cluster: cfg.clusterSlug,
-		tracer:  cfg.tracerProvider.Tracer(cfg.tracerName),
-		logger:  cfg.logger,
+		cluster:           cfg.clusterSlug,
+		tracer:            cfg.tracerProvider.Tracer(cfg.tracerName),
+		logger:            cfg.logger,
+		logExecutionTimes: cfg.logExecutionTimes,
 	}, nil
 }
 
@@ -221,11 +231,13 @@ func (t *TaskRunner) Run(ctx context.Context) {
 					}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
 				)
 				if err != nil {
-					t.logger.ErrorContext(ctx, "failed to retry NextTask", "error", err)
+					if !errors.Is(err, context.Canceled) {
+						t.logger.ErrorContext(ctx, "failed to retry NextTask", "error", err)
+					}
 					return // we got a cancellation signal, so let's just stop here
 				}
 			} else { // err != nil
-				t.logger.ErrorContext(ctx, "task execution failed", "error", err)
+				// the error itself is already logged in executeTask, so we just need to report the task as failed
 				err = retry.Do(
 					func() error {
 						_, err := t.client.TaskFailed(ctx, connect.NewRequest(&workflowsv1.TaskFailedRequest{
@@ -240,7 +252,9 @@ func (t *TaskRunner) Run(ctx context.Context) {
 					}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
 				)
 				if err != nil {
-					t.logger.ErrorContext(ctx, "failed to retry TaskFailed", "error", err)
+					if !errors.Is(err, context.Canceled) {
+						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", "error", err)
+					}
 					return // we got a cancellation signal, so let's just stop here
 				}
 				task = nil // reported a task failure, let's work-steal again
@@ -271,6 +285,8 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 	defer stopLeaseExtensions()
 
 	// actually execute the task
+	beforeTime := time.Now().UTC()
+
 	if task.GetIdentifier() == nil {
 		return nil, errors.New("task has no identifier")
 	}
@@ -281,7 +297,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 	}
 
 	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
-		t.logger.DebugContext(ctx, "executing task", "task", identifier.Name(), "version", identifier.Version())
+		t.logger.DebugContext(ctx, "executing task", slog.String("task", identifier.Name()), slog.String("version", identifier.Version()))
 		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
 
 		_, isProtobuf := taskStruct.(proto.Message)
@@ -299,13 +315,37 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 
 		executionContext := t.withTaskExecutionContext(ctx, task)
 		err := taskStruct.Execute(executionContext)
+
+		executionTime := time.Since(beforeTime)
+
+		log := t.logger.With(slog.String("task", identifier.Name()),
+			slog.String("version", identifier.Version()),
+			slog.Time("start_time", beforeTime),
+			slog.Duration("execution_time", executionTime),
+			slog.String("execution_time_human", roundDuration(executionTime, 2).String()),
+		)
+
 		if r := recover(); r != nil {
 			// recover from panics during task executions, so we can still report the error to the server and continue
 			// with other tasks
+			log.ErrorContext(ctx, "task execution failed", slog.String("error", "panic"), slog.Int64("retry_attempt", task.GetRetryCount()))
 			return nil, fmt.Errorf("task panicked: %v", r)
 		}
+
 		if err != nil {
+			log.ErrorContext(ctx, "task execution failed", slog.String("error", err.Error()), slog.Int64("retry_attempt", task.GetRetryCount()))
 			return nil, fmt.Errorf("failed to execute task: %w", err)
+		}
+
+		// log successful task execution and the time it took to log run the task
+		// we read this and display it in a axiom dashboard.
+		// TODO: replace this with opentelemetry metrics at some point, when axiom supports it
+		// right now (according to their discord) they plan to add otel metrics support in Q4 2024
+		// for execution time, the right metric will probably be histogram:
+		// https://uptrace.dev/opentelemetry/metrics.html#histogram
+		if t.logExecutionTimes {
+			// execution time already attached to log
+			log.InfoContext(ctx, "task execution succeeded")
 		}
 
 		return getTaskExecutionContext(executionContext), nil
@@ -430,4 +470,21 @@ func WithTaskSpan(ctx context.Context, name string, f func(ctx context.Context) 
 		return f(ctx)
 	}
 	return observability.WithSpan(ctx, executionContext.runner.tracer, name, f)
+}
+
+var divs = []time.Duration{
+	time.Duration(1), time.Duration(10), time.Duration(100), time.Duration(1000)}
+
+// human readable, rounded duration, taken from
+// https://stackoverflow.com/questions/58414820/limiting-significant-digits-in-formatted-durations
+func roundDuration(d time.Duration, digits int) time.Duration {
+	switch {
+	case d > time.Second:
+		d = d.Round(time.Second / divs[digits])
+	case d > time.Millisecond:
+		d = d.Round(time.Millisecond / divs[digits])
+	case d > time.Microsecond:
+		d = d.Round(time.Microsecond / divs[digits])
+	}
+	return d
 }
