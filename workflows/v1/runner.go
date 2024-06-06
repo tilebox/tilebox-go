@@ -215,6 +215,10 @@ func (t *TaskRunner) Run(ctx context.Context) {
 					// if we got a context cancellation, don't request a new task
 					nextTaskToRun = nil
 					stopExecution = true
+				case <-ctx.Done():
+					// if we got a context cancellation, don't request a new task
+					nextTaskToRun = nil
+					stopExecution = true
 				default:
 				}
 
@@ -270,6 +274,9 @@ func (t *TaskRunner) Run(ctx context.Context) {
 			timer := time.NewTimer(pollingInterval + rand.N(jitterInterval))
 			select {
 			case <-ctxSignal.Done():
+				timer.Stop() // stop the timer before returning, avoids a memory leak
+				return       // if we got a context cancellation, let's just stop here
+			case <-ctx.Done():
 				timer.Stop() // stop the timer before returning, avoids a memory leak
 				return       // if we got a context cancellation, let's just stop here
 			case <-timer.C: // the timer expired, let's try to work-steal a task again
@@ -408,6 +415,14 @@ func getTaskExecutionContext(ctx context.Context) *taskExecutionContext {
 		return nil
 	}
 	return executionContext.(*taskExecutionContext)
+}
+
+func GetCurrentCluster(ctx context.Context) (string, error) {
+	executionContext := getTaskExecutionContext(ctx)
+	if executionContext == nil {
+		return "", errors.New("cannot get current cluster without task execution context")
+	}
+	return executionContext.runner.cluster, nil
 }
 
 func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
