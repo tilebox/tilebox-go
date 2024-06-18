@@ -40,6 +40,6 @@ jobs:
           paths: "test-report.xml"
         if: always()
       - name: Lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.58.2
+          version: v1.59.1
