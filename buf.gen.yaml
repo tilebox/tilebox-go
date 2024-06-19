@@ -18,7 +18,7 @@ plugins:
 
   - plugin: buf.build/grpc/python
     out: protogen/python
-  - plugin: buf.build/protocolbuffers/python
+  - plugin: buf.build/protocolbuffers/python:v26.1  # we cannot use v27 yet, because then we need to upgrade to protobuf 5 in python, and open-telemetry python does not support that yet: https://github.com/open-telemetry/opentelemetry-python/issues/3958
     out: protogen/python
   - plugin: buf.build/protocolbuffers/pyi
     out: protogen/python
