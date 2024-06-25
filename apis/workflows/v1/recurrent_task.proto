@@ -1,4 +1,4 @@
-// The external API for managing triggers in the Workflows service.
+// The external API for managing recurrent tasks in the Workflows service.
 
 syntax = "proto3";
 
@@ -30,8 +30,8 @@ message Buckets {
   repeated Bucket buckets = 1;
 }
 
-// BucketTrigger is NRT trigger registered on a bucket, that will trigger a task submission when an object matching
-// the glob pattern is uploaded.
+// RecurrentTask is a task prototype that can result in many submitted tasks. Task submissions are triggered by
+// NRT triggers, such as bucket triggers or cron triggers.
 message RecurrentTask {
   UUID id = 1;  // Unique identifier for the trigger
   string name = 2;  // A human-readable name for the trigger
@@ -54,7 +54,7 @@ message BucketTrigger {
   string glob_pattern = 3;  // A glob pattern to match objects in the bucket
 }
 
-// BucketTask is a task that is triggered by a bucket trigger.
+// BucketTask is a task that was triggered by a bucket trigger.
 message BucketTask {
   UUID bucket_id = 1;  // The bucket that triggered the task
   string object = 2;  // The object that triggered the task
@@ -67,16 +67,17 @@ message CronTrigger {
   string schedule = 2;  // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
 }
 
-// CronTask is a task that is triggered by a cron trigger.
+// CronTask is a task that was triggered by a cron trigger.
 message CronTask {
   google.protobuf.Timestamp trigger_time = 1;  // The time the cron trigger fired
   bytes args = 2;  // Additional arguments for the task, to be deserialized by the task
 }
 
-// TriggerService is a service for managing NRT triggers. Currently, we support two types of triggers:
-// - Bucket triggers, which trigger on object uploads to a storage bucket
-// - Cron triggers, which trigger on a schedule
-service TriggerService {
+// RecurrentTaskService is a service for managing recurrent tasks. Currently, we support two types of triggers for
+// recurrent tasks:
+// - Bucket triggers, which triggers tasks when an object is uploaded to a storage bucket that matches a glob pattern
+// - Cron triggers, which triggers tasks on a schedule
+service RecurrentTaskService {
   // ListBuckets lists all the storage buckets that are available for use as bucket triggers.
   rpc ListBuckets(google.protobuf.Empty) returns (Buckets);
 
