@@ -73,10 +73,10 @@ message CronTask {
   bytes args = 2;  // Additional arguments for the task, to be deserialized by the task
 }
 
-// TriggerService is a service for managing NRT triggers. Currently, we support two types of triggers:
+// RecurrentTaskService is a service for managing NRT triggers. Currently, we support two types of triggers:
 // - Bucket triggers, which trigger on object uploads to a storage bucket
 // - Cron triggers, which trigger on a schedule
-service TriggerService {
+service RecurrentTaskService {
   // ListBuckets lists all the storage buckets that are available for use as bucket triggers.
   rpc ListBuckets(google.protobuf.Empty) returns (Buckets);
 

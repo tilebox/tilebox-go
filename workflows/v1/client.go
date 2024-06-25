@@ -101,3 +101,17 @@ func NewJobClient(options ...ClientOption) workflowsv1connect.JobServiceClient {
 			})),
 	)
 }
+
+func NewRecurrentTaskClient(options ...ClientOption) workflowsv1connect.RecurrentTaskServiceClient {
+	cfg := newClientConfig(options)
+
+	return workflowsv1connect.NewRecurrentTaskServiceClient(
+		cfg.httpClient,
+		cfg.url,
+		connect.WithClientOptions(cfg.connectOptions...),
+		connect.WithInterceptors(
+			grpc.NewAddAuthTokenInterceptor(func() string {
+				return cfg.apiKey
+			})),
+	)
+}
