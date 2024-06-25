@@ -56,20 +56,15 @@ message BucketTrigger {
 
 // BucketTask is a task that is triggered by a bucket trigger.
 message BucketTask {
-  string bucket = 1;  // The bucket that triggered the task
+  UUID bucket_id = 1;  // The bucket that triggered the task
   string object = 2;  // The object that triggered the task
-  BucketType type = 3;  // The type of the bucket that triggered the task
-  bytes args = 4;  // Additional arguments for the task, to be deserialized by the task
+  bytes args = 3;  // Additional arguments for the task, to be deserialized by the task
 }
 
 // CronTrigger is a trigger that will trigger a task submission on a schedule.
 message CronTrigger {
   UUID id = 1;  // Unique identifier for the trigger
   string schedule = 2;  // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
-
-  // auto-generated, read-only fields
-  google.protobuf.Timestamp previous = 3;  // The last time the trigger fired previously
-  google.protobuf.Timestamp next = 4;  // The next time the trigger will fire
 }
 
 // CronTask is a task that is triggered by a cron trigger.
