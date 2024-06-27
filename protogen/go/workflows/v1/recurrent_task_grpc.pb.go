@@ -23,6 +23,9 @@ const _ = grpc.SupportPackageIsVersion8
 
 const (
 	RecurrentTaskService_ListBuckets_FullMethodName         = "/workflows.v1.RecurrentTaskService/ListBuckets"
+	RecurrentTaskService_GetBucket_FullMethodName           = "/workflows.v1.RecurrentTaskService/GetBucket"
+	RecurrentTaskService_CreateBucket_FullMethodName        = "/workflows.v1.RecurrentTaskService/CreateBucket"
+	RecurrentTaskService_DeleteBucket_FullMethodName        = "/workflows.v1.RecurrentTaskService/DeleteBucket"
 	RecurrentTaskService_ListRecurrentTasks_FullMethodName  = "/workflows.v1.RecurrentTaskService/ListRecurrentTasks"
 	RecurrentTaskService_GetRecurrentTask_FullMethodName    = "/workflows.v1.RecurrentTaskService/GetRecurrentTask"
 	RecurrentTaskService_CreateRecurrentTask_FullMethodName = "/workflows.v1.RecurrentTaskService/CreateRecurrentTask"
@@ -41,6 +44,12 @@ const (
 type RecurrentTaskServiceClient interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Buckets, error)
+	// GetBucket gets a storage bucket by its ID.
+	GetBucket(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*Bucket, error)
+	// CreateBucket creates a new storage bucket.
+	CreateBucket(ctx context.Context, in *Bucket, opts ...grpc.CallOption) (*Bucket, error)
+	// DeleteBucket deletes a storage bucket.
+	DeleteBucket(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
 	ListRecurrentTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RecurrentTasks, error)
 	// GetRecurrentTask gets a recurrent task by its ID.
@@ -65,6 +74,36 @@ func (c *recurrentTaskServiceClient) ListBuckets(ctx context.Context, in *emptyp
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Buckets)
 	err := c.cc.Invoke(ctx, RecurrentTaskService_ListBuckets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *recurrentTaskServiceClient) GetBucket(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*Bucket, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Bucket)
+	err := c.cc.Invoke(ctx, RecurrentTaskService_GetBucket_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *recurrentTaskServiceClient) CreateBucket(ctx context.Context, in *Bucket, opts ...grpc.CallOption) (*Bucket, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Bucket)
+	err := c.cc.Invoke(ctx, RecurrentTaskService_CreateBucket_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *recurrentTaskServiceClient) DeleteBucket(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, RecurrentTaskService_DeleteBucket_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -132,6 +171,12 @@ func (c *recurrentTaskServiceClient) DeleteRecurrentTask(ctx context.Context, in
 type RecurrentTaskServiceServer interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *emptypb.Empty) (*Buckets, error)
+	// GetBucket gets a storage bucket by its ID.
+	GetBucket(context.Context, *UUID) (*Bucket, error)
+	// CreateBucket creates a new storage bucket.
+	CreateBucket(context.Context, *Bucket) (*Bucket, error)
+	// DeleteBucket deletes a storage bucket.
+	DeleteBucket(context.Context, *UUID) (*emptypb.Empty, error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
 	ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTasks, error)
 	// GetRecurrentTask gets a recurrent task by its ID.
@@ -151,6 +196,15 @@ type UnimplementedRecurrentTaskServiceServer struct {
 
 func (UnimplementedRecurrentTaskServiceServer) ListBuckets(context.Context, *emptypb.Empty) (*Buckets, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
+}
+func (UnimplementedRecurrentTaskServiceServer) GetBucket(context.Context, *UUID) (*Bucket, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBucket not implemented")
+}
+func (UnimplementedRecurrentTaskServiceServer) CreateBucket(context.Context, *Bucket) (*Bucket, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBucket not implemented")
+}
+func (UnimplementedRecurrentTaskServiceServer) DeleteBucket(context.Context, *UUID) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBucket not implemented")
 }
 func (UnimplementedRecurrentTaskServiceServer) ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTasks, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRecurrentTasks not implemented")
@@ -194,6 +248,60 @@ func _RecurrentTaskService_ListBuckets_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RecurrentTaskServiceServer).ListBuckets(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RecurrentTaskService_GetBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UUID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecurrentTaskServiceServer).GetBucket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecurrentTaskService_GetBucket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecurrentTaskServiceServer).GetBucket(ctx, req.(*UUID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RecurrentTaskService_CreateBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Bucket)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecurrentTaskServiceServer).CreateBucket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecurrentTaskService_CreateBucket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecurrentTaskServiceServer).CreateBucket(ctx, req.(*Bucket))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RecurrentTaskService_DeleteBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UUID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecurrentTaskServiceServer).DeleteBucket(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecurrentTaskService_DeleteBucket_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecurrentTaskServiceServer).DeleteBucket(ctx, req.(*UUID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -298,6 +406,18 @@ var RecurrentTaskService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListBuckets",
 			Handler:    _RecurrentTaskService_ListBuckets_Handler,
+		},
+		{
+			MethodName: "GetBucket",
+			Handler:    _RecurrentTaskService_GetBucket_Handler,
+		},
+		{
+			MethodName: "CreateBucket",
+			Handler:    _RecurrentTaskService_CreateBucket_Handler,
+		},
+		{
+			MethodName: "DeleteBucket",
+			Handler:    _RecurrentTaskService_DeleteBucket_Handler,
 		},
 		{
 			MethodName: "ListRecurrentTasks",
