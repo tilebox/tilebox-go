@@ -80,6 +80,12 @@ message CronTask {
 service RecurrentTaskService {
   // ListBuckets lists all the storage buckets that are available for use as bucket triggers.
   rpc ListBuckets(google.protobuf.Empty) returns (Buckets);
+  // GetBucket gets a storage bucket by its ID.
+  rpc GetBucket(UUID) returns (Bucket);
+  // CreateBucket creates a new storage bucket.
+  rpc CreateBucket(Bucket) returns (Bucket);
+  // DeleteBucket deletes a storage bucket.
+  rpc DeleteBucket(UUID) returns (google.protobuf.Empty);
 
   // ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
   rpc ListRecurrentTasks(google.protobuf.Empty) returns (RecurrentTasks);

@@ -39,6 +39,15 @@ const (
 	// RecurrentTaskServiceListBucketsProcedure is the fully-qualified name of the
 	// RecurrentTaskService's ListBuckets RPC.
 	RecurrentTaskServiceListBucketsProcedure = "/workflows.v1.RecurrentTaskService/ListBuckets"
+	// RecurrentTaskServiceGetBucketProcedure is the fully-qualified name of the RecurrentTaskService's
+	// GetBucket RPC.
+	RecurrentTaskServiceGetBucketProcedure = "/workflows.v1.RecurrentTaskService/GetBucket"
+	// RecurrentTaskServiceCreateBucketProcedure is the fully-qualified name of the
+	// RecurrentTaskService's CreateBucket RPC.
+	RecurrentTaskServiceCreateBucketProcedure = "/workflows.v1.RecurrentTaskService/CreateBucket"
+	// RecurrentTaskServiceDeleteBucketProcedure is the fully-qualified name of the
+	// RecurrentTaskService's DeleteBucket RPC.
+	RecurrentTaskServiceDeleteBucketProcedure = "/workflows.v1.RecurrentTaskService/DeleteBucket"
 	// RecurrentTaskServiceListRecurrentTasksProcedure is the fully-qualified name of the
 	// RecurrentTaskService's ListRecurrentTasks RPC.
 	RecurrentTaskServiceListRecurrentTasksProcedure = "/workflows.v1.RecurrentTaskService/ListRecurrentTasks"
@@ -60,6 +69,9 @@ const (
 var (
 	recurrentTaskServiceServiceDescriptor                   = v1.File_workflows_v1_recurrent_task_proto.Services().ByName("RecurrentTaskService")
 	recurrentTaskServiceListBucketsMethodDescriptor         = recurrentTaskServiceServiceDescriptor.Methods().ByName("ListBuckets")
+	recurrentTaskServiceGetBucketMethodDescriptor           = recurrentTaskServiceServiceDescriptor.Methods().ByName("GetBucket")
+	recurrentTaskServiceCreateBucketMethodDescriptor        = recurrentTaskServiceServiceDescriptor.Methods().ByName("CreateBucket")
+	recurrentTaskServiceDeleteBucketMethodDescriptor        = recurrentTaskServiceServiceDescriptor.Methods().ByName("DeleteBucket")
 	recurrentTaskServiceListRecurrentTasksMethodDescriptor  = recurrentTaskServiceServiceDescriptor.Methods().ByName("ListRecurrentTasks")
 	recurrentTaskServiceGetRecurrentTaskMethodDescriptor    = recurrentTaskServiceServiceDescriptor.Methods().ByName("GetRecurrentTask")
 	recurrentTaskServiceCreateRecurrentTaskMethodDescriptor = recurrentTaskServiceServiceDescriptor.Methods().ByName("CreateRecurrentTask")
@@ -71,6 +83,12 @@ var (
 type RecurrentTaskServiceClient interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error)
+	// GetBucket gets a storage bucket by its ID.
+	GetBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.Bucket], error)
+	// CreateBucket creates a new storage bucket.
+	CreateBucket(context.Context, *connect.Request[v1.Bucket]) (*connect.Response[v1.Bucket], error)
+	// DeleteBucket deletes a storage bucket.
+	DeleteBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
 	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error)
 	// GetRecurrentTask gets a recurrent task by its ID.
@@ -97,6 +115,24 @@ func NewRecurrentTaskServiceClient(httpClient connect.HTTPClient, baseURL string
 			httpClient,
 			baseURL+RecurrentTaskServiceListBucketsProcedure,
 			connect.WithSchema(recurrentTaskServiceListBucketsMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		getBucket: connect.NewClient[v1.UUID, v1.Bucket](
+			httpClient,
+			baseURL+RecurrentTaskServiceGetBucketProcedure,
+			connect.WithSchema(recurrentTaskServiceGetBucketMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		createBucket: connect.NewClient[v1.Bucket, v1.Bucket](
+			httpClient,
+			baseURL+RecurrentTaskServiceCreateBucketProcedure,
+			connect.WithSchema(recurrentTaskServiceCreateBucketMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		deleteBucket: connect.NewClient[v1.UUID, emptypb.Empty](
+			httpClient,
+			baseURL+RecurrentTaskServiceDeleteBucketProcedure,
+			connect.WithSchema(recurrentTaskServiceDeleteBucketMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		listRecurrentTasks: connect.NewClient[emptypb.Empty, v1.RecurrentTasks](
@@ -135,6 +171,9 @@ func NewRecurrentTaskServiceClient(httpClient connect.HTTPClient, baseURL string
 // recurrentTaskServiceClient implements RecurrentTaskServiceClient.
 type recurrentTaskServiceClient struct {
 	listBuckets         *connect.Client[emptypb.Empty, v1.Buckets]
+	getBucket           *connect.Client[v1.UUID, v1.Bucket]
+	createBucket        *connect.Client[v1.Bucket, v1.Bucket]
+	deleteBucket        *connect.Client[v1.UUID, emptypb.Empty]
 	listRecurrentTasks  *connect.Client[emptypb.Empty, v1.RecurrentTasks]
 	getRecurrentTask    *connect.Client[v1.UUID, v1.RecurrentTask]
 	createRecurrentTask *connect.Client[v1.RecurrentTask, v1.RecurrentTask]
@@ -145,6 +184,21 @@ type recurrentTaskServiceClient struct {
 // ListBuckets calls workflows.v1.RecurrentTaskService.ListBuckets.
 func (c *recurrentTaskServiceClient) ListBuckets(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error) {
 	return c.listBuckets.CallUnary(ctx, req)
+}
+
+// GetBucket calls workflows.v1.RecurrentTaskService.GetBucket.
+func (c *recurrentTaskServiceClient) GetBucket(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[v1.Bucket], error) {
+	return c.getBucket.CallUnary(ctx, req)
+}
+
+// CreateBucket calls workflows.v1.RecurrentTaskService.CreateBucket.
+func (c *recurrentTaskServiceClient) CreateBucket(ctx context.Context, req *connect.Request[v1.Bucket]) (*connect.Response[v1.Bucket], error) {
+	return c.createBucket.CallUnary(ctx, req)
+}
+
+// DeleteBucket calls workflows.v1.RecurrentTaskService.DeleteBucket.
+func (c *recurrentTaskServiceClient) DeleteBucket(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
+	return c.deleteBucket.CallUnary(ctx, req)
 }
 
 // ListRecurrentTasks calls workflows.v1.RecurrentTaskService.ListRecurrentTasks.
@@ -177,6 +231,12 @@ func (c *recurrentTaskServiceClient) DeleteRecurrentTask(ctx context.Context, re
 type RecurrentTaskServiceHandler interface {
 	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
 	ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error)
+	// GetBucket gets a storage bucket by its ID.
+	GetBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.Bucket], error)
+	// CreateBucket creates a new storage bucket.
+	CreateBucket(context.Context, *connect.Request[v1.Bucket]) (*connect.Response[v1.Bucket], error)
+	// DeleteBucket deletes a storage bucket.
+	DeleteBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
 	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error)
 	// GetRecurrentTask gets a recurrent task by its ID.
@@ -199,6 +259,24 @@ func NewRecurrentTaskServiceHandler(svc RecurrentTaskServiceHandler, opts ...con
 		RecurrentTaskServiceListBucketsProcedure,
 		svc.ListBuckets,
 		connect.WithSchema(recurrentTaskServiceListBucketsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	recurrentTaskServiceGetBucketHandler := connect.NewUnaryHandler(
+		RecurrentTaskServiceGetBucketProcedure,
+		svc.GetBucket,
+		connect.WithSchema(recurrentTaskServiceGetBucketMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	recurrentTaskServiceCreateBucketHandler := connect.NewUnaryHandler(
+		RecurrentTaskServiceCreateBucketProcedure,
+		svc.CreateBucket,
+		connect.WithSchema(recurrentTaskServiceCreateBucketMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	recurrentTaskServiceDeleteBucketHandler := connect.NewUnaryHandler(
+		RecurrentTaskServiceDeleteBucketProcedure,
+		svc.DeleteBucket,
+		connect.WithSchema(recurrentTaskServiceDeleteBucketMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceListRecurrentTasksHandler := connect.NewUnaryHandler(
@@ -235,6 +313,12 @@ func NewRecurrentTaskServiceHandler(svc RecurrentTaskServiceHandler, opts ...con
 		switch r.URL.Path {
 		case RecurrentTaskServiceListBucketsProcedure:
 			recurrentTaskServiceListBucketsHandler.ServeHTTP(w, r)
+		case RecurrentTaskServiceGetBucketProcedure:
+			recurrentTaskServiceGetBucketHandler.ServeHTTP(w, r)
+		case RecurrentTaskServiceCreateBucketProcedure:
+			recurrentTaskServiceCreateBucketHandler.ServeHTTP(w, r)
+		case RecurrentTaskServiceDeleteBucketProcedure:
+			recurrentTaskServiceDeleteBucketHandler.ServeHTTP(w, r)
 		case RecurrentTaskServiceListRecurrentTasksProcedure:
 			recurrentTaskServiceListRecurrentTasksHandler.ServeHTTP(w, r)
 		case RecurrentTaskServiceGetRecurrentTaskProcedure:
@@ -256,6 +340,18 @@ type UnimplementedRecurrentTaskServiceHandler struct{}
 
 func (UnimplementedRecurrentTaskServiceHandler) ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.ListBuckets is not implemented"))
+}
+
+func (UnimplementedRecurrentTaskServiceHandler) GetBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.Bucket], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.GetBucket is not implemented"))
+}
+
+func (UnimplementedRecurrentTaskServiceHandler) CreateBucket(context.Context, *connect.Request[v1.Bucket]) (*connect.Response[v1.Bucket], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.CreateBucket is not implemented"))
+}
+
+func (UnimplementedRecurrentTaskServiceHandler) DeleteBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.DeleteBucket is not implemented"))
 }
 
 func (UnimplementedRecurrentTaskServiceHandler) ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error) {
