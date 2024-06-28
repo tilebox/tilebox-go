@@ -68,6 +68,7 @@ func newClientConfig(options []ClientOption) *clientConfig {
 			}
 			transport := &http.Transport{DialContext: dial}
 			cfg.httpClient = &http.Client{Transport: transport}
+			cfg.url = "http://localhost" // connect requires a dummy url starting with http://
 		}
 	}
 
