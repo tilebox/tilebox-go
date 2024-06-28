@@ -63,8 +63,9 @@ func newClientConfig(options []ClientOption) *clientConfig {
 		if strings.HasPrefix(cfg.url, "https://") || strings.HasPrefix(cfg.url, "http://") {
 			cfg.httpClient = grpc.RetryHTTPClient()
 		} else { // we connect to a unix socket
+			address := cfg.url // we copy the url to a temporary variable so that we can modify cfg.url after
 			dial := func(context.Context, string, string) (net.Conn, error) {
-				return net.Dial("unix", cfg.url)
+				return net.Dial("unix", address)
 			}
 			transport := &http.Transport{DialContext: dial}
 			cfg.httpClient = &http.Client{Transport: transport}
