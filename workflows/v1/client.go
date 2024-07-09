@@ -77,43 +77,33 @@ func newClientConfig(options []ClientOption) *clientConfig {
 }
 
 func NewTaskClient(options ...ClientOption) workflowsv1connect.TaskServiceClient {
-	cfg := newClientConfig(options)
-
-	return workflowsv1connect.NewTaskServiceClient(
-		cfg.httpClient,
-		cfg.url,
-		connect.WithClientOptions(cfg.connectOptions...),
-		connect.WithInterceptors(
-			grpc.NewAddAuthTokenInterceptor(func() string {
-				return cfg.apiKey
-			})),
-	)
+	return newConnectClient(workflowsv1connect.NewTaskServiceClient, options...)
 }
 
 func NewJobClient(options ...ClientOption) workflowsv1connect.JobServiceClient {
-	cfg := newClientConfig(options)
-
-	return workflowsv1connect.NewJobServiceClient(
-		cfg.httpClient,
-		cfg.url,
-		connect.WithClientOptions(cfg.connectOptions...),
-		connect.WithInterceptors(
-			grpc.NewAddAuthTokenInterceptor(func() string {
-				return cfg.apiKey
-			})),
-	)
+	return newConnectClient(workflowsv1connect.NewJobServiceClient, options...)
 }
 
 func NewRecurrentTaskClient(options ...ClientOption) workflowsv1connect.RecurrentTaskServiceClient {
+	return newConnectClient(workflowsv1connect.NewRecurrentTaskServiceClient, options...)
+}
+
+func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, options ...ClientOption) T {
 	cfg := newClientConfig(options)
 
-	return workflowsv1connect.NewRecurrentTaskServiceClient(
+	// for on-orbit deployments, we also support requests without an API key, so we don't need to add an interceptor
+	// for those cases
+	interceptors := make([]connect.Interceptor, 0)
+	if cfg.apiKey != "" {
+		interceptors = append(interceptors, grpc.NewAddAuthTokenInterceptor(func() string {
+			return cfg.apiKey
+		}))
+	}
+
+	return newClientFunc(
 		cfg.httpClient,
 		cfg.url,
 		connect.WithClientOptions(cfg.connectOptions...),
-		connect.WithInterceptors(
-			grpc.NewAddAuthTokenInterceptor(func() string {
-				return cfg.apiKey
-			})),
+		connect.WithInterceptors(interceptors...),
 	)
 }
