@@ -20,45 +20,45 @@ func NewRecurrentTaskService(client workflowsv1connect.RecurrentTaskServiceClien
 	}
 }
 
-func (rs *RecurrentTaskService) ListBuckets(ctx context.Context) ([]*workflowsv1.Bucket, error) {
-	response, err := rs.client.ListBuckets(ctx, connect.NewRequest(&emptypb.Empty{}))
+func (rs *RecurrentTaskService) ListStorageLocations(ctx context.Context) ([]*workflowsv1.StorageLocation, error) {
+	response, err := rs.client.ListStorageLocations(ctx, connect.NewRequest(&emptypb.Empty{}))
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to list buckets: %w", err)
+		return nil, fmt.Errorf("failed to list storage locations: %w", err)
 	}
 
-	return response.Msg.GetBuckets(), nil
+	return response.Msg.GetLocations(), nil
 }
 
-func (rs *RecurrentTaskService) GetBucket(ctx context.Context, bucketID *workflowsv1.UUID) (*workflowsv1.Bucket, error) {
-	response, err := rs.client.GetBucket(ctx, connect.NewRequest(bucketID))
+func (rs *RecurrentTaskService) GetStorageLocation(ctx context.Context, storageLocationID *workflowsv1.UUID) (*workflowsv1.StorageLocation, error) {
+	response, err := rs.client.GetStorageLocation(ctx, connect.NewRequest(storageLocationID))
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get bucket: %w", err)
+		return nil, fmt.Errorf("failed to get storage location: %w", err)
 	}
 
 	return response.Msg, nil
 }
 
-func (rs *RecurrentTaskService) CreateBucket(ctx context.Context, name string, bucketType workflowsv1.BucketType) (*workflowsv1.Bucket, error) {
-	req := connect.NewRequest(&workflowsv1.Bucket{
-		Name: name,
-		Type: bucketType,
+func (rs *RecurrentTaskService) CreateStorageLocation(ctx context.Context, location string, storageType workflowsv1.StorageType) (*workflowsv1.StorageLocation, error) {
+	req := connect.NewRequest(&workflowsv1.StorageLocation{
+		Location: location,
+		Type:     storageType,
 	})
-	response, err := rs.client.CreateBucket(ctx, req)
+	response, err := rs.client.CreateStorageLocation(ctx, req)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create bucket: %w", err)
+		return nil, fmt.Errorf("failed to create storage location: %w", err)
 	}
 
 	return response.Msg, nil
 }
 
-func (rs *RecurrentTaskService) DeleteBucket(ctx context.Context, bucketID *workflowsv1.UUID) error {
-	_, err := rs.client.DeleteBucket(ctx, connect.NewRequest(bucketID))
+func (rs *RecurrentTaskService) DeleteStorageLocation(ctx context.Context, storageLocationID *workflowsv1.UUID) error {
+	_, err := rs.client.DeleteStorageLocation(ctx, connect.NewRequest(storageLocationID))
 
 	if err != nil {
-		return fmt.Errorf("failed to delete bucket: %w", err)
+		return fmt.Errorf("failed to delete storage location: %w", err)
 	}
 
 	return nil

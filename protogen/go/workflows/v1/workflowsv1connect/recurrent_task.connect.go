@@ -36,18 +36,18 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// RecurrentTaskServiceListBucketsProcedure is the fully-qualified name of the
-	// RecurrentTaskService's ListBuckets RPC.
-	RecurrentTaskServiceListBucketsProcedure = "/workflows.v1.RecurrentTaskService/ListBuckets"
-	// RecurrentTaskServiceGetBucketProcedure is the fully-qualified name of the RecurrentTaskService's
-	// GetBucket RPC.
-	RecurrentTaskServiceGetBucketProcedure = "/workflows.v1.RecurrentTaskService/GetBucket"
-	// RecurrentTaskServiceCreateBucketProcedure is the fully-qualified name of the
-	// RecurrentTaskService's CreateBucket RPC.
-	RecurrentTaskServiceCreateBucketProcedure = "/workflows.v1.RecurrentTaskService/CreateBucket"
-	// RecurrentTaskServiceDeleteBucketProcedure is the fully-qualified name of the
-	// RecurrentTaskService's DeleteBucket RPC.
-	RecurrentTaskServiceDeleteBucketProcedure = "/workflows.v1.RecurrentTaskService/DeleteBucket"
+	// RecurrentTaskServiceListStorageLocationsProcedure is the fully-qualified name of the
+	// RecurrentTaskService's ListStorageLocations RPC.
+	RecurrentTaskServiceListStorageLocationsProcedure = "/workflows.v1.RecurrentTaskService/ListStorageLocations"
+	// RecurrentTaskServiceGetStorageLocationProcedure is the fully-qualified name of the
+	// RecurrentTaskService's GetStorageLocation RPC.
+	RecurrentTaskServiceGetStorageLocationProcedure = "/workflows.v1.RecurrentTaskService/GetStorageLocation"
+	// RecurrentTaskServiceCreateStorageLocationProcedure is the fully-qualified name of the
+	// RecurrentTaskService's CreateStorageLocation RPC.
+	RecurrentTaskServiceCreateStorageLocationProcedure = "/workflows.v1.RecurrentTaskService/CreateStorageLocation"
+	// RecurrentTaskServiceDeleteStorageLocationProcedure is the fully-qualified name of the
+	// RecurrentTaskService's DeleteStorageLocation RPC.
+	RecurrentTaskServiceDeleteStorageLocationProcedure = "/workflows.v1.RecurrentTaskService/DeleteStorageLocation"
 	// RecurrentTaskServiceListRecurrentTasksProcedure is the fully-qualified name of the
 	// RecurrentTaskService's ListRecurrentTasks RPC.
 	RecurrentTaskServiceListRecurrentTasksProcedure = "/workflows.v1.RecurrentTaskService/ListRecurrentTasks"
@@ -67,36 +67,36 @@ const (
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	recurrentTaskServiceServiceDescriptor                   = v1.File_workflows_v1_recurrent_task_proto.Services().ByName("RecurrentTaskService")
-	recurrentTaskServiceListBucketsMethodDescriptor         = recurrentTaskServiceServiceDescriptor.Methods().ByName("ListBuckets")
-	recurrentTaskServiceGetBucketMethodDescriptor           = recurrentTaskServiceServiceDescriptor.Methods().ByName("GetBucket")
-	recurrentTaskServiceCreateBucketMethodDescriptor        = recurrentTaskServiceServiceDescriptor.Methods().ByName("CreateBucket")
-	recurrentTaskServiceDeleteBucketMethodDescriptor        = recurrentTaskServiceServiceDescriptor.Methods().ByName("DeleteBucket")
-	recurrentTaskServiceListRecurrentTasksMethodDescriptor  = recurrentTaskServiceServiceDescriptor.Methods().ByName("ListRecurrentTasks")
-	recurrentTaskServiceGetRecurrentTaskMethodDescriptor    = recurrentTaskServiceServiceDescriptor.Methods().ByName("GetRecurrentTask")
-	recurrentTaskServiceCreateRecurrentTaskMethodDescriptor = recurrentTaskServiceServiceDescriptor.Methods().ByName("CreateRecurrentTask")
-	recurrentTaskServiceUpdateRecurrentTaskMethodDescriptor = recurrentTaskServiceServiceDescriptor.Methods().ByName("UpdateRecurrentTask")
-	recurrentTaskServiceDeleteRecurrentTaskMethodDescriptor = recurrentTaskServiceServiceDescriptor.Methods().ByName("DeleteRecurrentTask")
+	recurrentTaskServiceServiceDescriptor                     = v1.File_workflows_v1_recurrent_task_proto.Services().ByName("RecurrentTaskService")
+	recurrentTaskServiceListStorageLocationsMethodDescriptor  = recurrentTaskServiceServiceDescriptor.Methods().ByName("ListStorageLocations")
+	recurrentTaskServiceGetStorageLocationMethodDescriptor    = recurrentTaskServiceServiceDescriptor.Methods().ByName("GetStorageLocation")
+	recurrentTaskServiceCreateStorageLocationMethodDescriptor = recurrentTaskServiceServiceDescriptor.Methods().ByName("CreateStorageLocation")
+	recurrentTaskServiceDeleteStorageLocationMethodDescriptor = recurrentTaskServiceServiceDescriptor.Methods().ByName("DeleteStorageLocation")
+	recurrentTaskServiceListRecurrentTasksMethodDescriptor    = recurrentTaskServiceServiceDescriptor.Methods().ByName("ListRecurrentTasks")
+	recurrentTaskServiceGetRecurrentTaskMethodDescriptor      = recurrentTaskServiceServiceDescriptor.Methods().ByName("GetRecurrentTask")
+	recurrentTaskServiceCreateRecurrentTaskMethodDescriptor   = recurrentTaskServiceServiceDescriptor.Methods().ByName("CreateRecurrentTask")
+	recurrentTaskServiceUpdateRecurrentTaskMethodDescriptor   = recurrentTaskServiceServiceDescriptor.Methods().ByName("UpdateRecurrentTask")
+	recurrentTaskServiceDeleteRecurrentTaskMethodDescriptor   = recurrentTaskServiceServiceDescriptor.Methods().ByName("DeleteRecurrentTask")
 )
 
 // RecurrentTaskServiceClient is a client for the workflows.v1.RecurrentTaskService service.
 type RecurrentTaskServiceClient interface {
-	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
-	ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error)
-	// GetBucket gets a storage bucket by its ID.
-	GetBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.Bucket], error)
-	// CreateBucket creates a new storage bucket.
-	CreateBucket(context.Context, *connect.Request[v1.Bucket]) (*connect.Response[v1.Bucket], error)
-	// DeleteBucket deletes a storage bucket.
-	DeleteBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
+	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
+	ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error)
+	// GetStorageLocation gets a storage location by its ID.
+	GetStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.StorageLocation], error)
+	// CreateStorageLocation creates a new storage bucket.
+	CreateStorageLocation(context.Context, *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error)
+	// DeleteStorageLocation deletes a storage location.
+	DeleteStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
 	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error)
 	// GetRecurrentTask gets a recurrent task by its ID.
-	GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error)
+	GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTaskPrototype], error)
 	// CreateRecurrentTask creates a new recurrent task in a namespace.
-	CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error)
+	CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error)
 	// UpdateRecurrentTask updates a recurrent task in a namespace.
-	UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error)
+	UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error)
 	// DeleteRecurrentTask deletes a recurrent task from a namespace.
 	DeleteRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
 }
@@ -111,28 +111,28 @@ type RecurrentTaskServiceClient interface {
 func NewRecurrentTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) RecurrentTaskServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &recurrentTaskServiceClient{
-		listBuckets: connect.NewClient[emptypb.Empty, v1.Buckets](
+		listStorageLocations: connect.NewClient[emptypb.Empty, v1.StorageLocations](
 			httpClient,
-			baseURL+RecurrentTaskServiceListBucketsProcedure,
-			connect.WithSchema(recurrentTaskServiceListBucketsMethodDescriptor),
+			baseURL+RecurrentTaskServiceListStorageLocationsProcedure,
+			connect.WithSchema(recurrentTaskServiceListStorageLocationsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		getBucket: connect.NewClient[v1.UUID, v1.Bucket](
+		getStorageLocation: connect.NewClient[v1.UUID, v1.StorageLocation](
 			httpClient,
-			baseURL+RecurrentTaskServiceGetBucketProcedure,
-			connect.WithSchema(recurrentTaskServiceGetBucketMethodDescriptor),
+			baseURL+RecurrentTaskServiceGetStorageLocationProcedure,
+			connect.WithSchema(recurrentTaskServiceGetStorageLocationMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		createBucket: connect.NewClient[v1.Bucket, v1.Bucket](
+		createStorageLocation: connect.NewClient[v1.StorageLocation, v1.StorageLocation](
 			httpClient,
-			baseURL+RecurrentTaskServiceCreateBucketProcedure,
-			connect.WithSchema(recurrentTaskServiceCreateBucketMethodDescriptor),
+			baseURL+RecurrentTaskServiceCreateStorageLocationProcedure,
+			connect.WithSchema(recurrentTaskServiceCreateStorageLocationMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		deleteBucket: connect.NewClient[v1.UUID, emptypb.Empty](
+		deleteStorageLocation: connect.NewClient[v1.UUID, emptypb.Empty](
 			httpClient,
-			baseURL+RecurrentTaskServiceDeleteBucketProcedure,
-			connect.WithSchema(recurrentTaskServiceDeleteBucketMethodDescriptor),
+			baseURL+RecurrentTaskServiceDeleteStorageLocationProcedure,
+			connect.WithSchema(recurrentTaskServiceDeleteStorageLocationMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		listRecurrentTasks: connect.NewClient[emptypb.Empty, v1.RecurrentTasks](
@@ -141,19 +141,19 @@ func NewRecurrentTaskServiceClient(httpClient connect.HTTPClient, baseURL string
 			connect.WithSchema(recurrentTaskServiceListRecurrentTasksMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		getRecurrentTask: connect.NewClient[v1.UUID, v1.RecurrentTask](
+		getRecurrentTask: connect.NewClient[v1.UUID, v1.RecurrentTaskPrototype](
 			httpClient,
 			baseURL+RecurrentTaskServiceGetRecurrentTaskProcedure,
 			connect.WithSchema(recurrentTaskServiceGetRecurrentTaskMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		createRecurrentTask: connect.NewClient[v1.RecurrentTask, v1.RecurrentTask](
+		createRecurrentTask: connect.NewClient[v1.RecurrentTaskPrototype, v1.RecurrentTaskPrototype](
 			httpClient,
 			baseURL+RecurrentTaskServiceCreateRecurrentTaskProcedure,
 			connect.WithSchema(recurrentTaskServiceCreateRecurrentTaskMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		updateRecurrentTask: connect.NewClient[v1.RecurrentTask, v1.RecurrentTask](
+		updateRecurrentTask: connect.NewClient[v1.RecurrentTaskPrototype, v1.RecurrentTaskPrototype](
 			httpClient,
 			baseURL+RecurrentTaskServiceUpdateRecurrentTaskProcedure,
 			connect.WithSchema(recurrentTaskServiceUpdateRecurrentTaskMethodDescriptor),
@@ -170,35 +170,35 @@ func NewRecurrentTaskServiceClient(httpClient connect.HTTPClient, baseURL string
 
 // recurrentTaskServiceClient implements RecurrentTaskServiceClient.
 type recurrentTaskServiceClient struct {
-	listBuckets         *connect.Client[emptypb.Empty, v1.Buckets]
-	getBucket           *connect.Client[v1.UUID, v1.Bucket]
-	createBucket        *connect.Client[v1.Bucket, v1.Bucket]
-	deleteBucket        *connect.Client[v1.UUID, emptypb.Empty]
-	listRecurrentTasks  *connect.Client[emptypb.Empty, v1.RecurrentTasks]
-	getRecurrentTask    *connect.Client[v1.UUID, v1.RecurrentTask]
-	createRecurrentTask *connect.Client[v1.RecurrentTask, v1.RecurrentTask]
-	updateRecurrentTask *connect.Client[v1.RecurrentTask, v1.RecurrentTask]
-	deleteRecurrentTask *connect.Client[v1.UUID, emptypb.Empty]
+	listStorageLocations  *connect.Client[emptypb.Empty, v1.StorageLocations]
+	getStorageLocation    *connect.Client[v1.UUID, v1.StorageLocation]
+	createStorageLocation *connect.Client[v1.StorageLocation, v1.StorageLocation]
+	deleteStorageLocation *connect.Client[v1.UUID, emptypb.Empty]
+	listRecurrentTasks    *connect.Client[emptypb.Empty, v1.RecurrentTasks]
+	getRecurrentTask      *connect.Client[v1.UUID, v1.RecurrentTaskPrototype]
+	createRecurrentTask   *connect.Client[v1.RecurrentTaskPrototype, v1.RecurrentTaskPrototype]
+	updateRecurrentTask   *connect.Client[v1.RecurrentTaskPrototype, v1.RecurrentTaskPrototype]
+	deleteRecurrentTask   *connect.Client[v1.UUID, emptypb.Empty]
 }
 
-// ListBuckets calls workflows.v1.RecurrentTaskService.ListBuckets.
-func (c *recurrentTaskServiceClient) ListBuckets(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error) {
-	return c.listBuckets.CallUnary(ctx, req)
+// ListStorageLocations calls workflows.v1.RecurrentTaskService.ListStorageLocations.
+func (c *recurrentTaskServiceClient) ListStorageLocations(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error) {
+	return c.listStorageLocations.CallUnary(ctx, req)
 }
 
-// GetBucket calls workflows.v1.RecurrentTaskService.GetBucket.
-func (c *recurrentTaskServiceClient) GetBucket(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[v1.Bucket], error) {
-	return c.getBucket.CallUnary(ctx, req)
+// GetStorageLocation calls workflows.v1.RecurrentTaskService.GetStorageLocation.
+func (c *recurrentTaskServiceClient) GetStorageLocation(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[v1.StorageLocation], error) {
+	return c.getStorageLocation.CallUnary(ctx, req)
 }
 
-// CreateBucket calls workflows.v1.RecurrentTaskService.CreateBucket.
-func (c *recurrentTaskServiceClient) CreateBucket(ctx context.Context, req *connect.Request[v1.Bucket]) (*connect.Response[v1.Bucket], error) {
-	return c.createBucket.CallUnary(ctx, req)
+// CreateStorageLocation calls workflows.v1.RecurrentTaskService.CreateStorageLocation.
+func (c *recurrentTaskServiceClient) CreateStorageLocation(ctx context.Context, req *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error) {
+	return c.createStorageLocation.CallUnary(ctx, req)
 }
 
-// DeleteBucket calls workflows.v1.RecurrentTaskService.DeleteBucket.
-func (c *recurrentTaskServiceClient) DeleteBucket(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
-	return c.deleteBucket.CallUnary(ctx, req)
+// DeleteStorageLocation calls workflows.v1.RecurrentTaskService.DeleteStorageLocation.
+func (c *recurrentTaskServiceClient) DeleteStorageLocation(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
+	return c.deleteStorageLocation.CallUnary(ctx, req)
 }
 
 // ListRecurrentTasks calls workflows.v1.RecurrentTaskService.ListRecurrentTasks.
@@ -207,17 +207,17 @@ func (c *recurrentTaskServiceClient) ListRecurrentTasks(ctx context.Context, req
 }
 
 // GetRecurrentTask calls workflows.v1.RecurrentTaskService.GetRecurrentTask.
-func (c *recurrentTaskServiceClient) GetRecurrentTask(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error) {
+func (c *recurrentTaskServiceClient) GetRecurrentTask(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTaskPrototype], error) {
 	return c.getRecurrentTask.CallUnary(ctx, req)
 }
 
 // CreateRecurrentTask calls workflows.v1.RecurrentTaskService.CreateRecurrentTask.
-func (c *recurrentTaskServiceClient) CreateRecurrentTask(ctx context.Context, req *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error) {
+func (c *recurrentTaskServiceClient) CreateRecurrentTask(ctx context.Context, req *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error) {
 	return c.createRecurrentTask.CallUnary(ctx, req)
 }
 
 // UpdateRecurrentTask calls workflows.v1.RecurrentTaskService.UpdateRecurrentTask.
-func (c *recurrentTaskServiceClient) UpdateRecurrentTask(ctx context.Context, req *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error) {
+func (c *recurrentTaskServiceClient) UpdateRecurrentTask(ctx context.Context, req *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error) {
 	return c.updateRecurrentTask.CallUnary(ctx, req)
 }
 
@@ -229,22 +229,22 @@ func (c *recurrentTaskServiceClient) DeleteRecurrentTask(ctx context.Context, re
 // RecurrentTaskServiceHandler is an implementation of the workflows.v1.RecurrentTaskService
 // service.
 type RecurrentTaskServiceHandler interface {
-	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
-	ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error)
-	// GetBucket gets a storage bucket by its ID.
-	GetBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.Bucket], error)
-	// CreateBucket creates a new storage bucket.
-	CreateBucket(context.Context, *connect.Request[v1.Bucket]) (*connect.Response[v1.Bucket], error)
-	// DeleteBucket deletes a storage bucket.
-	DeleteBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
+	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
+	ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error)
+	// GetStorageLocation gets a storage location by its ID.
+	GetStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.StorageLocation], error)
+	// CreateStorageLocation creates a new storage bucket.
+	CreateStorageLocation(context.Context, *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error)
+	// DeleteStorageLocation deletes a storage location.
+	DeleteStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
 	ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error)
 	// GetRecurrentTask gets a recurrent task by its ID.
-	GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error)
+	GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTaskPrototype], error)
 	// CreateRecurrentTask creates a new recurrent task in a namespace.
-	CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error)
+	CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error)
 	// UpdateRecurrentTask updates a recurrent task in a namespace.
-	UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error)
+	UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error)
 	// DeleteRecurrentTask deletes a recurrent task from a namespace.
 	DeleteRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
 }
@@ -255,28 +255,28 @@ type RecurrentTaskServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewRecurrentTaskServiceHandler(svc RecurrentTaskServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	recurrentTaskServiceListBucketsHandler := connect.NewUnaryHandler(
-		RecurrentTaskServiceListBucketsProcedure,
-		svc.ListBuckets,
-		connect.WithSchema(recurrentTaskServiceListBucketsMethodDescriptor),
+	recurrentTaskServiceListStorageLocationsHandler := connect.NewUnaryHandler(
+		RecurrentTaskServiceListStorageLocationsProcedure,
+		svc.ListStorageLocations,
+		connect.WithSchema(recurrentTaskServiceListStorageLocationsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	recurrentTaskServiceGetBucketHandler := connect.NewUnaryHandler(
-		RecurrentTaskServiceGetBucketProcedure,
-		svc.GetBucket,
-		connect.WithSchema(recurrentTaskServiceGetBucketMethodDescriptor),
+	recurrentTaskServiceGetStorageLocationHandler := connect.NewUnaryHandler(
+		RecurrentTaskServiceGetStorageLocationProcedure,
+		svc.GetStorageLocation,
+		connect.WithSchema(recurrentTaskServiceGetStorageLocationMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	recurrentTaskServiceCreateBucketHandler := connect.NewUnaryHandler(
-		RecurrentTaskServiceCreateBucketProcedure,
-		svc.CreateBucket,
-		connect.WithSchema(recurrentTaskServiceCreateBucketMethodDescriptor),
+	recurrentTaskServiceCreateStorageLocationHandler := connect.NewUnaryHandler(
+		RecurrentTaskServiceCreateStorageLocationProcedure,
+		svc.CreateStorageLocation,
+		connect.WithSchema(recurrentTaskServiceCreateStorageLocationMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	recurrentTaskServiceDeleteBucketHandler := connect.NewUnaryHandler(
-		RecurrentTaskServiceDeleteBucketProcedure,
-		svc.DeleteBucket,
-		connect.WithSchema(recurrentTaskServiceDeleteBucketMethodDescriptor),
+	recurrentTaskServiceDeleteStorageLocationHandler := connect.NewUnaryHandler(
+		RecurrentTaskServiceDeleteStorageLocationProcedure,
+		svc.DeleteStorageLocation,
+		connect.WithSchema(recurrentTaskServiceDeleteStorageLocationMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceListRecurrentTasksHandler := connect.NewUnaryHandler(
@@ -311,14 +311,14 @@ func NewRecurrentTaskServiceHandler(svc RecurrentTaskServiceHandler, opts ...con
 	)
 	return "/workflows.v1.RecurrentTaskService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case RecurrentTaskServiceListBucketsProcedure:
-			recurrentTaskServiceListBucketsHandler.ServeHTTP(w, r)
-		case RecurrentTaskServiceGetBucketProcedure:
-			recurrentTaskServiceGetBucketHandler.ServeHTTP(w, r)
-		case RecurrentTaskServiceCreateBucketProcedure:
-			recurrentTaskServiceCreateBucketHandler.ServeHTTP(w, r)
-		case RecurrentTaskServiceDeleteBucketProcedure:
-			recurrentTaskServiceDeleteBucketHandler.ServeHTTP(w, r)
+		case RecurrentTaskServiceListStorageLocationsProcedure:
+			recurrentTaskServiceListStorageLocationsHandler.ServeHTTP(w, r)
+		case RecurrentTaskServiceGetStorageLocationProcedure:
+			recurrentTaskServiceGetStorageLocationHandler.ServeHTTP(w, r)
+		case RecurrentTaskServiceCreateStorageLocationProcedure:
+			recurrentTaskServiceCreateStorageLocationHandler.ServeHTTP(w, r)
+		case RecurrentTaskServiceDeleteStorageLocationProcedure:
+			recurrentTaskServiceDeleteStorageLocationHandler.ServeHTTP(w, r)
 		case RecurrentTaskServiceListRecurrentTasksProcedure:
 			recurrentTaskServiceListRecurrentTasksHandler.ServeHTTP(w, r)
 		case RecurrentTaskServiceGetRecurrentTaskProcedure:
@@ -338,35 +338,35 @@ func NewRecurrentTaskServiceHandler(svc RecurrentTaskServiceHandler, opts ...con
 // UnimplementedRecurrentTaskServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedRecurrentTaskServiceHandler struct{}
 
-func (UnimplementedRecurrentTaskServiceHandler) ListBuckets(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Buckets], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.ListBuckets is not implemented"))
+func (UnimplementedRecurrentTaskServiceHandler) ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.ListStorageLocations is not implemented"))
 }
 
-func (UnimplementedRecurrentTaskServiceHandler) GetBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.Bucket], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.GetBucket is not implemented"))
+func (UnimplementedRecurrentTaskServiceHandler) GetStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.StorageLocation], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.GetStorageLocation is not implemented"))
 }
 
-func (UnimplementedRecurrentTaskServiceHandler) CreateBucket(context.Context, *connect.Request[v1.Bucket]) (*connect.Response[v1.Bucket], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.CreateBucket is not implemented"))
+func (UnimplementedRecurrentTaskServiceHandler) CreateStorageLocation(context.Context, *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.CreateStorageLocation is not implemented"))
 }
 
-func (UnimplementedRecurrentTaskServiceHandler) DeleteBucket(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.DeleteBucket is not implemented"))
+func (UnimplementedRecurrentTaskServiceHandler) DeleteStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.DeleteStorageLocation is not implemented"))
 }
 
 func (UnimplementedRecurrentTaskServiceHandler) ListRecurrentTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.RecurrentTasks], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.ListRecurrentTasks is not implemented"))
 }
 
-func (UnimplementedRecurrentTaskServiceHandler) GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTask], error) {
+func (UnimplementedRecurrentTaskServiceHandler) GetRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.RecurrentTaskPrototype], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.GetRecurrentTask is not implemented"))
 }
 
-func (UnimplementedRecurrentTaskServiceHandler) CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error) {
+func (UnimplementedRecurrentTaskServiceHandler) CreateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.CreateRecurrentTask is not implemented"))
 }
 
-func (UnimplementedRecurrentTaskServiceHandler) UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTask]) (*connect.Response[v1.RecurrentTask], error) {
+func (UnimplementedRecurrentTaskServiceHandler) UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.UpdateRecurrentTask is not implemented"))
 }
 
