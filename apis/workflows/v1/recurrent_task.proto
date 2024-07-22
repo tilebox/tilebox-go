@@ -9,56 +9,48 @@ import "workflows/v1/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-// BucketType specifies a kind of storage bucket that we support.
-enum BucketType {
-  BUCKET_TYPE_UNSPECIFIED = 0;
-  BUCKET_TYPE_GCS = 1;  // Google Cloud Storage
-  BUCKET_TYPE_S3 = 2;  // Amazon Web Services S3
-  BUCKET_TYPE_FS = 3;  // Local filesystem
+// StorageType specifies a kind of storage bucket that we support.
+enum StorageType {
+  STORAGE_TYPE_UNSPECIFIED = 0;
+  STORAGE_TYPE_GCS = 1;  // Google Cloud Storage
+  STORAGE_TYPE_S3 = 2;  // Amazon Web Services S3
+  STORAGE_TYPE_FS = 3;  // Local filesystem
 }
 
-// Bucket is a storage bucket that can be used as a trigger source.
-message Bucket {
-  UUID id = 1;  // Unique identifier for the bucket
-  string slug = 2; // The unique identifier for the bucket in the storage system
-  string name = 3;  // The human-readable name of the bucket
-  BucketType type = 4;  // The type of the bucket, e.g. GCS, S3
+// Storage location is some kind of storage that can contain data files or objects and be used as a trigger source.
+message StorageLocation {
+  UUID id = 1;  // Unique identifier for the storage location
+  string location = 2; // A unique identifier for the storage location in the storage system
+  StorageType type = 3;  // The type of the storage location, e.g. GCS, S3, FS
 }
 
 // Buckets is a list of storage buckets
-message Buckets {
-  repeated Bucket buckets = 1;
+message StorageLocations {
+  repeated StorageLocation locations = 1;
 }
 
-// RecurrentTask is a task prototype that can result in many submitted tasks. Task submissions are triggered by
+// RecurrentTaskPrototype is a task prototype that can result in many submitted tasks. Task submissions are triggered by
 // NRT triggers, such as bucket triggers or cron triggers.
-message RecurrentTask {
+message RecurrentTaskPrototype {
   UUID id = 1;  // Unique identifier for the trigger
   string name = 2;  // A human-readable name for the trigger
   TaskSubmission prototype = 3;  // The task submission to trigger
 
-  repeated BucketTrigger bucket_triggers = 4;  // The bucket triggers that will trigger the task
+  repeated StorageEventTrigger storage_event_triggers = 4;  // The storage event triggers that will trigger the task
   repeated CronTrigger cron_triggers = 5;  // The cron triggers that will trigger the task
 }
 
 // RecurrentTasks is a list of recurrent tasks
 message RecurrentTasks {
-  repeated RecurrentTask tasks = 1;
+  repeated RecurrentTaskPrototype tasks = 1;
 }
 
-// BucketTrigger is a trigger that will trigger a task submission when an object matching the glob pattern is uploaded
-// to a bucket.
-message BucketTrigger {
+// StorageEventTrigger is a trigger that will trigger a task submission when an object matching the glob pattern is
+// created in a storage location.
+message StorageEventTrigger {
   UUID id = 1;  // Unique identifier for the trigger
-  Bucket bucket = 2;  // The bucket to watch
-  string glob_pattern = 3;  // A glob pattern to match objects in the bucket
-}
-
-// BucketTask is a task that was triggered by a bucket trigger.
-message BucketTask {
-  UUID bucket_id = 1;  // The bucket that triggered the task
-  string object = 2;  // The object that triggered the task
-  bytes args = 3;  // Additional arguments for the task, to be deserialized by the task
+  StorageLocation storage_location = 2;  // The storage location to watch for events
+  string glob_pattern = 3;  // A glob pattern to match objects/files in the storage location
 }
 
 // CronTrigger is a trigger that will trigger a task submission on a schedule.
@@ -67,10 +59,33 @@ message CronTrigger {
   string schedule = 2;  // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
 }
 
-// CronTask is a task that was triggered by a cron trigger.
-message CronTask {
+
+// RecurrentTask is an actual submitted task that was triggered by a recurrent task prototype.
+// It contains the trigger arguments of the event that triggered the task, and the custom, user-defined task arguments.
+message RecurrentTask {
+  // Details of the event that triggered the task. This is a serialized protobuf message. The type of the message
+  // depends on the type of the trigger, either StorageEventTriggerEvent or CronTriggerEvent.
+  bytes trigger_event = 1;
+  bytes args = 2;  // Additional, user-defined arguments for the task, to be deserialized by the task itself
+}
+
+// StorageEventType specifies the type of event that triggered the task.
+enum StorageEventType {
+  STORAGE_EVENT_TYPE_UNSPECIFIED = 0;
+  STORAGE_EVENT_TYPE_CREATED = 1;
+}
+
+// StorageEventTriggerEvent contains the details of the event that triggered a storage event trigger.
+message StorageEventTriggerEvent {
+  UUID storage_location_id = 1;  // The storage location that triggered the task
+  StorageEventType type = 2;  // The type of the storage event, e.g. created
+  // The object that triggered the task, e.g. a file name in a directory or object name in a bucket
+  string location = 3;
+}
+
+// CronTriggerEvent contains the details of the event that triggered a cron trigger.
+message CronTriggerEvent {
   google.protobuf.Timestamp trigger_time = 1;  // The time the cron trigger fired
-  bytes args = 2;  // Additional arguments for the task, to be deserialized by the task
 }
 
 // RecurrentTaskService is a service for managing recurrent tasks. Currently, we support two types of triggers for
@@ -78,23 +93,23 @@ message CronTask {
 // - Bucket triggers, which triggers tasks when an object is uploaded to a storage bucket that matches a glob pattern
 // - Cron triggers, which triggers tasks on a schedule
 service RecurrentTaskService {
-  // ListBuckets lists all the storage buckets that are available for use as bucket triggers.
-  rpc ListBuckets(google.protobuf.Empty) returns (Buckets);
-  // GetBucket gets a storage bucket by its ID.
-  rpc GetBucket(UUID) returns (Bucket);
-  // CreateBucket creates a new storage bucket.
-  rpc CreateBucket(Bucket) returns (Bucket);
-  // DeleteBucket deletes a storage bucket.
-  rpc DeleteBucket(UUID) returns (google.protobuf.Empty);
+  // ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
+  rpc ListStorageLocations(google.protobuf.Empty) returns (StorageLocations);
+  // GetStorageLocation gets a storage location by its ID.
+  rpc GetStorageLocation(UUID) returns (StorageLocation);
+  // CreateStorageLocation creates a new storage bucket.
+  rpc CreateStorageLocation(StorageLocation) returns (StorageLocation);
+  // DeleteStorageLocation deletes a storage location.
+  rpc DeleteStorageLocation(UUID) returns (google.protobuf.Empty);
 
   // ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
   rpc ListRecurrentTasks(google.protobuf.Empty) returns (RecurrentTasks);
   // GetRecurrentTask gets a recurrent task by its ID.
-  rpc GetRecurrentTask(UUID) returns (RecurrentTask);
+  rpc GetRecurrentTask(UUID) returns (RecurrentTaskPrototype);
   // CreateRecurrentTask creates a new recurrent task in a namespace.
-  rpc CreateRecurrentTask(RecurrentTask) returns (RecurrentTask);
+  rpc CreateRecurrentTask(RecurrentTaskPrototype) returns (RecurrentTaskPrototype);
   // UpdateRecurrentTask updates a recurrent task in a namespace.
-  rpc UpdateRecurrentTask(RecurrentTask) returns (RecurrentTask);
+  rpc UpdateRecurrentTask(RecurrentTaskPrototype) returns (RecurrentTaskPrototype);
   // DeleteRecurrentTask deletes a recurrent task from a namespace.
   rpc DeleteRecurrentTask(UUID) returns (google.protobuf.Empty);
 }

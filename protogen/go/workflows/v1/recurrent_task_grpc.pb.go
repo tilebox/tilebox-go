@@ -22,15 +22,15 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	RecurrentTaskService_ListBuckets_FullMethodName         = "/workflows.v1.RecurrentTaskService/ListBuckets"
-	RecurrentTaskService_GetBucket_FullMethodName           = "/workflows.v1.RecurrentTaskService/GetBucket"
-	RecurrentTaskService_CreateBucket_FullMethodName        = "/workflows.v1.RecurrentTaskService/CreateBucket"
-	RecurrentTaskService_DeleteBucket_FullMethodName        = "/workflows.v1.RecurrentTaskService/DeleteBucket"
-	RecurrentTaskService_ListRecurrentTasks_FullMethodName  = "/workflows.v1.RecurrentTaskService/ListRecurrentTasks"
-	RecurrentTaskService_GetRecurrentTask_FullMethodName    = "/workflows.v1.RecurrentTaskService/GetRecurrentTask"
-	RecurrentTaskService_CreateRecurrentTask_FullMethodName = "/workflows.v1.RecurrentTaskService/CreateRecurrentTask"
-	RecurrentTaskService_UpdateRecurrentTask_FullMethodName = "/workflows.v1.RecurrentTaskService/UpdateRecurrentTask"
-	RecurrentTaskService_DeleteRecurrentTask_FullMethodName = "/workflows.v1.RecurrentTaskService/DeleteRecurrentTask"
+	RecurrentTaskService_ListStorageLocations_FullMethodName  = "/workflows.v1.RecurrentTaskService/ListStorageLocations"
+	RecurrentTaskService_GetStorageLocation_FullMethodName    = "/workflows.v1.RecurrentTaskService/GetStorageLocation"
+	RecurrentTaskService_CreateStorageLocation_FullMethodName = "/workflows.v1.RecurrentTaskService/CreateStorageLocation"
+	RecurrentTaskService_DeleteStorageLocation_FullMethodName = "/workflows.v1.RecurrentTaskService/DeleteStorageLocation"
+	RecurrentTaskService_ListRecurrentTasks_FullMethodName    = "/workflows.v1.RecurrentTaskService/ListRecurrentTasks"
+	RecurrentTaskService_GetRecurrentTask_FullMethodName      = "/workflows.v1.RecurrentTaskService/GetRecurrentTask"
+	RecurrentTaskService_CreateRecurrentTask_FullMethodName   = "/workflows.v1.RecurrentTaskService/CreateRecurrentTask"
+	RecurrentTaskService_UpdateRecurrentTask_FullMethodName   = "/workflows.v1.RecurrentTaskService/UpdateRecurrentTask"
+	RecurrentTaskService_DeleteRecurrentTask_FullMethodName   = "/workflows.v1.RecurrentTaskService/DeleteRecurrentTask"
 )
 
 // RecurrentTaskServiceClient is the client API for RecurrentTaskService service.
@@ -42,22 +42,22 @@ const (
 // - Bucket triggers, which triggers tasks when an object is uploaded to a storage bucket that matches a glob pattern
 // - Cron triggers, which triggers tasks on a schedule
 type RecurrentTaskServiceClient interface {
-	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
-	ListBuckets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Buckets, error)
-	// GetBucket gets a storage bucket by its ID.
-	GetBucket(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*Bucket, error)
-	// CreateBucket creates a new storage bucket.
-	CreateBucket(ctx context.Context, in *Bucket, opts ...grpc.CallOption) (*Bucket, error)
-	// DeleteBucket deletes a storage bucket.
-	DeleteBucket(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
+	ListStorageLocations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StorageLocations, error)
+	// GetStorageLocation gets a storage location by its ID.
+	GetStorageLocation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*StorageLocation, error)
+	// CreateStorageLocation creates a new storage bucket.
+	CreateStorageLocation(ctx context.Context, in *StorageLocation, opts ...grpc.CallOption) (*StorageLocation, error)
+	// DeleteStorageLocation deletes a storage location.
+	DeleteStorageLocation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
 	ListRecurrentTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*RecurrentTasks, error)
 	// GetRecurrentTask gets a recurrent task by its ID.
-	GetRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*RecurrentTask, error)
+	GetRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*RecurrentTaskPrototype, error)
 	// CreateRecurrentTask creates a new recurrent task in a namespace.
-	CreateRecurrentTask(ctx context.Context, in *RecurrentTask, opts ...grpc.CallOption) (*RecurrentTask, error)
+	CreateRecurrentTask(ctx context.Context, in *RecurrentTaskPrototype, opts ...grpc.CallOption) (*RecurrentTaskPrototype, error)
 	// UpdateRecurrentTask updates a recurrent task in a namespace.
-	UpdateRecurrentTask(ctx context.Context, in *RecurrentTask, opts ...grpc.CallOption) (*RecurrentTask, error)
+	UpdateRecurrentTask(ctx context.Context, in *RecurrentTaskPrototype, opts ...grpc.CallOption) (*RecurrentTaskPrototype, error)
 	// DeleteRecurrentTask deletes a recurrent task from a namespace.
 	DeleteRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
@@ -70,40 +70,40 @@ func NewRecurrentTaskServiceClient(cc grpc.ClientConnInterface) RecurrentTaskSer
 	return &recurrentTaskServiceClient{cc}
 }
 
-func (c *recurrentTaskServiceClient) ListBuckets(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Buckets, error) {
+func (c *recurrentTaskServiceClient) ListStorageLocations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StorageLocations, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Buckets)
-	err := c.cc.Invoke(ctx, RecurrentTaskService_ListBuckets_FullMethodName, in, out, cOpts...)
+	out := new(StorageLocations)
+	err := c.cc.Invoke(ctx, RecurrentTaskService_ListStorageLocations_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *recurrentTaskServiceClient) GetBucket(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*Bucket, error) {
+func (c *recurrentTaskServiceClient) GetStorageLocation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*StorageLocation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Bucket)
-	err := c.cc.Invoke(ctx, RecurrentTaskService_GetBucket_FullMethodName, in, out, cOpts...)
+	out := new(StorageLocation)
+	err := c.cc.Invoke(ctx, RecurrentTaskService_GetStorageLocation_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *recurrentTaskServiceClient) CreateBucket(ctx context.Context, in *Bucket, opts ...grpc.CallOption) (*Bucket, error) {
+func (c *recurrentTaskServiceClient) CreateStorageLocation(ctx context.Context, in *StorageLocation, opts ...grpc.CallOption) (*StorageLocation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Bucket)
-	err := c.cc.Invoke(ctx, RecurrentTaskService_CreateBucket_FullMethodName, in, out, cOpts...)
+	out := new(StorageLocation)
+	err := c.cc.Invoke(ctx, RecurrentTaskService_CreateStorageLocation_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *recurrentTaskServiceClient) DeleteBucket(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *recurrentTaskServiceClient) DeleteStorageLocation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, RecurrentTaskService_DeleteBucket_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, RecurrentTaskService_DeleteStorageLocation_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,9 +120,9 @@ func (c *recurrentTaskServiceClient) ListRecurrentTasks(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *recurrentTaskServiceClient) GetRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*RecurrentTask, error) {
+func (c *recurrentTaskServiceClient) GetRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*RecurrentTaskPrototype, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RecurrentTask)
+	out := new(RecurrentTaskPrototype)
 	err := c.cc.Invoke(ctx, RecurrentTaskService_GetRecurrentTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -130,9 +130,9 @@ func (c *recurrentTaskServiceClient) GetRecurrentTask(ctx context.Context, in *U
 	return out, nil
 }
 
-func (c *recurrentTaskServiceClient) CreateRecurrentTask(ctx context.Context, in *RecurrentTask, opts ...grpc.CallOption) (*RecurrentTask, error) {
+func (c *recurrentTaskServiceClient) CreateRecurrentTask(ctx context.Context, in *RecurrentTaskPrototype, opts ...grpc.CallOption) (*RecurrentTaskPrototype, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RecurrentTask)
+	out := new(RecurrentTaskPrototype)
 	err := c.cc.Invoke(ctx, RecurrentTaskService_CreateRecurrentTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -140,9 +140,9 @@ func (c *recurrentTaskServiceClient) CreateRecurrentTask(ctx context.Context, in
 	return out, nil
 }
 
-func (c *recurrentTaskServiceClient) UpdateRecurrentTask(ctx context.Context, in *RecurrentTask, opts ...grpc.CallOption) (*RecurrentTask, error) {
+func (c *recurrentTaskServiceClient) UpdateRecurrentTask(ctx context.Context, in *RecurrentTaskPrototype, opts ...grpc.CallOption) (*RecurrentTaskPrototype, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RecurrentTask)
+	out := new(RecurrentTaskPrototype)
 	err := c.cc.Invoke(ctx, RecurrentTaskService_UpdateRecurrentTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -169,22 +169,22 @@ func (c *recurrentTaskServiceClient) DeleteRecurrentTask(ctx context.Context, in
 // - Bucket triggers, which triggers tasks when an object is uploaded to a storage bucket that matches a glob pattern
 // - Cron triggers, which triggers tasks on a schedule
 type RecurrentTaskServiceServer interface {
-	// ListBuckets lists all the storage buckets that are available for use as bucket triggers.
-	ListBuckets(context.Context, *emptypb.Empty) (*Buckets, error)
-	// GetBucket gets a storage bucket by its ID.
-	GetBucket(context.Context, *UUID) (*Bucket, error)
-	// CreateBucket creates a new storage bucket.
-	CreateBucket(context.Context, *Bucket) (*Bucket, error)
-	// DeleteBucket deletes a storage bucket.
-	DeleteBucket(context.Context, *UUID) (*emptypb.Empty, error)
+	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
+	ListStorageLocations(context.Context, *emptypb.Empty) (*StorageLocations, error)
+	// GetStorageLocation gets a storage location by its ID.
+	GetStorageLocation(context.Context, *UUID) (*StorageLocation, error)
+	// CreateStorageLocation creates a new storage bucket.
+	CreateStorageLocation(context.Context, *StorageLocation) (*StorageLocation, error)
+	// DeleteStorageLocation deletes a storage location.
+	DeleteStorageLocation(context.Context, *UUID) (*emptypb.Empty, error)
 	// ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
 	ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTasks, error)
 	// GetRecurrentTask gets a recurrent task by its ID.
-	GetRecurrentTask(context.Context, *UUID) (*RecurrentTask, error)
+	GetRecurrentTask(context.Context, *UUID) (*RecurrentTaskPrototype, error)
 	// CreateRecurrentTask creates a new recurrent task in a namespace.
-	CreateRecurrentTask(context.Context, *RecurrentTask) (*RecurrentTask, error)
+	CreateRecurrentTask(context.Context, *RecurrentTaskPrototype) (*RecurrentTaskPrototype, error)
 	// UpdateRecurrentTask updates a recurrent task in a namespace.
-	UpdateRecurrentTask(context.Context, *RecurrentTask) (*RecurrentTask, error)
+	UpdateRecurrentTask(context.Context, *RecurrentTaskPrototype) (*RecurrentTaskPrototype, error)
 	// DeleteRecurrentTask deletes a recurrent task from a namespace.
 	DeleteRecurrentTask(context.Context, *UUID) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRecurrentTaskServiceServer()
@@ -194,28 +194,28 @@ type RecurrentTaskServiceServer interface {
 type UnimplementedRecurrentTaskServiceServer struct {
 }
 
-func (UnimplementedRecurrentTaskServiceServer) ListBuckets(context.Context, *emptypb.Empty) (*Buckets, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListBuckets not implemented")
+func (UnimplementedRecurrentTaskServiceServer) ListStorageLocations(context.Context, *emptypb.Empty) (*StorageLocations, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListStorageLocations not implemented")
 }
-func (UnimplementedRecurrentTaskServiceServer) GetBucket(context.Context, *UUID) (*Bucket, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBucket not implemented")
+func (UnimplementedRecurrentTaskServiceServer) GetStorageLocation(context.Context, *UUID) (*StorageLocation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStorageLocation not implemented")
 }
-func (UnimplementedRecurrentTaskServiceServer) CreateBucket(context.Context, *Bucket) (*Bucket, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateBucket not implemented")
+func (UnimplementedRecurrentTaskServiceServer) CreateStorageLocation(context.Context, *StorageLocation) (*StorageLocation, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateStorageLocation not implemented")
 }
-func (UnimplementedRecurrentTaskServiceServer) DeleteBucket(context.Context, *UUID) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteBucket not implemented")
+func (UnimplementedRecurrentTaskServiceServer) DeleteStorageLocation(context.Context, *UUID) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteStorageLocation not implemented")
 }
 func (UnimplementedRecurrentTaskServiceServer) ListRecurrentTasks(context.Context, *emptypb.Empty) (*RecurrentTasks, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRecurrentTasks not implemented")
 }
-func (UnimplementedRecurrentTaskServiceServer) GetRecurrentTask(context.Context, *UUID) (*RecurrentTask, error) {
+func (UnimplementedRecurrentTaskServiceServer) GetRecurrentTask(context.Context, *UUID) (*RecurrentTaskPrototype, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRecurrentTask not implemented")
 }
-func (UnimplementedRecurrentTaskServiceServer) CreateRecurrentTask(context.Context, *RecurrentTask) (*RecurrentTask, error) {
+func (UnimplementedRecurrentTaskServiceServer) CreateRecurrentTask(context.Context, *RecurrentTaskPrototype) (*RecurrentTaskPrototype, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRecurrentTask not implemented")
 }
-func (UnimplementedRecurrentTaskServiceServer) UpdateRecurrentTask(context.Context, *RecurrentTask) (*RecurrentTask, error) {
+func (UnimplementedRecurrentTaskServiceServer) UpdateRecurrentTask(context.Context, *RecurrentTaskPrototype) (*RecurrentTaskPrototype, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateRecurrentTask not implemented")
 }
 func (UnimplementedRecurrentTaskServiceServer) DeleteRecurrentTask(context.Context, *UUID) (*emptypb.Empty, error) {
@@ -234,74 +234,74 @@ func RegisterRecurrentTaskServiceServer(s grpc.ServiceRegistrar, srv RecurrentTa
 	s.RegisterService(&RecurrentTaskService_ServiceDesc, srv)
 }
 
-func _RecurrentTaskService_ListBuckets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RecurrentTaskService_ListStorageLocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RecurrentTaskServiceServer).ListBuckets(ctx, in)
+		return srv.(RecurrentTaskServiceServer).ListStorageLocations(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RecurrentTaskService_ListBuckets_FullMethodName,
+		FullMethod: RecurrentTaskService_ListStorageLocations_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecurrentTaskServiceServer).ListBuckets(ctx, req.(*emptypb.Empty))
+		return srv.(RecurrentTaskServiceServer).ListStorageLocations(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RecurrentTaskService_GetBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RecurrentTaskService_GetStorageLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UUID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RecurrentTaskServiceServer).GetBucket(ctx, in)
+		return srv.(RecurrentTaskServiceServer).GetStorageLocation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RecurrentTaskService_GetBucket_FullMethodName,
+		FullMethod: RecurrentTaskService_GetStorageLocation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecurrentTaskServiceServer).GetBucket(ctx, req.(*UUID))
+		return srv.(RecurrentTaskServiceServer).GetStorageLocation(ctx, req.(*UUID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RecurrentTaskService_CreateBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Bucket)
+func _RecurrentTaskService_CreateStorageLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StorageLocation)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RecurrentTaskServiceServer).CreateBucket(ctx, in)
+		return srv.(RecurrentTaskServiceServer).CreateStorageLocation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RecurrentTaskService_CreateBucket_FullMethodName,
+		FullMethod: RecurrentTaskService_CreateStorageLocation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecurrentTaskServiceServer).CreateBucket(ctx, req.(*Bucket))
+		return srv.(RecurrentTaskServiceServer).CreateStorageLocation(ctx, req.(*StorageLocation))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RecurrentTaskService_DeleteBucket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _RecurrentTaskService_DeleteStorageLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UUID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RecurrentTaskServiceServer).DeleteBucket(ctx, in)
+		return srv.(RecurrentTaskServiceServer).DeleteStorageLocation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RecurrentTaskService_DeleteBucket_FullMethodName,
+		FullMethod: RecurrentTaskService_DeleteStorageLocation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecurrentTaskServiceServer).DeleteBucket(ctx, req.(*UUID))
+		return srv.(RecurrentTaskServiceServer).DeleteStorageLocation(ctx, req.(*UUID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -343,7 +343,7 @@ func _RecurrentTaskService_GetRecurrentTask_Handler(srv interface{}, ctx context
 }
 
 func _RecurrentTaskService_CreateRecurrentTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RecurrentTask)
+	in := new(RecurrentTaskPrototype)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -355,13 +355,13 @@ func _RecurrentTaskService_CreateRecurrentTask_Handler(srv interface{}, ctx cont
 		FullMethod: RecurrentTaskService_CreateRecurrentTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecurrentTaskServiceServer).CreateRecurrentTask(ctx, req.(*RecurrentTask))
+		return srv.(RecurrentTaskServiceServer).CreateRecurrentTask(ctx, req.(*RecurrentTaskPrototype))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _RecurrentTaskService_UpdateRecurrentTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RecurrentTask)
+	in := new(RecurrentTaskPrototype)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -373,7 +373,7 @@ func _RecurrentTaskService_UpdateRecurrentTask_Handler(srv interface{}, ctx cont
 		FullMethod: RecurrentTaskService_UpdateRecurrentTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RecurrentTaskServiceServer).UpdateRecurrentTask(ctx, req.(*RecurrentTask))
+		return srv.(RecurrentTaskServiceServer).UpdateRecurrentTask(ctx, req.(*RecurrentTaskPrototype))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -404,20 +404,20 @@ var RecurrentTaskService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*RecurrentTaskServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "ListBuckets",
-			Handler:    _RecurrentTaskService_ListBuckets_Handler,
+			MethodName: "ListStorageLocations",
+			Handler:    _RecurrentTaskService_ListStorageLocations_Handler,
 		},
 		{
-			MethodName: "GetBucket",
-			Handler:    _RecurrentTaskService_GetBucket_Handler,
+			MethodName: "GetStorageLocation",
+			Handler:    _RecurrentTaskService_GetStorageLocation_Handler,
 		},
 		{
-			MethodName: "CreateBucket",
-			Handler:    _RecurrentTaskService_CreateBucket_Handler,
+			MethodName: "CreateStorageLocation",
+			Handler:    _RecurrentTaskService_CreateStorageLocation_Handler,
 		},
 		{
-			MethodName: "DeleteBucket",
-			Handler:    _RecurrentTaskService_DeleteBucket_Handler,
+			MethodName: "DeleteStorageLocation",
+			Handler:    _RecurrentTaskService_DeleteStorageLocation_Handler,
 		},
 		{
 			MethodName: "ListRecurrentTasks",
