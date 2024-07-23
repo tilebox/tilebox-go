@@ -75,16 +75,16 @@ enum StorageEventType {
   STORAGE_EVENT_TYPE_CREATED = 1;
 }
 
-// StorageEventTriggerEvent contains the details of the event that triggered a storage event trigger.
-message StorageEventTriggerEvent {
+// TriggeredStorageEvent contains the details of the concrete event that triggered a storage event trigger.
+message TriggeredStorageEvent {
   UUID storage_location_id = 1;  // The storage location that triggered the task
   StorageEventType type = 2;  // The type of the storage event, e.g. created
   // The object that triggered the task, e.g. a file name in a directory or object name in a bucket
   string location = 3;
 }
 
-// CronTriggerEvent contains the details of the event that triggered a cron trigger.
-message CronTriggerEvent {
+// TriggeredCronEvent contains the details of a concrete event that triggered a cron trigger.
+message TriggeredCronEvent {
   google.protobuf.Timestamp trigger_time = 1;  // The time the cron trigger fired
 }
 
