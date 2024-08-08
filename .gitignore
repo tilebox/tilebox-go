@@ -8,5 +8,6 @@ scratch
 *.db-shm
 *.db-wal
 
-# generated python files
-protogen/python
+# Ignore non-Go generated files
+**/protogen/python/
+**/protogen/web/
