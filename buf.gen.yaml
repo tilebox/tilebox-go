@@ -33,3 +33,8 @@ plugins:
     opt:
       - target=ts
       - import_extension=none
+  - plugin: buf.build/connectrpc/es
+    out: protogen/web
+    opt:
+      - target=ts
+      - import_extension=none
