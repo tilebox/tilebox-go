@@ -1,0 +1,213 @@
+/*
+ Protobuf definition for the Tilebox datasets API.
+
+ Conventions:
+ - A dataset is a set of data points of the same type.
+ - A single data point (entry) is referred to in all messages as datapoint.
+ - Data points for a single dataset are grouped into collections.
+ - All requests for fetching data points or a dataset operate only on a specific collection.
+
+ - Messages with the prefix Get and suffix Request are used for request parameters.
+ - All other messages are used for responses and have no such prefix and Suffix.
+
+ - DatapointMetadata represents the metadata of a single data point for all time series datasets.
+
+ - A collection is identified by its id. The id is a string and is unique across all datasets.
+ - CollectionInfo contains information about the data available in a dataset collection.
+
+ - All time fields use the google.protobuf.Timestamp message type.
+
+ - When a wrapper message is needed to return a list of data points, the message name is the plural of the data point
+   - message name. E.g. UmbraSarGranules contains a list of UmbraSarGranule messages.
+   - Typically the wrapper message consists of three fields:
+     - A list of data point metadata, which is always called meta. (repeated DatapointMetadata meta = 1;)
+     - A list of data points, which is always called data. (repeated <DatapointType> data = 2;)
+     - Pagination information, which is always called next_page. (optional Pagination next_page = 3;)
+         This field is optional and only present if there are more data points available.
+*/
+
+syntax = "proto3";
+
+package datasets.v1;
+
+// https://protobuf.dev/reference/protobuf/google.protobuf/#timestamp
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/type.proto";
+
+/*
+ * General, multi purpose messages
+ */
+message ID {
+  bytes uuid = 1;
+}
+
+// A time interval
+message TimeInterval {
+  google.protobuf.Timestamp start_time = 1; // Start time of the interval.
+  google.protobuf.Timestamp end_time = 2; // End time of the interval.
+
+  // We use exclusive for start and inclusive for end, because that way when both are false
+  // we have a half-open interval [start, end) which is the default behaviour we want to achieve.
+  // Flag indicating whether the start time is exclusive. If true, the start time is not included in the interval.
+  bool start_exclusive = 3;
+  // Flag indicating whether the end time is inclusive. If true, the end time is included in the interval.
+  bool end_inclusive = 4;
+}
+
+// A datapoint interval
+message DatapointInterval {
+  string start_id = 1; // The id of the first data point in the interval.
+  string end_id = 2; // The id of the last data point in the interval.
+
+  // We use exclusive for start and inclusive for end, because that way when both are false
+  // we have a half-open interval [start, end) which is the default behaviour we want to achieve.
+  // Flag indicating whether the start id is exclusive.
+  // If true, the datapoint with the given start id is not included in the interval.
+  bool start_exclusive = 3;
+  // Flag indicating whether the end id is inclusive.
+  // If true, the datapoint with the given end id is included in the interval.
+  bool end_inclusive = 4;
+}
+
+// Pagination information for paginated queries
+message Pagination {
+  // The maximum number of entries to return.
+  optional int64 limit = 1;
+  // Return entries starting after this entry.
+  // This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
+  optional string starting_after = 2;
+}
+
+
+/*
+ * Messages relevant for all time series datasets
+ */
+
+// DatapointMetadata contains the metadata for a single data point.
+message DatapointMetadata {
+  google.protobuf.Timestamp event_time = 1; // The time the message was received by the on-board computer.
+  google.protobuf.Timestamp ingestion_time = 2; // The time the message was ingested by Tilebox.
+  optional string id = 3; // The external id of the datapoint.
+}
+
+// Collection contains basic information about a dataset collection
+message Collection {
+  string id = 1;
+  string name = 2;
+}
+
+// CollectionInfo contains information about the data available in a dataset collection
+message CollectionInfo {
+  Collection collection = 1;
+  optional TimeInterval availability = 2; // The time interval for which data is available.
+  optional uint64 count = 3; // Number of entries in the dataset.
+}
+
+// Collections contains a list of CollectionInfo messages.
+message Collections {
+  repeated CollectionInfo data = 1;
+}
+
+// FieldAnnotation contains additional information about a field in a dataset
+message FieldAnnotation {
+  string description = 1;
+  string example_value = 2;
+}
+
+// AnnotatedType describes a message type
+message AnnotatedType {
+  google.protobuf.FileDescriptorSet descriptor_set = 1;
+  string type_url = 2;  // the url of the type, one of the types defined in the descriptor
+  string description = 3;
+  repeated FieldAnnotation field_annotations = 4;
+}
+
+// Dataset contains information about a single dataset
+message Dataset {
+  // dataset id
+  ID id = 1;
+  // the dataset group to which this dataset belongs
+  ID group_id = 2;
+  // the type of the dataset
+  AnnotatedType type = 3;
+  // normalized snake case name of the dataset, which can be used as a valid code identifier
+  string code_name = 4;
+  // display name of the dataset
+  string name = 5;
+  // summary of the dataset
+  string summary = 6;
+  // optional icon of the dataset
+  string icon = 7;
+  // description of the dataset, in markdown format
+  string description = 8;
+}
+
+// DatasetGroup represent a dataset group
+message DatasetGroup {
+  // group id
+  ID id = 1;
+  // optional parent group id
+  ID parent_id = 2;
+  // normalized snake case name of the dataset group, which can be used as a valid code identifier
+  string code_name = 3;
+  // display name of the group
+  string name = 4;
+  // optional icon of the group
+  string icon = 5;
+}
+
+// GetCollectionsRequest contains the request parameters
+// for retrieving a list of all available collections for a given dataset.
+message GetCollectionsRequest {
+  ID dataset_id = 1; // The dataset id.
+  bool with_availability = 2; // If true, the response will include the availability interval.
+  bool with_count = 3; // If true, the response will include the number of entries.
+}
+
+// GetCollectionByNameRequest contains the request parameters for retrieving a single collection by its name.
+message GetCollectionByNameRequest {
+  string collection_name = 1; // The name of the collection retrieve.
+  bool with_availability = 2; // If true, the response will include the availability interval.
+  bool with_count = 3; // If true, the response will include the number of entries.
+  ID dataset_id = 4; // The dataset id.
+}
+
+// GetDatasetForIntervalRequest contains the request parameters for retrieving data for a time interval.
+message GetDatasetForIntervalRequest {
+  string collection_id = 1; // The collection id.
+
+  // Either time interval or datapoint interval must be set, but not both.
+  TimeInterval time_interval = 2; // The time interval for which data is requested.
+  DatapointInterval datapoint_interval = 6; // The datapoint interval for which data is requested.
+
+  optional Pagination page = 3; // The pagination parameters for this request.
+  bool skip_data = 4; // If true, the datapoint data is not returned.
+  // If true, the datapoint metadata is not returned.
+  // If both skip_data and skip_meta are true,
+  // the response will only consist of a list of datapoint ids without any additional data or metadata.
+  bool skip_meta = 5;
+}
+
+// GetDatapointByIdRequest contains the request parameters for retrieving a single data point in a collection by its id.
+message GetDatapointByIdRequest {
+  string collection_id = 1; // The collection id.
+  string id = 2; // The id of the requested data point.
+  bool skip_data = 3; // If true, only the datapoint metadata is returned.
+}
+
+// Any is a message that can hold any other message as bytes.
+// We don't use google.protobuf.Any because we want the JSON representation of the value field to be bytes.
+message Any {
+  string type_url = 1;
+  // Must be a valid serialized protocol buffer of the above specified type.
+  bytes value = 2;
+}
+
+// RepeatedAny is a message holding a list of messages, that all share the same variable message type.
+// It is preferable over a repeated Any field because it avoids repeating the type_url for every single element.
+message RepeatedAny {
+  string type_url = 1;
+  // Must be a valid serialized protocol buffer of the above specified type.
+  repeated bytes value = 2;
+}

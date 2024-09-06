@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/tilebox/workflow
+name: buf.build/tilebox/tilebox-go
 deps:
   - buf.build/googleapis/googleapis
 breaking:
