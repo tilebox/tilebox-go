@@ -13,32 +13,32 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-type tileboxServiceConfig struct {
+type datasetServiceConfig struct {
 	tracerProvider trace.TracerProvider
 	tracerName     string
 }
 
-type TileboxServiceOption func(*tileboxServiceConfig)
+type DatasetServiceOption func(*datasetServiceConfig)
 
-func WithTileboxServiceTracerProvider(tracerProvider trace.TracerProvider) TileboxServiceOption {
-	return func(cfg *tileboxServiceConfig) {
+func WithDatasetServiceTracerProvider(tracerProvider trace.TracerProvider) DatasetServiceOption {
+	return func(cfg *datasetServiceConfig) {
 		cfg.tracerProvider = tracerProvider
 	}
 }
 
-func WithTileboxServiceTracerName(tracerName string) TileboxServiceOption {
-	return func(cfg *tileboxServiceConfig) {
+func WithDatasetServiceTracerName(tracerName string) DatasetServiceOption {
+	return func(cfg *datasetServiceConfig) {
 		cfg.tracerName = tracerName
 	}
 }
 
-type TileboxService struct {
+type DatasetService struct {
 	client datasetsv1connect.TileboxServiceClient
 	tracer trace.Tracer
 }
 
-func newTileboxServiceConfig(options []TileboxServiceOption) *tileboxServiceConfig {
-	cfg := &tileboxServiceConfig{
+func newDatasetServiceConfig(options []DatasetServiceOption) *datasetServiceConfig {
+	cfg := &datasetServiceConfig{
 		tracerProvider: otel.GetTracerProvider(),    // use the global tracer provider by default
 		tracerName:     "tilebox.com/observability", // the default tracer name we use
 	}
@@ -49,15 +49,15 @@ func newTileboxServiceConfig(options []TileboxServiceOption) *tileboxServiceConf
 	return cfg
 }
 
-func NewTileboxService(client datasetsv1connect.TileboxServiceClient, options ...TileboxServiceOption) *TileboxService {
-	cfg := newTileboxServiceConfig(options)
-	return &TileboxService{
+func NewDatasetService(client datasetsv1connect.TileboxServiceClient, options ...DatasetServiceOption) *DatasetService {
+	cfg := newDatasetServiceConfig(options)
+	return &DatasetService{
 		client: client,
 		tracer: cfg.tracerProvider.Tracer(cfg.tracerName),
 	}
 }
 
-func (ts *TileboxService) SaveDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, enableUpdate bool) (*datasetsv1.SaveDatapointsResponse, error) {
+func (ts *DatasetService) SaveDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, enableUpdate bool) (*datasetsv1.SaveDatapointsResponse, error) {
 	return observability.WithSpanResult(ctx, ts.tracer, "dataset/save", func(ctx context.Context) (*datasetsv1.SaveDatapointsResponse, error) {
 		res, err := ts.client.SaveDatapoints(ctx, connect.NewRequest(
 			&datasetsv1.SaveDatapointsRequest{

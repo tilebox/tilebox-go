@@ -76,7 +76,7 @@ func newClientConfig(options []ClientOption) *clientConfig {
 	return cfg
 }
 
-func NewTileboxClient(options ...ClientOption) datasetsv1connect.TileboxServiceClient {
+func NewDatasetClient(options ...ClientOption) datasetsv1connect.TileboxServiceClient {
 	return newConnectClient(datasetsv1connect.NewTileboxServiceClient, options...)
 }
 
