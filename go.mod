@@ -1,6 +1,6 @@
 module github.com/tilebox/tilebox-go
 
-go 1.22
+go 1.23.0
 
 require (
 	connectrpc.com/connect v1.16.2
