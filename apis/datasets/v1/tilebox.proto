@@ -1,0 +1,111 @@
+// The Tilebox service provides access to datasets.
+
+syntax = "proto3";
+
+package datasets.v1;
+
+import "datasets/v1/core.proto";
+
+// GetDatasetRequest is the request message for the GetDataset RPC method for fetching a single dataset
+message GetDatasetRequest {
+  // the dataset to be returned
+  string dataset_id = 1;
+}
+
+// ClientInfo contains information about the client requesting datasets, useful for us to gather usage data
+message ClientInfo {
+  // name of the client, e.g. "python"
+  string name = 1;
+  // environment the client is running in, e.g. "JupyterLab using python 3.11.4"
+  string environment = 2;
+  // list of packages installed on the client
+  repeated Package packages = 3;
+}
+
+// Package contains information about the installed version of a given package on the client
+message Package {
+  // package name
+  string name = 1;
+  // package version
+  string version = 2;
+}
+
+// UpdateDatasetDescriptionRequest is used to update a dataset description
+message UpdateDatasetDescriptionRequest {
+  // dataset id
+  ID id = 1;
+  // description of the dataset, in markdown format
+  string description = 2;
+}
+
+// ListDatasetsRequest is used to request a list of datasets
+message ListDatasetsRequest {
+  // some information about the Tilebox client requesting the datasets
+  ClientInfo client_info = 1;
+}
+
+// A list of datasets and dataset groups
+message ListDatasetsResponse {
+  // list of datasets a user has access to
+  repeated Dataset datasets = 1;
+  // list of dataset groups a user has access to
+  repeated DatasetGroup groups = 2;
+  // an optional message to be displayed to the user when they access a list of datasets
+  string server_message = 3;
+}
+
+// Datapoints of a TimeseriesDataset, such as those returned by a ForInterval query
+message Datapoints {
+  repeated DatapointMetadata meta = 1; // A metadata for a datapoint.
+  RepeatedAny data = 2; // The datapoints.
+  optional Pagination next_page = 3; // The pagination parameters for the next page.
+}
+
+// Datapoint is a single datapoint in a Timeseries Dataset
+message Datapoint {
+  DatapointMetadata meta = 1; // A metadata for a datapoint.
+  Any data = 2; // The data.
+}
+
+// SaveDatapointsRequest is used to save multiple datapoints to a collection.
+message SaveDatapointsRequest {
+  ID collection_id = 1;
+  Datapoints datapoints = 2;
+  // If enable_update is true, the datapoints will be updated if they already exist.
+  // Providing an existing datapoint with enable_update set to false will result in an error.
+  bool enable_update = 3;
+}
+
+// SaveDatapointsResponse is used to indicate that multiple datapoints were saved.
+message SaveDatapointsResponse {
+  int64 num_created = 1; // The number of datapoints that were created.
+  int64 num_updated = 2; // The number of datapoints that were updated.
+  repeated ID datapoint_ids = 3; // The ids of the datapoints in the same order as the datapoints in the request.
+}
+
+// DeleteDatapointsRequest is used to delete multiple datapoints from a collection.
+message DeleteDatapointsRequest {
+  ID collection_id = 1;
+  repeated ID datapoint_ids = 2;
+}
+
+// DeleteDatapointsResponse is used to indicate that multiple datapoints were deleted.
+message DeleteDatapointsResponse {
+  int64 num_deleted = 1; // The number of datapoints that were deleted.
+}
+
+// TileboxService is the service definition for the Tilebox datasets service, which provides access to datasets
+service TileboxService {
+  rpc GetDataset(GetDatasetRequest) returns (Dataset) {}
+  rpc UpdateDatasetDescription(UpdateDatasetDescriptionRequest) returns (Dataset) {}
+  rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {}
+
+  rpc GetCollections(GetCollectionsRequest) returns (Collections) {}
+  rpc GetCollectionByName(GetCollectionByNameRequest) returns (CollectionInfo) {}
+
+  rpc GetDatasetForInterval(GetDatasetForIntervalRequest) returns (Datapoints) {}
+  rpc GetDatapointByID(GetDatapointByIdRequest) returns (Datapoint) {}
+
+  rpc SaveDatapoints(SaveDatapointsRequest) returns (SaveDatapointsResponse) {}
+  rpc DeleteDatapoints(DeleteDatapointsRequest) returns (DeleteDatapointsResponse) {}
+}
