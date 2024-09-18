@@ -57,20 +57,20 @@ func NewDatasetsService(client datasetsv1connect.TileboxServiceClient, options .
 	}
 }
 
-func (s *Service) SaveDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, enableUpdate bool) (*datasetsv1.SaveDatapointsResponse, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/save", func(ctx context.Context) (*datasetsv1.SaveDatapointsResponse, error) {
-		res, err := s.client.SaveDatapoints(ctx, connect.NewRequest(
-			&datasetsv1.SaveDatapointsRequest{
+func (s *Service) Ingest(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestDatapointsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/save", func(ctx context.Context) (*datasetsv1.IngestDatapointsResponse, error) {
+		res, err := s.client.IngestDatapoints(ctx, connect.NewRequest(
+			&datasetsv1.IngestDatapointsRequest{
 				CollectionId: &datasetsv1.ID{
 					Uuid: collectionID[:],
 				},
-				Datapoints:   datapoints,
-				EnableUpdate: enableUpdate,
+				Datapoints:    datapoints,
+				AllowExisting: allowExisting,
 			},
 		))
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to save datapoints: %w", err)
+			return nil, fmt.Errorf("failed to ingest datapoints: %w", err)
 		}
 
 		return res.Msg, nil

@@ -47,9 +47,9 @@ func RetryOnStatusUnavailable(ctx context.Context, resp *http.Response, err erro
 func RetryHTTPClient() connect.HTTPClient {
 	retryClient := retryablehttp.NewClient()
 	retryClient.RetryWaitMin = 20 * time.Millisecond
-	retryClient.RetryWaitMax = 5 * time.Second
+	retryClient.RetryWaitMax = 10 * time.Second
 	retryClient.RetryMax = 5
-	retryClient.Backoff = retryablehttp.DefaultBackoff // exponential backoff
+	retryClient.Backoff = retryablehttp.LinearJitterBackoff
 	retryClient.CheckRetry = RetryOnStatusUnavailable
 
 	return retryClient.StandardClient()
