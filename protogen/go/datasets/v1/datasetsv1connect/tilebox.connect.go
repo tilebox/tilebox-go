@@ -56,9 +56,9 @@ const (
 	// TileboxServiceGetDatapointByIDProcedure is the fully-qualified name of the TileboxService's
 	// GetDatapointByID RPC.
 	TileboxServiceGetDatapointByIDProcedure = "/datasets.v1.TileboxService/GetDatapointByID"
-	// TileboxServiceSaveDatapointsProcedure is the fully-qualified name of the TileboxService's
-	// SaveDatapoints RPC.
-	TileboxServiceSaveDatapointsProcedure = "/datasets.v1.TileboxService/SaveDatapoints"
+	// TileboxServiceIngestDatapointsProcedure is the fully-qualified name of the TileboxService's
+	// IngestDatapoints RPC.
+	TileboxServiceIngestDatapointsProcedure = "/datasets.v1.TileboxService/IngestDatapoints"
 	// TileboxServiceDeleteDatapointsProcedure is the fully-qualified name of the TileboxService's
 	// DeleteDatapoints RPC.
 	TileboxServiceDeleteDatapointsProcedure = "/datasets.v1.TileboxService/DeleteDatapoints"
@@ -74,7 +74,7 @@ var (
 	tileboxServiceGetCollectionByNameMethodDescriptor      = tileboxServiceServiceDescriptor.Methods().ByName("GetCollectionByName")
 	tileboxServiceGetDatasetForIntervalMethodDescriptor    = tileboxServiceServiceDescriptor.Methods().ByName("GetDatasetForInterval")
 	tileboxServiceGetDatapointByIDMethodDescriptor         = tileboxServiceServiceDescriptor.Methods().ByName("GetDatapointByID")
-	tileboxServiceSaveDatapointsMethodDescriptor           = tileboxServiceServiceDescriptor.Methods().ByName("SaveDatapoints")
+	tileboxServiceIngestDatapointsMethodDescriptor         = tileboxServiceServiceDescriptor.Methods().ByName("IngestDatapoints")
 	tileboxServiceDeleteDatapointsMethodDescriptor         = tileboxServiceServiceDescriptor.Methods().ByName("DeleteDatapoints")
 )
 
@@ -87,7 +87,7 @@ type TileboxServiceClient interface {
 	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
 	GetDatasetForInterval(context.Context, *connect.Request[v1.GetDatasetForIntervalRequest]) (*connect.Response[v1.Datapoints], error)
 	GetDatapointByID(context.Context, *connect.Request[v1.GetDatapointByIdRequest]) (*connect.Response[v1.Datapoint], error)
-	SaveDatapoints(context.Context, *connect.Request[v1.SaveDatapointsRequest]) (*connect.Response[v1.SaveDatapointsResponse], error)
+	IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestDatapointsResponse], error)
 	DeleteDatapoints(context.Context, *connect.Request[v1.DeleteDatapointsRequest]) (*connect.Response[v1.DeleteDatapointsResponse], error)
 }
 
@@ -143,10 +143,10 @@ func NewTileboxServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(tileboxServiceGetDatapointByIDMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
-		saveDatapoints: connect.NewClient[v1.SaveDatapointsRequest, v1.SaveDatapointsResponse](
+		ingestDatapoints: connect.NewClient[v1.IngestDatapointsRequest, v1.IngestDatapointsResponse](
 			httpClient,
-			baseURL+TileboxServiceSaveDatapointsProcedure,
-			connect.WithSchema(tileboxServiceSaveDatapointsMethodDescriptor),
+			baseURL+TileboxServiceIngestDatapointsProcedure,
+			connect.WithSchema(tileboxServiceIngestDatapointsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
 		deleteDatapoints: connect.NewClient[v1.DeleteDatapointsRequest, v1.DeleteDatapointsResponse](
@@ -167,7 +167,7 @@ type tileboxServiceClient struct {
 	getCollectionByName      *connect.Client[v1.GetCollectionByNameRequest, v1.CollectionInfo]
 	getDatasetForInterval    *connect.Client[v1.GetDatasetForIntervalRequest, v1.Datapoints]
 	getDatapointByID         *connect.Client[v1.GetDatapointByIdRequest, v1.Datapoint]
-	saveDatapoints           *connect.Client[v1.SaveDatapointsRequest, v1.SaveDatapointsResponse]
+	ingestDatapoints         *connect.Client[v1.IngestDatapointsRequest, v1.IngestDatapointsResponse]
 	deleteDatapoints         *connect.Client[v1.DeleteDatapointsRequest, v1.DeleteDatapointsResponse]
 }
 
@@ -206,9 +206,9 @@ func (c *tileboxServiceClient) GetDatapointByID(ctx context.Context, req *connec
 	return c.getDatapointByID.CallUnary(ctx, req)
 }
 
-// SaveDatapoints calls datasets.v1.TileboxService.SaveDatapoints.
-func (c *tileboxServiceClient) SaveDatapoints(ctx context.Context, req *connect.Request[v1.SaveDatapointsRequest]) (*connect.Response[v1.SaveDatapointsResponse], error) {
-	return c.saveDatapoints.CallUnary(ctx, req)
+// IngestDatapoints calls datasets.v1.TileboxService.IngestDatapoints.
+func (c *tileboxServiceClient) IngestDatapoints(ctx context.Context, req *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestDatapointsResponse], error) {
+	return c.ingestDatapoints.CallUnary(ctx, req)
 }
 
 // DeleteDatapoints calls datasets.v1.TileboxService.DeleteDatapoints.
@@ -225,7 +225,7 @@ type TileboxServiceHandler interface {
 	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
 	GetDatasetForInterval(context.Context, *connect.Request[v1.GetDatasetForIntervalRequest]) (*connect.Response[v1.Datapoints], error)
 	GetDatapointByID(context.Context, *connect.Request[v1.GetDatapointByIdRequest]) (*connect.Response[v1.Datapoint], error)
-	SaveDatapoints(context.Context, *connect.Request[v1.SaveDatapointsRequest]) (*connect.Response[v1.SaveDatapointsResponse], error)
+	IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestDatapointsResponse], error)
 	DeleteDatapoints(context.Context, *connect.Request[v1.DeleteDatapointsRequest]) (*connect.Response[v1.DeleteDatapointsResponse], error)
 }
 
@@ -277,10 +277,10 @@ func NewTileboxServiceHandler(svc TileboxServiceHandler, opts ...connect.Handler
 		connect.WithSchema(tileboxServiceGetDatapointByIDMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	tileboxServiceSaveDatapointsHandler := connect.NewUnaryHandler(
-		TileboxServiceSaveDatapointsProcedure,
-		svc.SaveDatapoints,
-		connect.WithSchema(tileboxServiceSaveDatapointsMethodDescriptor),
+	tileboxServiceIngestDatapointsHandler := connect.NewUnaryHandler(
+		TileboxServiceIngestDatapointsProcedure,
+		svc.IngestDatapoints,
+		connect.WithSchema(tileboxServiceIngestDatapointsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceDeleteDatapointsHandler := connect.NewUnaryHandler(
@@ -305,8 +305,8 @@ func NewTileboxServiceHandler(svc TileboxServiceHandler, opts ...connect.Handler
 			tileboxServiceGetDatasetForIntervalHandler.ServeHTTP(w, r)
 		case TileboxServiceGetDatapointByIDProcedure:
 			tileboxServiceGetDatapointByIDHandler.ServeHTTP(w, r)
-		case TileboxServiceSaveDatapointsProcedure:
-			tileboxServiceSaveDatapointsHandler.ServeHTTP(w, r)
+		case TileboxServiceIngestDatapointsProcedure:
+			tileboxServiceIngestDatapointsHandler.ServeHTTP(w, r)
 		case TileboxServiceDeleteDatapointsProcedure:
 			tileboxServiceDeleteDatapointsHandler.ServeHTTP(w, r)
 		default:
@@ -346,8 +346,8 @@ func (UnimplementedTileboxServiceHandler) GetDatapointByID(context.Context, *con
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.TileboxService.GetDatapointByID is not implemented"))
 }
 
-func (UnimplementedTileboxServiceHandler) SaveDatapoints(context.Context, *connect.Request[v1.SaveDatapointsRequest]) (*connect.Response[v1.SaveDatapointsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.TileboxService.SaveDatapoints is not implemented"))
+func (UnimplementedTileboxServiceHandler) IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestDatapointsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.TileboxService.IngestDatapoints is not implemented"))
 }
 
 func (UnimplementedTileboxServiceHandler) DeleteDatapoints(context.Context, *connect.Request[v1.DeleteDatapointsRequest]) (*connect.Response[v1.DeleteDatapointsResponse], error) {

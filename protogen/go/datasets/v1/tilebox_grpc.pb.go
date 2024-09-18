@@ -28,7 +28,7 @@ const (
 	TileboxService_GetCollectionByName_FullMethodName      = "/datasets.v1.TileboxService/GetCollectionByName"
 	TileboxService_GetDatasetForInterval_FullMethodName    = "/datasets.v1.TileboxService/GetDatasetForInterval"
 	TileboxService_GetDatapointByID_FullMethodName         = "/datasets.v1.TileboxService/GetDatapointByID"
-	TileboxService_SaveDatapoints_FullMethodName           = "/datasets.v1.TileboxService/SaveDatapoints"
+	TileboxService_IngestDatapoints_FullMethodName         = "/datasets.v1.TileboxService/IngestDatapoints"
 	TileboxService_DeleteDatapoints_FullMethodName         = "/datasets.v1.TileboxService/DeleteDatapoints"
 )
 
@@ -45,7 +45,7 @@ type TileboxServiceClient interface {
 	GetCollectionByName(ctx context.Context, in *GetCollectionByNameRequest, opts ...grpc.CallOption) (*CollectionInfo, error)
 	GetDatasetForInterval(ctx context.Context, in *GetDatasetForIntervalRequest, opts ...grpc.CallOption) (*Datapoints, error)
 	GetDatapointByID(ctx context.Context, in *GetDatapointByIdRequest, opts ...grpc.CallOption) (*Datapoint, error)
-	SaveDatapoints(ctx context.Context, in *SaveDatapointsRequest, opts ...grpc.CallOption) (*SaveDatapointsResponse, error)
+	IngestDatapoints(ctx context.Context, in *IngestDatapointsRequest, opts ...grpc.CallOption) (*IngestDatapointsResponse, error)
 	DeleteDatapoints(ctx context.Context, in *DeleteDatapointsRequest, opts ...grpc.CallOption) (*DeleteDatapointsResponse, error)
 }
 
@@ -127,10 +127,10 @@ func (c *tileboxServiceClient) GetDatapointByID(ctx context.Context, in *GetData
 	return out, nil
 }
 
-func (c *tileboxServiceClient) SaveDatapoints(ctx context.Context, in *SaveDatapointsRequest, opts ...grpc.CallOption) (*SaveDatapointsResponse, error) {
+func (c *tileboxServiceClient) IngestDatapoints(ctx context.Context, in *IngestDatapointsRequest, opts ...grpc.CallOption) (*IngestDatapointsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SaveDatapointsResponse)
-	err := c.cc.Invoke(ctx, TileboxService_SaveDatapoints_FullMethodName, in, out, cOpts...)
+	out := new(IngestDatapointsResponse)
+	err := c.cc.Invoke(ctx, TileboxService_IngestDatapoints_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +160,7 @@ type TileboxServiceServer interface {
 	GetCollectionByName(context.Context, *GetCollectionByNameRequest) (*CollectionInfo, error)
 	GetDatasetForInterval(context.Context, *GetDatasetForIntervalRequest) (*Datapoints, error)
 	GetDatapointByID(context.Context, *GetDatapointByIdRequest) (*Datapoint, error)
-	SaveDatapoints(context.Context, *SaveDatapointsRequest) (*SaveDatapointsResponse, error)
+	IngestDatapoints(context.Context, *IngestDatapointsRequest) (*IngestDatapointsResponse, error)
 	DeleteDatapoints(context.Context, *DeleteDatapointsRequest) (*DeleteDatapointsResponse, error)
 	mustEmbedUnimplementedTileboxServiceServer()
 }
@@ -193,8 +193,8 @@ func (UnimplementedTileboxServiceServer) GetDatasetForInterval(context.Context, 
 func (UnimplementedTileboxServiceServer) GetDatapointByID(context.Context, *GetDatapointByIdRequest) (*Datapoint, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDatapointByID not implemented")
 }
-func (UnimplementedTileboxServiceServer) SaveDatapoints(context.Context, *SaveDatapointsRequest) (*SaveDatapointsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SaveDatapoints not implemented")
+func (UnimplementedTileboxServiceServer) IngestDatapoints(context.Context, *IngestDatapointsRequest) (*IngestDatapointsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IngestDatapoints not implemented")
 }
 func (UnimplementedTileboxServiceServer) DeleteDatapoints(context.Context, *DeleteDatapointsRequest) (*DeleteDatapointsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDatapoints not implemented")
@@ -346,20 +346,20 @@ func _TileboxService_GetDatapointByID_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _TileboxService_SaveDatapoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SaveDatapointsRequest)
+func _TileboxService_IngestDatapoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IngestDatapointsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TileboxServiceServer).SaveDatapoints(ctx, in)
+		return srv.(TileboxServiceServer).IngestDatapoints(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TileboxService_SaveDatapoints_FullMethodName,
+		FullMethod: TileboxService_IngestDatapoints_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TileboxServiceServer).SaveDatapoints(ctx, req.(*SaveDatapointsRequest))
+		return srv.(TileboxServiceServer).IngestDatapoints(ctx, req.(*IngestDatapointsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -418,8 +418,8 @@ var TileboxService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TileboxService_GetDatapointByID_Handler,
 		},
 		{
-			MethodName: "SaveDatapoints",
-			Handler:    _TileboxService_SaveDatapoints_Handler,
+			MethodName: "IngestDatapoints",
+			Handler:    _TileboxService_IngestDatapoints_Handler,
 		},
 		{
 			MethodName: "DeleteDatapoints",

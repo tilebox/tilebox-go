@@ -67,19 +67,23 @@ message Datapoint {
   Any data = 2; // The data.
 }
 
-// SaveDatapointsRequest is used to save multiple datapoints to a collection.
-message SaveDatapointsRequest {
-  ID collection_id = 1;
-  Datapoints datapoints = 2;
-  // If enable_update is true, the datapoints will be updated if they already exist.
-  // Providing an existing datapoint with enable_update set to false will result in an error.
-  bool enable_update = 3;
+// IngestDatapointsRequest is used to ingest one or multiple datapoints into a collection.
+message IngestDatapointsRequest {
+  ID collection_id = 1;  // The collection to insert the datapoints into.
+  Datapoints datapoints = 2;  // The datapoints to insert.
+
+  // Whether to allow existing datapoints as part of the request. If true, datapoints that already exist will be
+  // ignored, and the number of such existing datapoints will be returned in the response. If false, any datapoints
+  // that already exist will result in an error. Setting this to true is useful for achieving idempotency (e.g.
+  // allowing re-ingestion of datapoints that have already been ingested in the past).
+  bool allow_existing = 3;
 }
 
-// SaveDatapointsResponse is used to indicate that multiple datapoints were saved.
-message SaveDatapointsResponse {
+// IngestDatapointsResponse is the response to a IngestDatapointsRequest, indicating the number of datapoints that were
+// ingested as well as the generated ids for those datapoints.
+message IngestDatapointsResponse {
   int64 num_created = 1; // The number of datapoints that were created.
-  int64 num_updated = 2; // The number of datapoints that were updated.
+  int64 num_existing = 2; // The number of datapoints that were ignored because they already existed.
   repeated ID datapoint_ids = 3; // The ids of the datapoints in the same order as the datapoints in the request.
 }
 
@@ -106,6 +110,6 @@ service TileboxService {
   rpc GetDatasetForInterval(GetDatasetForIntervalRequest) returns (Datapoints) {}
   rpc GetDatapointByID(GetDatapointByIdRequest) returns (Datapoint) {}
 
-  rpc SaveDatapoints(SaveDatapointsRequest) returns (SaveDatapointsResponse) {}
+  rpc IngestDatapoints(IngestDatapointsRequest) returns (IngestDatapointsResponse) {}
   rpc DeleteDatapoints(DeleteDatapointsRequest) returns (DeleteDatapointsResponse) {}
 }
