@@ -104,6 +104,7 @@ service TileboxService {
   rpc UpdateDatasetDescription(UpdateDatasetDescriptionRequest) returns (Dataset) {}
   rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {}
 
+  rpc CreateCollection(CreateCollectionRequest) returns (CollectionInfo) {}
   rpc GetCollections(GetCollectionsRequest) returns (Collections) {}
   rpc GetCollectionByName(GetCollectionByNameRequest) returns (CollectionInfo) {}
 

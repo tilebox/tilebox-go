@@ -157,6 +157,12 @@ message DatasetGroup {
   string icon = 5;
 }
 
+// CreateCollectionRequest is used to create a new collection.
+message CreateCollectionRequest {
+  ID dataset_id = 1; // The dataset id where the collection should be created.
+  string name = 2; // The name of the collection to create.
+}
+
 // GetCollectionsRequest contains the request parameters
 // for retrieving a list of all available collections for a given dataset.
 message GetCollectionsRequest {
