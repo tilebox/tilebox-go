@@ -1,39 +1,39 @@
-version: v1
+version: v2
 managed:
   enabled: true
-  go_package_prefix:
-    default: github.com/tilebox/tilebox-go/protogen/go
-    except:
-      - buf.build/googleapis/googleapis
+  disable:
+    - file_option: go_package
+      module: buf.build/googleapis/googleapis
+  override:
+    - file_option: go_package_prefix
+      value: github.com/tilebox/tilebox-go/protogen/go
 plugins:
-  - plugin: buf.build/protocolbuffers/go
+  - remote: buf.build/protocolbuffers/go
     out: protogen/go
     opt: paths=source_relative
-  - plugin: buf.build/grpc/go
+  - remote: buf.build/grpc/go
     out: protogen/go
     opt: paths=source_relative
-  - plugin: buf.build/connectrpc/go
+  - remote: buf.build/connectrpc/go
     out: protogen/go
     opt: paths=source_relative
-
-  - plugin: buf.build/grpc/python
+  - remote: buf.build/grpc/python
     out: protogen/python
-  - plugin: buf.build/protocolbuffers/python:v26.1  # we cannot use v27 yet, because then we need to upgrade to protobuf 5 in python, and open-telemetry python does not support that yet: https://github.com/open-telemetry/opentelemetry-python/issues/3958
+  - remote: buf.build/protocolbuffers/python:v26.1  # we cannot use v27 yet, because then we need to upgrade to protobuf 5 in python, and open-telemetry python does not support that yet: https://github.com/open-telemetry/opentelemetry-python/issues/3958
     out: protogen/python
-  - plugin: buf.build/protocolbuffers/pyi
+  - remote: buf.build/protocolbuffers/pyi
     out: protogen/python
-
-  - plugin: buf.build/bufbuild/es:v1.10.0
+  - remote: buf.build/bufbuild/es:v1.10.0
     out: protogen/web
     opt:
       - target=ts
       - import_extension=none
-  - plugin: buf.build/connectrpc/query-es
+  - remote: buf.build/connectrpc/query-es
     out: protogen/web
     opt:
       - target=ts
       - import_extension=none
-  - plugin: buf.build/connectrpc/es
+  - remote: buf.build/connectrpc/es
     out: protogen/web
     opt:
       - target=ts
