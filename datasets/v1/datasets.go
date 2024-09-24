@@ -6,6 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"github.com/tilebox/tilebox-go/observability"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/datasets/v1/datasetsv1connect"
@@ -118,7 +119,7 @@ func (s *Service) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, 
 }
 
 func (s *Service) Ingest(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestDatapointsResponse, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/save", func(ctx context.Context) (*datasetsv1.IngestDatapointsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/ingest_datapoints", func(ctx context.Context) (*datasetsv1.IngestDatapointsResponse, error) {
 		res, err := s.client.IngestDatapoints(ctx, connect.NewRequest(
 			&datasetsv1.IngestDatapointsRequest{
 				CollectionId: &datasetsv1.ID{
@@ -131,6 +132,29 @@ func (s *Service) Ingest(ctx context.Context, collectionID uuid.UUID, datapoints
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to ingest datapoints: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *Service) Delete(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteDatapointsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/delete_datapoints", func(ctx context.Context) (*datasetsv1.DeleteDatapointsResponse, error) {
+		res, err := s.client.DeleteDatapoints(ctx, connect.NewRequest(
+			&datasetsv1.DeleteDatapointsRequest{
+				CollectionId: &datasetsv1.ID{
+					Uuid: collectionID[:],
+				},
+				DatapointIds: lo.Map(datapointIDs, func(datapointID uuid.UUID, _ int) *datasetsv1.ID {
+					return &datasetsv1.ID{
+						Uuid: datapointID[:],
+					}
+				}),
+			},
+		))
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to delete datapoints: %w", err)
 		}
 
 		return res.Msg, nil
