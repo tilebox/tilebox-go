@@ -2,7 +2,10 @@ package datasets
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"iter"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -12,7 +15,52 @@ import (
 	"github.com/tilebox/tilebox-go/protogen/go/datasets/v1/datasetsv1connect"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+type LoadInterval interface {
+	ToProtoTimeInterval() *datasetsv1.TimeInterval
+	ToProtoDatapointInterval() *datasetsv1.DatapointInterval
+}
+
+var _ LoadInterval = &TimeInterval{}
+
+type TimeInterval struct {
+	start time.Time
+	end   time.Time
+}
+
+func NewTimeInterval(start, end time.Time) *TimeInterval {
+	return &TimeInterval{
+		start: start,
+		end:   end,
+	}
+}
+
+func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
+	return &datasetsv1.TimeInterval{
+		StartTime:      timestamppb.New(t.start),
+		EndTime:        timestamppb.New(t.end),
+		StartExclusive: false,
+		EndInclusive:   true,
+	}
+}
+
+func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval {
+	return nil
+}
+
+func Collect[K any](seq iter.Seq2[K, error]) ([]K, error) {
+	s := make([]K, 0)
+
+	for k, err := range seq {
+		if err != nil {
+			return nil, err
+		}
+		s = append(s, k)
+	}
+	return s, nil
+}
 
 type serviceConfig struct {
 	tracerProvider trace.TracerProvider
@@ -112,6 +160,95 @@ func (s *Service) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, 
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to get collections: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+type DatapointMetadata struct {
+	ID            uuid.UUID
+	EventTime     time.Time
+	IngestionTime time.Time
+}
+
+type Datapoint struct {
+	Meta *DatapointMetadata
+	// data proto.Message
+}
+
+func (s *Service) Load(ctx context.Context, collectionID uuid.UUID, loadInterval LoadInterval, skipData, skipMeta bool) iter.Seq2[*Datapoint, error] {
+	return func(yield func(*Datapoint, error) bool) {
+		var page *datasetsv1.Pagination // nil for the first request
+
+		timeInterval := loadInterval.ToProtoTimeInterval()
+		datapointInterval := loadInterval.ToProtoDatapointInterval()
+
+		if timeInterval == nil && datapointInterval == nil {
+			yield(nil, errors.New("time interval and datapoint interval cannot both be nil"))
+			return
+		}
+
+		for {
+			datapointsMessage, err := s.GetDatasetForInterval(ctx, collectionID, timeInterval, datapointInterval, page, skipData, skipMeta)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			// if skipMeta is true, datapointsMessage.GetMeta() is not nil and contains the datapoint ids
+			for _, dp := range datapointsMessage.GetMeta() {
+				datapointID, err := uuid.Parse(dp.GetId())
+				if err != nil {
+					yield(nil, err)
+					return
+				}
+
+				meta := &DatapointMetadata{
+					ID: datapointID,
+				}
+
+				if !skipMeta {
+					meta.EventTime = dp.GetEventTime().AsTime()
+					meta.IngestionTime = dp.GetIngestionTime().AsTime()
+				}
+
+				// if !skipData {
+				// FIXME
+				// }
+
+				datapoint := &Datapoint{
+					Meta: meta,
+					// data: data,
+				}
+				if !yield(datapoint, nil) {
+					return
+				}
+			}
+
+			page = datapointsMessage.GetNextPage()
+			if page == nil {
+				break
+			}
+		}
+	}
+}
+
+func (s *Service) GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData, skipMeta bool) (*datasetsv1.Datapoints, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/get_dataset_for_interval", func(ctx context.Context) (*datasetsv1.Datapoints, error) {
+		res, err := s.client.GetDatasetForInterval(ctx, connect.NewRequest(
+			&datasetsv1.GetDatasetForIntervalRequest{
+				CollectionId:      collectionID.String(),
+				TimeInterval:      timeInterval,
+				DatapointInterval: datapointInterval,
+				Page:              page,
+				SkipData:          skipData,
+				SkipMeta:          skipMeta,
+			},
+		))
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to get dataset for interval: %w", err)
 		}
 
 		return res.Msg, nil
