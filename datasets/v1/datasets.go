@@ -2,6 +2,7 @@ package datasets
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"iter"
 	"time"
@@ -16,6 +17,50 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+type LoadInterval interface {
+	ToProtoTimeInterval() *datasetsv1.TimeInterval
+	ToProtoDatapointInterval() *datasetsv1.DatapointInterval
+}
+
+var _ LoadInterval = &TimeInterval{}
+
+type TimeInterval struct {
+	start time.Time
+	end   time.Time
+}
+
+func NewTimeInterval(start, end time.Time) *TimeInterval {
+	return &TimeInterval{
+		start: start,
+		end:   end,
+	}
+}
+
+func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
+	return &datasetsv1.TimeInterval{
+		StartTime:      timestamppb.New(t.start),
+		EndTime:        timestamppb.New(t.end),
+		StartExclusive: false,
+		EndInclusive:   true,
+	}
+}
+
+func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval {
+	return nil
+}
+
+func Collect[K any](seq iter.Seq2[K, error]) ([]K, error) {
+	s := make([]K, 0)
+
+	for k, err := range seq {
+		if err != nil {
+			return nil, err
+		}
+		s = append(s, k)
+	}
+	return s, nil
+}
 
 type serviceConfig struct {
 	tracerProvider trace.TracerProvider
@@ -132,24 +177,26 @@ type Datapoint struct {
 	// data proto.Message
 }
 
-func (s *Service) Load(ctx context.Context, collectionID uuid.UUID, start time.Time, end time.Time, skipData, skipMeta bool) iter.Seq2[*Datapoint, error] {
+func (s *Service) Load(ctx context.Context, collectionID uuid.UUID, loadInterval LoadInterval, skipData, skipMeta bool) iter.Seq2[*Datapoint, error] {
 	return func(yield func(*Datapoint, error) bool) {
 		var page *datasetsv1.Pagination // nil for the first request
 
-		timeInterval := &datasetsv1.TimeInterval{
-			StartTime:      timestamppb.New(start),
-			EndTime:        timestamppb.New(end),
-			StartExclusive: false,
-			EndInclusive:   true,
+		timeInterval := loadInterval.ToProtoTimeInterval()
+		datapointInterval := loadInterval.ToProtoDatapointInterval()
+
+		if timeInterval == nil && datapointInterval == nil {
+			yield(nil, errors.New("time interval and datapoint interval cannot both be nil"))
+			return
 		}
 
 		for {
-			datapointsMessage, err := s.GetDatasetForInterval(ctx, collectionID, timeInterval, nil, page, skipData, skipMeta)
+			datapointsMessage, err := s.GetDatasetForInterval(ctx, collectionID, timeInterval, datapointInterval, page, skipData, skipMeta)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
+			// if skipMeta is true, datapointsMessage.GetMeta() is not nil and contains the datapoint ids
 			for _, dp := range datapointsMessage.GetMeta() {
 				datapointID, err := uuid.Parse(dp.GetId())
 				if err != nil {
@@ -185,18 +232,6 @@ func (s *Service) Load(ctx context.Context, collectionID uuid.UUID, start time.T
 			}
 		}
 	}
-}
-
-func Collect[K any](seq iter.Seq2[K, error]) ([]K, error) {
-	s := make([]K, 0)
-
-	for k, err := range seq {
-		if err != nil {
-			return nil, err
-		}
-		s = append(s, k)
-	}
-	return s, nil
 }
 
 func (s *Service) GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData, skipMeta bool) (*datasetsv1.Datapoints, error) {
