@@ -84,11 +84,14 @@ func WithServiceTracerName(tracerName string) ServiceOption {
 }
 
 type Service interface {
+	GetDataset(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Dataset, error)
+	ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error)
 	CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
 	GetCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Collections, error)
 	GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
 	Load(ctx context.Context, collectionID uuid.UUID, loadInterval LoadInterval, skipData bool, skipMeta bool) iter.Seq2[*Datapoint, error]
 	GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData bool, skipMeta bool) (*datasetsv1.Datapoints, error)
+	GetDatapointByID(ctx context.Context, collectionID uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Datapoint, error)
 	Ingest(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestDatapointsResponse, error)
 	Delete(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteDatapointsResponse, error)
 }
