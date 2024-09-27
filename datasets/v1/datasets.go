@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"iter"
+	"runtime/debug"
+	"strings"
 	"time"
 
 	"connectrpc.com/connect"
@@ -115,6 +117,59 @@ func NewDatasetsService(client datasetsv1connect.TileboxServiceClient, options .
 	return &service{
 		client: client,
 		tracer: cfg.tracerProvider.Tracer(cfg.tracerName),
+	}
+}
+
+func (s *service) GetDataset(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Dataset, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/get_dataset", func(ctx context.Context) (*datasetsv1.Dataset, error) {
+		res, err := s.client.GetDataset(ctx, connect.NewRequest(
+			&datasetsv1.GetDatasetRequest{
+				DatasetId: datasetID.String(),
+			},
+		))
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to get dataset: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *service) ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/list_datasets", func(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
+		res, err := s.client.ListDatasets(ctx, connect.NewRequest(
+			&datasetsv1.ListDatasetsRequest{
+				ClientInfo: clientInfo(),
+			},
+		))
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to list datasets: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func clientInfo() *datasetsv1.ClientInfo {
+	var packages []*datasetsv1.Package
+	buildInfo, ok := debug.ReadBuildInfo()
+	if ok {
+		for _, dep := range buildInfo.Deps {
+			if strings.HasPrefix(dep.Path, "github.com/tilebox/") {
+				packages = append(packages, &datasetsv1.Package{
+					Name:    dep.Path,
+					Version: dep.Version,
+				})
+			}
+		}
+	}
+
+	return &datasetsv1.ClientInfo{
+		Name:        "Go",
+		Environment: "Tilebox Go Client",
+		Packages:    packages,
 	}
 }
 
@@ -261,6 +316,24 @@ func (s *service) GetDatasetForInterval(ctx context.Context, collectionID uuid.U
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dataset for interval: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *service) GetDatapointByID(ctx context.Context, collectionID uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Datapoint, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/get_datapoint_by_id", func(ctx context.Context) (*datasetsv1.Datapoint, error) {
+		res, err := s.client.GetDatapointByID(ctx, connect.NewRequest(
+			&datasetsv1.GetDatapointByIdRequest{
+				CollectionId: collectionID.String(),
+				Id:           datapointID.String(),
+				SkipData:     skipData,
+			},
+		))
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to get datapoint by id: %w", err)
 		}
 
 		return res.Msg, nil
