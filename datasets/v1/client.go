@@ -8,15 +8,19 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/tilebox/tilebox-go/grpc"
-	"github.com/tilebox/tilebox-go/protogen/go/datasets/v1/datasetsv1connect"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
 )
 
-// clientConfig contains the configuration for a gRPC client to a workflows service.
+// clientConfig contains the configuration for a gRPC client to a datasets service.
 type clientConfig struct {
 	httpClient     connect.HTTPClient
 	url            string
 	apiKey         string
 	connectOptions []connect.ClientOption
+
+	tracerProvider trace.TracerProvider
+	tracerName     string
 }
 
 // ClientOption is an interface for configuring a client. Using such options helpers is a
@@ -49,9 +53,23 @@ func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
 	}
 }
 
+func WithServiceTracerProvider(tracerProvider trace.TracerProvider) ClientOption {
+	return func(cfg *clientConfig) {
+		cfg.tracerProvider = tracerProvider
+	}
+}
+
+func WithServiceTracerName(tracerName string) ClientOption {
+	return func(cfg *clientConfig) {
+		cfg.tracerName = tracerName
+	}
+}
+
 func newClientConfig(options []ClientOption) *clientConfig {
 	cfg := &clientConfig{
-		url: "https://api.tilebox.com",
+		url:            "https://api.tilebox.com",
+		tracerProvider: otel.GetTracerProvider(),    // use the global tracer provider by default
+		tracerName:     "tilebox.com/observability", // the default tracer name we use
 	}
 	for _, option := range options {
 		option(cfg)
@@ -74,10 +92,6 @@ func newClientConfig(options []ClientOption) *clientConfig {
 	}
 
 	return cfg
-}
-
-func NewDatasetClient(options ...ClientOption) datasetsv1connect.TileboxServiceClient {
-	return newConnectClient(datasetsv1connect.NewTileboxServiceClient, options...)
 }
 
 func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, options ...ClientOption) T {
