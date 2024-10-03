@@ -3,6 +3,7 @@ package datasets
 import (
 	"context"
 	"errors"
+	"fmt"
 	"iter"
 	"reflect"
 	"time"
@@ -46,10 +47,10 @@ func (c *Client) Datasets(ctx context.Context) ([]*Dataset, error) {
 	return datasets, nil
 }
 
-func (c *Client) Dataset(ctx context.Context, fullCodeName string) (*Dataset, error) {
-	// FIXME: use new endpoint with fullCodeName
+func (c *Client) Dataset(ctx context.Context, slug string) (*Dataset, error) {
+	// FIXME: use new endpoint with slug
 	return nil, errors.New("not implemented")
-	/*response, err := c.service.GetDataset(ctx, fullCodeName)
+	/*response, err := c.service.GetDataset(ctx, slug)
 	if err != nil {
 		return nil, err
 	}
@@ -63,9 +64,8 @@ func (c *Client) Dataset(ctx context.Context, fullCodeName string) (*Dataset, er
 }
 
 type Dataset struct {
-	ID uuid.UUID
-	// CodeName string FIXME with new endpoint
-	// FQDN     string
+	ID      uuid.UUID
+	Slug    string
 	Name    string
 	Summary string
 
@@ -75,13 +75,12 @@ type Dataset struct {
 func protoToDataset(d *datasetsv1.Dataset, service Service) (*Dataset, error) {
 	id, err := protoToUUID(d.GetId())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert dataset id to uuid: %w", err)
 	}
 
 	return &Dataset{
 		ID: id,
-		// CodeName: d.GetCodeName(),
-		// FQDN:     d.GetFqdn(),
+		// Slug:     d.GetSlug(), FIXME
 		Name:    d.GetName(),
 		Summary: d.GetSummary(),
 		service: service,
