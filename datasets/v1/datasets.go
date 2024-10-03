@@ -255,10 +255,19 @@ func (c *Collection) Ingest(ctx context.Context, data []*RawDatapoint, allowExis
 		return nil, err
 	}
 
+	datapointIDs := make([]uuid.UUID, len(response.GetDatapointIds()))
+	for i, id := range response.GetDatapointIds() {
+		datapointID, err := protoToUUID(id)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert datapoint id from response: %w", err)
+		}
+		datapointIDs[i] = datapointID
+	}
+
 	return &IngestResponse{
-		NumCreated:  response.GetNumCreated(),
-		NumExisting: response.GetNumExisting(),
-		// DatapointIDs: response.GetDatapointIds(), FIXME
+		NumCreated:   response.GetNumCreated(),
+		NumExisting:  response.GetNumExisting(),
+		DatapointIDs: datapointIDs,
 	}, nil
 }
 
