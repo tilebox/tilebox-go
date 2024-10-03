@@ -38,7 +38,7 @@ func (c *Client) Datasets(ctx context.Context) ([]*Dataset, error) {
 	for i, d := range response.GetDatasets() {
 		dataset, err := protoToDataset(d, c.service)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert dataset from response: %w", err)
 		}
 
 		datasets[i] = dataset
@@ -57,7 +57,7 @@ func (c *Client) Dataset(ctx context.Context, slug string) (*Dataset, error) {
 
 	dataset, err := protoToDataset(response, c.service)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert dataset from response: %w", err)
 	}
 
 	return dataset, nil*/
@@ -110,7 +110,7 @@ func (d *Dataset) Collections(ctx context.Context) ([]*Collection, error) {
 	for i, c := range response.GetData() {
 		collection, err := protoToCollection(c, d.service)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to convert collection from response: %w", err)
 		}
 
 		collections[i] = collection
@@ -127,7 +127,7 @@ func (d *Dataset) Collection(ctx context.Context, name string) (*Collection, err
 
 	collection, err := protoToCollection(response, d.service)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert collection from response: %w", err)
 	}
 
 	return collection, nil
@@ -141,7 +141,7 @@ func (d *Dataset) CreateCollection(ctx context.Context, collectionName string) (
 
 	collection, err := protoToCollection(response, d.service)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to convert collection from response: %w", err)
 	}
 
 	return collection, nil
@@ -159,7 +159,7 @@ type Collection struct {
 func protoToCollection(c *datasetsv1.CollectionInfo, service Service) (*Collection, error) {
 	id, err := uuid.Parse(c.GetCollection().GetId())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse collection id: %w", err)
 	}
 
 	return &Collection{
@@ -194,7 +194,7 @@ func (c *Collection) Load(ctx context.Context, loadInterval LoadInterval, skipDa
 			for i, dp := range datapointsMessage.GetMeta() {
 				datapointID, err := uuid.Parse(dp.GetId())
 				if err != nil {
-					yield(nil, err)
+					yield(nil, fmt.Errorf("failed to parse datapoint id from response: %w", err))
 					return
 				}
 
@@ -348,7 +348,7 @@ func As[T proto.Message](seq iter.Seq2[*RawDatapoint, error]) iter.Seq2[*Datapoi
 			data := descriptor.New().Interface().(T)
 			err = proto.Unmarshal(rawDatapoint.Data, data)
 			if err != nil {
-				yield(nil, err)
+				yield(nil, fmt.Errorf("failed to unmarshal datapoint data: %w", err))
 				return
 			}
 
