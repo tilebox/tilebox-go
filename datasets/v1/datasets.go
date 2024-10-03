@@ -20,10 +20,10 @@ type Client struct {
 
 func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
-	connectClient := newConnectClient(datasetsv1connect.NewTileboxServiceClient, options...)
+	connectClient := newConnectClient(datasetsv1connect.NewTileboxServiceClient, cfg)
 
 	return &Client{
-		service: newDatasetsService(connectClient, cfg.tracerProvider.Tracer(cfg.tracerName)),
+		service: newDatasetsService(connectClient, cfg.tracerProvider.Tracer("tilebox.com/observability")),
 	}
 }
 

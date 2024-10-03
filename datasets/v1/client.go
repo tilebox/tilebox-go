@@ -10,6 +10,7 @@ import (
 	"github.com/tilebox/tilebox-go/grpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // clientConfig contains the configuration for a gRPC client to a datasets service.
@@ -20,7 +21,6 @@ type clientConfig struct {
 	connectOptions []connect.ClientOption
 
 	tracerProvider trace.TracerProvider
-	tracerName     string
 }
 
 // ClientOption is an interface for configuring a client. Using such options helpers is a
@@ -53,23 +53,16 @@ func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
 	}
 }
 
-func WithServiceTracerProvider(tracerProvider trace.TracerProvider) ClientOption {
+func WithDisableTracing() ClientOption {
 	return func(cfg *clientConfig) {
-		cfg.tracerProvider = tracerProvider
-	}
-}
-
-func WithServiceTracerName(tracerName string) ClientOption {
-	return func(cfg *clientConfig) {
-		cfg.tracerName = tracerName
+		cfg.tracerProvider = noop.NewTracerProvider()
 	}
 }
 
 func newClientConfig(options []ClientOption) *clientConfig {
 	cfg := &clientConfig{
 		url:            "https://api.tilebox.com",
-		tracerProvider: otel.GetTracerProvider(),    // use the global tracer provider by default
-		tracerName:     "tilebox.com/observability", // the default tracer name we use
+		tracerProvider: otel.GetTracerProvider(), // use the global tracer provider by default
 	}
 	for _, option := range options {
 		option(cfg)
@@ -94,9 +87,7 @@ func newClientConfig(options []ClientOption) *clientConfig {
 	return cfg
 }
 
-func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, options ...ClientOption) T {
-	cfg := newClientConfig(options)
-
+func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, cfg *clientConfig) T {
 	// for on-orbit deployments, we also support requests without an API key, so we don't need to add an interceptor
 	// for those cases
 	interceptors := make([]connect.Interceptor, 0)
