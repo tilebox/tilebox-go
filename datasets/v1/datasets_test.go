@@ -64,7 +64,7 @@ var result []*Datapoint[*datasetsv1.CopernicusDataspaceGranule]
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
 func BenchmarkCollectAsLoad(b *testing.B) {
 	ctx := context.Background()
-	loadInterval := NewTimeInterval(time.Now(), time.Now()) // dummy load interval
+	loadInterval := NewTimeInterval(time.Now(), time.Now(), false, false) // dummy load interval
 
 	collection := &Collection{
 		service: NewMockService(b, 1000),

@@ -150,7 +150,7 @@ func (d *Dataset) CreateCollection(ctx context.Context, collectionName string) (
 type Collection struct {
 	ID           uuid.UUID
 	Name         string
-	Availability *TimeInterval
+	Availability TimeInterval
 	Count        uint64
 
 	service Service
@@ -165,7 +165,7 @@ func protoToCollection(c *datasetsv1.CollectionInfo, service Service) (*Collecti
 	return &Collection{
 		ID:           id,
 		Name:         c.GetCollection().GetName(),
-		Availability: protoToTimeInterval(c.GetAvailability()),
+		Availability: *protoToTimeInterval(c.GetAvailability()),
 		Count:        c.GetCount(),
 		service:      service,
 	}, nil

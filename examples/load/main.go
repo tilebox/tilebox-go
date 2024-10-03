@@ -15,7 +15,7 @@ func main() {
 
 	start := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC)
-	loadInterval := tileboxdatasets.NewTimeInterval(start, end)
+	loadInterval := tileboxdatasets.NewTimeInterval(start, end, false, false)
 
 	client := tileboxdatasets.NewClient(
 		tileboxdatasets.WithURL("https://api.tilebox.dev"),

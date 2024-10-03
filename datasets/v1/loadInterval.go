@@ -7,6 +7,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+const smallestPossibleTimeDelta = time.Microsecond
+
 type LoadInterval interface {
 	ToProtoTimeInterval() *datasetsv1.TimeInterval
 	ToProtoDatapointInterval() *datasetsv1.DatapointInterval
@@ -15,21 +17,40 @@ type LoadInterval interface {
 var _ LoadInterval = &TimeInterval{}
 
 type TimeInterval struct {
-	start time.Time
-	end   time.Time
+	start          time.Time
+	end            time.Time
+	startExclusive bool
+	endInclusive   bool
 }
 
-func NewTimeInterval(start, end time.Time) *TimeInterval {
+func NewTimeInterval(start, end time.Time, startExclusive, endInclusive bool) *TimeInterval {
 	return &TimeInterval{
-		start: start,
-		end:   end,
+		start:          start,
+		end:            end,
+		startExclusive: startExclusive,
+		endInclusive:   endInclusive,
+	}
+}
+
+func NewEmptyTimeInterval() *TimeInterval {
+	return &TimeInterval{
+		start:          time.Unix(0, 0),
+		end:            time.Unix(0, 0),
+		startExclusive: true,
+		endInclusive:   false,
 	}
 }
 
 func protoToTimeInterval(t *datasetsv1.TimeInterval) *TimeInterval {
+	if t == nil {
+		return NewEmptyTimeInterval()
+	}
+
 	return &TimeInterval{
-		start: t.GetStartTime().AsTime(),
-		end:   t.GetEndTime().AsTime(),
+		start:          t.GetStartTime().AsTime(),
+		end:            t.GetEndTime().AsTime(),
+		startExclusive: t.GetStartExclusive(),
+		endInclusive:   t.GetEndInclusive(),
 	}
 }
 
@@ -37,11 +58,33 @@ func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
 	return &datasetsv1.TimeInterval{
 		StartTime:      timestamppb.New(t.start),
 		EndTime:        timestamppb.New(t.end),
-		StartExclusive: false,
-		EndInclusive:   true,
+		StartExclusive: t.startExclusive,
+		EndInclusive:   t.endInclusive,
 	}
 }
 
 func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval {
 	return nil
+}
+
+func (t *TimeInterval) ToHalfOpen() *TimeInterval {
+	start := t.start
+	if t.startExclusive {
+		start = start.Add(smallestPossibleTimeDelta)
+	}
+	end := t.end
+	if t.endInclusive {
+		end = end.Add(smallestPossibleTimeDelta)
+	}
+
+	return &TimeInterval{
+		start:          start,
+		end:            end,
+		startExclusive: false,
+		endInclusive:   false,
+	}
+}
+
+func (t *TimeInterval) Duration() time.Duration {
+	return t.end.Sub(t.start)
 }
