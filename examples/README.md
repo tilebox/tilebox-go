@@ -23,9 +23,10 @@ go run ./helloworld/submitter
 
 ## Workflows examples
 
-- [Hello World](helloworld): How to submit a task and run it.
-- [Sample Workflow](sampleworkflow): A example of how to submit a task and run a workflow using protobuf messages and with OpenTelemetry setup.
+- [Hello world](helloworld): How to submit a task and run it.
+- [Sample workflow](sampleworkflow): A example of how to submit a task and run a workflow using protobuf messages and with OpenTelemetry setup.
 
 ## Datasets examples
 
-- [Load Data](load): How to load data from a collection.
+- [Load data](load): How to load data from a collection.
+- [Ingest and delete data](ingest): How to create a collection, ingest datapoints, and then delete them.

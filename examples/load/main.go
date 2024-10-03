@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"os"
 	"time"
@@ -13,70 +14,42 @@ import (
 func main() {
 	ctx := context.Background()
 
-	start := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)
-	end := time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC)
-	loadInterval := tileboxdatasets.NewTimeInterval(start, end, false, false)
-
+	// Create a Tilebox Datasets client
 	client := tileboxdatasets.NewClient(
-		tileboxdatasets.WithURL("https://api.tilebox.dev"),
-		tileboxdatasets.WithAPIKey(os.Getenv("TILEBOX_STAGING_API_KEY")),
+		tileboxdatasets.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
 	)
 
+	// List all available datasets
 	datasets, err := client.Datasets(ctx)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to list datasets: %v", err)
 	}
-	/*dataset, err := client.Dataset(ctx, "open_data.copernicus.sentinel1_sar")
-	if err != nil {
-		panic(err)
-	}*/
 	dataset := datasets[1]
 
-	_, err = dataset.Collections(ctx)
+	// Select a collection
+	collection, err := dataset.Collection(ctx, "S1A_EW_GRDM_1S-COG")
 	if err != nil {
-		panic(err)
-	}
-	/*collection2, err := dataset.CreateCollection(ctx, "corentin")
-	if err != nil {
-		panic(err)
-	}*/
-	collection, err := dataset.Collection(ctx, "S1A_EW_GRDM_1S")
-	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to get collection: %v", err)
 	}
 
-	data := collection.Load(ctx, loadInterval, false, false) // raw bytes
+	// Select a time interval
+	oneMonthAgo := time.Now().AddDate(0, -1, 0)
+	loadInterval := tileboxdatasets.NewTimeInterval(oneMonthAgo, time.Now(), false, false)
 
-	// then depending on what the user want to do
-	dataRaw, err := tileboxdatasets.Collect(data)
+	// Load one month of data
+	datapoints, err := tileboxdatasets.CollectAs[*datasetsv1.CopernicusDataspaceGranule](collection.Load(ctx, loadInterval, false, false))
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to load and collect datapoints: %v", err)
 	}
 
-	dataCopernicus, err := tileboxdatasets.CollectAs[*datasetsv1.CopernicusDataspaceGranule](data)
-	if err != nil {
-		panic(err)
-	}
-
-	/*_, err = collection2.Ingest(ctx, dataRaw, false)
-	if err != nil {
-		panic(err)
-	}*/
-
-	/*validated, err := tileboxdatasets.ValidateAs[*datasetsv1.CopernicusDataspaceGranule](dataCopernicus)
-	if err != nil {
-		panic(err)
-	}*/
-
-	_, err = collection.Delete(ctx, dataRaw)
-	if err != nil {
-		panic(err)
-	}
-
-	slog.InfoContext(ctx, "Datapoints loaded", slog.Int("count", len(dataCopernicus)))
-	slog.InfoContext(ctx, "First datapoint",
-		slog.String("id", dataCopernicus[0].Meta.ID.String()),
-		slog.Time("eventTime", dataCopernicus[0].Meta.EventTime),
-		slog.Time("ingestionTime", dataCopernicus[0].Meta.IngestionTime),
+	slog.Info("Datapoints loaded", slog.Int("count", len(datapoints)))
+	slog.Info("First datapoint",
+		slog.String("id", datapoints[0].Meta.ID.String()),
+		slog.Time("event time", datapoints[0].Meta.EventTime),
+		slog.Time("ingestion time", datapoints[0].Meta.IngestionTime),
+		slog.String("granule name", datapoints[0].Data.GetGranuleName()),
+		slog.String("processing level", datapoints[0].Data.GetProcessingLevel().String()),
+		slog.String("product type", datapoints[0].Data.GetProductType()),
+		// and so on...
 	)
 }
