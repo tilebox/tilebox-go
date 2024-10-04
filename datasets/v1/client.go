@@ -1,4 +1,4 @@
-package datasets
+package datasets // import "github.com/tilebox/tilebox-go/datasets/v1"
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
-// clientConfig contains the configuration for a gRPC client to a datasets service.
+// clientConfig contains the configuration for Tilebox Datasets client.
 type clientConfig struct {
 	httpClient     connect.HTTPClient
 	url            string
@@ -29,30 +29,41 @@ type clientConfig struct {
 // configuration.
 type ClientOption func(*clientConfig)
 
+// WithHTTPClient sets the connect.HTTPClient to use for the client.
+//
+// Defaults to grpc.RetryHTTPClient.
 func WithHTTPClient(httpClient connect.HTTPClient) ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.httpClient = httpClient
 	}
 }
 
+// WithURL sets the URL of the Tilebox Datasets service.
+//
+// Defaults to "https://api.tilebox.com".
 func WithURL(url string) ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.url = url
 	}
 }
 
+// WithAPIKey sets the API key to use for the client.
+//
+// Defaults to no API key.
 func WithAPIKey(apiKey string) ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.apiKey = apiKey
 	}
 }
 
+// WithConnectClientOptions sets additional options for the connect.HTTPClient.
 func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.connectOptions = append(cfg.connectOptions, options...)
 	}
 }
 
+// WithDisableTracing disables OpenTelemetry tracing for the client.
 func WithDisableTracing() ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.tracerProvider = noop.NewTracerProvider()

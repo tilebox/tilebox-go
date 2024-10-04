@@ -3,7 +3,6 @@ package datasets
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
@@ -64,7 +63,7 @@ var result []*Datapoint[*datasetsv1.CopernicusDataspaceGranule]
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
 func BenchmarkCollectAsLoad(b *testing.B) {
 	ctx := context.Background()
-	loadInterval := NewTimeInterval(time.Now(), time.Now(), false, false) // dummy load interval
+	loadInterval := NewEmptyTimeInterval() // dummy load interval
 
 	collection := &Collection{
 		service: NewMockService(b, 1000),
