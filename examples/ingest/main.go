@@ -32,25 +32,17 @@ func main() {
 		log.Fatalf("Failed to create collection: %v", err)
 	}
 
-	dataCopernicus := []*tileboxdatasets.Datapoint[*datasetsv1.CopernicusDataspaceGranule]{
-		{
-			Meta: &tileboxdatasets.DatapointMetadata{
-				EventTime: time.Now(),
-			},
-			Data: &datasetsv1.CopernicusDataspaceGranule{
-				GranuleName: "Granule 1",
-			},
-		},
-	}
-
-	// Validate the datapoints and convert it to the right type
-	validatedData, err := tileboxdatasets.ValidateAs(dataCopernicus)
+	// Create datapoints
+	datapoints, err := tileboxdatasets.Datapoints(
+		tileboxdatasets.NewDatapoint(time.Now(), &datasetsv1.CopernicusDataspaceGranule{GranuleName: "Granule 1"}),
+		tileboxdatasets.NewDatapoint(time.Now().Add(-5*time.Hour), &datasetsv1.CopernicusDataspaceGranule{GranuleName: "Past Granule 2"}),
+	)
 	if err != nil {
-		log.Fatalf("Failed to validate datapoints as copernicus granules: %v", err)
+		log.Fatalf("Failed to create datapoints: %v", err)
 	}
 
 	// Ingest datapoints
-	ingestResponse, err := collection.Ingest(ctx, validatedData, false)
+	ingestResponse, err := collection.Ingest(ctx, datapoints, false)
 	if err != nil {
 		log.Fatalf("Failed to ingest datapoints: %v", err)
 	}

@@ -85,7 +85,8 @@ type Dataset struct {
 	// ID is the unique identifier of the dataset.
 	ID uuid.UUID
 	// Slug is the unique slug of the dataset.
-	Slug string
+	// Slug string
+
 	// Name is the name of the dataset.
 	Name string
 	// Summary is a summary of the purpose of the dataset.
@@ -285,7 +286,7 @@ type IngestResponse struct {
 
 // Ingest ingests datapoints into the collection.
 //
-// data is a list of datapoints to ingest that should be validated using ValidateAs.
+// data is a list of datapoints to ingest that should be created using Datapoints.
 //
 // allowExisting specifies whether to allow existing datapoints as part of the request. If true, datapoints that already
 // exist will be ignored, and the number of such existing datapoints will be returned in the response. If false, any
@@ -386,10 +387,20 @@ type RawDatapoint struct {
 	Data []byte
 }
 
-// ValidateAs validates the data and converts it to RawDatapoint.
+// NewDatapoint creates a new datapoint with the given time and message.
+func NewDatapoint[T proto.Message](time time.Time, message T) *Datapoint[T] {
+	return &Datapoint[T]{
+		Meta: &DatapointMetadata{
+			EventTime: time,
+		},
+		Data: message,
+	}
+}
+
+// Datapoints converts a list of Datapoint to RawDatapoint.
 //
-// It is used to validate the data before ingesting it into a collection.
-func ValidateAs[T proto.Message](data []*Datapoint[T]) ([]*RawDatapoint, error) {
+// It is used to convert the data before ingesting it into a collection.
+func Datapoints[T proto.Message](data ...*Datapoint[T]) ([]*RawDatapoint, error) {
 	rawDatapoints := make([]*RawDatapoint, len(data))
 	for i, datapoint := range data {
 		message, err := proto.Marshal(datapoint.Data)
