@@ -204,24 +204,69 @@ func protoToCollection(c *datasetsv1.CollectionInfo, service Service) (*Collecti
 	}, nil
 }
 
-// Load loads datapoints from the collection.
+// loadConfig contains the configuration for a Load request.
+type loadConfig struct {
+	skipData bool
+	skipMeta bool
+}
+
+// LoadOption is an interface for configuring a Load request.
+type LoadOption func(*loadConfig)
+
+// WithSkipData skips the data when loading datapoints.
+// It is an optional flag for omitting the actual datapoint data from the response.
+// If set, no datapoint data will be returned.
 //
-// loadInterval specifies the time interval for which data should be loaded.
+// Defaults to false.
+func WithSkipData() LoadOption {
+	return func(cfg *loadConfig) {
+		cfg.skipData = true
+	}
+}
+
+// WithSkipMeta skips the metadata when loading datapoints.
+// It is an optional flag for omitting the metadata from the response.
+// If set, no metadata will be returned.
 //
-// skipData and skipMeta specify whether the data and metadata should be skipped.
-// If both skipData and skipMeta are true, the response will only consist of a list of datapoint IDs without any
+// Defaults to false.
+func WithSkipMeta() LoadOption {
+	return func(cfg *loadConfig) {
+		cfg.skipMeta = true
+	}
+}
+
+func newLoadConfig(options []LoadOption) *loadConfig {
+	cfg := &loadConfig{
+		skipData: false,
+		skipMeta: false,
+	}
+	for _, option := range options {
+		option(cfg)
+	}
+
+	return cfg
+}
+
+// Load loads datapoints from a collection.
+//
+// interval specifies the time or data point interval for which data should be loaded.
+//
+// WithSkipData and WithSkipMeta can be used to skip the data or metadata when loading datapoints.
+// If both WithSkipData and WithSkipMeta are specified, the response will only consist of a list of datapoint IDs without any
 // additional data or metadata.
 //
 // The datapoints are loaded in a lazy manner, and returned as a sequence of RawDatapoint.
 // The output sequence can be transformed into typed Datapoint using CollectAs or As functions.
 //
 // Documentation: https://docs.tilebox.com/datasets/loading-data
-func (c *Collection) Load(ctx context.Context, loadInterval LoadInterval, skipData, skipMeta bool) iter.Seq2[*RawDatapoint, error] {
+func (c *Collection) Load(ctx context.Context, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error] {
+	cfg := newLoadConfig(options)
+
 	return func(yield func(*RawDatapoint, error) bool) {
 		var page *datasetsv1.Pagination // nil for the first request
 
-		timeInterval := loadInterval.ToProtoTimeInterval()
-		datapointInterval := loadInterval.ToProtoDatapointInterval()
+		timeInterval := interval.ToProtoTimeInterval()
+		datapointInterval := interval.ToProtoDatapointInterval()
 
 		if timeInterval == nil && datapointInterval == nil {
 			yield(nil, errors.New("time interval and datapoint interval cannot both be nil"))
@@ -229,7 +274,7 @@ func (c *Collection) Load(ctx context.Context, loadInterval LoadInterval, skipDa
 		}
 
 		for {
-			datapointsMessage, err := c.service.GetDatasetForInterval(ctx, c.ID, timeInterval, datapointInterval, page, skipData, skipMeta)
+			datapointsMessage, err := c.service.GetDatasetForInterval(ctx, c.ID, timeInterval, datapointInterval, page, cfg.skipData, cfg.skipMeta)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -248,12 +293,12 @@ func (c *Collection) Load(ctx context.Context, loadInterval LoadInterval, skipDa
 				}
 				var data []byte
 
-				if !skipMeta {
+				if !cfg.skipMeta {
 					meta.EventTime = dp.GetEventTime().AsTime()
 					meta.IngestionTime = dp.GetIngestionTime().AsTime()
 				}
 
-				if !skipData {
+				if !cfg.skipData {
 					data = datapointsMessage.GetData().GetValue()[i]
 				}
 
@@ -284,7 +329,7 @@ type IngestResponse struct {
 	DatapointIDs []uuid.UUID
 }
 
-// Ingest ingests datapoints into the collection.
+// Ingest datapoints into a collection.
 //
 // data is a list of datapoints to ingest that should be created using Datapoints.
 //
@@ -334,7 +379,7 @@ type DeleteResponse struct {
 	NumDeleted int64
 }
 
-// Delete deletes datapoints from the collection.
+// Delete datapoints from a collection.
 //
 // The datapoints are identified by their IDs.
 func (c *Collection) Delete(ctx context.Context, data []*RawDatapoint) (*DeleteResponse, error) {
@@ -346,7 +391,7 @@ func (c *Collection) Delete(ctx context.Context, data []*RawDatapoint) (*DeleteR
 	return c.DeleteIDs(ctx, datapointIDs)
 }
 
-// DeleteIDs deletes datapoints from the collection by their IDs.
+// DeleteIDs deletes datapoints from a collection by their IDs.
 func (c *Collection) DeleteIDs(ctx context.Context, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
 	response, err := c.service.DeleteDatapoints(ctx, c.ID, datapointIDs)
 	if err != nil {

@@ -72,7 +72,7 @@ func BenchmarkCollectAsLoad(b *testing.B) {
 	var r []*Datapoint[*datasetsv1.CopernicusDataspaceGranule] // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
-			data := collection.Load(ctx, loadInterval, false, false)
+			data := collection.Load(ctx, loadInterval)
 			r, _ = CollectAs[*datasetsv1.CopernicusDataspaceGranule](data)
 		}
 	})
@@ -80,7 +80,7 @@ func BenchmarkCollectAsLoad(b *testing.B) {
 
 	b.Run("Marshal and no reflection", func(b *testing.B) {
 		for range b.N {
-			data := collection.Load(ctx, loadInterval, false, false)
+			data := collection.Load(ctx, loadInterval)
 			datapoints := make([]*datasetsv1.CopernicusDataspaceGranule, 0)
 			for datapoint, err := range data {
 				if err != nil {
@@ -99,7 +99,7 @@ func BenchmarkCollectAsLoad(b *testing.B) {
 
 	b.Run("No marshal and no reflection", func(b *testing.B) {
 		for range b.N {
-			data := collection.Load(ctx, loadInterval, false, false)
+			data := collection.Load(ctx, loadInterval)
 			datapoints := make([]*RawDatapoint, 0)
 			for datapoint, err := range data {
 				if err != nil {
