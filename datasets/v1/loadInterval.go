@@ -7,7 +7,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const smallestPossibleTimeDelta = time.Microsecond
+// smallestPossibleTimeDelta is the smallest possible time delta that can be represented by time.Duration.
+const smallestPossibleTimeDelta = time.Nanosecond
 
 // LoadInterval is an interface for loading data from a collection.
 type LoadInterval interface {
@@ -19,58 +20,62 @@ var _ LoadInterval = &TimeInterval{}
 
 // TimeInterval represents a time interval.
 //
-// Both the start and end time can be exclusive or inclusive.
+// Both the Start and End time can be exclusive or inclusive.
 type TimeInterval struct {
-	// start is the start time of the interval.
-	start time.Time
-	// end is the end time of the interval.
-	end time.Time
+	// Start is the start time of the interval.
+	Start time.Time
+	// End is the end time of the interval.
+	End time.Time
 
-	// We use exclusive for start and inclusive for end, because that way when both are false
-	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
-	startExclusive bool
-	endInclusive   bool
+	// We use exclusive for Start and inclusive for End, because that way when both are false
+	// we have a half-open interval [Start, End) which is the default behaviour we want to achieve.
+	StartExclusive bool
+	EndInclusive   bool
 }
 
 // NewTimeInterval creates a new TimeInterval.
 func NewTimeInterval(start, end time.Time, startExclusive, endInclusive bool) *TimeInterval {
 	return &TimeInterval{
-		start:          start,
-		end:            end,
-		startExclusive: startExclusive,
-		endInclusive:   endInclusive,
+		Start:          start,
+		End:            end,
+		StartExclusive: startExclusive,
+		EndInclusive:   endInclusive,
 	}
 }
 
-// NewEmptyTimeInterval creates a new TimeInterval that represents an empty interval.
-func NewEmptyTimeInterval() *TimeInterval {
+// NewStandardTimeInterval creates a new TimeInterval that represents a standard interval with inclusive start and exclusive end.
+func NewStandardTimeInterval(start, end time.Time) *TimeInterval {
+	return NewTimeInterval(start, end, false, false)
+}
+
+func newEmptyTimeInterval() *TimeInterval {
 	return &TimeInterval{
-		start:          time.Unix(0, 0),
-		end:            time.Unix(0, 0),
-		startExclusive: true,
-		endInclusive:   false,
+		Start:          time.Unix(0, 0),
+		End:            time.Unix(0, 0),
+		StartExclusive: true,
+		EndInclusive:   false,
 	}
 }
 
 func protoToTimeInterval(t *datasetsv1.TimeInterval) *TimeInterval {
 	if t == nil {
-		return NewEmptyTimeInterval()
+		return newEmptyTimeInterval()
 	}
 
 	return &TimeInterval{
-		start:          t.GetStartTime().AsTime(),
-		end:            t.GetEndTime().AsTime(),
-		startExclusive: t.GetStartExclusive(),
-		endInclusive:   t.GetEndInclusive(),
+		Start:          t.GetStartTime().AsTime(),
+		End:            t.GetEndTime().AsTime(),
+		StartExclusive: t.GetStartExclusive(),
+		EndInclusive:   t.GetEndInclusive(),
 	}
 }
 
 func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
 	return &datasetsv1.TimeInterval{
-		StartTime:      timestamppb.New(t.start),
-		EndTime:        timestamppb.New(t.end),
-		StartExclusive: t.startExclusive,
-		EndInclusive:   t.endInclusive,
+		StartTime:      timestamppb.New(t.Start),
+		EndTime:        timestamppb.New(t.End),
+		StartExclusive: t.StartExclusive,
+		EndInclusive:   t.EndInclusive,
 	}
 }
 
@@ -78,26 +83,26 @@ func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval 
 	return nil
 }
 
-// ToHalfOpen converts the TimeInterval to a half-open interval [start, end).
+// ToHalfOpen converts the TimeInterval to a half-open interval [Start, End).
 func (t *TimeInterval) ToHalfOpen() *TimeInterval {
-	start := t.start
-	if t.startExclusive {
+	start := t.Start
+	if t.StartExclusive {
 		start = start.Add(smallestPossibleTimeDelta)
 	}
-	end := t.end
-	if t.endInclusive {
+	end := t.End
+	if t.EndInclusive {
 		end = end.Add(smallestPossibleTimeDelta)
 	}
 
 	return &TimeInterval{
-		start:          start,
-		end:            end,
-		startExclusive: false,
-		endInclusive:   false,
+		Start:          start,
+		End:            end,
+		StartExclusive: false,
+		EndInclusive:   false,
 	}
 }
 
 // Duration returns the duration between the start and end times of the TimeInterval.
 func (t *TimeInterval) Duration() time.Duration {
-	return t.end.Sub(t.start)
+	return t.End.Sub(t.Start)
 }

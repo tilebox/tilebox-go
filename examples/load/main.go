@@ -34,7 +34,7 @@ func main() {
 
 	// Select a time interval
 	oneMonthAgo := time.Now().AddDate(0, -1, 0)
-	loadInterval := tileboxdatasets.NewTimeInterval(oneMonthAgo, time.Now(), false, false)
+	loadInterval := tileboxdatasets.NewStandardTimeInterval(oneMonthAgo, time.Now())
 
 	// Load one month of data
 	datapoints, err := tileboxdatasets.CollectAs[*datasetsv1.CopernicusDataspaceGranule](collection.Load(ctx, loadInterval, false, false))

@@ -9,10 +9,10 @@ import (
 )
 
 func TestNewEmptyTimeInterval(t *testing.T) {
-	got := NewEmptyTimeInterval()
+	got := newEmptyTimeInterval()
 
 	if got.Duration() != 0 {
-		t.Errorf("NewEmptyTimeInterval() Duration = %v, want 0", got.Duration())
+		t.Errorf("newEmptyTimeInterval() Duration = %v, want 0", got.Duration())
 	}
 }
 
@@ -125,11 +125,11 @@ func TestTimeInterval_ToHalfOpen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.timeInterval.ToHalfOpen()
 
-			if got.startExclusive {
-				t.Errorf("ToHalfOpen() startExclusive = %v, want false", got.startExclusive)
+			if got.StartExclusive {
+				t.Errorf("ToHalfOpen() StartExclusive = %v, want false", got.StartExclusive)
 			}
-			if got.endInclusive {
-				t.Errorf("ToHalfOpen() endInclusive = %v, want false", got.endInclusive)
+			if got.EndInclusive {
+				t.Errorf("ToHalfOpen() EndInclusive = %v, want false", got.EndInclusive)
 			}
 		})
 	}
@@ -169,17 +169,17 @@ func TestTimeInterval_ToProtoTimeInterval(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.timeInterval.ToProtoTimeInterval()
 
-			if !got.GetStartTime().AsTime().Equal(tt.timeInterval.start) {
-				t.Errorf("ToProtoTimeInterval() start = %v, want %v", got.GetStartTime().AsTime(), tt.timeInterval.start)
+			if !got.GetStartTime().AsTime().Equal(tt.timeInterval.Start) {
+				t.Errorf("ToProtoTimeInterval() Start = %v, want %v", got.GetStartTime().AsTime(), tt.timeInterval.Start)
 			}
-			if !got.GetEndTime().AsTime().Equal(tt.timeInterval.end) {
-				t.Errorf("ToProtoTimeInterval() end = %v, want %v", got.GetEndTime().AsTime(), tt.timeInterval.end)
+			if !got.GetEndTime().AsTime().Equal(tt.timeInterval.End) {
+				t.Errorf("ToProtoTimeInterval() End = %v, want %v", got.GetEndTime().AsTime(), tt.timeInterval.End)
 			}
-			if got.GetStartExclusive() != tt.timeInterval.startExclusive {
-				t.Errorf("ToProtoTimeInterval() startExclusive = %v, want %v", got.GetStartExclusive(), tt.timeInterval.startExclusive)
+			if got.GetStartExclusive() != tt.timeInterval.StartExclusive {
+				t.Errorf("ToProtoTimeInterval() StartExclusive = %v, want %v", got.GetStartExclusive(), tt.timeInterval.StartExclusive)
 			}
-			if got.GetEndInclusive() != tt.timeInterval.endInclusive {
-				t.Errorf("ToProtoTimeInterval() endInclusive = %v, want %v", got.GetEndInclusive(), tt.timeInterval.endInclusive)
+			if got.GetEndInclusive() != tt.timeInterval.EndInclusive {
+				t.Errorf("ToProtoTimeInterval() EndInclusive = %v, want %v", got.GetEndInclusive(), tt.timeInterval.EndInclusive)
 			}
 		})
 	}
@@ -188,10 +188,10 @@ func TestTimeInterval_ToProtoTimeInterval(t *testing.T) {
 func Test_protoToTimeIntervalRoundtrip(t *testing.T) {
 	genTimeInterval := rapid.Custom(func(t *rapid.T) *TimeInterval {
 		return &TimeInterval{
-			start:          time.Unix(rapid.Int64().Draw(t, "start"), 0).UTC(),
-			end:            time.Unix(rapid.Int64().Draw(t, "end"), 0).UTC(),
-			startExclusive: rapid.Bool().Draw(t, "startExclusive"),
-			endInclusive:   rapid.Bool().Draw(t, "endInclusive"),
+			Start:          time.Unix(rapid.Int64().Draw(t, "Start"), 0).UTC(),
+			End:            time.Unix(rapid.Int64().Draw(t, "End"), 0).UTC(),
+			StartExclusive: rapid.Bool().Draw(t, "StartExclusive"),
+			EndInclusive:   rapid.Bool().Draw(t, "EndInclusive"),
 		}
 	})
 
@@ -200,17 +200,17 @@ func Test_protoToTimeIntervalRoundtrip(t *testing.T) {
 
 		got := protoToTimeInterval(input.ToProtoTimeInterval())
 
-		if got.start != input.start {
-			t.Errorf("protoToTimeInterval() start = %v, want %v", got.start, input.start)
+		if got.Start != input.Start {
+			t.Errorf("protoToTimeInterval() Start = %v, want %v", got.Start, input.Start)
 		}
-		if got.end != input.end {
-			t.Errorf("protoToTimeInterval() end = %v, want %v", got.end, input.end)
+		if got.End != input.End {
+			t.Errorf("protoToTimeInterval() End = %v, want %v", got.End, input.End)
 		}
-		if got.startExclusive != input.startExclusive {
-			t.Errorf("protoToTimeInterval() startExclusive = %v, want %v", got.startExclusive, input.startExclusive)
+		if got.StartExclusive != input.StartExclusive {
+			t.Errorf("protoToTimeInterval() StartExclusive = %v, want %v", got.StartExclusive, input.StartExclusive)
 		}
-		if got.endInclusive != input.endInclusive {
-			t.Errorf("protoToTimeInterval() endInclusive = %v, want %v", got.endInclusive, input.endInclusive)
+		if got.EndInclusive != input.EndInclusive {
+			t.Errorf("protoToTimeInterval() EndInclusive = %v, want %v", got.EndInclusive, input.EndInclusive)
 		}
 	})
 }
