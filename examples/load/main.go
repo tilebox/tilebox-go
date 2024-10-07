@@ -2,39 +2,54 @@ package main
 
 import (
 	"context"
+	"log"
 	"log/slog"
 	"os"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/tilebox/tilebox-go/datasets/v1"
+	tileboxdatasets "github.com/tilebox/tilebox-go/datasets/v1"
+	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 )
 
 func main() {
 	ctx := context.Background()
 
-	datasetClient := datasets.NewDatasetsService(
-		datasets.NewDatasetClient(
-			datasets.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-		),
+	// Create a Tilebox Datasets client
+	client := tileboxdatasets.NewClient(
+		tileboxdatasets.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
 	)
 
-	collectionID := uuid.MustParse("90bfcc54-1a39-4b00-9692-45f302c53ec5") // Sentinel-2 S2A_S2MSI1C
-
-	firstAugust2024 := time.Date(2024, time.August, 1, 0, 0, 0, 0, time.UTC)
-	firstSept2024 := time.Date(2024, time.September, 1, 0, 0, 0, 0, time.UTC)
-	loadInterval := datasets.NewTimeInterval(firstAugust2024, firstSept2024)
-
-	datapoints, err := datasets.Collect(datasetClient.Load(ctx, collectionID, loadInterval, true, false))
+	// List all available datasets
+	datasets, err := client.Datasets(ctx)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to load data", "error", err)
-		return
+		log.Fatalf("Failed to list datasets: %v", err)
+	}
+	dataset := datasets[1]
+
+	// Select a collection
+	collection, err := dataset.Collection(ctx, "S1A_EW_GRDM_1S-COG")
+	if err != nil {
+		log.Fatalf("Failed to get collection: %v", err)
 	}
 
-	slog.InfoContext(ctx, "Datapoints loaded", slog.Int("count", len(datapoints)))
-	slog.InfoContext(ctx, "First datapoint",
+	// Select a time interval
+	oneMonthAgo := time.Now().AddDate(0, -1, 0)
+	loadInterval := tileboxdatasets.NewStandardTimeInterval(oneMonthAgo, time.Now())
+
+	// Load one month of data
+	datapoints, err := tileboxdatasets.CollectAs[*datasetsv1.CopernicusDataspaceGranule](collection.Load(ctx, loadInterval))
+	if err != nil {
+		log.Fatalf("Failed to load and collect datapoints: %v", err)
+	}
+
+	slog.Info("Datapoints loaded", slog.Int("count", len(datapoints)))
+	slog.Info("First datapoint",
 		slog.String("id", datapoints[0].Meta.ID.String()),
-		slog.Time("eventTime", datapoints[0].Meta.EventTime),
-		slog.Time("ingestionTime", datapoints[0].Meta.IngestionTime),
+		slog.Time("event time", datapoints[0].Meta.EventTime),
+		slog.Time("ingestion time", datapoints[0].Meta.IngestionTime),
+		slog.String("granule name", datapoints[0].Data.GetGranuleName()),
+		slog.String("processing level", datapoints[0].Data.GetProcessingLevel().String()),
+		slog.String("product type", datapoints[0].Data.GetProductType()),
+		// and so on...
 	)
 }
