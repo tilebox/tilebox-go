@@ -19,7 +19,7 @@ import (
 
 const recordingDirectory = "testdata/recordings"
 
-func NewRecorder(tb testing.TB, filename string) (*Client, error) {
+func NewRecordClient(tb testing.TB, filename string) (*Client, error) {
 	err := os.MkdirAll(recordingDirectory, os.ModePerm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create recording directory: %w", err)
@@ -49,7 +49,7 @@ func NewRecorder(tb testing.TB, filename string) (*Client, error) {
 	), nil
 }
 
-func NewReplayer(tb testing.TB, filename string) (*Client, error) {
+func NewReplayClient(tb testing.TB, filename string) (*Client, error) {
 	file, err := os.Open(fmt.Sprintf("%s/%s.rpcs.bin", recordingDirectory, filename))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open replay file: %w", err)
@@ -71,7 +71,7 @@ func NewReplayer(tb testing.TB, filename string) (*Client, error) {
 
 func TestClient_Datasets(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayer(t, "datasets")
+	client, err := NewReplayClient(t, "datasets")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -86,7 +86,7 @@ func TestClient_Datasets(t *testing.T) {
 
 func TestClient_Collections(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayer(t, "collections")
+	client, err := NewReplayClient(t, "collections")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestClient_Collections(t *testing.T) {
 
 func TestClient_Collection(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayer(t, "collection")
+	client, err := NewReplayClient(t, "collection")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
@@ -130,7 +130,7 @@ func TestClient_Collection(t *testing.T) {
 
 func TestClient_Load(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayer(t, "load")
+	client, err := NewReplayClient(t, "load")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
