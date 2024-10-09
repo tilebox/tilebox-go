@@ -8,8 +8,8 @@ import "datasets/v1/core.proto";
 
 // GetDatasetRequest is the request message for the GetDataset RPC method for fetching a single dataset
 message GetDatasetRequest {
-  // the dataset to be returned
-  string dataset_id = 1;
+  // slug of the dataset to be returned, e.g. "open_data.copernicus.sentinel1_sar"
+  string slug = 1;
 }
 
 // ClientInfo contains information about the client requesting datasets, useful for us to gather usage data

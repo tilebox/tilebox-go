@@ -16,7 +16,7 @@ import (
 )
 
 type Service interface {
-	GetDataset(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Dataset, error)
+	GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error)
 	ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error)
 	CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
 	GetCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Collections, error)
@@ -41,11 +41,11 @@ func newDatasetsService(client datasetsv1connect.TileboxServiceClient, tracer tr
 	}
 }
 
-func (s *service) GetDataset(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Dataset, error) {
+func (s *service) GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/get", func(ctx context.Context) (*datasetsv1.Dataset, error) {
 		res, err := s.client.GetDataset(ctx, connect.NewRequest(
 			&datasetsv1.GetDatasetRequest{
-				DatasetId: datasetID.String(),
+				Slug: slug,
 			},
 		))
 
