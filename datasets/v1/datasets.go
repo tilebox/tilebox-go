@@ -63,8 +63,8 @@ func (c *Client) Datasets(ctx context.Context) ([]*Dataset, error) {
 	return datasets, nil
 }
 
-// Dataset returns a dataset by its slug.
-/*func (c *Client) Dataset(ctx context.Context, slug string) (*Dataset, error) {
+// Dataset returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
+func (c *Client) Dataset(ctx context.Context, slug string) (*Dataset, error) {
 	response, err := c.service.GetDataset(ctx, slug)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (c *Client) Datasets(ctx context.Context) ([]*Dataset, error) {
 	}
 
 	return dataset, nil
-}*/
+}
 
 // Dataset represents a Tilebox Time Series Dataset.
 //

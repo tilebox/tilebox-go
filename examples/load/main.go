@@ -19,12 +19,11 @@ func main() {
 		tileboxdatasets.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
 	)
 
-	// List all available datasets
-	datasets, err := client.Datasets(ctx)
+	// Select a dataset
+	dataset, err := client.Dataset(ctx, "open_data.copernicus.sentinel1_sar")
 	if err != nil {
-		log.Fatalf("Failed to list datasets: %v", err)
+		log.Fatalf("Failed to get dataset: %v", err)
 	}
-	dataset := datasets[1]
 
 	// Select a collection
 	collection, err := dataset.Collection(ctx, "S1A_EW_GRDM_1S-COG")
