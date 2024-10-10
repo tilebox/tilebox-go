@@ -84,6 +84,20 @@ func TestClient_Datasets(t *testing.T) {
 	assert.Equal(t, "49f17988-9f1c-446e-be2a-f949875b8274", dataset.ID.String())
 }
 
+func TestClient_Dataset(t *testing.T) {
+	ctx := context.Background()
+	client, err := NewReplayClient(t, "dataset")
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	dataset, err := client.Dataset(ctx, "open_data.asf.ers_sar")
+	require.NoError(t, err)
+
+	assert.Equal(t, "ERS SAR Granules", dataset.Name)
+	assert.Equal(t, "49f17988-9f1c-446e-be2a-f949875b8274", dataset.ID.String())
+}
+
 func TestClient_Collections(t *testing.T) {
 	ctx := context.Background()
 	client, err := NewReplayClient(t, "collections")
@@ -91,11 +105,8 @@ func TestClient_Collections(t *testing.T) {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	datasets, err := client.Datasets(ctx)
+	dataset, err := client.Dataset(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)
-
-	dataset := datasets[0]
-	assert.Equal(t, "ERS SAR Granules", dataset.Name)
 
 	collections, err := dataset.Collections(ctx)
 	require.NoError(t, err)
@@ -113,11 +124,8 @@ func TestClient_Collection(t *testing.T) {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	datasets, err := client.Datasets(ctx)
+	dataset, err := client.Dataset(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)
-
-	dataset := datasets[0]
-	assert.Equal(t, "ERS SAR Granules", dataset.Name)
 
 	collection, err := dataset.Collection(ctx, "ERS-2")
 	require.NoError(t, err)
@@ -135,11 +143,8 @@ func TestClient_Load(t *testing.T) {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	datasets, err := client.Datasets(ctx)
+	dataset, err := client.Dataset(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)
-
-	dataset := datasets[0]
-	assert.Equal(t, "ERS SAR Granules", dataset.Name)
 
 	collection, err := dataset.Collection(ctx, "ERS-2")
 	require.NoError(t, err)
