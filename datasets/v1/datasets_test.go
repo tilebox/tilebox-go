@@ -19,7 +19,7 @@ import (
 
 const recordingDirectory = "testdata/recordings"
 
-func NewRecordClient(tb testing.TB, filename string) (*Client, error) {
+func NewRecordClient(tb testing.TB, filename string) (Client, error) {
 	err := os.MkdirAll(recordingDirectory, os.ModePerm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create recording directory: %w", err)
@@ -49,7 +49,7 @@ func NewRecordClient(tb testing.TB, filename string) (*Client, error) {
 	), nil
 }
 
-func NewReplayClient(tb testing.TB, filename string) (*Client, error) {
+func NewReplayClient(tb testing.TB, filename string) (Client, error) {
 	file, err := os.Open(fmt.Sprintf("%s/%s.rpcs.bin", recordingDirectory, filename))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open replay file: %w", err)
