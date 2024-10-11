@@ -21,7 +21,14 @@ import (
 const otelTracerName = "tilebox.com/observability"
 
 // Client is a Tilebox Datasets client.
-type Client struct {
+type Client interface {
+	Datasets(ctx context.Context) ([]*Dataset, error)
+	Dataset(ctx context.Context, slug string) (*Dataset, error)
+}
+
+var _ Client = &client{}
+
+type client struct {
 	service Service
 }
 
@@ -34,17 +41,17 @@ type Client struct {
 //   - the global tracer provider
 //
 // The passed options are used to override these default values and configure the returned Client appropriately.
-func NewClient(options ...ClientOption) *Client {
+func NewClient(options ...ClientOption) Client {
 	cfg := newClientConfig(options)
 	connectClient := newConnectClient(datasetsv1connect.NewTileboxServiceClient, cfg)
 
-	return &Client{
+	return &client{
 		service: newDatasetsService(connectClient, cfg.tracerProvider.Tracer(otelTracerName)),
 	}
 }
 
 // Datasets returns a list of all available datasets.
-func (c *Client) Datasets(ctx context.Context) ([]*Dataset, error) {
+func (c *client) Datasets(ctx context.Context) ([]*Dataset, error) {
 	response, err := c.service.ListDatasets(ctx)
 	if err != nil {
 		return nil, err
@@ -64,7 +71,7 @@ func (c *Client) Datasets(ctx context.Context) ([]*Dataset, error) {
 }
 
 // Dataset returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
-func (c *Client) Dataset(ctx context.Context, slug string) (*Dataset, error) {
+func (c *client) Dataset(ctx context.Context, slug string) (*Dataset, error) {
 	response, err := c.service.GetDataset(ctx, slug)
 	if err != nil {
 		return nil, err
@@ -93,6 +100,16 @@ type Dataset struct {
 	Summary string
 
 	service Service
+}
+
+// NewDataset creates a new Dataset.
+func NewDataset(id uuid.UUID, name string, summary string, service Service) *Dataset {
+	return &Dataset{
+		ID:      id,
+		Name:    name,
+		Summary: summary,
+		service: service,
+	}
 }
 
 func protoToDataset(d *datasetsv1.Dataset, service Service) (*Dataset, error) {
@@ -187,6 +204,17 @@ type Collection struct {
 	Count uint64
 
 	service Service
+}
+
+// NewCollection creates a new Collection.
+func NewCollection(id uuid.UUID, name string, availability TimeInterval, count uint64, service Service) *Collection {
+	return &Collection{
+		ID:           id,
+		Name:         name,
+		Availability: availability,
+		Count:        count,
+		service:      service,
+	}
 }
 
 func protoToCollection(c *datasetsv1.CollectionInfo, service Service) (*Collection, error) {
