@@ -33,7 +33,6 @@ package datasets.v1;
 // https://protobuf.dev/reference/protobuf/google.protobuf/#timestamp
 import "google/protobuf/descriptor.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/type.proto";
 
 /*
  * General, multi purpose messages
@@ -141,6 +140,8 @@ message Dataset {
   string icon = 7;
   // description of the dataset, in markdown format
   string description = 8;
+  // whether the dataset is writable
+  bool writable = 9;
 }
 
 // DatasetGroup represent a dataset group
