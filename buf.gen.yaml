@@ -19,7 +19,7 @@ plugins:
     opt: paths=source_relative
   - remote: buf.build/grpc/python
     out: protogen/python
-  - remote: buf.build/protocolbuffers/python:v26.1  # we cannot use v27 yet, because then we need to upgrade to protobuf 5 in python, and open-telemetry python does not support that yet: https://github.com/open-telemetry/opentelemetry-python/issues/3958
+  - remote: buf.build/protocolbuffers/python
     out: protogen/python
   - remote: buf.build/protocolbuffers/pyi
     out: protogen/python
