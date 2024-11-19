@@ -45,6 +45,8 @@ const (
 	JobServiceCancelJobProcedure = "/workflows.v1.JobService/CancelJob"
 	// JobServiceVisualizeJobProcedure is the fully-qualified name of the JobService's VisualizeJob RPC.
 	JobServiceVisualizeJobProcedure = "/workflows.v1.JobService/VisualizeJob"
+	// JobServiceListJobsProcedure is the fully-qualified name of the JobService's ListJobs RPC.
+	JobServiceListJobsProcedure = "/workflows.v1.JobService/ListJobs"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -55,6 +57,7 @@ var (
 	jobServiceRetryJobMethodDescriptor     = jobServiceServiceDescriptor.Methods().ByName("RetryJob")
 	jobServiceCancelJobMethodDescriptor    = jobServiceServiceDescriptor.Methods().ByName("CancelJob")
 	jobServiceVisualizeJobMethodDescriptor = jobServiceServiceDescriptor.Methods().ByName("VisualizeJob")
+	jobServiceListJobsMethodDescriptor     = jobServiceServiceDescriptor.Methods().ByName("ListJobs")
 )
 
 // JobServiceClient is a client for the workflows.v1.JobService service.
@@ -64,6 +67,7 @@ type JobServiceClient interface {
 	RetryJob(context.Context, *connect.Request[v1.RetryJobRequest]) (*connect.Response[v1.RetryJobResponse], error)
 	CancelJob(context.Context, *connect.Request[v1.CancelJobRequest]) (*connect.Response[v1.CancelJobResponse], error)
 	VisualizeJob(context.Context, *connect.Request[v1.VisualizeJobRequest]) (*connect.Response[v1.Diagram], error)
+	ListJobs(context.Context, *connect.Request[v1.ListJobsRequest]) (*connect.Response[v1.ListJobsResponse], error)
 }
 
 // NewJobServiceClient constructs a client for the workflows.v1.JobService service. By default, it
@@ -106,6 +110,12 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceVisualizeJobMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		listJobs: connect.NewClient[v1.ListJobsRequest, v1.ListJobsResponse](
+			httpClient,
+			baseURL+JobServiceListJobsProcedure,
+			connect.WithSchema(jobServiceListJobsMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -116,6 +126,7 @@ type jobServiceClient struct {
 	retryJob     *connect.Client[v1.RetryJobRequest, v1.RetryJobResponse]
 	cancelJob    *connect.Client[v1.CancelJobRequest, v1.CancelJobResponse]
 	visualizeJob *connect.Client[v1.VisualizeJobRequest, v1.Diagram]
+	listJobs     *connect.Client[v1.ListJobsRequest, v1.ListJobsResponse]
 }
 
 // SubmitJob calls workflows.v1.JobService.SubmitJob.
@@ -143,6 +154,11 @@ func (c *jobServiceClient) VisualizeJob(ctx context.Context, req *connect.Reques
 	return c.visualizeJob.CallUnary(ctx, req)
 }
 
+// ListJobs calls workflows.v1.JobService.ListJobs.
+func (c *jobServiceClient) ListJobs(ctx context.Context, req *connect.Request[v1.ListJobsRequest]) (*connect.Response[v1.ListJobsResponse], error) {
+	return c.listJobs.CallUnary(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the workflows.v1.JobService service.
 type JobServiceHandler interface {
 	SubmitJob(context.Context, *connect.Request[v1.SubmitJobRequest]) (*connect.Response[v1.Job], error)
@@ -150,6 +166,7 @@ type JobServiceHandler interface {
 	RetryJob(context.Context, *connect.Request[v1.RetryJobRequest]) (*connect.Response[v1.RetryJobResponse], error)
 	CancelJob(context.Context, *connect.Request[v1.CancelJobRequest]) (*connect.Response[v1.CancelJobResponse], error)
 	VisualizeJob(context.Context, *connect.Request[v1.VisualizeJobRequest]) (*connect.Response[v1.Diagram], error)
+	ListJobs(context.Context, *connect.Request[v1.ListJobsRequest]) (*connect.Response[v1.ListJobsResponse], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -188,6 +205,12 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceVisualizeJobMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceListJobsHandler := connect.NewUnaryHandler(
+		JobServiceListJobsProcedure,
+		svc.ListJobs,
+		connect.WithSchema(jobServiceListJobsMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/workflows.v1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceSubmitJobProcedure:
@@ -200,6 +223,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceCancelJobHandler.ServeHTTP(w, r)
 		case JobServiceVisualizeJobProcedure:
 			jobServiceVisualizeJobHandler.ServeHTTP(w, r)
+		case JobServiceListJobsProcedure:
+			jobServiceListJobsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -227,4 +252,8 @@ func (UnimplementedJobServiceHandler) CancelJob(context.Context, *connect.Reques
 
 func (UnimplementedJobServiceHandler) VisualizeJob(context.Context, *connect.Request[v1.VisualizeJobRequest]) (*connect.Response[v1.Diagram], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.JobService.VisualizeJob is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) ListJobs(context.Context, *connect.Request[v1.ListJobsRequest]) (*connect.Response[v1.ListJobsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.JobService.ListJobs is not implemented"))
 }
