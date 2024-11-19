@@ -85,3 +85,27 @@ message TaskLease {
   google.protobuf.Duration lease = 1;
   google.protobuf.Duration recommended_wait_until_next_extension = 2;
 }
+
+// An ID interval
+message IDInterval {
+  string start_id = 1; // The id of the first data point in the interval.
+  string end_id = 2; // The id of the last data point in the interval.
+
+  // We use exclusive for start and inclusive for end, because that way when both are false
+  // we have a half-open interval [start, end) which is the default behaviour we want to achieve.
+  // Flag indicating whether the start id is exclusive.
+  // If true, the datapoint with the given start id is not included in the interval.
+  bool start_exclusive = 3;
+  // Flag indicating whether the end id is inclusive.
+  // If true, the datapoint with the given end id is included in the interval.
+  bool end_inclusive = 4;
+}
+
+// Pagination information for paginated queries
+message Pagination {
+  // The maximum number of entries to return.
+  optional int64 limit = 1;
+  // Return entries starting after this entry.
+  // This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
+  optional string starting_after = 2;
+}

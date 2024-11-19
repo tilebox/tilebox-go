@@ -46,12 +46,28 @@ message CancelJobResponse {
   // no fields at the moment
 }
 
-// VisualizeJobRequest requests a cancel of a job.
+// VisualizeJobRequest requests a visualization of a job.
 message VisualizeJobRequest {
-  // The job to cancel.
+  // The job to visualize.
   UUID job_id = 1;
   // The options for rendering the diagram
   RenderOptions render_options = 2;
+}
+
+// ListJobsRequest requests a list of jobs.
+message ListJobsRequest {
+  // The ID interval for which jobs are requested.
+  IDInterval id_interval = 1;
+  // The pagination parameters for this request.
+  optional Pagination page = 2;
+}
+
+// A list of jobs.
+message ListJobsResponse {
+  // The jobs.
+  repeated Job jobs = 1;
+  // The pagination parameters for the next page.
+  optional Pagination next_page = 3;
 }
 
 // A service for interacting with jobs.
@@ -61,4 +77,5 @@ service JobService {
   rpc RetryJob(RetryJobRequest) returns (RetryJobResponse);
   rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
   rpc VisualizeJob(VisualizeJobRequest) returns (Diagram);
+  rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
 }
