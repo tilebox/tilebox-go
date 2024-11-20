@@ -10,6 +10,8 @@ import "datasets/v1/core.proto";
 message GetDatasetRequest {
   // slug of the dataset to be returned, e.g. "open_data.copernicus.sentinel1_sar"
   string slug = 1;
+  // or alternatively a dataset id
+  string id = 2;
 }
 
 // ClientInfo contains information about the client requesting datasets, useful for us to gather usage data
