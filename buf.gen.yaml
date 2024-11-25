@@ -23,18 +23,11 @@ plugins:
     out: protogen/python
   - remote: buf.build/protocolbuffers/pyi
     out: protogen/python
-  - remote: buf.build/bufbuild/es:v1.10.0
+  - remote: buf.build/bufbuild/es
     out: protogen/web
     opt:
       - target=ts
-      - import_extension=none
   - remote: buf.build/connectrpc/query-es
     out: protogen/web
     opt:
       - target=ts
-      - import_extension=none
-  - remote: buf.build/connectrpc/es
-    out: protogen/web
-    opt:
-      - target=ts
-      - import_extension=none
