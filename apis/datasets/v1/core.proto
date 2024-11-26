@@ -122,6 +122,14 @@ message AnnotatedType {
   repeated FieldAnnotation field_annotations = 4;
 }
 
+// DatasetPermission is a permission a user (as part of an org) can have on a dataset
+enum DatasetPermission {
+  DATASET_PERMISSION_UNSPECIFIED = 0;
+  DATASET_PERMISSION_ACCESS_DATA = 1;
+  DATASET_PERMISSION_WRITE_DATA = 2;
+  DATASET_PERMISSION_EDIT_DESCRIPTION = 3;
+}
+
 // Dataset contains information about a single dataset
 message Dataset {
   // dataset id
@@ -140,8 +148,8 @@ message Dataset {
   string icon = 7;
   // description of the dataset, in markdown format
   string description = 8;
-  // whether the dataset is writable
-  bool writable = 9;
+  // permissions of the requesting user on the dataset
+  repeated DatasetPermission permissions = 10;
 }
 
 // DatasetGroup represent a dataset group
