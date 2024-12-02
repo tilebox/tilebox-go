@@ -24,6 +24,7 @@ message Job {
   JobState state = 6; // The current state of the job.
   google.protobuf.Timestamp submitted_at = 7; // The time the job was submitted.
   google.protobuf.Timestamp started_at = 8; // The time the job started running.
+  repeated TaskSummary task_summaries = 9; // The task' summaries of the job.
 }
 
 // The state of a job.
@@ -35,6 +36,16 @@ enum JobState {
   JOB_STATE_STARTED = 2;
   // All tasks of the job have been completed.
   JOB_STATE_COMPLETED = 3;
+}
+
+// A summary of a task. Mainly used in the Console.
+message TaskSummary {
+  UUID id = 1;
+  string display = 2;
+  TaskState state = 3;
+  UUID parent_id = 4;
+  repeated UUID depends_on = 5;
+  google.protobuf.Timestamp started_at = 6;
 }
 
 // A task is a single unit of work.
