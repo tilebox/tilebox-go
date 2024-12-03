@@ -46,6 +46,7 @@ message TaskSummary {
   UUID parent_id = 4;
   repeated UUID depends_on = 5;
   google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp stopped_at = 7;
 }
 
 // A task is a single unit of work.
