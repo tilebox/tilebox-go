@@ -1,3 +1,20 @@
+<h1 align="center">
+  <img src="https://storage.googleapis.com/tbx-web-assets-2bad228/banners/tilebox-banner.svg" alt="Tilebox Logo">
+  <br>
+</h1>
+
+<div align="center">
+  <a href="https://pkg.go.dev/github.com/tilebox/tilebox-go">
+    <img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=for-the-badge&color=f43f5e" alt="PyPi Latest Release badge"/>
+  </a>
+</div>
+
+<p align="center">
+  <a href="https://docs.tilebox.com/introduction"><b>Documentation</b></a>
+  |
+  <a href="https://console.tilebox.com/"><b>Console</b></a>
+</p>
+
 # Tilebox Go Library
 
 This repository contains the Go library for Tilebox.
