@@ -65,6 +65,9 @@ message VisualizeJobRequest {
 
   // The theme to render the workflow diagram in
   WorkflowDiagramTheme theme = 3;
+
+  // whether to include the job name as title in the diagram
+  bool include_job_name = 4;
 }
 
 // ListJobsRequest requests a list of jobs.

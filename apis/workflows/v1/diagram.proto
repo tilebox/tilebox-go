@@ -30,9 +30,6 @@ message RenderOptions {
   // Set explicitly the direction of the diagram: https://d2lang.com/tour/layouts/#direction.
   // "up", "down", "right", "left".
   string direction = 5;
-
-  // whether to include the job name as title in the diagram
-  bool include_job_name = 6;
 }
 
 // A rendered diagram
