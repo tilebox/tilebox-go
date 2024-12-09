@@ -12,23 +12,14 @@ message RenderDiagramRequest {
   RenderOptions render_options = 2;  // The options for rendering the diagram
 }
 
-// The theme in which to render a diagram
-enum DiagramTheme {
-  DIAGRAM_THEME_UNSPECIFIED = 0;
-  DIAGRAM_THEME_LIGHT = 1;
-  DIAGRAM_THEME_DARK = 2;
-  DIAGRAM_THEME_CONSOLE_LIGHT = 3;
-  DIAGRAM_THEME_CONSOLE_DARK = 4;
-}
-
 // Options for rendering the diagram
 message RenderOptions {
   // The layout to use for rendering the diagram: https://d2lang.com/tour/layouts/.
   // "dagre" or "elk". Defaults to "dagre"
   string layout = 1;
 
-  // The theme to use for rendering the diagram
-  DiagramTheme theme = 2;
+  // The D2 theme to use when rendering the diagram: https://d2lang.com/tour/themes/
+  optional int64 theme_id = 2;
 
   // Whether to render the diagram in a sketchy (hand-drawn) style
   bool sketchy = 3;
