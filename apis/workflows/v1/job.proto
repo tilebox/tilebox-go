@@ -46,12 +46,25 @@ message CancelJobResponse {
   // no fields at the moment
 }
 
+// The theme in which to render a workflow diagram
+enum WorkflowDiagramTheme {
+  WORKFLOW_DIAGRAM_THEME_UNSPECIFIED = 0;
+  WORKFLOW_DIAGRAM_THEME_LIGHT = 1;
+  WORKFLOW_DIAGRAM_THEME_DARK = 2;
+  WORKFLOW_DIAGRAM_THEME_CONSOLE_LIGHT = 3;
+  WORKFLOW_DIAGRAM_THEME_CONSOLE_DARK = 4;
+}
+
 // VisualizeJobRequest requests a visualization of a job.
 message VisualizeJobRequest {
   // The job to visualize.
   UUID job_id = 1;
+
   // The options for rendering the diagram
   RenderOptions render_options = 2;
+
+  // The theme to render the workflow diagram in
+  WorkflowDiagramTheme theme = 3;
 }
 
 // ListJobsRequest requests a list of jobs.
