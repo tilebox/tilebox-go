@@ -21,12 +21,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	JobService_SubmitJob_FullMethodName    = "/workflows.v1.JobService/SubmitJob"
-	JobService_GetJob_FullMethodName       = "/workflows.v1.JobService/GetJob"
-	JobService_RetryJob_FullMethodName     = "/workflows.v1.JobService/RetryJob"
-	JobService_CancelJob_FullMethodName    = "/workflows.v1.JobService/CancelJob"
-	JobService_VisualizeJob_FullMethodName = "/workflows.v1.JobService/VisualizeJob"
-	JobService_ListJobs_FullMethodName     = "/workflows.v1.JobService/ListJobs"
+	JobService_SubmitJob_FullMethodName       = "/workflows.v1.JobService/SubmitJob"
+	JobService_GetJob_FullMethodName          = "/workflows.v1.JobService/GetJob"
+	JobService_RetryJob_FullMethodName        = "/workflows.v1.JobService/RetryJob"
+	JobService_CancelJob_FullMethodName       = "/workflows.v1.JobService/CancelJob"
+	JobService_VisualizeJob_FullMethodName    = "/workflows.v1.JobService/VisualizeJob"
+	JobService_ListJobs_FullMethodName        = "/workflows.v1.JobService/ListJobs"
+	JobService_GetJobPrototype_FullMethodName = "/workflows.v1.JobService/GetJobPrototype"
+	JobService_CloneJob_FullMethodName        = "/workflows.v1.JobService/CloneJob"
 )
 
 // JobServiceClient is the client API for JobService service.
@@ -41,6 +43,8 @@ type JobServiceClient interface {
 	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*CancelJobResponse, error)
 	VisualizeJob(ctx context.Context, in *VisualizeJobRequest, opts ...grpc.CallOption) (*Diagram, error)
 	ListJobs(ctx context.Context, in *ListJobsRequest, opts ...grpc.CallOption) (*ListJobsResponse, error)
+	GetJobPrototype(ctx context.Context, in *GetJobPrototypeRequest, opts ...grpc.CallOption) (*GetJobPrototypeResponse, error)
+	CloneJob(ctx context.Context, in *CloneJobRequest, opts ...grpc.CallOption) (*Job, error)
 }
 
 type jobServiceClient struct {
@@ -111,6 +115,26 @@ func (c *jobServiceClient) ListJobs(ctx context.Context, in *ListJobsRequest, op
 	return out, nil
 }
 
+func (c *jobServiceClient) GetJobPrototype(ctx context.Context, in *GetJobPrototypeRequest, opts ...grpc.CallOption) (*GetJobPrototypeResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetJobPrototypeResponse)
+	err := c.cc.Invoke(ctx, JobService_GetJobPrototype_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) CloneJob(ctx context.Context, in *CloneJobRequest, opts ...grpc.CallOption) (*Job, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Job)
+	err := c.cc.Invoke(ctx, JobService_CloneJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JobServiceServer is the server API for JobService service.
 // All implementations must embed UnimplementedJobServiceServer
 // for forward compatibility.
@@ -123,6 +147,8 @@ type JobServiceServer interface {
 	CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error)
 	VisualizeJob(context.Context, *VisualizeJobRequest) (*Diagram, error)
 	ListJobs(context.Context, *ListJobsRequest) (*ListJobsResponse, error)
+	GetJobPrototype(context.Context, *GetJobPrototypeRequest) (*GetJobPrototypeResponse, error)
+	CloneJob(context.Context, *CloneJobRequest) (*Job, error)
 	mustEmbedUnimplementedJobServiceServer()
 }
 
@@ -150,6 +176,12 @@ func (UnimplementedJobServiceServer) VisualizeJob(context.Context, *VisualizeJob
 }
 func (UnimplementedJobServiceServer) ListJobs(context.Context, *ListJobsRequest) (*ListJobsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListJobs not implemented")
+}
+func (UnimplementedJobServiceServer) GetJobPrototype(context.Context, *GetJobPrototypeRequest) (*GetJobPrototypeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetJobPrototype not implemented")
+}
+func (UnimplementedJobServiceServer) CloneJob(context.Context, *CloneJobRequest) (*Job, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CloneJob not implemented")
 }
 func (UnimplementedJobServiceServer) mustEmbedUnimplementedJobServiceServer() {}
 func (UnimplementedJobServiceServer) testEmbeddedByValue()                    {}
@@ -280,6 +312,42 @@ func _JobService_ListJobs_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JobService_GetJobPrototype_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobPrototypeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).GetJobPrototype(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_GetJobPrototype_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).GetJobPrototype(ctx, req.(*GetJobPrototypeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_CloneJob_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloneJobRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).CloneJob(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_CloneJob_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).CloneJob(ctx, req.(*CloneJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JobService_ServiceDesc is the grpc.ServiceDesc for JobService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -310,6 +378,14 @@ var JobService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListJobs",
 			Handler:    _JobService_ListJobs_Handler,
+		},
+		{
+			MethodName: "GetJobPrototype",
+			Handler:    _JobService_GetJobPrototype_Handler,
+		},
+		{
+			MethodName: "CloneJob",
+			Handler:    _JobService_CloneJob_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
