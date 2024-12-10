@@ -47,17 +47,24 @@ const (
 	JobServiceVisualizeJobProcedure = "/workflows.v1.JobService/VisualizeJob"
 	// JobServiceListJobsProcedure is the fully-qualified name of the JobService's ListJobs RPC.
 	JobServiceListJobsProcedure = "/workflows.v1.JobService/ListJobs"
+	// JobServiceGetJobPrototypeProcedure is the fully-qualified name of the JobService's
+	// GetJobPrototype RPC.
+	JobServiceGetJobPrototypeProcedure = "/workflows.v1.JobService/GetJobPrototype"
+	// JobServiceCloneJobProcedure is the fully-qualified name of the JobService's CloneJob RPC.
+	JobServiceCloneJobProcedure = "/workflows.v1.JobService/CloneJob"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
-	jobServiceServiceDescriptor            = v1.File_workflows_v1_job_proto.Services().ByName("JobService")
-	jobServiceSubmitJobMethodDescriptor    = jobServiceServiceDescriptor.Methods().ByName("SubmitJob")
-	jobServiceGetJobMethodDescriptor       = jobServiceServiceDescriptor.Methods().ByName("GetJob")
-	jobServiceRetryJobMethodDescriptor     = jobServiceServiceDescriptor.Methods().ByName("RetryJob")
-	jobServiceCancelJobMethodDescriptor    = jobServiceServiceDescriptor.Methods().ByName("CancelJob")
-	jobServiceVisualizeJobMethodDescriptor = jobServiceServiceDescriptor.Methods().ByName("VisualizeJob")
-	jobServiceListJobsMethodDescriptor     = jobServiceServiceDescriptor.Methods().ByName("ListJobs")
+	jobServiceServiceDescriptor               = v1.File_workflows_v1_job_proto.Services().ByName("JobService")
+	jobServiceSubmitJobMethodDescriptor       = jobServiceServiceDescriptor.Methods().ByName("SubmitJob")
+	jobServiceGetJobMethodDescriptor          = jobServiceServiceDescriptor.Methods().ByName("GetJob")
+	jobServiceRetryJobMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("RetryJob")
+	jobServiceCancelJobMethodDescriptor       = jobServiceServiceDescriptor.Methods().ByName("CancelJob")
+	jobServiceVisualizeJobMethodDescriptor    = jobServiceServiceDescriptor.Methods().ByName("VisualizeJob")
+	jobServiceListJobsMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("ListJobs")
+	jobServiceGetJobPrototypeMethodDescriptor = jobServiceServiceDescriptor.Methods().ByName("GetJobPrototype")
+	jobServiceCloneJobMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("CloneJob")
 )
 
 // JobServiceClient is a client for the workflows.v1.JobService service.
@@ -68,6 +75,8 @@ type JobServiceClient interface {
 	CancelJob(context.Context, *connect.Request[v1.CancelJobRequest]) (*connect.Response[v1.CancelJobResponse], error)
 	VisualizeJob(context.Context, *connect.Request[v1.VisualizeJobRequest]) (*connect.Response[v1.Diagram], error)
 	ListJobs(context.Context, *connect.Request[v1.ListJobsRequest]) (*connect.Response[v1.ListJobsResponse], error)
+	GetJobPrototype(context.Context, *connect.Request[v1.GetJobPrototypeRequest]) (*connect.Response[v1.GetJobPrototypeResponse], error)
+	CloneJob(context.Context, *connect.Request[v1.CloneJobRequest]) (*connect.Response[v1.Job], error)
 }
 
 // NewJobServiceClient constructs a client for the workflows.v1.JobService service. By default, it
@@ -116,17 +125,31 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(jobServiceListJobsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getJobPrototype: connect.NewClient[v1.GetJobPrototypeRequest, v1.GetJobPrototypeResponse](
+			httpClient,
+			baseURL+JobServiceGetJobPrototypeProcedure,
+			connect.WithSchema(jobServiceGetJobPrototypeMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		cloneJob: connect.NewClient[v1.CloneJobRequest, v1.Job](
+			httpClient,
+			baseURL+JobServiceCloneJobProcedure,
+			connect.WithSchema(jobServiceCloneJobMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // jobServiceClient implements JobServiceClient.
 type jobServiceClient struct {
-	submitJob    *connect.Client[v1.SubmitJobRequest, v1.Job]
-	getJob       *connect.Client[v1.GetJobRequest, v1.Job]
-	retryJob     *connect.Client[v1.RetryJobRequest, v1.RetryJobResponse]
-	cancelJob    *connect.Client[v1.CancelJobRequest, v1.CancelJobResponse]
-	visualizeJob *connect.Client[v1.VisualizeJobRequest, v1.Diagram]
-	listJobs     *connect.Client[v1.ListJobsRequest, v1.ListJobsResponse]
+	submitJob       *connect.Client[v1.SubmitJobRequest, v1.Job]
+	getJob          *connect.Client[v1.GetJobRequest, v1.Job]
+	retryJob        *connect.Client[v1.RetryJobRequest, v1.RetryJobResponse]
+	cancelJob       *connect.Client[v1.CancelJobRequest, v1.CancelJobResponse]
+	visualizeJob    *connect.Client[v1.VisualizeJobRequest, v1.Diagram]
+	listJobs        *connect.Client[v1.ListJobsRequest, v1.ListJobsResponse]
+	getJobPrototype *connect.Client[v1.GetJobPrototypeRequest, v1.GetJobPrototypeResponse]
+	cloneJob        *connect.Client[v1.CloneJobRequest, v1.Job]
 }
 
 // SubmitJob calls workflows.v1.JobService.SubmitJob.
@@ -159,6 +182,16 @@ func (c *jobServiceClient) ListJobs(ctx context.Context, req *connect.Request[v1
 	return c.listJobs.CallUnary(ctx, req)
 }
 
+// GetJobPrototype calls workflows.v1.JobService.GetJobPrototype.
+func (c *jobServiceClient) GetJobPrototype(ctx context.Context, req *connect.Request[v1.GetJobPrototypeRequest]) (*connect.Response[v1.GetJobPrototypeResponse], error) {
+	return c.getJobPrototype.CallUnary(ctx, req)
+}
+
+// CloneJob calls workflows.v1.JobService.CloneJob.
+func (c *jobServiceClient) CloneJob(ctx context.Context, req *connect.Request[v1.CloneJobRequest]) (*connect.Response[v1.Job], error) {
+	return c.cloneJob.CallUnary(ctx, req)
+}
+
 // JobServiceHandler is an implementation of the workflows.v1.JobService service.
 type JobServiceHandler interface {
 	SubmitJob(context.Context, *connect.Request[v1.SubmitJobRequest]) (*connect.Response[v1.Job], error)
@@ -167,6 +200,8 @@ type JobServiceHandler interface {
 	CancelJob(context.Context, *connect.Request[v1.CancelJobRequest]) (*connect.Response[v1.CancelJobResponse], error)
 	VisualizeJob(context.Context, *connect.Request[v1.VisualizeJobRequest]) (*connect.Response[v1.Diagram], error)
 	ListJobs(context.Context, *connect.Request[v1.ListJobsRequest]) (*connect.Response[v1.ListJobsResponse], error)
+	GetJobPrototype(context.Context, *connect.Request[v1.GetJobPrototypeRequest]) (*connect.Response[v1.GetJobPrototypeResponse], error)
+	CloneJob(context.Context, *connect.Request[v1.CloneJobRequest]) (*connect.Response[v1.Job], error)
 }
 
 // NewJobServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -211,6 +246,18 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(jobServiceListJobsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	jobServiceGetJobPrototypeHandler := connect.NewUnaryHandler(
+		JobServiceGetJobPrototypeProcedure,
+		svc.GetJobPrototype,
+		connect.WithSchema(jobServiceGetJobPrototypeMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceCloneJobHandler := connect.NewUnaryHandler(
+		JobServiceCloneJobProcedure,
+		svc.CloneJob,
+		connect.WithSchema(jobServiceCloneJobMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/workflows.v1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case JobServiceSubmitJobProcedure:
@@ -225,6 +272,10 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceVisualizeJobHandler.ServeHTTP(w, r)
 		case JobServiceListJobsProcedure:
 			jobServiceListJobsHandler.ServeHTTP(w, r)
+		case JobServiceGetJobPrototypeProcedure:
+			jobServiceGetJobPrototypeHandler.ServeHTTP(w, r)
+		case JobServiceCloneJobProcedure:
+			jobServiceCloneJobHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -256,4 +307,12 @@ func (UnimplementedJobServiceHandler) VisualizeJob(context.Context, *connect.Req
 
 func (UnimplementedJobServiceHandler) ListJobs(context.Context, *connect.Request[v1.ListJobsRequest]) (*connect.Response[v1.ListJobsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.JobService.ListJobs is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetJobPrototype(context.Context, *connect.Request[v1.GetJobPrototypeRequest]) (*connect.Response[v1.GetJobPrototypeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.JobService.GetJobPrototype is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) CloneJob(context.Context, *connect.Request[v1.CloneJobRequest]) (*connect.Response[v1.Job], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.JobService.CloneJob is not implemented"))
 }
