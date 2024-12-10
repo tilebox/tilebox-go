@@ -100,6 +100,7 @@ message GetJobPrototypeResponse {
   string job_name = 2;
 }
 
+// CloneJobRequest requests a clone of a job.
 message CloneJobRequest {
   // The ID of the job to clone.
   UUID job_id = 1;

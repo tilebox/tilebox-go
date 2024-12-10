@@ -657,6 +657,7 @@ func (x *GetJobPrototypeResponse) GetJobName() string {
 	return ""
 }
 
+// CloneJobRequest requests a clone of a job.
 type CloneJobRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
