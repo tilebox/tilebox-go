@@ -104,7 +104,7 @@ message CloneJobRequest {
   // The ID of the job to clone.
   UUID job_id = 1;
   // The updated root tasks of the job.
-  repeated TaskSubmission root_tasks = 2;
+  repeated TaskSubmission root_tasks_overrides = 2;
   // The name of the job.
   string job_name = 3;
 }
