@@ -86,6 +86,30 @@ message ListJobsResponse {
   optional Pagination next_page = 3;
 }
 
+// GetJobPrototypeRequest requests a clone prototype of a job.
+message GetJobPrototypeRequest {
+  // The ID of the job to get a clone prototype for.
+  UUID job_id = 1;
+}
+
+// A clone prototype of a job.
+message GetJobPrototypeResponse {
+  // The root tasks of the job.
+  repeated TaskSubmission root_tasks = 1;
+  // The name of the job.
+  string job_name = 2;
+}
+
+// CloneJobRequest requests a clone of a job.
+message CloneJobRequest {
+  // The ID of the job to clone.
+  UUID job_id = 1;
+  // The updated root tasks of the job.
+  repeated TaskSubmission root_tasks_overrides = 2;
+  // The name of the job.
+  string job_name = 3;
+}
+
 // A service for interacting with jobs.
 service JobService {
   rpc SubmitJob(SubmitJobRequest) returns (Job);
@@ -94,4 +118,6 @@ service JobService {
   rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
   rpc VisualizeJob(VisualizeJobRequest) returns (Diagram);
   rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
+  rpc GetJobPrototype(GetJobPrototypeRequest) returns (GetJobPrototypeResponse);
+  rpc CloneJob(CloneJobRequest) returns (Job);
 }
