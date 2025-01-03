@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"connectrpc.com/connect"
+	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
@@ -59,7 +60,7 @@ func NewJobService(client workflowsv1connect.JobServiceClient, options ...JobSer
 	}
 }
 
-func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, maxRetries int, tasks ...Task) (*workflowsv1.Job, error) {
+func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, maxRetries int, recurrentTaskID uuid.UUID, tasks ...Task) (*workflowsv1.Job, error) {
 	if len(tasks) == 0 {
 		return nil, errors.New("no tasks to submit")
 	}
@@ -109,6 +110,9 @@ func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, m
 				Tasks:       rootTasks,
 				JobName:     jobName,
 				TraceParent: traceParent,
+				RecurrentTaskId: &workflowsv1.UUID{
+					Uuid: recurrentTaskID[:],
+				},
 			}))
 
 		if err != nil {
