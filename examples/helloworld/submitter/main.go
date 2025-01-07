@@ -19,7 +19,7 @@ func main() {
 		),
 	)
 
-	job, err := jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0, uuid.Nil,
+	job, err := jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0,
 		&helloworld.HelloTask{
 			Name: "Tilebox",
 		},

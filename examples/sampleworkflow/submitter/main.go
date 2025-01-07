@@ -64,7 +64,7 @@ func main() {
 		workflows.WithJobServiceTracerProvider(tracerProvider),
 	)
 
-	job, err := jobs.Submit(ctx, "spawn-workflow-tree", "testing-4qgCk4qHH85qR7", 0, uuid.Nil,
+	job, err := jobs.Submit(ctx, "spawn-workflow-tree", "testing-4qgCk4qHH85qR7", 0,
 		&sampleworkflow.SampleTask{
 			Message:      "hello go runner!",
 			Depth:        8,
