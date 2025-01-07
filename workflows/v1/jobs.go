@@ -60,6 +60,14 @@ func NewJobService(client workflowsv1connect.JobServiceClient, options ...JobSer
 }
 
 func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, maxRetries int, tasks ...Task) (*workflowsv1.Job, error) {
+	jobRequest, err := js.ValidateJob(ctx, jobName, clusterSlug, maxRetries, tasks...)
+	if err != nil {
+		return nil, err
+	}
+	return js.SubmitJob(ctx, jobRequest)
+}
+
+func (js *JobService) ValidateJob(ctx context.Context, jobName, clusterSlug string, maxRetries int, tasks ...Task) (*workflowsv1.SubmitJobRequest, error) {
 	if len(tasks) == 0 {
 		return nil, errors.New("no tasks to submit")
 	}
@@ -101,15 +109,18 @@ func (js *JobService) Submit(ctx context.Context, jobName, clusterSlug string, m
 		})
 	}
 
-	return observability.WithSpanResult(ctx, js.tracer, fmt.Sprintf("job/%s", jobName), func(ctx context.Context) (*workflowsv1.Job, error) {
-		traceParent := observability.GetTraceParentOfCurrentSpan(ctx)
+	return &workflowsv1.SubmitJobRequest{
+		Tasks:   rootTasks,
+		JobName: jobName,
+	}, nil
+}
 
-		job, err := js.client.SubmitJob(ctx, connect.NewRequest(
-			&workflowsv1.SubmitJobRequest{
-				Tasks:       rootTasks,
-				JobName:     jobName,
-				TraceParent: traceParent,
-			}))
+func (js *JobService) SubmitJob(ctx context.Context, jobRequest *workflowsv1.SubmitJobRequest) (*workflowsv1.Job, error) {
+	return observability.WithSpanResult(ctx, js.tracer, fmt.Sprintf("job/%s", jobRequest.GetJobName()), func(ctx context.Context) (*workflowsv1.Job, error) {
+		traceParent := observability.GetTraceParentOfCurrentSpan(ctx)
+		jobRequest.TraceParent = traceParent
+
+		job, err := js.client.SubmitJob(ctx, connect.NewRequest(jobRequest))
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to submit job: %w", err)
