@@ -54,19 +54,6 @@ const (
 	JobServiceCloneJobProcedure = "/workflows.v1.JobService/CloneJob"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	jobServiceServiceDescriptor               = v1.File_workflows_v1_job_proto.Services().ByName("JobService")
-	jobServiceSubmitJobMethodDescriptor       = jobServiceServiceDescriptor.Methods().ByName("SubmitJob")
-	jobServiceGetJobMethodDescriptor          = jobServiceServiceDescriptor.Methods().ByName("GetJob")
-	jobServiceRetryJobMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("RetryJob")
-	jobServiceCancelJobMethodDescriptor       = jobServiceServiceDescriptor.Methods().ByName("CancelJob")
-	jobServiceVisualizeJobMethodDescriptor    = jobServiceServiceDescriptor.Methods().ByName("VisualizeJob")
-	jobServiceListJobsMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("ListJobs")
-	jobServiceGetJobPrototypeMethodDescriptor = jobServiceServiceDescriptor.Methods().ByName("GetJobPrototype")
-	jobServiceCloneJobMethodDescriptor        = jobServiceServiceDescriptor.Methods().ByName("CloneJob")
-)
-
 // JobServiceClient is a client for the workflows.v1.JobService service.
 type JobServiceClient interface {
 	SubmitJob(context.Context, *connect.Request[v1.SubmitJobRequest]) (*connect.Response[v1.Job], error)
@@ -88,53 +75,54 @@ type JobServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) JobServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	jobServiceMethods := v1.File_workflows_v1_job_proto.Services().ByName("JobService").Methods()
 	return &jobServiceClient{
 		submitJob: connect.NewClient[v1.SubmitJobRequest, v1.Job](
 			httpClient,
 			baseURL+JobServiceSubmitJobProcedure,
-			connect.WithSchema(jobServiceSubmitJobMethodDescriptor),
+			connect.WithSchema(jobServiceMethods.ByName("SubmitJob")),
 			connect.WithClientOptions(opts...),
 		),
 		getJob: connect.NewClient[v1.GetJobRequest, v1.Job](
 			httpClient,
 			baseURL+JobServiceGetJobProcedure,
-			connect.WithSchema(jobServiceGetJobMethodDescriptor),
+			connect.WithSchema(jobServiceMethods.ByName("GetJob")),
 			connect.WithClientOptions(opts...),
 		),
 		retryJob: connect.NewClient[v1.RetryJobRequest, v1.RetryJobResponse](
 			httpClient,
 			baseURL+JobServiceRetryJobProcedure,
-			connect.WithSchema(jobServiceRetryJobMethodDescriptor),
+			connect.WithSchema(jobServiceMethods.ByName("RetryJob")),
 			connect.WithClientOptions(opts...),
 		),
 		cancelJob: connect.NewClient[v1.CancelJobRequest, v1.CancelJobResponse](
 			httpClient,
 			baseURL+JobServiceCancelJobProcedure,
-			connect.WithSchema(jobServiceCancelJobMethodDescriptor),
+			connect.WithSchema(jobServiceMethods.ByName("CancelJob")),
 			connect.WithClientOptions(opts...),
 		),
 		visualizeJob: connect.NewClient[v1.VisualizeJobRequest, v1.Diagram](
 			httpClient,
 			baseURL+JobServiceVisualizeJobProcedure,
-			connect.WithSchema(jobServiceVisualizeJobMethodDescriptor),
+			connect.WithSchema(jobServiceMethods.ByName("VisualizeJob")),
 			connect.WithClientOptions(opts...),
 		),
 		listJobs: connect.NewClient[v1.ListJobsRequest, v1.ListJobsResponse](
 			httpClient,
 			baseURL+JobServiceListJobsProcedure,
-			connect.WithSchema(jobServiceListJobsMethodDescriptor),
+			connect.WithSchema(jobServiceMethods.ByName("ListJobs")),
 			connect.WithClientOptions(opts...),
 		),
 		getJobPrototype: connect.NewClient[v1.GetJobPrototypeRequest, v1.GetJobPrototypeResponse](
 			httpClient,
 			baseURL+JobServiceGetJobPrototypeProcedure,
-			connect.WithSchema(jobServiceGetJobPrototypeMethodDescriptor),
+			connect.WithSchema(jobServiceMethods.ByName("GetJobPrototype")),
 			connect.WithClientOptions(opts...),
 		),
 		cloneJob: connect.NewClient[v1.CloneJobRequest, v1.Job](
 			httpClient,
 			baseURL+JobServiceCloneJobProcedure,
-			connect.WithSchema(jobServiceCloneJobMethodDescriptor),
+			connect.WithSchema(jobServiceMethods.ByName("CloneJob")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -210,52 +198,53 @@ type JobServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	jobServiceMethods := v1.File_workflows_v1_job_proto.Services().ByName("JobService").Methods()
 	jobServiceSubmitJobHandler := connect.NewUnaryHandler(
 		JobServiceSubmitJobProcedure,
 		svc.SubmitJob,
-		connect.WithSchema(jobServiceSubmitJobMethodDescriptor),
+		connect.WithSchema(jobServiceMethods.ByName("SubmitJob")),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobHandler := connect.NewUnaryHandler(
 		JobServiceGetJobProcedure,
 		svc.GetJob,
-		connect.WithSchema(jobServiceGetJobMethodDescriptor),
+		connect.WithSchema(jobServiceMethods.ByName("GetJob")),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceRetryJobHandler := connect.NewUnaryHandler(
 		JobServiceRetryJobProcedure,
 		svc.RetryJob,
-		connect.WithSchema(jobServiceRetryJobMethodDescriptor),
+		connect.WithSchema(jobServiceMethods.ByName("RetryJob")),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceCancelJobHandler := connect.NewUnaryHandler(
 		JobServiceCancelJobProcedure,
 		svc.CancelJob,
-		connect.WithSchema(jobServiceCancelJobMethodDescriptor),
+		connect.WithSchema(jobServiceMethods.ByName("CancelJob")),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceVisualizeJobHandler := connect.NewUnaryHandler(
 		JobServiceVisualizeJobProcedure,
 		svc.VisualizeJob,
-		connect.WithSchema(jobServiceVisualizeJobMethodDescriptor),
+		connect.WithSchema(jobServiceMethods.ByName("VisualizeJob")),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceListJobsHandler := connect.NewUnaryHandler(
 		JobServiceListJobsProcedure,
 		svc.ListJobs,
-		connect.WithSchema(jobServiceListJobsMethodDescriptor),
+		connect.WithSchema(jobServiceMethods.ByName("ListJobs")),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceGetJobPrototypeHandler := connect.NewUnaryHandler(
 		JobServiceGetJobPrototypeProcedure,
 		svc.GetJobPrototype,
-		connect.WithSchema(jobServiceGetJobPrototypeMethodDescriptor),
+		connect.WithSchema(jobServiceMethods.ByName("GetJobPrototype")),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceCloneJobHandler := connect.NewUnaryHandler(
 		JobServiceCloneJobProcedure,
 		svc.CloneJob,
-		connect.WithSchema(jobServiceCloneJobMethodDescriptor),
+		connect.WithSchema(jobServiceMethods.ByName("CloneJob")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/workflows.v1.JobService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

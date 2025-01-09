@@ -65,20 +65,6 @@ const (
 	RecurrentTaskServiceDeleteRecurrentTaskProcedure = "/workflows.v1.RecurrentTaskService/DeleteRecurrentTask"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	recurrentTaskServiceServiceDescriptor                     = v1.File_workflows_v1_recurrent_task_proto.Services().ByName("RecurrentTaskService")
-	recurrentTaskServiceListStorageLocationsMethodDescriptor  = recurrentTaskServiceServiceDescriptor.Methods().ByName("ListStorageLocations")
-	recurrentTaskServiceGetStorageLocationMethodDescriptor    = recurrentTaskServiceServiceDescriptor.Methods().ByName("GetStorageLocation")
-	recurrentTaskServiceCreateStorageLocationMethodDescriptor = recurrentTaskServiceServiceDescriptor.Methods().ByName("CreateStorageLocation")
-	recurrentTaskServiceDeleteStorageLocationMethodDescriptor = recurrentTaskServiceServiceDescriptor.Methods().ByName("DeleteStorageLocation")
-	recurrentTaskServiceListRecurrentTasksMethodDescriptor    = recurrentTaskServiceServiceDescriptor.Methods().ByName("ListRecurrentTasks")
-	recurrentTaskServiceGetRecurrentTaskMethodDescriptor      = recurrentTaskServiceServiceDescriptor.Methods().ByName("GetRecurrentTask")
-	recurrentTaskServiceCreateRecurrentTaskMethodDescriptor   = recurrentTaskServiceServiceDescriptor.Methods().ByName("CreateRecurrentTask")
-	recurrentTaskServiceUpdateRecurrentTaskMethodDescriptor   = recurrentTaskServiceServiceDescriptor.Methods().ByName("UpdateRecurrentTask")
-	recurrentTaskServiceDeleteRecurrentTaskMethodDescriptor   = recurrentTaskServiceServiceDescriptor.Methods().ByName("DeleteRecurrentTask")
-)
-
 // RecurrentTaskServiceClient is a client for the workflows.v1.RecurrentTaskService service.
 type RecurrentTaskServiceClient interface {
 	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
@@ -110,59 +96,60 @@ type RecurrentTaskServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewRecurrentTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) RecurrentTaskServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	recurrentTaskServiceMethods := v1.File_workflows_v1_recurrent_task_proto.Services().ByName("RecurrentTaskService").Methods()
 	return &recurrentTaskServiceClient{
 		listStorageLocations: connect.NewClient[emptypb.Empty, v1.StorageLocations](
 			httpClient,
 			baseURL+RecurrentTaskServiceListStorageLocationsProcedure,
-			connect.WithSchema(recurrentTaskServiceListStorageLocationsMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("ListStorageLocations")),
 			connect.WithClientOptions(opts...),
 		),
 		getStorageLocation: connect.NewClient[v1.UUID, v1.StorageLocation](
 			httpClient,
 			baseURL+RecurrentTaskServiceGetStorageLocationProcedure,
-			connect.WithSchema(recurrentTaskServiceGetStorageLocationMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("GetStorageLocation")),
 			connect.WithClientOptions(opts...),
 		),
 		createStorageLocation: connect.NewClient[v1.StorageLocation, v1.StorageLocation](
 			httpClient,
 			baseURL+RecurrentTaskServiceCreateStorageLocationProcedure,
-			connect.WithSchema(recurrentTaskServiceCreateStorageLocationMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("CreateStorageLocation")),
 			connect.WithClientOptions(opts...),
 		),
 		deleteStorageLocation: connect.NewClient[v1.UUID, emptypb.Empty](
 			httpClient,
 			baseURL+RecurrentTaskServiceDeleteStorageLocationProcedure,
-			connect.WithSchema(recurrentTaskServiceDeleteStorageLocationMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("DeleteStorageLocation")),
 			connect.WithClientOptions(opts...),
 		),
 		listRecurrentTasks: connect.NewClient[emptypb.Empty, v1.RecurrentTasks](
 			httpClient,
 			baseURL+RecurrentTaskServiceListRecurrentTasksProcedure,
-			connect.WithSchema(recurrentTaskServiceListRecurrentTasksMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("ListRecurrentTasks")),
 			connect.WithClientOptions(opts...),
 		),
 		getRecurrentTask: connect.NewClient[v1.UUID, v1.RecurrentTaskPrototype](
 			httpClient,
 			baseURL+RecurrentTaskServiceGetRecurrentTaskProcedure,
-			connect.WithSchema(recurrentTaskServiceGetRecurrentTaskMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("GetRecurrentTask")),
 			connect.WithClientOptions(opts...),
 		),
 		createRecurrentTask: connect.NewClient[v1.RecurrentTaskPrototype, v1.RecurrentTaskPrototype](
 			httpClient,
 			baseURL+RecurrentTaskServiceCreateRecurrentTaskProcedure,
-			connect.WithSchema(recurrentTaskServiceCreateRecurrentTaskMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("CreateRecurrentTask")),
 			connect.WithClientOptions(opts...),
 		),
 		updateRecurrentTask: connect.NewClient[v1.RecurrentTaskPrototype, v1.RecurrentTaskPrototype](
 			httpClient,
 			baseURL+RecurrentTaskServiceUpdateRecurrentTaskProcedure,
-			connect.WithSchema(recurrentTaskServiceUpdateRecurrentTaskMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("UpdateRecurrentTask")),
 			connect.WithClientOptions(opts...),
 		),
 		deleteRecurrentTask: connect.NewClient[v1.UUID, emptypb.Empty](
 			httpClient,
 			baseURL+RecurrentTaskServiceDeleteRecurrentTaskProcedure,
-			connect.WithSchema(recurrentTaskServiceDeleteRecurrentTaskMethodDescriptor),
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("DeleteRecurrentTask")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -255,58 +242,59 @@ type RecurrentTaskServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewRecurrentTaskServiceHandler(svc RecurrentTaskServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	recurrentTaskServiceMethods := v1.File_workflows_v1_recurrent_task_proto.Services().ByName("RecurrentTaskService").Methods()
 	recurrentTaskServiceListStorageLocationsHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceListStorageLocationsProcedure,
 		svc.ListStorageLocations,
-		connect.WithSchema(recurrentTaskServiceListStorageLocationsMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("ListStorageLocations")),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceGetStorageLocationHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceGetStorageLocationProcedure,
 		svc.GetStorageLocation,
-		connect.WithSchema(recurrentTaskServiceGetStorageLocationMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("GetStorageLocation")),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceCreateStorageLocationHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceCreateStorageLocationProcedure,
 		svc.CreateStorageLocation,
-		connect.WithSchema(recurrentTaskServiceCreateStorageLocationMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("CreateStorageLocation")),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceDeleteStorageLocationHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceDeleteStorageLocationProcedure,
 		svc.DeleteStorageLocation,
-		connect.WithSchema(recurrentTaskServiceDeleteStorageLocationMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("DeleteStorageLocation")),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceListRecurrentTasksHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceListRecurrentTasksProcedure,
 		svc.ListRecurrentTasks,
-		connect.WithSchema(recurrentTaskServiceListRecurrentTasksMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("ListRecurrentTasks")),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceGetRecurrentTaskHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceGetRecurrentTaskProcedure,
 		svc.GetRecurrentTask,
-		connect.WithSchema(recurrentTaskServiceGetRecurrentTaskMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("GetRecurrentTask")),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceCreateRecurrentTaskHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceCreateRecurrentTaskProcedure,
 		svc.CreateRecurrentTask,
-		connect.WithSchema(recurrentTaskServiceCreateRecurrentTaskMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("CreateRecurrentTask")),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceUpdateRecurrentTaskHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceUpdateRecurrentTaskProcedure,
 		svc.UpdateRecurrentTask,
-		connect.WithSchema(recurrentTaskServiceUpdateRecurrentTaskMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("UpdateRecurrentTask")),
 		connect.WithHandlerOptions(opts...),
 	)
 	recurrentTaskServiceDeleteRecurrentTaskHandler := connect.NewUnaryHandler(
 		RecurrentTaskServiceDeleteRecurrentTaskProcedure,
 		svc.DeleteRecurrentTask,
-		connect.WithSchema(recurrentTaskServiceDeleteRecurrentTaskMethodDescriptor),
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("DeleteRecurrentTask")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/workflows.v1.RecurrentTaskService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -39,12 +39,6 @@ const (
 	DiagramServiceRenderProcedure = "/workflows.v1.DiagramService/Render"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	diagramServiceServiceDescriptor      = v1.File_workflows_v1_diagram_proto.Services().ByName("DiagramService")
-	diagramServiceRenderMethodDescriptor = diagramServiceServiceDescriptor.Methods().ByName("Render")
-)
-
 // DiagramServiceClient is a client for the workflows.v1.DiagramService service.
 type DiagramServiceClient interface {
 	Render(context.Context, *connect.Request[v1.RenderDiagramRequest]) (*connect.Response[v1.Diagram], error)
@@ -59,11 +53,12 @@ type DiagramServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewDiagramServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) DiagramServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	diagramServiceMethods := v1.File_workflows_v1_diagram_proto.Services().ByName("DiagramService").Methods()
 	return &diagramServiceClient{
 		render: connect.NewClient[v1.RenderDiagramRequest, v1.Diagram](
 			httpClient,
 			baseURL+DiagramServiceRenderProcedure,
-			connect.WithSchema(diagramServiceRenderMethodDescriptor),
+			connect.WithSchema(diagramServiceMethods.ByName("Render")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -90,10 +85,11 @@ type DiagramServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewDiagramServiceHandler(svc DiagramServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	diagramServiceMethods := v1.File_workflows_v1_diagram_proto.Services().ByName("DiagramService").Methods()
 	diagramServiceRenderHandler := connect.NewUnaryHandler(
 		DiagramServiceRenderProcedure,
 		svc.Render,
-		connect.WithSchema(diagramServiceRenderMethodDescriptor),
+		connect.WithSchema(diagramServiceMethods.ByName("Render")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/workflows.v1.DiagramService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

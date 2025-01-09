@@ -44,14 +44,6 @@ const (
 	TaskServiceExtendTaskLeaseProcedure = "/workflows.v1.TaskService/ExtendTaskLease"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	taskServiceServiceDescriptor               = v1.File_workflows_v1_task_proto.Services().ByName("TaskService")
-	taskServiceNextTaskMethodDescriptor        = taskServiceServiceDescriptor.Methods().ByName("NextTask")
-	taskServiceTaskFailedMethodDescriptor      = taskServiceServiceDescriptor.Methods().ByName("TaskFailed")
-	taskServiceExtendTaskLeaseMethodDescriptor = taskServiceServiceDescriptor.Methods().ByName("ExtendTaskLease")
-)
-
 // TaskServiceClient is a client for the workflows.v1.TaskService service.
 type TaskServiceClient interface {
 	// NextTask marks a task as computed and asks for the next task to run.
@@ -82,23 +74,24 @@ type TaskServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewTaskServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TaskServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	taskServiceMethods := v1.File_workflows_v1_task_proto.Services().ByName("TaskService").Methods()
 	return &taskServiceClient{
 		nextTask: connect.NewClient[v1.NextTaskRequest, v1.NextTaskResponse](
 			httpClient,
 			baseURL+TaskServiceNextTaskProcedure,
-			connect.WithSchema(taskServiceNextTaskMethodDescriptor),
+			connect.WithSchema(taskServiceMethods.ByName("NextTask")),
 			connect.WithClientOptions(opts...),
 		),
 		taskFailed: connect.NewClient[v1.TaskFailedRequest, v1.TaskStateResponse](
 			httpClient,
 			baseURL+TaskServiceTaskFailedProcedure,
-			connect.WithSchema(taskServiceTaskFailedMethodDescriptor),
+			connect.WithSchema(taskServiceMethods.ByName("TaskFailed")),
 			connect.WithClientOptions(opts...),
 		),
 		extendTaskLease: connect.NewClient[v1.TaskLeaseRequest, v1.TaskLease](
 			httpClient,
 			baseURL+TaskServiceExtendTaskLeaseProcedure,
-			connect.WithSchema(taskServiceExtendTaskLeaseMethodDescriptor),
+			connect.WithSchema(taskServiceMethods.ByName("ExtendTaskLease")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -153,22 +146,23 @@ type TaskServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewTaskServiceHandler(svc TaskServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	taskServiceMethods := v1.File_workflows_v1_task_proto.Services().ByName("TaskService").Methods()
 	taskServiceNextTaskHandler := connect.NewUnaryHandler(
 		TaskServiceNextTaskProcedure,
 		svc.NextTask,
-		connect.WithSchema(taskServiceNextTaskMethodDescriptor),
+		connect.WithSchema(taskServiceMethods.ByName("NextTask")),
 		connect.WithHandlerOptions(opts...),
 	)
 	taskServiceTaskFailedHandler := connect.NewUnaryHandler(
 		TaskServiceTaskFailedProcedure,
 		svc.TaskFailed,
-		connect.WithSchema(taskServiceTaskFailedMethodDescriptor),
+		connect.WithSchema(taskServiceMethods.ByName("TaskFailed")),
 		connect.WithHandlerOptions(opts...),
 	)
 	taskServiceExtendTaskLeaseHandler := connect.NewUnaryHandler(
 		TaskServiceExtendTaskLeaseProcedure,
 		svc.ExtendTaskLease,
-		connect.WithSchema(taskServiceExtendTaskLeaseMethodDescriptor),
+		connect.WithSchema(taskServiceMethods.ByName("ExtendTaskLease")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/workflows.v1.TaskService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -25,6 +25,7 @@ message Job {
   google.protobuf.Timestamp submitted_at = 7; // The time the job was submitted.
   google.protobuf.Timestamp started_at = 8; // The time the job started running.
   repeated TaskSummary task_summaries = 9; // The task' summaries of the job.
+  UUID automation_id = 10; // The automation that submitted the job.
 }
 
 // The state of a job.
