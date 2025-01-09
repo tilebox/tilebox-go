@@ -49,15 +49,6 @@ const (
 	WorkflowsServiceListClustersProcedure = "/workflows.v1.WorkflowsService/ListClusters"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	workflowsServiceServiceDescriptor             = v1.File_workflows_v1_workflows_proto.Services().ByName("WorkflowsService")
-	workflowsServiceCreateClusterMethodDescriptor = workflowsServiceServiceDescriptor.Methods().ByName("CreateCluster")
-	workflowsServiceGetClusterMethodDescriptor    = workflowsServiceServiceDescriptor.Methods().ByName("GetCluster")
-	workflowsServiceDeleteClusterMethodDescriptor = workflowsServiceServiceDescriptor.Methods().ByName("DeleteCluster")
-	workflowsServiceListClustersMethodDescriptor  = workflowsServiceServiceDescriptor.Methods().ByName("ListClusters")
-)
-
 // WorkflowsServiceClient is a client for the workflows.v1.WorkflowsService service.
 type WorkflowsServiceClient interface {
 	CreateCluster(context.Context, *connect.Request[v1.CreateClusterRequest]) (*connect.Response[v1.Cluster], error)
@@ -75,29 +66,30 @@ type WorkflowsServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewWorkflowsServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) WorkflowsServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	workflowsServiceMethods := v1.File_workflows_v1_workflows_proto.Services().ByName("WorkflowsService").Methods()
 	return &workflowsServiceClient{
 		createCluster: connect.NewClient[v1.CreateClusterRequest, v1.Cluster](
 			httpClient,
 			baseURL+WorkflowsServiceCreateClusterProcedure,
-			connect.WithSchema(workflowsServiceCreateClusterMethodDescriptor),
+			connect.WithSchema(workflowsServiceMethods.ByName("CreateCluster")),
 			connect.WithClientOptions(opts...),
 		),
 		getCluster: connect.NewClient[v1.GetClusterRequest, v1.Cluster](
 			httpClient,
 			baseURL+WorkflowsServiceGetClusterProcedure,
-			connect.WithSchema(workflowsServiceGetClusterMethodDescriptor),
+			connect.WithSchema(workflowsServiceMethods.ByName("GetCluster")),
 			connect.WithClientOptions(opts...),
 		),
 		deleteCluster: connect.NewClient[v1.DeleteClusterRequest, v1.DeleteClusterResponse](
 			httpClient,
 			baseURL+WorkflowsServiceDeleteClusterProcedure,
-			connect.WithSchema(workflowsServiceDeleteClusterMethodDescriptor),
+			connect.WithSchema(workflowsServiceMethods.ByName("DeleteCluster")),
 			connect.WithClientOptions(opts...),
 		),
 		listClusters: connect.NewClient[v1.ListClustersRequest, v1.ListClustersResponse](
 			httpClient,
 			baseURL+WorkflowsServiceListClustersProcedure,
-			connect.WithSchema(workflowsServiceListClustersMethodDescriptor),
+			connect.WithSchema(workflowsServiceMethods.ByName("ListClusters")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -145,28 +137,29 @@ type WorkflowsServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewWorkflowsServiceHandler(svc WorkflowsServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	workflowsServiceMethods := v1.File_workflows_v1_workflows_proto.Services().ByName("WorkflowsService").Methods()
 	workflowsServiceCreateClusterHandler := connect.NewUnaryHandler(
 		WorkflowsServiceCreateClusterProcedure,
 		svc.CreateCluster,
-		connect.WithSchema(workflowsServiceCreateClusterMethodDescriptor),
+		connect.WithSchema(workflowsServiceMethods.ByName("CreateCluster")),
 		connect.WithHandlerOptions(opts...),
 	)
 	workflowsServiceGetClusterHandler := connect.NewUnaryHandler(
 		WorkflowsServiceGetClusterProcedure,
 		svc.GetCluster,
-		connect.WithSchema(workflowsServiceGetClusterMethodDescriptor),
+		connect.WithSchema(workflowsServiceMethods.ByName("GetCluster")),
 		connect.WithHandlerOptions(opts...),
 	)
 	workflowsServiceDeleteClusterHandler := connect.NewUnaryHandler(
 		WorkflowsServiceDeleteClusterProcedure,
 		svc.DeleteCluster,
-		connect.WithSchema(workflowsServiceDeleteClusterMethodDescriptor),
+		connect.WithSchema(workflowsServiceMethods.ByName("DeleteCluster")),
 		connect.WithHandlerOptions(opts...),
 	)
 	workflowsServiceListClustersHandler := connect.NewUnaryHandler(
 		WorkflowsServiceListClustersProcedure,
 		svc.ListClusters,
-		connect.WithSchema(workflowsServiceListClustersMethodDescriptor),
+		connect.WithSchema(workflowsServiceMethods.ByName("ListClusters")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/workflows.v1.WorkflowsService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

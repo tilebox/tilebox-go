@@ -67,21 +67,6 @@ const (
 	TileboxServiceDeleteDatapointsProcedure = "/datasets.v1.TileboxService/DeleteDatapoints"
 )
 
-// These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
-var (
-	tileboxServiceServiceDescriptor                        = v1.File_datasets_v1_tilebox_proto.Services().ByName("TileboxService")
-	tileboxServiceGetDatasetMethodDescriptor               = tileboxServiceServiceDescriptor.Methods().ByName("GetDataset")
-	tileboxServiceUpdateDatasetDescriptionMethodDescriptor = tileboxServiceServiceDescriptor.Methods().ByName("UpdateDatasetDescription")
-	tileboxServiceListDatasetsMethodDescriptor             = tileboxServiceServiceDescriptor.Methods().ByName("ListDatasets")
-	tileboxServiceCreateCollectionMethodDescriptor         = tileboxServiceServiceDescriptor.Methods().ByName("CreateCollection")
-	tileboxServiceGetCollectionsMethodDescriptor           = tileboxServiceServiceDescriptor.Methods().ByName("GetCollections")
-	tileboxServiceGetCollectionByNameMethodDescriptor      = tileboxServiceServiceDescriptor.Methods().ByName("GetCollectionByName")
-	tileboxServiceGetDatasetForIntervalMethodDescriptor    = tileboxServiceServiceDescriptor.Methods().ByName("GetDatasetForInterval")
-	tileboxServiceGetDatapointByIDMethodDescriptor         = tileboxServiceServiceDescriptor.Methods().ByName("GetDatapointByID")
-	tileboxServiceIngestDatapointsMethodDescriptor         = tileboxServiceServiceDescriptor.Methods().ByName("IngestDatapoints")
-	tileboxServiceDeleteDatapointsMethodDescriptor         = tileboxServiceServiceDescriptor.Methods().ByName("DeleteDatapoints")
-)
-
 // TileboxServiceClient is a client for the datasets.v1.TileboxService service.
 type TileboxServiceClient interface {
 	GetDataset(context.Context, *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error)
@@ -105,65 +90,66 @@ type TileboxServiceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewTileboxServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TileboxServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	tileboxServiceMethods := v1.File_datasets_v1_tilebox_proto.Services().ByName("TileboxService").Methods()
 	return &tileboxServiceClient{
 		getDataset: connect.NewClient[v1.GetDatasetRequest, v1.Dataset](
 			httpClient,
 			baseURL+TileboxServiceGetDatasetProcedure,
-			connect.WithSchema(tileboxServiceGetDatasetMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("GetDataset")),
 			connect.WithClientOptions(opts...),
 		),
 		updateDatasetDescription: connect.NewClient[v1.UpdateDatasetDescriptionRequest, v1.Dataset](
 			httpClient,
 			baseURL+TileboxServiceUpdateDatasetDescriptionProcedure,
-			connect.WithSchema(tileboxServiceUpdateDatasetDescriptionMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("UpdateDatasetDescription")),
 			connect.WithClientOptions(opts...),
 		),
 		listDatasets: connect.NewClient[v1.ListDatasetsRequest, v1.ListDatasetsResponse](
 			httpClient,
 			baseURL+TileboxServiceListDatasetsProcedure,
-			connect.WithSchema(tileboxServiceListDatasetsMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("ListDatasets")),
 			connect.WithClientOptions(opts...),
 		),
 		createCollection: connect.NewClient[v1.CreateCollectionRequest, v1.CollectionInfo](
 			httpClient,
 			baseURL+TileboxServiceCreateCollectionProcedure,
-			connect.WithSchema(tileboxServiceCreateCollectionMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("CreateCollection")),
 			connect.WithClientOptions(opts...),
 		),
 		getCollections: connect.NewClient[v1.GetCollectionsRequest, v1.Collections](
 			httpClient,
 			baseURL+TileboxServiceGetCollectionsProcedure,
-			connect.WithSchema(tileboxServiceGetCollectionsMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("GetCollections")),
 			connect.WithClientOptions(opts...),
 		),
 		getCollectionByName: connect.NewClient[v1.GetCollectionByNameRequest, v1.CollectionInfo](
 			httpClient,
 			baseURL+TileboxServiceGetCollectionByNameProcedure,
-			connect.WithSchema(tileboxServiceGetCollectionByNameMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("GetCollectionByName")),
 			connect.WithClientOptions(opts...),
 		),
 		getDatasetForInterval: connect.NewClient[v1.GetDatasetForIntervalRequest, v1.Datapoints](
 			httpClient,
 			baseURL+TileboxServiceGetDatasetForIntervalProcedure,
-			connect.WithSchema(tileboxServiceGetDatasetForIntervalMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("GetDatasetForInterval")),
 			connect.WithClientOptions(opts...),
 		),
 		getDatapointByID: connect.NewClient[v1.GetDatapointByIdRequest, v1.Datapoint](
 			httpClient,
 			baseURL+TileboxServiceGetDatapointByIDProcedure,
-			connect.WithSchema(tileboxServiceGetDatapointByIDMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("GetDatapointByID")),
 			connect.WithClientOptions(opts...),
 		),
 		ingestDatapoints: connect.NewClient[v1.IngestDatapointsRequest, v1.IngestDatapointsResponse](
 			httpClient,
 			baseURL+TileboxServiceIngestDatapointsProcedure,
-			connect.WithSchema(tileboxServiceIngestDatapointsMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("IngestDatapoints")),
 			connect.WithClientOptions(opts...),
 		),
 		deleteDatapoints: connect.NewClient[v1.DeleteDatapointsRequest, v1.DeleteDatapointsResponse](
 			httpClient,
 			baseURL+TileboxServiceDeleteDatapointsProcedure,
-			connect.WithSchema(tileboxServiceDeleteDatapointsMethodDescriptor),
+			connect.WithSchema(tileboxServiceMethods.ByName("DeleteDatapoints")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -253,64 +239,65 @@ type TileboxServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewTileboxServiceHandler(svc TileboxServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	tileboxServiceMethods := v1.File_datasets_v1_tilebox_proto.Services().ByName("TileboxService").Methods()
 	tileboxServiceGetDatasetHandler := connect.NewUnaryHandler(
 		TileboxServiceGetDatasetProcedure,
 		svc.GetDataset,
-		connect.WithSchema(tileboxServiceGetDatasetMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("GetDataset")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceUpdateDatasetDescriptionHandler := connect.NewUnaryHandler(
 		TileboxServiceUpdateDatasetDescriptionProcedure,
 		svc.UpdateDatasetDescription,
-		connect.WithSchema(tileboxServiceUpdateDatasetDescriptionMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("UpdateDatasetDescription")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceListDatasetsHandler := connect.NewUnaryHandler(
 		TileboxServiceListDatasetsProcedure,
 		svc.ListDatasets,
-		connect.WithSchema(tileboxServiceListDatasetsMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("ListDatasets")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceCreateCollectionHandler := connect.NewUnaryHandler(
 		TileboxServiceCreateCollectionProcedure,
 		svc.CreateCollection,
-		connect.WithSchema(tileboxServiceCreateCollectionMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("CreateCollection")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceGetCollectionsHandler := connect.NewUnaryHandler(
 		TileboxServiceGetCollectionsProcedure,
 		svc.GetCollections,
-		connect.WithSchema(tileboxServiceGetCollectionsMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("GetCollections")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceGetCollectionByNameHandler := connect.NewUnaryHandler(
 		TileboxServiceGetCollectionByNameProcedure,
 		svc.GetCollectionByName,
-		connect.WithSchema(tileboxServiceGetCollectionByNameMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("GetCollectionByName")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceGetDatasetForIntervalHandler := connect.NewUnaryHandler(
 		TileboxServiceGetDatasetForIntervalProcedure,
 		svc.GetDatasetForInterval,
-		connect.WithSchema(tileboxServiceGetDatasetForIntervalMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("GetDatasetForInterval")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceGetDatapointByIDHandler := connect.NewUnaryHandler(
 		TileboxServiceGetDatapointByIDProcedure,
 		svc.GetDatapointByID,
-		connect.WithSchema(tileboxServiceGetDatapointByIDMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("GetDatapointByID")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceIngestDatapointsHandler := connect.NewUnaryHandler(
 		TileboxServiceIngestDatapointsProcedure,
 		svc.IngestDatapoints,
-		connect.WithSchema(tileboxServiceIngestDatapointsMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("IngestDatapoints")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceDeleteDatapointsHandler := connect.NewUnaryHandler(
 		TileboxServiceDeleteDatapointsProcedure,
 		svc.DeleteDatapoints,
-		connect.WithSchema(tileboxServiceDeleteDatapointsMethodDescriptor),
+		connect.WithSchema(tileboxServiceMethods.ByName("DeleteDatapoints")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/datasets.v1.TileboxService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
