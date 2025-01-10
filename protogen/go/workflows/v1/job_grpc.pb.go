@@ -27,6 +27,7 @@ const (
 	JobService_CancelJob_FullMethodName       = "/workflows.v1.JobService/CancelJob"
 	JobService_VisualizeJob_FullMethodName    = "/workflows.v1.JobService/VisualizeJob"
 	JobService_ListJobs_FullMethodName        = "/workflows.v1.JobService/ListJobs"
+	JobService_FilterJobs_FullMethodName      = "/workflows.v1.JobService/FilterJobs"
 	JobService_GetJobPrototype_FullMethodName = "/workflows.v1.JobService/GetJobPrototype"
 	JobService_CloneJob_FullMethodName        = "/workflows.v1.JobService/CloneJob"
 )
@@ -43,6 +44,7 @@ type JobServiceClient interface {
 	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*CancelJobResponse, error)
 	VisualizeJob(ctx context.Context, in *VisualizeJobRequest, opts ...grpc.CallOption) (*Diagram, error)
 	ListJobs(ctx context.Context, in *ListJobsRequest, opts ...grpc.CallOption) (*ListJobsResponse, error)
+	FilterJobs(ctx context.Context, in *FilterJobsRequest, opts ...grpc.CallOption) (*ListJobsResponse, error)
 	GetJobPrototype(ctx context.Context, in *GetJobPrototypeRequest, opts ...grpc.CallOption) (*GetJobPrototypeResponse, error)
 	CloneJob(ctx context.Context, in *CloneJobRequest, opts ...grpc.CallOption) (*Job, error)
 }
@@ -115,6 +117,16 @@ func (c *jobServiceClient) ListJobs(ctx context.Context, in *ListJobsRequest, op
 	return out, nil
 }
 
+func (c *jobServiceClient) FilterJobs(ctx context.Context, in *FilterJobsRequest, opts ...grpc.CallOption) (*ListJobsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListJobsResponse)
+	err := c.cc.Invoke(ctx, JobService_FilterJobs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *jobServiceClient) GetJobPrototype(ctx context.Context, in *GetJobPrototypeRequest, opts ...grpc.CallOption) (*GetJobPrototypeResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetJobPrototypeResponse)
@@ -147,6 +159,7 @@ type JobServiceServer interface {
 	CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error)
 	VisualizeJob(context.Context, *VisualizeJobRequest) (*Diagram, error)
 	ListJobs(context.Context, *ListJobsRequest) (*ListJobsResponse, error)
+	FilterJobs(context.Context, *FilterJobsRequest) (*ListJobsResponse, error)
 	GetJobPrototype(context.Context, *GetJobPrototypeRequest) (*GetJobPrototypeResponse, error)
 	CloneJob(context.Context, *CloneJobRequest) (*Job, error)
 	mustEmbedUnimplementedJobServiceServer()
@@ -176,6 +189,9 @@ func (UnimplementedJobServiceServer) VisualizeJob(context.Context, *VisualizeJob
 }
 func (UnimplementedJobServiceServer) ListJobs(context.Context, *ListJobsRequest) (*ListJobsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListJobs not implemented")
+}
+func (UnimplementedJobServiceServer) FilterJobs(context.Context, *FilterJobsRequest) (*ListJobsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FilterJobs not implemented")
 }
 func (UnimplementedJobServiceServer) GetJobPrototype(context.Context, *GetJobPrototypeRequest) (*GetJobPrototypeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJobPrototype not implemented")
@@ -312,6 +328,24 @@ func _JobService_ListJobs_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JobService_FilterJobs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FilterJobsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).FilterJobs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_FilterJobs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).FilterJobs(ctx, req.(*FilterJobsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _JobService_GetJobPrototype_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetJobPrototypeRequest)
 	if err := dec(in); err != nil {
@@ -378,6 +412,10 @@ var JobService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListJobs",
 			Handler:    _JobService_ListJobs_Handler,
+		},
+		{
+			MethodName: "FilterJobs",
+			Handler:    _JobService_FilterJobs_Handler,
 		},
 		{
 			MethodName: "GetJobPrototype",
