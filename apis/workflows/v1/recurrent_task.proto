@@ -88,6 +88,13 @@ message TriggeredCronEvent {
   google.protobuf.Timestamp trigger_time = 1;  // The time the cron trigger fired
 }
 
+message DeleteAutomationRequest {
+  // The ID of the automation to delete.
+  UUID automation_id = 1;
+  // Whether to cancel all jobs that have been created by this automation.
+  bool cancel_jobs = 2;
+}
+
 // RecurrentTaskService is a service for managing recurrent tasks. Currently, we support two types of triggers for
 // recurrent tasks:
 // - Bucket triggers, which triggers tasks when an object is uploaded to a storage bucket that matches a glob pattern
@@ -112,4 +119,6 @@ service RecurrentTaskService {
   rpc UpdateRecurrentTask(RecurrentTaskPrototype) returns (RecurrentTaskPrototype);
   // DeleteRecurrentTask deletes a recurrent task from a namespace.
   rpc DeleteRecurrentTask(UUID) returns (google.protobuf.Empty);
+  // DeleteAutomation deletes an automation from a namespace.
+  rpc DeleteAutomation(DeleteAutomationRequest) returns (google.protobuf.Empty);
 }

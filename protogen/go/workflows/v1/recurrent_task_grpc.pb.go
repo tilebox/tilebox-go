@@ -31,6 +31,7 @@ const (
 	RecurrentTaskService_CreateRecurrentTask_FullMethodName   = "/workflows.v1.RecurrentTaskService/CreateRecurrentTask"
 	RecurrentTaskService_UpdateRecurrentTask_FullMethodName   = "/workflows.v1.RecurrentTaskService/UpdateRecurrentTask"
 	RecurrentTaskService_DeleteRecurrentTask_FullMethodName   = "/workflows.v1.RecurrentTaskService/DeleteRecurrentTask"
+	RecurrentTaskService_DeleteAutomation_FullMethodName      = "/workflows.v1.RecurrentTaskService/DeleteAutomation"
 )
 
 // RecurrentTaskServiceClient is the client API for RecurrentTaskService service.
@@ -60,6 +61,8 @@ type RecurrentTaskServiceClient interface {
 	UpdateRecurrentTask(ctx context.Context, in *RecurrentTaskPrototype, opts ...grpc.CallOption) (*RecurrentTaskPrototype, error)
 	// DeleteRecurrentTask deletes a recurrent task from a namespace.
 	DeleteRecurrentTask(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// DeleteAutomation deletes an automation from a namespace.
+	DeleteAutomation(ctx context.Context, in *DeleteAutomationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type recurrentTaskServiceClient struct {
@@ -160,6 +163,16 @@ func (c *recurrentTaskServiceClient) DeleteRecurrentTask(ctx context.Context, in
 	return out, nil
 }
 
+func (c *recurrentTaskServiceClient) DeleteAutomation(ctx context.Context, in *DeleteAutomationRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, RecurrentTaskService_DeleteAutomation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecurrentTaskServiceServer is the server API for RecurrentTaskService service.
 // All implementations must embed UnimplementedRecurrentTaskServiceServer
 // for forward compatibility.
@@ -187,6 +200,8 @@ type RecurrentTaskServiceServer interface {
 	UpdateRecurrentTask(context.Context, *RecurrentTaskPrototype) (*RecurrentTaskPrototype, error)
 	// DeleteRecurrentTask deletes a recurrent task from a namespace.
 	DeleteRecurrentTask(context.Context, *UUID) (*emptypb.Empty, error)
+	// DeleteAutomation deletes an automation from a namespace.
+	DeleteAutomation(context.Context, *DeleteAutomationRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRecurrentTaskServiceServer()
 }
 
@@ -223,6 +238,9 @@ func (UnimplementedRecurrentTaskServiceServer) UpdateRecurrentTask(context.Conte
 }
 func (UnimplementedRecurrentTaskServiceServer) DeleteRecurrentTask(context.Context, *UUID) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRecurrentTask not implemented")
+}
+func (UnimplementedRecurrentTaskServiceServer) DeleteAutomation(context.Context, *DeleteAutomationRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAutomation not implemented")
 }
 func (UnimplementedRecurrentTaskServiceServer) mustEmbedUnimplementedRecurrentTaskServiceServer() {}
 func (UnimplementedRecurrentTaskServiceServer) testEmbeddedByValue()                              {}
@@ -407,6 +425,24 @@ func _RecurrentTaskService_DeleteRecurrentTask_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RecurrentTaskService_DeleteAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAutomationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecurrentTaskServiceServer).DeleteAutomation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RecurrentTaskService_DeleteAutomation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecurrentTaskServiceServer).DeleteAutomation(ctx, req.(*DeleteAutomationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RecurrentTaskService_ServiceDesc is the grpc.ServiceDesc for RecurrentTaskService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -449,6 +485,10 @@ var RecurrentTaskService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRecurrentTask",
 			Handler:    _RecurrentTaskService_DeleteRecurrentTask_Handler,
+		},
+		{
+			MethodName: "DeleteAutomation",
+			Handler:    _RecurrentTaskService_DeleteAutomation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

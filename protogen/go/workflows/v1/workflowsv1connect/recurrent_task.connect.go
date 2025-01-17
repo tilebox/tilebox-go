@@ -63,6 +63,9 @@ const (
 	// RecurrentTaskServiceDeleteRecurrentTaskProcedure is the fully-qualified name of the
 	// RecurrentTaskService's DeleteRecurrentTask RPC.
 	RecurrentTaskServiceDeleteRecurrentTaskProcedure = "/workflows.v1.RecurrentTaskService/DeleteRecurrentTask"
+	// RecurrentTaskServiceDeleteAutomationProcedure is the fully-qualified name of the
+	// RecurrentTaskService's DeleteAutomation RPC.
+	RecurrentTaskServiceDeleteAutomationProcedure = "/workflows.v1.RecurrentTaskService/DeleteAutomation"
 )
 
 // RecurrentTaskServiceClient is a client for the workflows.v1.RecurrentTaskService service.
@@ -85,6 +88,8 @@ type RecurrentTaskServiceClient interface {
 	UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error)
 	// DeleteRecurrentTask deletes a recurrent task from a namespace.
 	DeleteRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
+	// DeleteAutomation deletes an automation from a namespace.
+	DeleteAutomation(context.Context, *connect.Request[v1.DeleteAutomationRequest]) (*connect.Response[emptypb.Empty], error)
 }
 
 // NewRecurrentTaskServiceClient constructs a client for the workflows.v1.RecurrentTaskService
@@ -152,6 +157,12 @@ func NewRecurrentTaskServiceClient(httpClient connect.HTTPClient, baseURL string
 			connect.WithSchema(recurrentTaskServiceMethods.ByName("DeleteRecurrentTask")),
 			connect.WithClientOptions(opts...),
 		),
+		deleteAutomation: connect.NewClient[v1.DeleteAutomationRequest, emptypb.Empty](
+			httpClient,
+			baseURL+RecurrentTaskServiceDeleteAutomationProcedure,
+			connect.WithSchema(recurrentTaskServiceMethods.ByName("DeleteAutomation")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -166,6 +177,7 @@ type recurrentTaskServiceClient struct {
 	createRecurrentTask   *connect.Client[v1.RecurrentTaskPrototype, v1.RecurrentTaskPrototype]
 	updateRecurrentTask   *connect.Client[v1.RecurrentTaskPrototype, v1.RecurrentTaskPrototype]
 	deleteRecurrentTask   *connect.Client[v1.UUID, emptypb.Empty]
+	deleteAutomation      *connect.Client[v1.DeleteAutomationRequest, emptypb.Empty]
 }
 
 // ListStorageLocations calls workflows.v1.RecurrentTaskService.ListStorageLocations.
@@ -213,6 +225,11 @@ func (c *recurrentTaskServiceClient) DeleteRecurrentTask(ctx context.Context, re
 	return c.deleteRecurrentTask.CallUnary(ctx, req)
 }
 
+// DeleteAutomation calls workflows.v1.RecurrentTaskService.DeleteAutomation.
+func (c *recurrentTaskServiceClient) DeleteAutomation(ctx context.Context, req *connect.Request[v1.DeleteAutomationRequest]) (*connect.Response[emptypb.Empty], error) {
+	return c.deleteAutomation.CallUnary(ctx, req)
+}
+
 // RecurrentTaskServiceHandler is an implementation of the workflows.v1.RecurrentTaskService
 // service.
 type RecurrentTaskServiceHandler interface {
@@ -234,6 +251,8 @@ type RecurrentTaskServiceHandler interface {
 	UpdateRecurrentTask(context.Context, *connect.Request[v1.RecurrentTaskPrototype]) (*connect.Response[v1.RecurrentTaskPrototype], error)
 	// DeleteRecurrentTask deletes a recurrent task from a namespace.
 	DeleteRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
+	// DeleteAutomation deletes an automation from a namespace.
+	DeleteAutomation(context.Context, *connect.Request[v1.DeleteAutomationRequest]) (*connect.Response[emptypb.Empty], error)
 }
 
 // NewRecurrentTaskServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -297,6 +316,12 @@ func NewRecurrentTaskServiceHandler(svc RecurrentTaskServiceHandler, opts ...con
 		connect.WithSchema(recurrentTaskServiceMethods.ByName("DeleteRecurrentTask")),
 		connect.WithHandlerOptions(opts...),
 	)
+	recurrentTaskServiceDeleteAutomationHandler := connect.NewUnaryHandler(
+		RecurrentTaskServiceDeleteAutomationProcedure,
+		svc.DeleteAutomation,
+		connect.WithSchema(recurrentTaskServiceMethods.ByName("DeleteAutomation")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/workflows.v1.RecurrentTaskService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case RecurrentTaskServiceListStorageLocationsProcedure:
@@ -317,6 +342,8 @@ func NewRecurrentTaskServiceHandler(svc RecurrentTaskServiceHandler, opts ...con
 			recurrentTaskServiceUpdateRecurrentTaskHandler.ServeHTTP(w, r)
 		case RecurrentTaskServiceDeleteRecurrentTaskProcedure:
 			recurrentTaskServiceDeleteRecurrentTaskHandler.ServeHTTP(w, r)
+		case RecurrentTaskServiceDeleteAutomationProcedure:
+			recurrentTaskServiceDeleteAutomationHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -360,4 +387,8 @@ func (UnimplementedRecurrentTaskServiceHandler) UpdateRecurrentTask(context.Cont
 
 func (UnimplementedRecurrentTaskServiceHandler) DeleteRecurrentTask(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.DeleteRecurrentTask is not implemented"))
+}
+
+func (UnimplementedRecurrentTaskServiceHandler) DeleteAutomation(context.Context, *connect.Request[v1.DeleteAutomationRequest]) (*connect.Response[emptypb.Empty], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.RecurrentTaskService.DeleteAutomation is not implemented"))
 }
