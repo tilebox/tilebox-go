@@ -631,6 +631,7 @@ func (x *TriggeredCronEvent) GetTriggerTime() *timestamppb.Timestamp {
 	return nil
 }
 
+// DeleteAutomationRequest requests the deletion of an automation.
 type DeleteAutomationRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The ID of the automation to delete.
