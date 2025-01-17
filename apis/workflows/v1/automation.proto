@@ -42,7 +42,7 @@ message AutomationPrototype {
 
 // Automations is a list of automations
 message Automations {
-  repeated AutomationPrototype tasks = 1;
+  repeated AutomationPrototype automations = 1;
 }
 
 // StorageEventTrigger is a trigger that will trigger a task submission when an object matching the glob pattern is
