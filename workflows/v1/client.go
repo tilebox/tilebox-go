@@ -84,8 +84,8 @@ func NewJobClient(options ...ClientOption) workflowsv1connect.JobServiceClient {
 	return newConnectClient(workflowsv1connect.NewJobServiceClient, options...)
 }
 
-func NewRecurrentTaskClient(options ...ClientOption) workflowsv1connect.RecurrentTaskServiceClient {
-	return newConnectClient(workflowsv1connect.NewRecurrentTaskServiceClient, options...)
+func NewAutomationClient(options ...ClientOption) workflowsv1connect.AutomationServiceClient {
+	return newConnectClient(workflowsv1connect.NewAutomationServiceClient, options...)
 }
 
 func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, options ...ClientOption) T {

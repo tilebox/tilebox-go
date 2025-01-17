@@ -10,17 +10,17 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type RecurrentTaskService struct {
-	client workflowsv1connect.RecurrentTaskServiceClient
+type AutomationService struct {
+	client workflowsv1connect.AutomationServiceClient
 }
 
-func NewRecurrentTaskService(client workflowsv1connect.RecurrentTaskServiceClient) *RecurrentTaskService {
-	return &RecurrentTaskService{
+func NewAutomationService(client workflowsv1connect.AutomationServiceClient) *AutomationService {
+	return &AutomationService{
 		client: client,
 	}
 }
 
-func (rs *RecurrentTaskService) ListStorageLocations(ctx context.Context) ([]*workflowsv1.StorageLocation, error) {
+func (rs *AutomationService) ListStorageLocations(ctx context.Context) ([]*workflowsv1.StorageLocation, error) {
 	response, err := rs.client.ListStorageLocations(ctx, connect.NewRequest(&emptypb.Empty{}))
 
 	if err != nil {
@@ -30,7 +30,7 @@ func (rs *RecurrentTaskService) ListStorageLocations(ctx context.Context) ([]*wo
 	return response.Msg.GetLocations(), nil
 }
 
-func (rs *RecurrentTaskService) GetStorageLocation(ctx context.Context, storageLocationID *workflowsv1.UUID) (*workflowsv1.StorageLocation, error) {
+func (rs *AutomationService) GetStorageLocation(ctx context.Context, storageLocationID *workflowsv1.UUID) (*workflowsv1.StorageLocation, error) {
 	response, err := rs.client.GetStorageLocation(ctx, connect.NewRequest(storageLocationID))
 
 	if err != nil {
@@ -40,7 +40,7 @@ func (rs *RecurrentTaskService) GetStorageLocation(ctx context.Context, storageL
 	return response.Msg, nil
 }
 
-func (rs *RecurrentTaskService) CreateStorageLocation(ctx context.Context, location string, storageType workflowsv1.StorageType) (*workflowsv1.StorageLocation, error) {
+func (rs *AutomationService) CreateStorageLocation(ctx context.Context, location string, storageType workflowsv1.StorageType) (*workflowsv1.StorageLocation, error) {
 	req := connect.NewRequest(&workflowsv1.StorageLocation{
 		Location: location,
 		Type:     storageType,
@@ -54,7 +54,7 @@ func (rs *RecurrentTaskService) CreateStorageLocation(ctx context.Context, locat
 	return response.Msg, nil
 }
 
-func (rs *RecurrentTaskService) DeleteStorageLocation(ctx context.Context, storageLocationID *workflowsv1.UUID) error {
+func (rs *AutomationService) DeleteStorageLocation(ctx context.Context, storageLocationID *workflowsv1.UUID) error {
 	_, err := rs.client.DeleteStorageLocation(ctx, connect.NewRequest(storageLocationID))
 
 	if err != nil {

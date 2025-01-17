@@ -1,4 +1,4 @@
-// The external API for managing recurrent tasks in the Workflows service.
+// The external API for managing automations in the Workflows service.
 
 syntax = "proto3";
 
@@ -29,9 +29,9 @@ message StorageLocations {
   repeated StorageLocation locations = 1;
 }
 
-// RecurrentTaskPrototype is a task prototype that can result in many submitted tasks. Task submissions are triggered by
+// AutomationPrototype is a task prototype that can result in many submitted tasks. Task submissions are triggered by
 // NRT triggers, such as bucket triggers or cron triggers.
-message RecurrentTaskPrototype {
+message AutomationPrototype {
   UUID id = 1;  // Unique identifier for the trigger
   string name = 2;  // A human-readable name for the trigger
   TaskSubmission prototype = 3;  // The task submission to trigger
@@ -40,9 +40,9 @@ message RecurrentTaskPrototype {
   repeated CronTrigger cron_triggers = 5;  // The cron triggers that will trigger the task
 }
 
-// RecurrentTasks is a list of recurrent tasks
-message RecurrentTasks {
-  repeated RecurrentTaskPrototype tasks = 1;
+// Automations is a list of automations
+message Automations {
+  repeated AutomationPrototype automations = 1;
 }
 
 // StorageEventTrigger is a trigger that will trigger a task submission when an object matching the glob pattern is
@@ -60,9 +60,9 @@ message CronTrigger {
 }
 
 
-// RecurrentTask is an actual submitted task that was triggered by a recurrent task prototype.
+// Automation is an actual submitted task that was triggered by a automation prototype.
 // It contains the trigger arguments of the event that triggered the task, and the custom, user-defined task arguments.
-message RecurrentTask {
+message Automation {
   // Details of the event that triggered the task. This is a serialized protobuf message. The type of the message
   // depends on the type of the trigger, either StorageEventTriggerEvent or CronTriggerEvent.
   bytes trigger_event = 1;
@@ -96,11 +96,10 @@ message DeleteAutomationRequest {
   bool cancel_jobs = 2;
 }
 
-// RecurrentTaskService is a service for managing recurrent tasks. Currently, we support two types of triggers for
-// recurrent tasks:
+// AutomationService is a service for managing automations. Currently, we support two types of triggers for automations:
 // - Bucket triggers, which triggers tasks when an object is uploaded to a storage bucket that matches a glob pattern
 // - Cron triggers, which triggers tasks on a schedule
-service RecurrentTaskService {
+service AutomationService {
   // ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
   rpc ListStorageLocations(google.protobuf.Empty) returns (StorageLocations);
   // GetStorageLocation gets a storage location by its ID.
@@ -110,16 +109,14 @@ service RecurrentTaskService {
   // DeleteStorageLocation deletes a storage location.
   rpc DeleteStorageLocation(UUID) returns (google.protobuf.Empty);
 
-  // ListRecurrentTasks lists all the recurrent tasks that are currently registered in a namespace.
-  rpc ListRecurrentTasks(google.protobuf.Empty) returns (RecurrentTasks);
-  // GetRecurrentTask gets a recurrent task by its ID.
-  rpc GetRecurrentTask(UUID) returns (RecurrentTaskPrototype);
-  // CreateRecurrentTask creates a new recurrent task in a namespace.
-  rpc CreateRecurrentTask(RecurrentTaskPrototype) returns (RecurrentTaskPrototype);
-  // UpdateRecurrentTask updates a recurrent task in a namespace.
-  rpc UpdateRecurrentTask(RecurrentTaskPrototype) returns (RecurrentTaskPrototype);
-  // DeleteRecurrentTask deletes a recurrent task from a namespace.
-  rpc DeleteRecurrentTask(UUID) returns (google.protobuf.Empty);
+  // ListAutomations lists all the automations that are currently registered in a namespace.
+  rpc ListAutomations(google.protobuf.Empty) returns (Automations);
+  // GetAutomation gets an automation by its ID.
+  rpc GetAutomation(UUID) returns (AutomationPrototype);
+  // CreateAutomation creates a new automation in a namespace.
+  rpc CreateAutomation(AutomationPrototype) returns (AutomationPrototype);
+  // UpdateAutomation updates an automation in a namespace.
+  rpc UpdateAutomation(AutomationPrototype) returns (AutomationPrototype);
   // DeleteAutomation deletes an automation from a namespace.
   rpc DeleteAutomation(DeleteAutomationRequest) returns (google.protobuf.Empty);
 }
