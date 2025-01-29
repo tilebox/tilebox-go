@@ -24,6 +24,7 @@ const (
 	TileboxService_GetDataset_FullMethodName               = "/datasets.v1.TileboxService/GetDataset"
 	TileboxService_UpdateDatasetDescription_FullMethodName = "/datasets.v1.TileboxService/UpdateDatasetDescription"
 	TileboxService_ListDatasets_FullMethodName             = "/datasets.v1.TileboxService/ListDatasets"
+	TileboxService_CreateDataset_FullMethodName            = "/datasets.v1.TileboxService/CreateDataset"
 	TileboxService_CreateCollection_FullMethodName         = "/datasets.v1.TileboxService/CreateCollection"
 	TileboxService_GetCollections_FullMethodName           = "/datasets.v1.TileboxService/GetCollections"
 	TileboxService_GetCollectionByName_FullMethodName      = "/datasets.v1.TileboxService/GetCollectionByName"
@@ -42,6 +43,7 @@ type TileboxServiceClient interface {
 	GetDataset(ctx context.Context, in *GetDatasetRequest, opts ...grpc.CallOption) (*Dataset, error)
 	UpdateDatasetDescription(ctx context.Context, in *UpdateDatasetDescriptionRequest, opts ...grpc.CallOption) (*Dataset, error)
 	ListDatasets(ctx context.Context, in *ListDatasetsRequest, opts ...grpc.CallOption) (*ListDatasetsResponse, error)
+	CreateDataset(ctx context.Context, in *CreateDatasetRequest, opts ...grpc.CallOption) (*Dataset, error)
 	CreateCollection(ctx context.Context, in *CreateCollectionRequest, opts ...grpc.CallOption) (*CollectionInfo, error)
 	GetCollections(ctx context.Context, in *GetCollectionsRequest, opts ...grpc.CallOption) (*Collections, error)
 	GetCollectionByName(ctx context.Context, in *GetCollectionByNameRequest, opts ...grpc.CallOption) (*CollectionInfo, error)
@@ -83,6 +85,16 @@ func (c *tileboxServiceClient) ListDatasets(ctx context.Context, in *ListDataset
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListDatasetsResponse)
 	err := c.cc.Invoke(ctx, TileboxService_ListDatasets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tileboxServiceClient) CreateDataset(ctx context.Context, in *CreateDatasetRequest, opts ...grpc.CallOption) (*Dataset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Dataset)
+	err := c.cc.Invoke(ctx, TileboxService_CreateDataset_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -168,6 +180,7 @@ type TileboxServiceServer interface {
 	GetDataset(context.Context, *GetDatasetRequest) (*Dataset, error)
 	UpdateDatasetDescription(context.Context, *UpdateDatasetDescriptionRequest) (*Dataset, error)
 	ListDatasets(context.Context, *ListDatasetsRequest) (*ListDatasetsResponse, error)
+	CreateDataset(context.Context, *CreateDatasetRequest) (*Dataset, error)
 	CreateCollection(context.Context, *CreateCollectionRequest) (*CollectionInfo, error)
 	GetCollections(context.Context, *GetCollectionsRequest) (*Collections, error)
 	GetCollectionByName(context.Context, *GetCollectionByNameRequest) (*CollectionInfo, error)
@@ -193,6 +206,9 @@ func (UnimplementedTileboxServiceServer) UpdateDatasetDescription(context.Contex
 }
 func (UnimplementedTileboxServiceServer) ListDatasets(context.Context, *ListDatasetsRequest) (*ListDatasetsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListDatasets not implemented")
+}
+func (UnimplementedTileboxServiceServer) CreateDataset(context.Context, *CreateDatasetRequest) (*Dataset, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDataset not implemented")
 }
 func (UnimplementedTileboxServiceServer) CreateCollection(context.Context, *CreateCollectionRequest) (*CollectionInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCollection not implemented")
@@ -286,6 +302,24 @@ func _TileboxService_ListDatasets_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(TileboxServiceServer).ListDatasets(ctx, req.(*ListDatasetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TileboxService_CreateDataset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDatasetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TileboxServiceServer).CreateDataset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TileboxService_CreateDataset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TileboxServiceServer).CreateDataset(ctx, req.(*CreateDatasetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -434,6 +468,10 @@ var TileboxService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListDatasets",
 			Handler:    _TileboxService_ListDatasets_Handler,
+		},
+		{
+			MethodName: "CreateDataset",
+			Handler:    _TileboxService_CreateDataset_Handler,
 		},
 		{
 			MethodName: "CreateCollection",
