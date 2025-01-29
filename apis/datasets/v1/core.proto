@@ -130,6 +130,14 @@ enum DatasetPermission {
   DATASET_PERMISSION_EDIT_DESCRIPTION = 3;
 }
 
+// Visibility is a visibility a user (as part of an org) can have on a dataset
+enum Visibility {
+  VISIBILITY_UNSPECIFIED = 0;
+  VISIBILITY_PRIVATE = 1;
+  VISIBILITY_SHARED_WITH_ME = 2;
+  VISIBILITY_PUBLIC = 3;
+}
+
 // Dataset contains information about a single dataset
 message Dataset {
   // dataset id
@@ -150,6 +158,8 @@ message Dataset {
   string description = 8;
   // permissions of the requesting user on the dataset
   repeated DatasetPermission permissions = 10;
+  // visibility of the requesting user on the dataset
+  Visibility visibility = 11;
 }
 
 // DatasetGroup represent a dataset group
