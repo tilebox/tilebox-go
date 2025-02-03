@@ -303,6 +303,11 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 		return nil, fmt.Errorf("task %s is not registered on this runner", task.GetIdentifier().GetName())
 	}
 
+	jobID, err := protobufToUUID(task.GetJob().GetId())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert job id to uuid: %w", err)
+	}
+
 	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
 		t.logger.DebugContext(ctx, "executing task", slog.String("task", identifier.Name()), slog.String("version", identifier.Version()))
 		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
@@ -325,7 +330,9 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 
 		executionTime := time.Since(beforeTime)
 
-		log := t.logger.With(slog.String("task", identifier.Name()),
+		log := t.logger.With(
+			slog.String("job_id", jobID.String()),
+			slog.String("task", identifier.Name()),
 			slog.String("version", identifier.Version()),
 			slog.Time("start_time", beforeTime),
 			slog.Duration("execution_time", executionTime),
