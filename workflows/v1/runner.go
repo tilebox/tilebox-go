@@ -308,7 +308,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 		return nil, fmt.Errorf("failed to convert job id to uuid: %w", err)
 	}
 
-	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (*taskExecutionContext, error) {
+	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (taskExecutionContext *taskExecutionContext, err error) { //nolint:nonamedreturns // needed to return a value in case of panic
 		t.logger.DebugContext(ctx, "executing task", slog.String("task", identifier.Name()), slog.String("version", identifier.Version()))
 		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
 
@@ -325,26 +325,32 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 			}
 		}
 
-		executionContext := t.withTaskExecutionContext(ctx, task)
-		err := taskStruct.Execute(executionContext)
-
-		executionTime := time.Since(beforeTime)
-
 		log := t.logger.With(
 			slog.String("job_id", jobID.String()),
 			slog.String("task", identifier.Name()),
 			slog.String("version", identifier.Version()),
 			slog.Time("start_time", beforeTime),
+		)
+
+		defer func() {
+			if r := recover(); r != nil {
+				// recover from panics during task executions, so we can still report the error to the server and continue
+				// with other tasks
+				log.ErrorContext(ctx, "task execution failed", slog.String("error", "panic"), slog.Int64("retry_attempt", task.GetRetryCount()))
+				taskExecutionContext = nil
+				err = fmt.Errorf("task panicked: %v", r)
+			}
+		}()
+
+		executionContext := t.withTaskExecutionContext(ctx, task)
+		err = taskStruct.Execute(executionContext)
+
+		executionTime := time.Since(beforeTime)
+
+		log = log.With(
 			slog.Duration("execution_time", executionTime),
 			slog.String("execution_time_human", roundDuration(executionTime, 2).String()),
 		)
-
-		if r := recover(); r != nil {
-			// recover from panics during task executions, so we can still report the error to the server and continue
-			// with other tasks
-			log.ErrorContext(ctx, "task execution failed", slog.String("error", "panic"), slog.Int64("retry_attempt", task.GetRetryCount()))
-			return nil, fmt.Errorf("task panicked: %v", r)
-		}
 
 		if err != nil {
 			log.ErrorContext(ctx, "task execution failed", slog.String("error", err.Error()), slog.Int64("retry_attempt", task.GetRetryCount()))
