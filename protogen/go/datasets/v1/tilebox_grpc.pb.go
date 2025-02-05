@@ -21,6 +21,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	TileboxService_CreateDataset_FullMethodName            = "/datasets.v1.TileboxService/CreateDataset"
 	TileboxService_GetDataset_FullMethodName               = "/datasets.v1.TileboxService/GetDataset"
 	TileboxService_UpdateDatasetDescription_FullMethodName = "/datasets.v1.TileboxService/UpdateDatasetDescription"
 	TileboxService_ListDatasets_FullMethodName             = "/datasets.v1.TileboxService/ListDatasets"
@@ -39,6 +40,7 @@ const (
 //
 // TileboxService is the service definition for the Tilebox datasets service, which provides access to datasets
 type TileboxServiceClient interface {
+	CreateDataset(ctx context.Context, in *CreateDatasetRequest, opts ...grpc.CallOption) (*Dataset, error)
 	GetDataset(ctx context.Context, in *GetDatasetRequest, opts ...grpc.CallOption) (*Dataset, error)
 	UpdateDatasetDescription(ctx context.Context, in *UpdateDatasetDescriptionRequest, opts ...grpc.CallOption) (*Dataset, error)
 	ListDatasets(ctx context.Context, in *ListDatasetsRequest, opts ...grpc.CallOption) (*ListDatasetsResponse, error)
@@ -57,6 +59,16 @@ type tileboxServiceClient struct {
 
 func NewTileboxServiceClient(cc grpc.ClientConnInterface) TileboxServiceClient {
 	return &tileboxServiceClient{cc}
+}
+
+func (c *tileboxServiceClient) CreateDataset(ctx context.Context, in *CreateDatasetRequest, opts ...grpc.CallOption) (*Dataset, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Dataset)
+	err := c.cc.Invoke(ctx, TileboxService_CreateDataset_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *tileboxServiceClient) GetDataset(ctx context.Context, in *GetDatasetRequest, opts ...grpc.CallOption) (*Dataset, error) {
@@ -165,6 +177,7 @@ func (c *tileboxServiceClient) DeleteDatapoints(ctx context.Context, in *DeleteD
 //
 // TileboxService is the service definition for the Tilebox datasets service, which provides access to datasets
 type TileboxServiceServer interface {
+	CreateDataset(context.Context, *CreateDatasetRequest) (*Dataset, error)
 	GetDataset(context.Context, *GetDatasetRequest) (*Dataset, error)
 	UpdateDatasetDescription(context.Context, *UpdateDatasetDescriptionRequest) (*Dataset, error)
 	ListDatasets(context.Context, *ListDatasetsRequest) (*ListDatasetsResponse, error)
@@ -185,6 +198,9 @@ type TileboxServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedTileboxServiceServer struct{}
 
+func (UnimplementedTileboxServiceServer) CreateDataset(context.Context, *CreateDatasetRequest) (*Dataset, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDataset not implemented")
+}
 func (UnimplementedTileboxServiceServer) GetDataset(context.Context, *GetDatasetRequest) (*Dataset, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDataset not implemented")
 }
@@ -234,6 +250,24 @@ func RegisterTileboxServiceServer(s grpc.ServiceRegistrar, srv TileboxServiceSer
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&TileboxService_ServiceDesc, srv)
+}
+
+func _TileboxService_CreateDataset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDatasetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TileboxServiceServer).CreateDataset(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TileboxService_CreateDataset_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TileboxServiceServer).CreateDataset(ctx, req.(*CreateDatasetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _TileboxService_GetDataset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -423,6 +457,10 @@ var TileboxService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "datasets.v1.TileboxService",
 	HandlerType: (*TileboxServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateDataset",
+			Handler:    _TileboxService_CreateDataset_Handler,
+		},
 		{
 			MethodName: "GetDataset",
 			Handler:    _TileboxService_GetDataset_Handler,

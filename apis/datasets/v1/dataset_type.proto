@@ -1,0 +1,47 @@
+// This file contains the proto messages describing a dataset type. A dataset type is akin to a protobuf message type,
+// and can be converted to it.
+
+syntax = "proto3";
+package datasets.v1;
+
+import "google/protobuf/descriptor.proto";
+
+import "datasets/v1/core.proto";
+
+// Field describes a field of a dataset.
+message Field {
+  // The descriptor contains the name of the field, the type, optional labels (e.g. repeated) and other information.
+  // If the type is TYPE_MESSAGE, then the type_name must be a fully qualified name to a well known type, e.g.
+  // `datasets.v1.Vec3` or `google.protobuf.Timestamp`.
+  google.protobuf.FieldDescriptorProto descriptor = 1;
+
+  // An optional description and example value for the field.
+  FieldAnnotation annotation = 2;
+
+  // A flag indicating whether the field should be queryable. This means we will build an index for the field, and
+  // allow users to query for certain values server-side.
+  bool queryable = 3;
+}
+
+// DatasetKind is an enum describing the kind of dataset. A dataset kind specifies a set of default fields, that
+// cannot be modified and will always be present for every DatasetMessageType of that kind.
+enum DatasetKind {
+  DATASET_KIND_UNSPECIFIED = 0;
+
+  // A temporal dataset is a dataset that contains a "time" field, which is a timestamp.
+  DATASET_KIND_TEMPORAL = 1;
+
+  // A spatio temporal dataset is a dataset that contains a "start_time" and "end_time" field which are timestamps
+  // as well as a "geometry" field which is Polygon or MultiPolygon.
+  DATASET_KIND_SPATIOTEMPORAL = 2;
+}
+
+// DatasetType describes the type of a dataset.
+message DatasetType {
+  // kind denotes the kind of dataset this type describes. We do not rely on the default fields to be set in our
+  // array of fields - since that way users could circumvent those by manually sending requests not from our Console.
+  DatasetKind kind = 1;
+
+  // A list of fields that this dataset consists of.
+  repeated Field fields = 2;
+}

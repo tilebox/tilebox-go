@@ -5,6 +5,17 @@ syntax = "proto3";
 package datasets.v1;
 
 import "datasets/v1/core.proto";
+import "datasets/v1/dataset_type.proto";
+
+// CreateDatasetRequest is used to create a new dataset.
+message CreateDatasetRequest {
+  // name of the dataset to create. The normalized snake case name of the dataset will be inferred from this.
+  string name = 1;
+  // message type of the dataset to create.
+  DatasetType type = 2;
+  // short text summary of the dataset to create.
+  string summary = 3;
+}
 
 // GetDatasetRequest is the request message for the GetDataset RPC method for fetching a single dataset
 message GetDatasetRequest {
@@ -102,6 +113,7 @@ message DeleteDatapointsResponse {
 
 // TileboxService is the service definition for the Tilebox datasets service, which provides access to datasets
 service TileboxService {
+  rpc CreateDataset(CreateDatasetRequest) returns (Dataset) {}
   rpc GetDataset(GetDatasetRequest) returns (Dataset) {}
   rpc UpdateDatasetDescription(UpdateDatasetDescriptionRequest) returns (Dataset) {}
   rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {}
