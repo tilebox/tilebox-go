@@ -15,8 +15,6 @@ message CreateDatasetRequest {
   DatasetType type = 2;
   // short text summary of the dataset to create.
   string summary = 3;
-  // description of the dataset to create, in MDX format.
-  string description = 4;
 }
 
 // GetDatasetRequest is the request message for the GetDataset RPC method for fetching a single dataset
@@ -118,7 +116,6 @@ service TileboxService {
   rpc CreateDataset(CreateDatasetRequest) returns (Dataset) {}
   rpc GetDataset(GetDatasetRequest) returns (Dataset) {}
   rpc UpdateDatasetDescription(UpdateDatasetDescriptionRequest) returns (Dataset) {}
-
   rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {}
 
   rpc CreateCollection(CreateCollectionRequest) returns (CollectionInfo) {}

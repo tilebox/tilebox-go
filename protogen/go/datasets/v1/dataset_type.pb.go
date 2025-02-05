@@ -79,6 +79,7 @@ func (DatasetKind) EnumDescriptor() ([]byte, []int) {
 	return file_datasets_v1_dataset_type_proto_rawDescGZIP(), []int{0}
 }
 
+// Field describes a field of a dataset.
 type Field struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The descriptor contains the name of the field, the type, optional labels (e.g. repeated) and other information.
@@ -145,6 +146,7 @@ func (x *Field) GetQueryable() bool {
 	return false
 }
 
+// DatasetType describes the type of a dataset.
 type DatasetType struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// kind denotes the kind of dataset this type describes. We do not rely on the default fields to be set in our
