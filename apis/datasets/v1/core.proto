@@ -128,6 +128,7 @@ enum DatasetPermission {
   DATASET_PERMISSION_ACCESS_DATA = 1;
   DATASET_PERMISSION_WRITE_DATA = 2;
   DATASET_PERMISSION_EDIT_DESCRIPTION = 3;
+  DATASET_PERMISSION_EDIT_DATASET = 4;
 }
 
 // Visibility is a visibility a user (as part of an org) can have on a dataset
