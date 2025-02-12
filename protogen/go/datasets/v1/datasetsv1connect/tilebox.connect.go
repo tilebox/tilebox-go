@@ -44,6 +44,9 @@ const (
 	// TileboxServiceUpdateDatasetProcedure is the fully-qualified name of the TileboxService's
 	// UpdateDataset RPC.
 	TileboxServiceUpdateDatasetProcedure = "/datasets.v1.TileboxService/UpdateDataset"
+	// TileboxServiceUpdateDatasetDescriptionProcedure is the fully-qualified name of the
+	// TileboxService's UpdateDatasetDescription RPC.
+	TileboxServiceUpdateDatasetDescriptionProcedure = "/datasets.v1.TileboxService/UpdateDatasetDescription"
 	// TileboxServiceListDatasetsProcedure is the fully-qualified name of the TileboxService's
 	// ListDatasets RPC.
 	TileboxServiceListDatasetsProcedure = "/datasets.v1.TileboxService/ListDatasets"
@@ -75,6 +78,7 @@ type TileboxServiceClient interface {
 	CreateDataset(context.Context, *connect.Request[v1.CreateDatasetRequest]) (*connect.Response[v1.Dataset], error)
 	GetDataset(context.Context, *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error)
 	UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error)
+	UpdateDatasetDescription(context.Context, *connect.Request[v1.UpdateDatasetDescriptionRequest]) (*connect.Response[v1.Dataset], error)
 	ListDatasets(context.Context, *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error)
 	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
 	GetCollections(context.Context, *connect.Request[v1.GetCollectionsRequest]) (*connect.Response[v1.Collections], error)
@@ -112,6 +116,12 @@ func NewTileboxServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			httpClient,
 			baseURL+TileboxServiceUpdateDatasetProcedure,
 			connect.WithSchema(tileboxServiceMethods.ByName("UpdateDataset")),
+			connect.WithClientOptions(opts...),
+		),
+		updateDatasetDescription: connect.NewClient[v1.UpdateDatasetDescriptionRequest, v1.Dataset](
+			httpClient,
+			baseURL+TileboxServiceUpdateDatasetDescriptionProcedure,
+			connect.WithSchema(tileboxServiceMethods.ByName("UpdateDatasetDescription")),
 			connect.WithClientOptions(opts...),
 		),
 		listDatasets: connect.NewClient[v1.ListDatasetsRequest, v1.ListDatasetsResponse](
@@ -167,17 +177,18 @@ func NewTileboxServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // tileboxServiceClient implements TileboxServiceClient.
 type tileboxServiceClient struct {
-	createDataset         *connect.Client[v1.CreateDatasetRequest, v1.Dataset]
-	getDataset            *connect.Client[v1.GetDatasetRequest, v1.Dataset]
-	updateDataset         *connect.Client[v1.UpdateDatasetRequest, v1.Dataset]
-	listDatasets          *connect.Client[v1.ListDatasetsRequest, v1.ListDatasetsResponse]
-	createCollection      *connect.Client[v1.CreateCollectionRequest, v1.CollectionInfo]
-	getCollections        *connect.Client[v1.GetCollectionsRequest, v1.Collections]
-	getCollectionByName   *connect.Client[v1.GetCollectionByNameRequest, v1.CollectionInfo]
-	getDatasetForInterval *connect.Client[v1.GetDatasetForIntervalRequest, v1.Datapoints]
-	getDatapointByID      *connect.Client[v1.GetDatapointByIdRequest, v1.Datapoint]
-	ingestDatapoints      *connect.Client[v1.IngestDatapointsRequest, v1.IngestDatapointsResponse]
-	deleteDatapoints      *connect.Client[v1.DeleteDatapointsRequest, v1.DeleteDatapointsResponse]
+	createDataset            *connect.Client[v1.CreateDatasetRequest, v1.Dataset]
+	getDataset               *connect.Client[v1.GetDatasetRequest, v1.Dataset]
+	updateDataset            *connect.Client[v1.UpdateDatasetRequest, v1.Dataset]
+	updateDatasetDescription *connect.Client[v1.UpdateDatasetDescriptionRequest, v1.Dataset]
+	listDatasets             *connect.Client[v1.ListDatasetsRequest, v1.ListDatasetsResponse]
+	createCollection         *connect.Client[v1.CreateCollectionRequest, v1.CollectionInfo]
+	getCollections           *connect.Client[v1.GetCollectionsRequest, v1.Collections]
+	getCollectionByName      *connect.Client[v1.GetCollectionByNameRequest, v1.CollectionInfo]
+	getDatasetForInterval    *connect.Client[v1.GetDatasetForIntervalRequest, v1.Datapoints]
+	getDatapointByID         *connect.Client[v1.GetDatapointByIdRequest, v1.Datapoint]
+	ingestDatapoints         *connect.Client[v1.IngestDatapointsRequest, v1.IngestDatapointsResponse]
+	deleteDatapoints         *connect.Client[v1.DeleteDatapointsRequest, v1.DeleteDatapointsResponse]
 }
 
 // CreateDataset calls datasets.v1.TileboxService.CreateDataset.
@@ -193,6 +204,11 @@ func (c *tileboxServiceClient) GetDataset(ctx context.Context, req *connect.Requ
 // UpdateDataset calls datasets.v1.TileboxService.UpdateDataset.
 func (c *tileboxServiceClient) UpdateDataset(ctx context.Context, req *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error) {
 	return c.updateDataset.CallUnary(ctx, req)
+}
+
+// UpdateDatasetDescription calls datasets.v1.TileboxService.UpdateDatasetDescription.
+func (c *tileboxServiceClient) UpdateDatasetDescription(ctx context.Context, req *connect.Request[v1.UpdateDatasetDescriptionRequest]) (*connect.Response[v1.Dataset], error) {
+	return c.updateDatasetDescription.CallUnary(ctx, req)
 }
 
 // ListDatasets calls datasets.v1.TileboxService.ListDatasets.
@@ -240,6 +256,7 @@ type TileboxServiceHandler interface {
 	CreateDataset(context.Context, *connect.Request[v1.CreateDatasetRequest]) (*connect.Response[v1.Dataset], error)
 	GetDataset(context.Context, *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error)
 	UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error)
+	UpdateDatasetDescription(context.Context, *connect.Request[v1.UpdateDatasetDescriptionRequest]) (*connect.Response[v1.Dataset], error)
 	ListDatasets(context.Context, *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error)
 	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
 	GetCollections(context.Context, *connect.Request[v1.GetCollectionsRequest]) (*connect.Response[v1.Collections], error)
@@ -273,6 +290,12 @@ func NewTileboxServiceHandler(svc TileboxServiceHandler, opts ...connect.Handler
 		TileboxServiceUpdateDatasetProcedure,
 		svc.UpdateDataset,
 		connect.WithSchema(tileboxServiceMethods.ByName("UpdateDataset")),
+		connect.WithHandlerOptions(opts...),
+	)
+	tileboxServiceUpdateDatasetDescriptionHandler := connect.NewUnaryHandler(
+		TileboxServiceUpdateDatasetDescriptionProcedure,
+		svc.UpdateDatasetDescription,
+		connect.WithSchema(tileboxServiceMethods.ByName("UpdateDatasetDescription")),
 		connect.WithHandlerOptions(opts...),
 	)
 	tileboxServiceListDatasetsHandler := connect.NewUnaryHandler(
@@ -331,6 +354,8 @@ func NewTileboxServiceHandler(svc TileboxServiceHandler, opts ...connect.Handler
 			tileboxServiceGetDatasetHandler.ServeHTTP(w, r)
 		case TileboxServiceUpdateDatasetProcedure:
 			tileboxServiceUpdateDatasetHandler.ServeHTTP(w, r)
+		case TileboxServiceUpdateDatasetDescriptionProcedure:
+			tileboxServiceUpdateDatasetDescriptionHandler.ServeHTTP(w, r)
 		case TileboxServiceListDatasetsProcedure:
 			tileboxServiceListDatasetsHandler.ServeHTTP(w, r)
 		case TileboxServiceCreateCollectionProcedure:
@@ -366,6 +391,10 @@ func (UnimplementedTileboxServiceHandler) GetDataset(context.Context, *connect.R
 
 func (UnimplementedTileboxServiceHandler) UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.TileboxService.UpdateDataset is not implemented"))
+}
+
+func (UnimplementedTileboxServiceHandler) UpdateDatasetDescription(context.Context, *connect.Request[v1.UpdateDatasetDescriptionRequest]) (*connect.Response[v1.Dataset], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.TileboxService.UpdateDatasetDescription is not implemented"))
 }
 
 func (UnimplementedTileboxServiceHandler) ListDatasets(context.Context, *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error) {

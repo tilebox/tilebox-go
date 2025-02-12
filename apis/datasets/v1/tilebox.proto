@@ -57,6 +57,14 @@ message Package {
   string version = 2;
 }
 
+// UpdateDatasetDescriptionRequest is used to update a dataset description
+message UpdateDatasetDescriptionRequest {
+  // dataset id
+  ID id = 1;
+  // description of the dataset, in markdown format
+  string description = 2;
+}
+
 // ListDatasetsRequest is used to request a list of datasets
 message ListDatasetsRequest {
   // some information about the Tilebox client requesting the datasets
@@ -122,6 +130,7 @@ service TileboxService {
   rpc CreateDataset(CreateDatasetRequest) returns (Dataset) {}
   rpc GetDataset(GetDatasetRequest) returns (Dataset) {}
   rpc UpdateDataset(UpdateDatasetRequest) returns (Dataset) {}
+  rpc UpdateDatasetDescription(UpdateDatasetDescriptionRequest) returns (Dataset) {}
   rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {}
 
   rpc CreateCollection(CreateCollectionRequest) returns (CollectionInfo) {}
