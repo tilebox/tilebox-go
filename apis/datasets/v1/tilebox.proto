@@ -35,8 +35,6 @@ message UpdateDatasetRequest {
   DatasetType type = 3;
   // updated summary of the dataset.
   string summary = 4;
-  // updated description of the dataset.
-  string description = 5;
 }
 
 // ClientInfo contains information about the client requesting datasets, useful for us to gather usage data
