@@ -23,19 +23,6 @@ message Field {
   bool queryable = 3;
 }
 
-// DatasetKind is an enum describing the kind of dataset. A dataset kind specifies a set of default fields, that
-// cannot be modified and will always be present for every DatasetMessageType of that kind.
-enum DatasetKind {
-  DATASET_KIND_UNSPECIFIED = 0;
-
-  // A temporal dataset is a dataset that contains a "time" field, which is a timestamp.
-  DATASET_KIND_TEMPORAL = 1;
-
-  // A spatio temporal dataset is a dataset that contains a "start_time" and "end_time" field which are timestamps
-  // as well as a "geometry" field which is Polygon or MultiPolygon.
-  DATASET_KIND_SPATIOTEMPORAL = 2;
-}
-
 // DatasetType describes the type of a dataset.
 message DatasetType {
   // kind denotes the kind of dataset this type describes. We do not rely on the default fields to be set in our
