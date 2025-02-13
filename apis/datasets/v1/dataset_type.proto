@@ -6,8 +6,6 @@ package datasets.v1;
 
 import "google/protobuf/descriptor.proto";
 
-import "datasets/v1/core.proto";
-
 // Field describes a field of a dataset.
 message Field {
   // The descriptor contains the name of the field, the type, optional labels (e.g. repeated) and other information.
@@ -23,6 +21,25 @@ message Field {
   bool queryable = 3;
 }
 
+// DatasetKind is an enum describing the kind of dataset. A dataset kind specifies a set of default fields, that
+// cannot be modified and will always be present for every DatasetMessageType of that kind.
+enum DatasetKind {
+  DATASET_KIND_UNSPECIFIED = 0;
+
+  // A temporal dataset is a dataset that contains a "time" field, which is a timestamp.
+  DATASET_KIND_TEMPORAL = 1;
+
+  // A spatio temporal dataset is a dataset that contains a "start_time" and "end_time" field which are timestamps
+  // as well as a "geometry" field which is Polygon or MultiPolygon.
+  DATASET_KIND_SPATIOTEMPORAL = 2;
+}
+
+// FieldAnnotation contains additional information about a field in a dataset
+message FieldAnnotation {
+  string description = 1;
+  string example_value = 2;
+}
+
 // DatasetType describes the type of a dataset.
 message DatasetType {
   // kind denotes the kind of dataset this type describes. We do not rely on the default fields to be set in our
@@ -31,4 +48,13 @@ message DatasetType {
 
   // A list of fields that this dataset consists of.
   repeated Field fields = 2;
+}
+
+// AnnotatedType describes a message type
+message AnnotatedType {
+  google.protobuf.FileDescriptorSet descriptor_set = 1;
+  string type_url = 2;  // the url of the type, one of the types defined in the descriptor
+  reserved 3;
+  repeated FieldAnnotation field_annotations = 4;
+  DatasetKind kind = 5;
 }
