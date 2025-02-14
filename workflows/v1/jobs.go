@@ -121,7 +121,6 @@ func (js *JobService) SubmitJob(ctx context.Context, jobRequest *workflowsv1.Sub
 		jobRequest.TraceParent = traceParent
 
 		job, err := js.client.SubmitJob(ctx, connect.NewRequest(jobRequest))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to submit job: %w", err)
 		}

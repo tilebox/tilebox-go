@@ -12,14 +12,13 @@ import (
 	"syscall"
 	"time"
 
-	"go.opentelemetry.io/otel"
-
 	"connectrpc.com/connect"
 	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
@@ -29,8 +28,10 @@ type ContextKeyTaskExecutionType string
 
 const ContextKeyTaskExecution ContextKeyTaskExecutionType = "x-tilebox-task-execution-object"
 
-const pollingInterval = 5 * time.Second
-const jitterInterval = 5 * time.Second
+const (
+	pollingInterval = 5 * time.Second
+	jitterInterval  = 5 * time.Second
+)
 
 type taskRunnerConfig struct {
 	clusterSlug       string
@@ -501,7 +502,8 @@ func WithTaskSpan(ctx context.Context, name string, f func(ctx context.Context) 
 }
 
 var divs = []time.Duration{
-	time.Duration(1), time.Duration(10), time.Duration(100), time.Duration(1000)}
+	time.Duration(1), time.Duration(10), time.Duration(100), time.Duration(1000),
+}
 
 // human readable, rounded duration, taken from
 // https://stackoverflow.com/questions/58414820/limiting-significant-digits-in-formatted-durations

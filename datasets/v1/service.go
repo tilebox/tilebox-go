@@ -48,7 +48,6 @@ func (s *service) GetDataset(ctx context.Context, slug string) (*datasetsv1.Data
 				Slug: slug,
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dataset: %w", err)
 		}
@@ -64,7 +63,6 @@ func (s *service) ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsRes
 				ClientInfo: clientInfo(),
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to list datasets: %w", err)
 		}
@@ -104,7 +102,6 @@ func (s *service) CreateCollection(ctx context.Context, datasetID uuid.UUID, col
 				Name: collectionName,
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to create collection: %w", err)
 		}
@@ -124,7 +121,6 @@ func (s *service) GetCollections(ctx context.Context, datasetID uuid.UUID) (*dat
 				WithCount:        true,
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to get collections: %w", err)
 		}
@@ -145,7 +141,6 @@ func (s *service) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, 
 				},
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to get collections: %w", err)
 		}
@@ -166,7 +161,6 @@ func (s *service) GetDatasetForInterval(ctx context.Context, collectionID uuid.U
 				SkipMeta:          skipMeta,
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dataset for interval: %w", err)
 		}
@@ -184,7 +178,6 @@ func (s *service) GetDatapointByID(ctx context.Context, collectionID uuid.UUID, 
 				SkipData:     skipData,
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to get datapoint by id: %w", err)
 		}
@@ -204,7 +197,6 @@ func (s *service) IngestDatapoints(ctx context.Context, collectionID uuid.UUID, 
 				AllowExisting: allowExisting,
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to ingest datapoints: %w", err)
 		}
@@ -227,7 +219,6 @@ func (s *service) DeleteDatapoints(ctx context.Context, collectionID uuid.UUID, 
 				}),
 			},
 		))
-
 		if err != nil {
 			return nil, fmt.Errorf("failed to delete datapoints: %w", err)
 		}

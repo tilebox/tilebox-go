@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 )
