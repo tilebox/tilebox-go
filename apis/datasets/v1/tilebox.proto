@@ -15,7 +15,7 @@ message CreateDatasetRequest {
   DatasetType type = 2;
   // short text summary of the dataset to create.
   string summary = 3;
-  // Normalized snake case name of the dataset to create.
+  // normalized snake case name of the dataset to create.
   string code_name = 4;
 }
 

@@ -32,7 +32,7 @@ type CreateDatasetRequest struct {
 	Type *DatasetType `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
 	// short text summary of the dataset to create.
 	Summary string `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
-	// Normalized snake case name of the dataset to create.
+	// normalized snake case name of the dataset to create.
 	CodeName      string `protobuf:"bytes,4,opt,name=code_name,json=codeName,proto3" json:"code_name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
