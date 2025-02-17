@@ -9,12 +9,14 @@ import "datasets/v1/dataset_type.proto";
 
 // CreateDatasetRequest is used to create a new dataset.
 message CreateDatasetRequest {
-  // name of the dataset to create. The normalized snake case name of the dataset will be inferred from this.
+  // name of the dataset to create.
   string name = 1;
   // message type of the dataset to create.
   DatasetType type = 2;
   // short text summary of the dataset to create.
   string summary = 3;
+  // Normalized snake case name of the dataset to create.
+  string code_name = 4;
 }
 
 // GetDatasetRequest is the request message for the GetDataset RPC method for fetching a single dataset
