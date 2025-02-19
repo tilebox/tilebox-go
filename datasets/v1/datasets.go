@@ -91,8 +91,8 @@ func (c *client) Dataset(ctx context.Context, slug string) (*Dataset, error) {
 type Dataset struct {
 	// ID is the unique identifier of the dataset.
 	ID uuid.UUID
-	// Slug is the unique slug of the dataset.
-	// Slug string
+	// Type is the type of the dataset.
+	Type *datasetsv1.AnnotatedType
 
 	// Name is the name of the dataset.
 	Name string
@@ -119,8 +119,8 @@ func protoToDataset(d *datasetsv1.Dataset, service Service) (*Dataset, error) {
 	}
 
 	return &Dataset{
-		ID: id,
-		// Slug:     d.GetSlug(),
+		ID:      id,
+		Type:    d.GetType(),
 		Name:    d.GetName(),
 		Summary: d.GetSummary(),
 		service: service,
