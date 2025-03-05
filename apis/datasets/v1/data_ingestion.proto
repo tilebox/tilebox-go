@@ -38,7 +38,7 @@ message DeleteDatapointsResponse {
 }
 
 
-// DataIngestionService provides data access and querying capabilities for Tilebox datasets.
+// DataIngestionService provides data ingestion and deletion capabilities for Tilebox datasets.
 service DataIngestionService {
   rpc IngestDatapoints(IngestDatapointsRequest) returns (IngestDatapointsResponse) {}
   rpc DeleteDatapoints(DeleteDatapointsRequest) returns (DeleteDatapointsResponse) {}
