@@ -1,29 +1,15 @@
 /*
- Protobuf definition for the Tilebox datasets API.
+ Core message type definitions for the Tilebox datasets API.
 
  Conventions:
  - A dataset is a set of data points of the same type.
  - A single data point (entry) is referred to in all messages as datapoint.
  - Data points for a single dataset are grouped into collections.
- - All requests for fetching data points or a dataset operate only on a specific collection.
-
- - Messages with the prefix Get and suffix Request are used for request parameters.
- - All other messages are used for responses and have no such prefix and Suffix.
-
- - DatapointMetadata represents the metadata of a single data point for all time series datasets.
-
- - A collection is identified by its id. The id is a string and is unique across all datasets.
- - CollectionInfo contains information about the data available in a dataset collection.
 
  - All time fields use the google.protobuf.Timestamp message type.
 
- - When a wrapper message is needed to return a list of data points, the message name is the plural of the data point
-   - message name. E.g. UmbraSarGranules contains a list of UmbraSarGranule messages.
-   - Typically the wrapper message consists of three fields:
-     - A list of data point metadata, which is always called meta. (repeated DatapointMetadata meta = 1;)
-     - A list of data points, which is always called data. (repeated <DatapointType> data = 2;)
-     - Pagination information, which is always called next_page. (optional Pagination next_page = 3;)
-         This field is optional and only present if there are more data points available.
+ - When a wrapper message is needed to return a list of a given message type, use the pluralized message name
+   - e.g. message Collections contains a list of Collection messages.
 */
 
 syntax = "proto3";
@@ -79,9 +65,24 @@ message Pagination {
   optional string starting_after = 2;
 }
 
+// Any is a message that can hold any other message as bytes.
+// We don't use google.protobuf.Any because we want the JSON representation of the value field to be bytes.
+message Any {
+  string type_url = 1;
+  // Must be a valid serialized protocol buffer of the above specified type.
+  bytes value = 2;
+}
+
+// RepeatedAny is a message holding a list of messages, that all share the same variable message type.
+// It is preferable over a repeated Any field because it avoids repeating the type_url for every single element.
+message RepeatedAny {
+  string type_url = 1;
+  // Must be a valid serialized protocol buffer of the above specified type.
+  repeated bytes value = 2;
+}
 
 /*
- * Messages relevant for all time series datasets
+ * Messages relevant for all Tilebox datasets
  */
 
 // DatapointMetadata contains the metadata for a single data point.
@@ -89,6 +90,25 @@ message DatapointMetadata {
   google.protobuf.Timestamp event_time = 1; // The time the message was received by the on-board computer.
   google.protobuf.Timestamp ingestion_time = 2; // The time the message was ingested by Tilebox.
   optional string id = 3; // The external id of the datapoint.
+}
+
+// Datapoints is a list of datapoints in a Tilebox dataset, with all data points sharing the same type.
+message Datapoints {
+  repeated DatapointMetadata meta = 1; // A metadata for a datapoint.
+  RepeatedAny data = 2; // The datapoints.
+}
+
+// DatapointPage is a single page of data points of a Tilebox dataset, such as it is returned by a ForInterval query
+message DatapointPage {
+  repeated DatapointMetadata meta = 1; // A metadata for a datapoint.
+  RepeatedAny data = 2; // The datapoints.
+  optional Pagination next_page = 3; // The pagination parameters for the next page.
+}
+
+// Datapoint is a single datapoint in a Tilebox Dataset
+message Datapoint {
+  DatapointMetadata meta = 1; // A metadata for a datapoint.
+  Any data = 2; // The data.
 }
 
 // Collection contains basic information about a dataset collection
@@ -107,22 +127,6 @@ message CollectionInfo {
 // Collections contains a list of CollectionInfo messages.
 message Collections {
   repeated CollectionInfo data = 1;
-}
-
-// DatasetPermission is a permission a user (as part of an org) can have on a dataset
-enum DatasetPermission {
-  DATASET_PERMISSION_UNSPECIFIED = 0;
-  DATASET_PERMISSION_ACCESS_DATA = 1;
-  DATASET_PERMISSION_WRITE_DATA = 2;
-  DATASET_PERMISSION_EDIT = 3;
-}
-
-// Visibility is a visibility a user (as part of an org) can have on a dataset
-enum Visibility {
-  VISIBILITY_UNSPECIFIED = 0;
-  VISIBILITY_PRIVATE = 1;
-  VISIBILITY_SHARED_WITH_ME = 2;
-  VISIBILITY_PUBLIC = 3;
 }
 
 // Dataset contains information about a single dataset
@@ -149,6 +153,22 @@ message Dataset {
   Visibility visibility = 11;
 }
 
+// DatasetPermission is a permission a user (as part of an org) can have on a dataset
+enum DatasetPermission {
+  DATASET_PERMISSION_UNSPECIFIED = 0;
+  DATASET_PERMISSION_ACCESS_DATA = 1;
+  DATASET_PERMISSION_WRITE_DATA = 2;
+  DATASET_PERMISSION_EDIT = 3;
+}
+
+// Visibility is a visibility a user (as part of an org) can have on a dataset
+enum Visibility {
+  VISIBILITY_UNSPECIFIED = 0;
+  VISIBILITY_PRIVATE = 1;
+  VISIBILITY_SHARED_WITH_ME = 2;
+  VISIBILITY_PUBLIC = 3;
+}
+
 // DatasetGroup represent a dataset group
 message DatasetGroup {
   // group id
@@ -161,65 +181,4 @@ message DatasetGroup {
   string name = 4;
   // optional icon of the group
   string icon = 5;
-}
-
-// CreateCollectionRequest is used to create a new collection.
-message CreateCollectionRequest {
-  ID dataset_id = 1; // The dataset id where the collection should be created.
-  string name = 2; // The name of the collection to create.
-}
-
-// GetCollectionsRequest contains the request parameters
-// for retrieving a list of all available collections for a given dataset.
-message GetCollectionsRequest {
-  ID dataset_id = 1; // The dataset id.
-  bool with_availability = 2; // If true, the response will include the availability interval.
-  bool with_count = 3; // If true, the response will include the number of entries.
-}
-
-// GetCollectionByNameRequest contains the request parameters for retrieving a single collection by its name.
-message GetCollectionByNameRequest {
-  string collection_name = 1; // The name of the collection retrieve.
-  bool with_availability = 2; // If true, the response will include the availability interval.
-  bool with_count = 3; // If true, the response will include the number of entries.
-  ID dataset_id = 4; // The dataset id.
-}
-
-// GetDatasetForIntervalRequest contains the request parameters for retrieving data for a time interval.
-message GetDatasetForIntervalRequest {
-  string collection_id = 1; // The collection id.
-
-  // Either time interval or datapoint interval must be set, but not both.
-  TimeInterval time_interval = 2; // The time interval for which data is requested.
-  DatapointInterval datapoint_interval = 6; // The datapoint interval for which data is requested.
-
-  optional Pagination page = 3; // The pagination parameters for this request.
-  bool skip_data = 4; // If true, the datapoint data is not returned.
-  // If true, the datapoint metadata is not returned.
-  // If both skip_data and skip_meta are true,
-  // the response will only consist of a list of datapoint ids without any additional data or metadata.
-  bool skip_meta = 5;
-}
-
-// GetDatapointByIdRequest contains the request parameters for retrieving a single data point in a collection by its id.
-message GetDatapointByIdRequest {
-  string collection_id = 1; // The collection id.
-  string id = 2; // The id of the requested data point.
-  bool skip_data = 3; // If true, only the datapoint metadata is returned.
-}
-
-// Any is a message that can hold any other message as bytes.
-// We don't use google.protobuf.Any because we want the JSON representation of the value field to be bytes.
-message Any {
-  string type_url = 1;
-  // Must be a valid serialized protocol buffer of the above specified type.
-  bytes value = 2;
-}
-
-// RepeatedAny is a message holding a list of messages, that all share the same variable message type.
-// It is preferable over a repeated Any field because it avoids repeating the type_url for every single element.
-message RepeatedAny {
-  string type_url = 1;
-  // Must be a valid serialized protocol buffer of the above specified type.
-  repeated bytes value = 2;
 }

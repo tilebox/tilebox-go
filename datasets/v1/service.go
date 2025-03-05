@@ -21,7 +21,7 @@ type Service interface {
 	CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
 	GetCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Collections, error)
 	GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
-	GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData bool, skipMeta bool) (*datasetsv1.Datapoints, error)
+	GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData bool, skipMeta bool) (*datasetsv1.DatapointPage, error)
 	GetDatapointByID(ctx context.Context, collectionID uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Datapoint, error)
 	IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestDatapointsResponse, error)
 	DeleteDatapoints(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteDatapointsResponse, error)
@@ -30,20 +30,26 @@ type Service interface {
 var _ Service = &service{}
 
 type service struct {
-	client datasetsv1connect.TileboxServiceClient
-	tracer trace.Tracer
+	datasetClient       datasetsv1connect.DatasetServiceClient
+	collectionClient    datasetsv1connect.CollectionServiceClient
+	dataAccessClient    datasetsv1connect.DataAccessServiceClient
+	dataIngestionClient datasetsv1connect.DataIngestionServiceClient
+	tracer              trace.Tracer
 }
 
-func newDatasetsService(client datasetsv1connect.TileboxServiceClient, tracer trace.Tracer) Service {
+func newDatasetsService(datasetClient datasetsv1connect.DatasetServiceClient, collectionClient datasetsv1connect.CollectionServiceClient, dataAccessClient datasetsv1connect.DataAccessServiceClient, dataIngestionClient datasetsv1connect.DataIngestionServiceClient, tracer trace.Tracer) Service {
 	return &service{
-		client: client,
-		tracer: tracer,
+		datasetClient:       datasetClient,
+		collectionClient:    collectionClient,
+		dataAccessClient:    dataAccessClient,
+		dataIngestionClient: dataIngestionClient,
+		tracer:              tracer,
 	}
 }
 
 func (s *service) GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/get", func(ctx context.Context) (*datasetsv1.Dataset, error) {
-		res, err := s.client.GetDataset(ctx, connect.NewRequest(
+		res, err := s.datasetClient.GetDataset(ctx, connect.NewRequest(
 			&datasetsv1.GetDatasetRequest{
 				Slug: slug,
 			},
@@ -58,7 +64,7 @@ func (s *service) GetDataset(ctx context.Context, slug string) (*datasetsv1.Data
 
 func (s *service) ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/list", func(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
-		res, err := s.client.ListDatasets(ctx, connect.NewRequest(
+		res, err := s.datasetClient.ListDatasets(ctx, connect.NewRequest(
 			&datasetsv1.ListDatasetsRequest{
 				ClientInfo: clientInfo(),
 			},
@@ -94,7 +100,7 @@ func clientInfo() *datasetsv1.ClientInfo {
 
 func (s *service) CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/create", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
-		res, err := s.client.CreateCollection(ctx, connect.NewRequest(
+		res, err := s.collectionClient.CreateCollection(ctx, connect.NewRequest(
 			&datasetsv1.CreateCollectionRequest{
 				DatasetId: &datasetsv1.ID{
 					Uuid: datasetID[:],
@@ -112,7 +118,7 @@ func (s *service) CreateCollection(ctx context.Context, datasetID uuid.UUID, col
 
 func (s *service) GetCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Collections, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.Collections, error) {
-		res, err := s.client.GetCollections(ctx, connect.NewRequest(
+		res, err := s.collectionClient.GetCollections(ctx, connect.NewRequest(
 			&datasetsv1.GetCollectionsRequest{
 				DatasetId: &datasetsv1.ID{
 					Uuid: datasetID[:],
@@ -131,7 +137,7 @@ func (s *service) GetCollections(ctx context.Context, datasetID uuid.UUID) (*dat
 
 func (s *service) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/get", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
-		res, err := s.client.GetCollectionByName(ctx, connect.NewRequest(
+		res, err := s.collectionClient.GetCollectionByName(ctx, connect.NewRequest(
 			&datasetsv1.GetCollectionByNameRequest{
 				CollectionName:   collectionName,
 				WithAvailability: true,
@@ -149,9 +155,9 @@ func (s *service) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, 
 	})
 }
 
-func (s *service) GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData, skipMeta bool) (*datasetsv1.Datapoints, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/load", func(ctx context.Context) (*datasetsv1.Datapoints, error) {
-		res, err := s.client.GetDatasetForInterval(ctx, connect.NewRequest(
+func (s *service) GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData, skipMeta bool) (*datasetsv1.DatapointPage, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/load", func(ctx context.Context) (*datasetsv1.DatapointPage, error) {
+		res, err := s.dataAccessClient.GetDatasetForInterval(ctx, connect.NewRequest(
 			&datasetsv1.GetDatasetForIntervalRequest{
 				CollectionId:      collectionID.String(),
 				TimeInterval:      timeInterval,
@@ -171,7 +177,7 @@ func (s *service) GetDatasetForInterval(ctx context.Context, collectionID uuid.U
 
 func (s *service) GetDatapointByID(ctx context.Context, collectionID uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Datapoint, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/get", func(ctx context.Context) (*datasetsv1.Datapoint, error) {
-		res, err := s.client.GetDatapointByID(ctx, connect.NewRequest(
+		res, err := s.dataAccessClient.GetDatapointByID(ctx, connect.NewRequest(
 			&datasetsv1.GetDatapointByIdRequest{
 				CollectionId: collectionID.String(),
 				Id:           datapointID.String(),
@@ -188,7 +194,7 @@ func (s *service) GetDatapointByID(ctx context.Context, collectionID uuid.UUID, 
 
 func (s *service) IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestDatapointsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/ingest", func(ctx context.Context) (*datasetsv1.IngestDatapointsResponse, error) {
-		res, err := s.client.IngestDatapoints(ctx, connect.NewRequest(
+		res, err := s.dataIngestionClient.IngestDatapoints(ctx, connect.NewRequest(
 			&datasetsv1.IngestDatapointsRequest{
 				CollectionId: &datasetsv1.ID{
 					Uuid: collectionID[:],
@@ -207,7 +213,7 @@ func (s *service) IngestDatapoints(ctx context.Context, collectionID uuid.UUID, 
 
 func (s *service) DeleteDatapoints(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteDatapointsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/delete", func(ctx context.Context) (*datasetsv1.DeleteDatapointsResponse, error) {
-		res, err := s.client.DeleteDatapoints(ctx, connect.NewRequest(
+		res, err := s.dataIngestionClient.DeleteDatapoints(ctx, connect.NewRequest(
 			&datasetsv1.DeleteDatapointsRequest{
 				CollectionId: &datasetsv1.ID{
 					Uuid: collectionID[:],
