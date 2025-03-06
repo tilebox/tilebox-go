@@ -18,11 +18,14 @@ import (
 type Service interface {
 	GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error)
 	ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error)
+
 	CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
-	GetCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Collections, error)
 	GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
+	ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.CollectionInfos, error)
+
 	GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData bool, skipMeta bool) (*datasetsv1.DatapointPage, error)
 	GetDatapointByID(ctx context.Context, collectionID uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Datapoint, error)
+
 	IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestDatapointsResponse, error)
 	DeleteDatapoints(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteDatapointsResponse, error)
 }
@@ -116,25 +119,6 @@ func (s *service) CreateCollection(ctx context.Context, datasetID uuid.UUID, col
 	})
 }
 
-func (s *service) GetCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.Collections, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.Collections, error) {
-		res, err := s.collectionClient.GetCollections(ctx, connect.NewRequest(
-			&datasetsv1.GetCollectionsRequest{
-				DatasetId: &datasetsv1.ID{
-					Uuid: datasetID[:],
-				},
-				WithAvailability: true,
-				WithCount:        true,
-			},
-		))
-		if err != nil {
-			return nil, fmt.Errorf("failed to get collections: %w", err)
-		}
-
-		return res.Msg, nil
-	})
-}
-
 func (s *service) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/get", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
 		res, err := s.collectionClient.GetCollectionByName(ctx, connect.NewRequest(
@@ -149,6 +133,25 @@ func (s *service) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, 
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get collections: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *service) ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.CollectionInfos, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.CollectionInfos, error) {
+		res, err := s.collectionClient.ListCollections(ctx, connect.NewRequest(
+			&datasetsv1.ListCollectionsRequest{
+				DatasetId: &datasetsv1.ID{
+					Uuid: datasetID[:],
+				},
+				WithAvailability: true,
+				WithCount:        true,
+			},
+		))
+		if err != nil {
+			return nil, fmt.Errorf("failed to list collections: %w", err)
 		}
 
 		return res.Msg, nil

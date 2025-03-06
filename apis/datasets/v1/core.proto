@@ -124,8 +124,8 @@ message CollectionInfo {
   optional uint64 count = 3; // Number of entries in the dataset.
 }
 
-// Collections contains a list of CollectionInfo messages.
-message Collections {
+// CollectionInfos contains a list of CollectionInfo messages.
+message CollectionInfos {
   repeated CollectionInfo data = 1;
 }
 

@@ -22,8 +22,8 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	CollectionService_CreateCollection_FullMethodName    = "/datasets.v1.CollectionService/CreateCollection"
-	CollectionService_GetCollections_FullMethodName      = "/datasets.v1.CollectionService/GetCollections"
 	CollectionService_GetCollectionByName_FullMethodName = "/datasets.v1.CollectionService/GetCollectionByName"
+	CollectionService_ListCollections_FullMethodName     = "/datasets.v1.CollectionService/ListCollections"
 )
 
 // CollectionServiceClient is the client API for CollectionService service.
@@ -33,8 +33,8 @@ const (
 // CollectionService is the service definition for the Tilebox datasets service, which provides access to datasets
 type CollectionServiceClient interface {
 	CreateCollection(ctx context.Context, in *CreateCollectionRequest, opts ...grpc.CallOption) (*CollectionInfo, error)
-	GetCollections(ctx context.Context, in *GetCollectionsRequest, opts ...grpc.CallOption) (*Collections, error)
 	GetCollectionByName(ctx context.Context, in *GetCollectionByNameRequest, opts ...grpc.CallOption) (*CollectionInfo, error)
+	ListCollections(ctx context.Context, in *ListCollectionsRequest, opts ...grpc.CallOption) (*CollectionInfos, error)
 }
 
 type collectionServiceClient struct {
@@ -55,20 +55,20 @@ func (c *collectionServiceClient) CreateCollection(ctx context.Context, in *Crea
 	return out, nil
 }
 
-func (c *collectionServiceClient) GetCollections(ctx context.Context, in *GetCollectionsRequest, opts ...grpc.CallOption) (*Collections, error) {
+func (c *collectionServiceClient) GetCollectionByName(ctx context.Context, in *GetCollectionByNameRequest, opts ...grpc.CallOption) (*CollectionInfo, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Collections)
-	err := c.cc.Invoke(ctx, CollectionService_GetCollections_FullMethodName, in, out, cOpts...)
+	out := new(CollectionInfo)
+	err := c.cc.Invoke(ctx, CollectionService_GetCollectionByName_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *collectionServiceClient) GetCollectionByName(ctx context.Context, in *GetCollectionByNameRequest, opts ...grpc.CallOption) (*CollectionInfo, error) {
+func (c *collectionServiceClient) ListCollections(ctx context.Context, in *ListCollectionsRequest, opts ...grpc.CallOption) (*CollectionInfos, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CollectionInfo)
-	err := c.cc.Invoke(ctx, CollectionService_GetCollectionByName_FullMethodName, in, out, cOpts...)
+	out := new(CollectionInfos)
+	err := c.cc.Invoke(ctx, CollectionService_ListCollections_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +82,8 @@ func (c *collectionServiceClient) GetCollectionByName(ctx context.Context, in *G
 // CollectionService is the service definition for the Tilebox datasets service, which provides access to datasets
 type CollectionServiceServer interface {
 	CreateCollection(context.Context, *CreateCollectionRequest) (*CollectionInfo, error)
-	GetCollections(context.Context, *GetCollectionsRequest) (*Collections, error)
 	GetCollectionByName(context.Context, *GetCollectionByNameRequest) (*CollectionInfo, error)
+	ListCollections(context.Context, *ListCollectionsRequest) (*CollectionInfos, error)
 	mustEmbedUnimplementedCollectionServiceServer()
 }
 
@@ -97,11 +97,11 @@ type UnimplementedCollectionServiceServer struct{}
 func (UnimplementedCollectionServiceServer) CreateCollection(context.Context, *CreateCollectionRequest) (*CollectionInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCollection not implemented")
 }
-func (UnimplementedCollectionServiceServer) GetCollections(context.Context, *GetCollectionsRequest) (*Collections, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCollections not implemented")
-}
 func (UnimplementedCollectionServiceServer) GetCollectionByName(context.Context, *GetCollectionByNameRequest) (*CollectionInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCollectionByName not implemented")
+}
+func (UnimplementedCollectionServiceServer) ListCollections(context.Context, *ListCollectionsRequest) (*CollectionInfos, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCollections not implemented")
 }
 func (UnimplementedCollectionServiceServer) mustEmbedUnimplementedCollectionServiceServer() {}
 func (UnimplementedCollectionServiceServer) testEmbeddedByValue()                           {}
@@ -142,24 +142,6 @@ func _CollectionService_CreateCollection_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CollectionService_GetCollections_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCollectionsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CollectionServiceServer).GetCollections(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CollectionService_GetCollections_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CollectionServiceServer).GetCollections(ctx, req.(*GetCollectionsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _CollectionService_GetCollectionByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetCollectionByNameRequest)
 	if err := dec(in); err != nil {
@@ -178,6 +160,24 @@ func _CollectionService_GetCollectionByName_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CollectionService_ListCollections_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCollectionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CollectionServiceServer).ListCollections(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CollectionService_ListCollections_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CollectionServiceServer).ListCollections(ctx, req.(*ListCollectionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CollectionService_ServiceDesc is the grpc.ServiceDesc for CollectionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,12 +190,12 @@ var CollectionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CollectionService_CreateCollection_Handler,
 		},
 		{
-			MethodName: "GetCollections",
-			Handler:    _CollectionService_GetCollections_Handler,
-		},
-		{
 			MethodName: "GetCollectionByName",
 			Handler:    _CollectionService_GetCollectionByName_Handler,
+		},
+		{
+			MethodName: "ListCollections",
+			Handler:    _CollectionService_ListCollections_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

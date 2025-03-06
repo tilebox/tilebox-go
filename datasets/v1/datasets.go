@@ -148,7 +148,7 @@ func protoToUUID(id *datasetsv1.ID) (uuid.UUID, error) {
 
 // Collections returns a list of all available collections in the dataset.
 func (d *Dataset) Collections(ctx context.Context) ([]*Collection, error) {
-	response, err := d.service.GetCollections(ctx, d.ID)
+	response, err := d.service.ListCollections(ctx, d.ID)
 	if err != nil {
 		return nil, err
 	}

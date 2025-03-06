@@ -38,19 +38,19 @@ const (
 	// CollectionServiceCreateCollectionProcedure is the fully-qualified name of the CollectionService's
 	// CreateCollection RPC.
 	CollectionServiceCreateCollectionProcedure = "/datasets.v1.CollectionService/CreateCollection"
-	// CollectionServiceGetCollectionsProcedure is the fully-qualified name of the CollectionService's
-	// GetCollections RPC.
-	CollectionServiceGetCollectionsProcedure = "/datasets.v1.CollectionService/GetCollections"
 	// CollectionServiceGetCollectionByNameProcedure is the fully-qualified name of the
 	// CollectionService's GetCollectionByName RPC.
 	CollectionServiceGetCollectionByNameProcedure = "/datasets.v1.CollectionService/GetCollectionByName"
+	// CollectionServiceListCollectionsProcedure is the fully-qualified name of the CollectionService's
+	// ListCollections RPC.
+	CollectionServiceListCollectionsProcedure = "/datasets.v1.CollectionService/ListCollections"
 )
 
 // CollectionServiceClient is a client for the datasets.v1.CollectionService service.
 type CollectionServiceClient interface {
 	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
-	GetCollections(context.Context, *connect.Request[v1.GetCollectionsRequest]) (*connect.Response[v1.Collections], error)
 	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
+	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error)
 }
 
 // NewCollectionServiceClient constructs a client for the datasets.v1.CollectionService service. By
@@ -70,16 +70,16 @@ func NewCollectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(collectionServiceMethods.ByName("CreateCollection")),
 			connect.WithClientOptions(opts...),
 		),
-		getCollections: connect.NewClient[v1.GetCollectionsRequest, v1.Collections](
-			httpClient,
-			baseURL+CollectionServiceGetCollectionsProcedure,
-			connect.WithSchema(collectionServiceMethods.ByName("GetCollections")),
-			connect.WithClientOptions(opts...),
-		),
 		getCollectionByName: connect.NewClient[v1.GetCollectionByNameRequest, v1.CollectionInfo](
 			httpClient,
 			baseURL+CollectionServiceGetCollectionByNameProcedure,
 			connect.WithSchema(collectionServiceMethods.ByName("GetCollectionByName")),
+			connect.WithClientOptions(opts...),
+		),
+		listCollections: connect.NewClient[v1.ListCollectionsRequest, v1.CollectionInfos](
+			httpClient,
+			baseURL+CollectionServiceListCollectionsProcedure,
+			connect.WithSchema(collectionServiceMethods.ByName("ListCollections")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -88,8 +88,8 @@ func NewCollectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 // collectionServiceClient implements CollectionServiceClient.
 type collectionServiceClient struct {
 	createCollection    *connect.Client[v1.CreateCollectionRequest, v1.CollectionInfo]
-	getCollections      *connect.Client[v1.GetCollectionsRequest, v1.Collections]
 	getCollectionByName *connect.Client[v1.GetCollectionByNameRequest, v1.CollectionInfo]
+	listCollections     *connect.Client[v1.ListCollectionsRequest, v1.CollectionInfos]
 }
 
 // CreateCollection calls datasets.v1.CollectionService.CreateCollection.
@@ -97,21 +97,21 @@ func (c *collectionServiceClient) CreateCollection(ctx context.Context, req *con
 	return c.createCollection.CallUnary(ctx, req)
 }
 
-// GetCollections calls datasets.v1.CollectionService.GetCollections.
-func (c *collectionServiceClient) GetCollections(ctx context.Context, req *connect.Request[v1.GetCollectionsRequest]) (*connect.Response[v1.Collections], error) {
-	return c.getCollections.CallUnary(ctx, req)
-}
-
 // GetCollectionByName calls datasets.v1.CollectionService.GetCollectionByName.
 func (c *collectionServiceClient) GetCollectionByName(ctx context.Context, req *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error) {
 	return c.getCollectionByName.CallUnary(ctx, req)
 }
 
+// ListCollections calls datasets.v1.CollectionService.ListCollections.
+func (c *collectionServiceClient) ListCollections(ctx context.Context, req *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error) {
+	return c.listCollections.CallUnary(ctx, req)
+}
+
 // CollectionServiceHandler is an implementation of the datasets.v1.CollectionService service.
 type CollectionServiceHandler interface {
 	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
-	GetCollections(context.Context, *connect.Request[v1.GetCollectionsRequest]) (*connect.Response[v1.Collections], error)
 	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
+	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error)
 }
 
 // NewCollectionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -127,26 +127,26 @@ func NewCollectionServiceHandler(svc CollectionServiceHandler, opts ...connect.H
 		connect.WithSchema(collectionServiceMethods.ByName("CreateCollection")),
 		connect.WithHandlerOptions(opts...),
 	)
-	collectionServiceGetCollectionsHandler := connect.NewUnaryHandler(
-		CollectionServiceGetCollectionsProcedure,
-		svc.GetCollections,
-		connect.WithSchema(collectionServiceMethods.ByName("GetCollections")),
-		connect.WithHandlerOptions(opts...),
-	)
 	collectionServiceGetCollectionByNameHandler := connect.NewUnaryHandler(
 		CollectionServiceGetCollectionByNameProcedure,
 		svc.GetCollectionByName,
 		connect.WithSchema(collectionServiceMethods.ByName("GetCollectionByName")),
 		connect.WithHandlerOptions(opts...),
 	)
+	collectionServiceListCollectionsHandler := connect.NewUnaryHandler(
+		CollectionServiceListCollectionsProcedure,
+		svc.ListCollections,
+		connect.WithSchema(collectionServiceMethods.ByName("ListCollections")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/datasets.v1.CollectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case CollectionServiceCreateCollectionProcedure:
 			collectionServiceCreateCollectionHandler.ServeHTTP(w, r)
-		case CollectionServiceGetCollectionsProcedure:
-			collectionServiceGetCollectionsHandler.ServeHTTP(w, r)
 		case CollectionServiceGetCollectionByNameProcedure:
 			collectionServiceGetCollectionByNameHandler.ServeHTTP(w, r)
+		case CollectionServiceListCollectionsProcedure:
+			collectionServiceListCollectionsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -160,10 +160,10 @@ func (UnimplementedCollectionServiceHandler) CreateCollection(context.Context, *
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.CreateCollection is not implemented"))
 }
 
-func (UnimplementedCollectionServiceHandler) GetCollections(context.Context, *connect.Request[v1.GetCollectionsRequest]) (*connect.Response[v1.Collections], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.GetCollections is not implemented"))
-}
-
 func (UnimplementedCollectionServiceHandler) GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.GetCollectionByName is not implemented"))
+}
+
+func (UnimplementedCollectionServiceHandler) ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.ListCollections is not implemented"))
 }

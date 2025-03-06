@@ -29,7 +29,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// DataIngestionService provides data access and querying capabilities for Tilebox datasets.
+// DataIngestionService provides data ingestion and deletion capabilities for Tilebox datasets.
 type DataIngestionServiceClient interface {
 	IngestDatapoints(ctx context.Context, in *IngestDatapointsRequest, opts ...grpc.CallOption) (*IngestDatapointsResponse, error)
 	DeleteDatapoints(ctx context.Context, in *DeleteDatapointsRequest, opts ...grpc.CallOption) (*DeleteDatapointsResponse, error)
@@ -67,7 +67,7 @@ func (c *dataIngestionServiceClient) DeleteDatapoints(ctx context.Context, in *D
 // All implementations must embed UnimplementedDataIngestionServiceServer
 // for forward compatibility.
 //
-// DataIngestionService provides data access and querying capabilities for Tilebox datasets.
+// DataIngestionService provides data ingestion and deletion capabilities for Tilebox datasets.
 type DataIngestionServiceServer interface {
 	IngestDatapoints(context.Context, *IngestDatapointsRequest) (*IngestDatapointsResponse, error)
 	DeleteDatapoints(context.Context, *DeleteDatapointsRequest) (*DeleteDatapointsResponse, error)
