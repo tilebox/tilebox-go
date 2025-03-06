@@ -43,10 +43,16 @@ type client struct {
 // The passed options are used to override these default values and configure the returned Client appropriately.
 func NewClient(options ...ClientOption) Client {
 	cfg := newClientConfig(options)
-	connectClient := newConnectClient(datasetsv1connect.NewTileboxServiceClient, cfg)
+	datasetClient := newConnectClient(datasetsv1connect.NewDatasetServiceClient, cfg)
+	collectionClient := newConnectClient(datasetsv1connect.NewCollectionServiceClient, cfg)
+	dataAccessClient := newConnectClient(datasetsv1connect.NewDataAccessServiceClient, cfg)
+	dataIngestionClient := newConnectClient(datasetsv1connect.NewDataIngestionServiceClient, cfg)
 
 	return &client{
-		service: newDatasetsService(connectClient, cfg.tracerProvider.Tracer(otelTracerName)),
+		service: newDatasetsService(
+			datasetClient, collectionClient, dataAccessClient, dataIngestionClient,
+			cfg.tracerProvider.Tracer(otelTracerName),
+		),
 	}
 }
 
@@ -142,7 +148,7 @@ func protoToUUID(id *datasetsv1.ID) (uuid.UUID, error) {
 
 // Collections returns a list of all available collections in the dataset.
 func (d *Dataset) Collections(ctx context.Context) ([]*Collection, error) {
-	response, err := d.service.GetCollections(ctx, d.ID)
+	response, err := d.service.ListCollections(ctx, d.ID)
 	if err != nil {
 		return nil, err
 	}

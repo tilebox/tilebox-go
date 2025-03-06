@@ -1,0 +1,40 @@
+// Proto messages and service definition for the APIs related to loading and quering data.
+
+syntax = "proto3";
+
+package datasets.v1;
+
+import "datasets/v1/core.proto";
+
+// GetDatasetForIntervalRequest contains the request parameters for retrieving data for a time interval.
+message GetDatasetForIntervalRequest {
+  string collection_id = 1; // The collection id.
+
+  // Either time interval or datapoint interval must be set, but not both.
+  TimeInterval time_interval = 2; // The time interval for which data is requested.
+  DatapointInterval datapoint_interval = 6; // The datapoint interval for which data is requested.
+
+  optional Pagination page = 3; // The pagination parameters for this request.
+  bool skip_data = 4; // If true, the datapoint data is not returned.
+  // If true, the datapoint metadata is not returned.
+  // If both skip_data and skip_meta are true,
+  // the response will only consist of a list of datapoint ids without any additional data or metadata.
+  bool skip_meta = 5;
+}
+
+// GetDatapointByIdRequest contains the request parameters for retrieving a single data point in a collection by its id.
+message GetDatapointByIdRequest {
+  string collection_id = 1; // The collection id.
+  string id = 2; // The id of the requested data point.
+  bool skip_data = 3; // If true, only the datapoint metadata is returned.
+}
+
+
+
+// DataAccessService provides data access and querying capabilities for Tilebox datasets.
+service DataAccessService {
+  // GetDatasetForInterval returns a list of data points for a given time interval and collection.
+  rpc GetDatasetForInterval(GetDatasetForIntervalRequest) returns (DatapointPage) {}
+  // GetDatapointByID returns a single datapoint by its ID.
+  rpc GetDatapointByID(GetDatapointByIdRequest) returns (Datapoint) {}
+}

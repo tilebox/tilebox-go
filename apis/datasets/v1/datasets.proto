@@ -1,0 +1,91 @@
+// Proto messages and service definition for the APIs related to creating and managing datasets.
+
+syntax = "proto3";
+
+package datasets.v1;
+
+import "datasets/v1/core.proto";
+import "datasets/v1/dataset_type.proto";
+
+// CreateDatasetRequest is used to create a new dataset.
+message CreateDatasetRequest {
+  // name of the dataset to create.
+  string name = 1;
+  // message type of the dataset to create.
+  DatasetType type = 2;
+  // short text summary of the dataset to create.
+  string summary = 3;
+  // normalized snake case name of the dataset to create.
+  string code_name = 4;
+}
+
+// GetDatasetRequest is the request message for the GetDataset RPC method for fetching a single dataset
+message GetDatasetRequest {
+  // slug of the dataset to be returned, e.g. "open_data.copernicus.sentinel1_sar"
+  string slug = 1;
+  // or alternatively a dataset id
+  string id = 2;
+}
+
+// UpdateDatasetRequest is used to update a dataset.
+message UpdateDatasetRequest {
+  // id of the dataset to update.
+  ID id = 1;
+  // updated name of the dataset.
+  string name = 2;
+  // updated type of the dataset.
+  DatasetType type = 3;
+  // updated summary of the dataset.
+  string summary = 4;
+}
+
+// ClientInfo contains information about the client requesting datasets, useful for us to gather usage data
+message ClientInfo {
+  // name of the client, e.g. "python"
+  string name = 1;
+  // environment the client is running in, e.g. "JupyterLab using python 3.11.4"
+  string environment = 2;
+  // list of packages installed on the client
+  repeated Package packages = 3;
+}
+
+// Package contains information about the installed version of a given package on the client
+message Package {
+  // package name
+  string name = 1;
+  // package version
+  string version = 2;
+}
+
+// UpdateDatasetDescriptionRequest is used to update a dataset description
+message UpdateDatasetDescriptionRequest {
+  // dataset id
+  ID id = 1;
+  // description of the dataset, in markdown format
+  string description = 2;
+}
+
+// ListDatasetsRequest is used to request a list of datasets
+message ListDatasetsRequest {
+  // some information about the Tilebox client requesting the datasets
+  ClientInfo client_info = 1;
+}
+
+// A list of datasets and dataset groups
+message ListDatasetsResponse {
+  // list of datasets a user has access to
+  repeated Dataset datasets = 1;
+  // list of dataset groups a user has access to
+  repeated DatasetGroup groups = 2;
+  // an optional message to be displayed to the user when they access a list of datasets
+  string server_message = 3;
+}
+
+// DatasetsService is the CRUD service for Tilebox datasets.
+service DatasetService {
+  rpc CreateDataset(CreateDatasetRequest) returns (Dataset) {}
+  rpc GetDataset(GetDatasetRequest) returns (Dataset) {}
+  rpc UpdateDataset(UpdateDatasetRequest) returns (Dataset) {}
+  rpc UpdateDatasetDescription(UpdateDatasetDescriptionRequest) returns (Dataset) {}
+  rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {}
+}

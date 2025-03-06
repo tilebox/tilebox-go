@@ -231,8 +231,8 @@ func NewMockService(tb testing.TB, n int) Service {
 	}
 }
 
-func (s *mockService) GetDatasetForInterval(_ context.Context, _ uuid.UUID, _ *datasetsv1.TimeInterval, _ *datasetsv1.DatapointInterval, _ *datasetsv1.Pagination, _ bool, _ bool) (*datasetsv1.Datapoints, error) {
-	return &datasetsv1.Datapoints{
+func (s *mockService) GetDatasetForInterval(_ context.Context, _ uuid.UUID, _ *datasetsv1.TimeInterval, _ *datasetsv1.DatapointInterval, _ *datasetsv1.Pagination, _ bool, _ bool) (*datasetsv1.DatapointPage, error) {
+	return &datasetsv1.DatapointPage{
 		Meta: s.meta,
 		Data: &datasetsv1.RepeatedAny{
 			Value: s.data,

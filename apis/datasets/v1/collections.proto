@@ -1,0 +1,36 @@
+// Proto messages and service definition for the APIs related to creating and managing collections.
+
+syntax = "proto3";
+
+package datasets.v1;
+
+import "datasets/v1/core.proto";
+
+// CreateCollectionRequest is used to create a new collection.
+message CreateCollectionRequest {
+  ID dataset_id = 1; // The dataset id where the collection should be created.
+  string name = 2; // The name of the collection to create.
+}
+
+// GetCollectionByNameRequest contains the request parameters for retrieving a single collection by its name.
+message GetCollectionByNameRequest {
+  string collection_name = 1; // The name of the collection retrieve.
+  bool with_availability = 2; // If true, the response will include the availability interval.
+  bool with_count = 3; // If true, the response will include the number of entries.
+  ID dataset_id = 4; // The dataset id.
+}
+
+// ListCollectionsRequest contains the request parameters
+// for retrieving a list of all available collections for a given dataset.
+message ListCollectionsRequest {
+  ID dataset_id = 1; // The dataset id.
+  bool with_availability = 2; // If true, the response will include the availability interval.
+  bool with_count = 3; // If true, the response will include the number of entries.
+}
+
+// CollectionService is the service definition for the Tilebox datasets service, which provides access to datasets
+service CollectionService {
+  rpc CreateCollection(CreateCollectionRequest) returns (CollectionInfo) {}
+  rpc GetCollectionByName(GetCollectionByNameRequest) returns (CollectionInfo) {}
+  rpc ListCollections(ListCollectionsRequest) returns (CollectionInfos) {}
+}
