@@ -90,7 +90,7 @@ enum ProcessingLevel {
 enum Polarization {
   // Horizontal transmit, Horizontal receive
   POLARIZATION_UNSPECIFIED = 0;
-  POLARIZATION_HH = 1;  // protolint:disable:this ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+  POLARIZATION_HH = 1;
   POLARIZATION_HV = 2;  // Horizontal transmit, Vertical receive
   POLARIZATION_VH = 3;  // Vertical transmit, Horizontal receive
   POLARIZATION_VV = 4;  // Vertical transmit, Vertical receive

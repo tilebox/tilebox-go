@@ -265,7 +265,7 @@ type Polarization int32
 const (
 	// Horizontal transmit, Horizontal receive
 	Polarization_POLARIZATION_UNSPECIFIED Polarization = 0
-	Polarization_POLARIZATION_HH          Polarization = 1  // protolint:disable:this ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+	Polarization_POLARIZATION_HH          Polarization = 1
 	Polarization_POLARIZATION_HV          Polarization = 2  // Horizontal transmit, Vertical receive
 	Polarization_POLARIZATION_VH          Polarization = 3  // Vertical transmit, Horizontal receive
 	Polarization_POLARIZATION_VV          Polarization = 4  // Vertical transmit, Vertical receive
