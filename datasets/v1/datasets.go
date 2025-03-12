@@ -544,3 +544,11 @@ func As[T proto.Message](seq iter.Seq2[*RawDatapoint, error]) iter.Seq2[*Datapoi
 		}
 	}
 }
+
+func uuidToProtobuf(id uuid.UUID) *datasetsv1.ID {
+	if id == uuid.Nil {
+		return nil
+	}
+
+	return &datasetsv1.ID{Uuid: id[:]}
+}

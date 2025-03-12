@@ -105,10 +105,8 @@ func (s *service) CreateCollection(ctx context.Context, datasetID uuid.UUID, col
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/create", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
 		res, err := s.collectionClient.CreateCollection(ctx, connect.NewRequest(
 			&datasetsv1.CreateCollectionRequest{
-				DatasetId: &datasetsv1.ID{
-					Uuid: datasetID[:],
-				},
-				Name: collectionName,
+				DatasetId: uuidToProtobuf(datasetID),
+				Name:      collectionName,
 			},
 		))
 		if err != nil {
@@ -126,9 +124,7 @@ func (s *service) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, 
 				CollectionName:   collectionName,
 				WithAvailability: true,
 				WithCount:        true,
-				DatasetId: &datasetsv1.ID{
-					Uuid: datasetID[:],
-				},
+				DatasetId:        uuidToProtobuf(datasetID),
 			},
 		))
 		if err != nil {
@@ -143,9 +139,7 @@ func (s *service) ListCollections(ctx context.Context, datasetID uuid.UUID) (*da
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.CollectionInfos, error) {
 		res, err := s.collectionClient.ListCollections(ctx, connect.NewRequest(
 			&datasetsv1.ListCollectionsRequest{
-				DatasetId: &datasetsv1.ID{
-					Uuid: datasetID[:],
-				},
+				DatasetId:        uuidToProtobuf(datasetID),
 				WithAvailability: true,
 				WithCount:        true,
 			},
@@ -199,9 +193,7 @@ func (s *service) IngestDatapoints(ctx context.Context, collectionID uuid.UUID, 
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/ingest", func(ctx context.Context) (*datasetsv1.IngestDatapointsResponse, error) {
 		res, err := s.dataIngestionClient.IngestDatapoints(ctx, connect.NewRequest(
 			&datasetsv1.IngestDatapointsRequest{
-				CollectionId: &datasetsv1.ID{
-					Uuid: collectionID[:],
-				},
+				CollectionId:  uuidToProtobuf(collectionID),
 				Datapoints:    datapoints,
 				AllowExisting: allowExisting,
 			},
@@ -218,13 +210,9 @@ func (s *service) DeleteDatapoints(ctx context.Context, collectionID uuid.UUID, 
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/delete", func(ctx context.Context) (*datasetsv1.DeleteDatapointsResponse, error) {
 		res, err := s.dataIngestionClient.DeleteDatapoints(ctx, connect.NewRequest(
 			&datasetsv1.DeleteDatapointsRequest{
-				CollectionId: &datasetsv1.ID{
-					Uuid: collectionID[:],
-				},
+				CollectionId: uuidToProtobuf(collectionID),
 				DatapointIds: lo.Map(datapointIDs, func(datapointID uuid.UUID, _ int) *datasetsv1.ID {
-					return &datasetsv1.ID{
-						Uuid: datapointID[:],
-					}
+					return uuidToProtobuf(datapointID)
 				}),
 			},
 		))
