@@ -21,15 +21,10 @@ import (
 const otelTracerName = "tilebox.com/observability"
 
 // Client is a Tilebox Datasets client.
-type Client interface {
-	Datasets(ctx context.Context) ([]*Dataset, error)
-	Dataset(ctx context.Context, slug string) (*Dataset, error)
-}
-
-var _ Client = &client{}
-
-type client struct {
-	service Service
+type Client struct {
+	Datasets    DatasetService
+	Collections CollectionService
+	Data        DataService
 }
 
 // NewClient creates a new Tilebox Datasets client.
@@ -41,31 +36,61 @@ type client struct {
 //   - the global tracer provider
 //
 // The passed options are used to override these default values and configure the returned Client appropriately.
-func NewClient(options ...ClientOption) Client {
+func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
 	datasetClient := newConnectClient(datasetsv1connect.NewDatasetServiceClient, cfg)
 	collectionClient := newConnectClient(datasetsv1connect.NewCollectionServiceClient, cfg)
 	dataAccessClient := newConnectClient(datasetsv1connect.NewDataAccessServiceClient, cfg)
 	dataIngestionClient := newConnectClient(datasetsv1connect.NewDataIngestionServiceClient, cfg)
 
-	return &client{
-		service: newDatasetsService(
-			datasetClient, collectionClient, dataAccessClient, dataIngestionClient,
-			cfg.tracerProvider.Tracer(otelTracerName),
-		),
+	service := newDatasetsService(
+		datasetClient, collectionClient, dataAccessClient, dataIngestionClient,
+		cfg.tracerProvider.Tracer(otelTracerName),
+	)
+
+	return &Client{
+		Datasets:    &datasetService{service: service},
+		Collections: &collectionService{service: service},
+		Data:        &dataService{service: service},
 	}
 }
 
-// Datasets returns a list of all available datasets.
-func (c *client) Datasets(ctx context.Context) ([]*Dataset, error) {
-	response, err := c.service.ListDatasets(ctx)
+type DatasetService interface {
+	Get(ctx context.Context, slug string) (*Dataset, error)
+	List(ctx context.Context) ([]*Dataset, error)
+}
+
+var _ DatasetService = &datasetService{}
+
+type datasetService struct {
+	service Service
+}
+
+// Get returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
+func (d datasetService) Get(ctx context.Context, slug string) (*Dataset, error) {
+	response, err := d.service.GetDataset(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	dataset, err := protoToDataset(response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert dataset from response: %w", err)
+	}
+
+	return dataset, nil
+}
+
+// List returns a list of all available datasets.
+func (d datasetService) List(ctx context.Context) ([]*Dataset, error) {
+	response, err := d.service.ListDatasets(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	datasets := make([]*Dataset, len(response.GetDatasets()))
-	for i, d := range response.GetDatasets() {
-		dataset, err := protoToDataset(d, c.service)
+	for i, datasetMessage := range response.GetDatasets() {
+		dataset, err := protoToDataset(datasetMessage)
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert dataset from response: %w", err)
 		}
@@ -76,21 +101,6 @@ func (c *client) Datasets(ctx context.Context) ([]*Dataset, error) {
 	return datasets, nil
 }
 
-// Dataset returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
-func (c *client) Dataset(ctx context.Context, slug string) (*Dataset, error) {
-	response, err := c.service.GetDataset(ctx, slug)
-	if err != nil {
-		return nil, err
-	}
-
-	dataset, err := protoToDataset(response, c.service)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert dataset from response: %w", err)
-	}
-
-	return dataset, nil
-}
-
 // Dataset represents a Tilebox Time Series Dataset.
 //
 // Documentation: https://docs.tilebox.com/datasets/timeseries
@@ -99,26 +109,13 @@ type Dataset struct {
 	ID uuid.UUID
 	// Type is the type of the dataset.
 	Type *datasetsv1.AnnotatedType
-
 	// Name is the name of the dataset.
 	Name string
 	// Summary is a summary of the purpose of the dataset.
 	Summary string
-
-	service Service
 }
 
-// NewDataset creates a new Dataset.
-func NewDataset(id uuid.UUID, name string, summary string, service Service) *Dataset {
-	return &Dataset{
-		ID:      id,
-		Name:    name,
-		Summary: summary,
-		service: service,
-	}
-}
-
-func protoToDataset(d *datasetsv1.Dataset, service Service) (*Dataset, error) {
+func protoToDataset(d *datasetsv1.Dataset) (*Dataset, error) {
 	id, err := protoToUUID(d.GetId())
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert dataset id to uuid: %w", err)
@@ -129,7 +126,6 @@ func protoToDataset(d *datasetsv1.Dataset, service Service) (*Dataset, error) {
 		Type:    d.GetType(),
 		Name:    d.GetName(),
 		Summary: d.GetSummary(),
-		service: service,
 	}, nil
 }
 
@@ -146,56 +142,6 @@ func protoToUUID(id *datasetsv1.ID) (uuid.UUID, error) {
 	return bytes, nil
 }
 
-// Collections returns a list of all available collections in the dataset.
-func (d *Dataset) Collections(ctx context.Context) ([]*Collection, error) {
-	response, err := d.service.ListCollections(ctx, d.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	collections := make([]*Collection, len(response.GetData()))
-	for i, c := range response.GetData() {
-		collection, err := protoToCollection(c, d.service)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert collection from response: %w", err)
-		}
-
-		collections[i] = collection
-	}
-
-	return collections, nil
-}
-
-// Collection returns a collection by its name.
-func (d *Dataset) Collection(ctx context.Context, name string) (*Collection, error) {
-	response, err := d.service.GetCollectionByName(ctx, d.ID, name)
-	if err != nil {
-		return nil, err
-	}
-
-	collection, err := protoToCollection(response, d.service)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert collection from response: %w", err)
-	}
-
-	return collection, nil
-}
-
-// CreateCollection creates a new collection in the dataset with the given name.
-func (d *Dataset) CreateCollection(ctx context.Context, collectionName string) (*Collection, error) {
-	response, err := d.service.CreateCollection(ctx, d.ID, collectionName)
-	if err != nil {
-		return nil, err
-	}
-
-	collection, err := protoToCollection(response, d.service)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert collection from response: %w", err)
-	}
-
-	return collection, nil
-}
-
 // Collection represents a Tilebox Time Series Dataset collection.
 //
 // Documentation: https://docs.tilebox.com/datasets/collections
@@ -208,22 +154,9 @@ type Collection struct {
 	Availability TimeInterval
 	// Count is the number of datapoints in the collection.
 	Count uint64
-
-	service Service
 }
 
-// NewCollection creates a new Collection.
-func NewCollection(id uuid.UUID, name string, availability TimeInterval, count uint64, service Service) *Collection {
-	return &Collection{
-		ID:           id,
-		Name:         name,
-		Availability: availability,
-		Count:        count,
-		service:      service,
-	}
-}
-
-func protoToCollection(c *datasetsv1.CollectionInfo, service Service) (*Collection, error) {
+func protoToCollection(c *datasetsv1.CollectionInfo) (*Collection, error) {
 	id, err := uuid.Parse(c.GetCollection().GetId())
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse collection id: %w", err)
@@ -234,8 +167,82 @@ func protoToCollection(c *datasetsv1.CollectionInfo, service Service) (*Collecti
 		Name:         c.GetCollection().GetName(),
 		Availability: *protoToTimeInterval(c.GetAvailability()),
 		Count:        c.GetCount(),
-		service:      service,
 	}, nil
+}
+
+type CollectionService interface {
+	Create(ctx context.Context, datasetID uuid.UUID, collectionName string) (*Collection, error)
+	Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
+	List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error)
+}
+
+var _ CollectionService = &collectionService{}
+
+type collectionService struct {
+	service Service
+}
+
+// Create creates a new collection in the dataset with the given name.
+func (c collectionService) Create(ctx context.Context, datasetID uuid.UUID, collectionName string) (*Collection, error) {
+	response, err := c.service.CreateCollection(ctx, datasetID, collectionName)
+	if err != nil {
+		return nil, err
+	}
+
+	collection, err := protoToCollection(response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert collection from response: %w", err)
+	}
+
+	return collection, nil
+}
+
+// Get returns a collection by its name.
+func (c collectionService) Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
+	response, err := c.service.GetCollectionByName(ctx, datasetID, name)
+	if err != nil {
+		return nil, err
+	}
+
+	collection, err := protoToCollection(response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert collection from response: %w", err)
+	}
+
+	return collection, nil
+}
+
+// List returns a list of all available collections in the dataset.
+func (c collectionService) List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error) {
+	response, err := c.service.ListCollections(ctx, datasetID)
+	if err != nil {
+		return nil, err
+	}
+
+	collections := make([]*Collection, len(response.GetData()))
+	for i, collectionMessage := range response.GetData() {
+		collection, err := protoToCollection(collectionMessage)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert collection from response: %w", err)
+		}
+
+		collections[i] = collection
+	}
+
+	return collections, nil
+}
+
+type DataService interface {
+	Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error]
+	Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error)
+	Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error)
+	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error)
+}
+
+var _ DataService = &dataService{}
+
+type dataService struct {
+	service Service
 }
 
 // loadConfig contains the configuration for a Load request.
@@ -293,7 +300,7 @@ func newLoadConfig(options []LoadOption) *loadConfig {
 // The output sequence can be transformed into typed Datapoint using CollectAs or As functions.
 //
 // Documentation: https://docs.tilebox.com/datasets/loading-data
-func (c *Collection) Load(ctx context.Context, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error] {
+func (d dataService) Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error] {
 	cfg := newLoadConfig(options)
 
 	return func(yield func(*RawDatapoint, error) bool) {
@@ -308,7 +315,7 @@ func (c *Collection) Load(ctx context.Context, interval LoadInterval, options ..
 		}
 
 		for {
-			datapointsMessage, err := c.service.GetDatasetForInterval(ctx, c.ID, timeInterval, datapointInterval, page, cfg.skipData, cfg.skipMeta)
+			datapointsMessage, err := d.service.GetDatasetForInterval(ctx, collectionID, timeInterval, datapointInterval, page, cfg.skipData, cfg.skipMeta)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -371,7 +378,7 @@ type IngestResponse struct {
 // exist will be ignored, and the number of such existing datapoints will be returned in the response. If false, any
 // datapoints that already exist will result in an error. Setting this to true is useful for achieving idempotency (e.g.
 // allowing re-ingestion of datapoints that have already been ingested in the past).
-func (c *Collection) Ingest(ctx context.Context, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error) {
+func (d dataService) Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error) {
 	datapoints := &datasetsv1.Datapoints{
 		Meta: make([]*datasetsv1.DatapointMetadata, len(data)),
 		Data: &datasetsv1.RepeatedAny{
@@ -386,7 +393,7 @@ func (c *Collection) Ingest(ctx context.Context, data []*RawDatapoint, allowExis
 		datapoints.GetData().GetValue()[i] = datapoint.Data
 	}
 
-	response, err := c.service.IngestDatapoints(ctx, c.ID, datapoints, allowExisting)
+	response, err := d.service.IngestDatapoints(ctx, collectionID, datapoints, allowExisting)
 	if err != nil {
 		return nil, err
 	}
@@ -416,18 +423,18 @@ type DeleteResponse struct {
 // Delete datapoints from a collection.
 //
 // The datapoints are identified by their IDs.
-func (c *Collection) Delete(ctx context.Context, data []*RawDatapoint) (*DeleteResponse, error) {
+func (d dataService) Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error) {
 	datapointIDs := make([]uuid.UUID, len(data))
 	for i, datapoint := range data {
 		datapointIDs[i] = datapoint.Meta.ID
 	}
 
-	return c.DeleteIDs(ctx, datapointIDs)
+	return d.DeleteIDs(ctx, collectionID, datapointIDs)
 }
 
 // DeleteIDs deletes datapoints from a collection by their IDs.
-func (c *Collection) DeleteIDs(ctx context.Context, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
-	response, err := c.service.DeleteDatapoints(ctx, c.ID, datapointIDs)
+func (d dataService) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
+	response, err := d.service.DeleteDatapoints(ctx, collectionID, datapointIDs)
 	if err != nil {
 		return nil, err
 	}
