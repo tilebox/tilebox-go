@@ -22,20 +22,20 @@ type Collection struct {
 	Count uint64
 }
 
-type CollectionService interface {
+type CollectionClient interface {
 	Create(ctx context.Context, datasetID uuid.UUID, collectionName string) (*Collection, error)
 	Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
 	List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error)
 }
 
-var _ CollectionService = &collectionService{}
+var _ CollectionClient = &collectionClient{}
 
-type collectionService struct {
-	service Service
+type collectionClient struct {
+	service CollectionService
 }
 
 // Create creates a new collection in the dataset with the given name.
-func (c collectionService) Create(ctx context.Context, datasetID uuid.UUID, collectionName string) (*Collection, error) {
+func (c collectionClient) Create(ctx context.Context, datasetID uuid.UUID, collectionName string) (*Collection, error) {
 	response, err := c.service.CreateCollection(ctx, datasetID, collectionName)
 	if err != nil {
 		return nil, err
@@ -50,7 +50,7 @@ func (c collectionService) Create(ctx context.Context, datasetID uuid.UUID, coll
 }
 
 // Get returns a collection by its name.
-func (c collectionService) Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
+func (c collectionClient) Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
 	response, err := c.service.GetCollectionByName(ctx, datasetID, name)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (c collectionService) Get(ctx context.Context, datasetID uuid.UUID, name st
 }
 
 // List returns a list of all available collections in the dataset.
-func (c collectionService) List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error) {
+func (c collectionClient) List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error) {
 	response, err := c.service.ListCollections(ctx, datasetID)
 	if err != nil {
 		return nil, err

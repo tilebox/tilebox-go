@@ -198,10 +198,10 @@ type mockService struct {
 	meta []*DatapointMetadata
 	data [][]byte
 
-	DatapointsService
+	DatapointsClient
 }
 
-func NewMockDatapointsService(tb testing.TB, n int) DatapointsService {
+func NewMockDatapointsClient(tb testing.TB, n int) DatapointsClient {
 	// generate some mock data
 	meta := make([]*DatapointMetadata, n)
 	data := make([][]byte, n)
@@ -257,7 +257,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	loadInterval := newEmptyTimeInterval() // dummy load interval
 
 	client := NewClient()
-	client.Datapoints = NewMockDatapointsService(b, 1000)
+	client.Datapoints = NewMockDatapointsClient(b, 1000)
 
 	var r []*Datapoint[*datasetsv1.CopernicusDataspaceGranule] // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {

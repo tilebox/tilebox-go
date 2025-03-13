@@ -18,9 +18,9 @@ const otelTracerName = "tilebox.com/observability"
 
 // Client is a Tilebox Datasets client.
 type Client struct {
-	Datasets    DatasetService
-	Collections CollectionService
-	Datapoints  DatapointsService
+	Datasets    DatasetClient
+	Collections CollectionClient
+	Datapoints  DatapointsClient
 }
 
 // NewClient creates a new Tilebox Datasets client.
@@ -34,20 +34,24 @@ type Client struct {
 // The passed options are used to override these default values and configure the returned Client appropriately.
 func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
-	datasetClient := newConnectClient(datasetsv1connect.NewDatasetServiceClient, cfg)
-	collectionClient := newConnectClient(datasetsv1connect.NewCollectionServiceClient, cfg)
-	dataAccessClient := newConnectClient(datasetsv1connect.NewDataAccessServiceClient, cfg)
-	dataIngestionClient := newConnectClient(datasetsv1connect.NewDataIngestionServiceClient, cfg)
+	datasetConnectClient := newConnectClient(datasetsv1connect.NewDatasetServiceClient, cfg)
+	collectionConnectClient := newConnectClient(datasetsv1connect.NewCollectionServiceClient, cfg)
+	dataAccessConnectClient := newConnectClient(datasetsv1connect.NewDataAccessServiceClient, cfg)
+	dataIngestionConnectClient := newConnectClient(datasetsv1connect.NewDataIngestionServiceClient, cfg)
 
-	service := newDatasetsService(
-		datasetClient, collectionClient, dataAccessClient, dataIngestionClient,
-		cfg.tracerProvider.Tracer(otelTracerName),
-	)
+	tracer := cfg.tracerProvider.Tracer(otelTracerName)
 
 	return &Client{
-		Datasets:    &datasetService{service: service},
-		Collections: &collectionService{service: service},
-		Datapoints:  &datapointsService{service: service},
+		Datasets: &datasetClient{
+			service: newDatasetsService(datasetConnectClient, tracer),
+		},
+		Collections: &collectionClient{
+			service: newCollectionService(collectionConnectClient, tracer),
+		},
+		Datapoints: &datapointClient{
+			dataAccessService:    newDataAccessService(dataAccessConnectClient, tracer),
+			dataIngestionService: newDataIngestionService(dataIngestionConnectClient, tracer),
+		},
 	}
 }
 

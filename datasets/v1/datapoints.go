@@ -14,17 +14,18 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type DatapointsService interface {
+type DatapointsClient interface {
 	Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error]
 	Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error)
 	Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error)
 	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error)
 }
 
-var _ DatapointsService = &datapointsService{}
+var _ DatapointsClient = &datapointClient{}
 
-type datapointsService struct {
-	service Service
+type datapointClient struct {
+	dataIngestionService DataIngestionService
+	dataAccessService    DataAccessService
 }
 
 // loadConfig contains the configuration for a Load request.
@@ -82,7 +83,7 @@ func newLoadConfig(options []LoadOption) *loadConfig {
 // The output sequence can be transformed into typed Datapoint using CollectAs or As functions.
 //
 // Documentation: https://docs.tilebox.com/datasets/loading-data
-func (d datapointsService) Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error] {
+func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error] {
 	cfg := newLoadConfig(options)
 
 	return func(yield func(*RawDatapoint, error) bool) {
@@ -97,7 +98,7 @@ func (d datapointsService) Load(ctx context.Context, collectionID uuid.UUID, int
 		}
 
 		for {
-			datapointsMessage, err := d.service.GetDatasetForInterval(ctx, collectionID, timeInterval, datapointInterval, page, cfg.skipData, cfg.skipMeta)
+			datapointsMessage, err := d.dataAccessService.GetDatasetForInterval(ctx, collectionID, timeInterval, datapointInterval, page, cfg.skipData, cfg.skipMeta)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -160,7 +161,7 @@ type IngestResponse struct {
 // exist will be ignored, and the number of such existing datapoints will be returned in the response. If false, any
 // datapoints that already exist will result in an error. Setting this to true is useful for achieving idempotency (e.g.
 // allowing re-ingestion of datapoints that have already been ingested in the past).
-func (d datapointsService) Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error) {
+func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error) {
 	datapoints := &datasetsv1.Datapoints{
 		Meta: make([]*datasetsv1.DatapointMetadata, len(data)),
 		Data: &datasetsv1.RepeatedAny{
@@ -175,7 +176,7 @@ func (d datapointsService) Ingest(ctx context.Context, collectionID uuid.UUID, d
 		datapoints.GetData().GetValue()[i] = datapoint.Data
 	}
 
-	response, err := d.service.IngestDatapoints(ctx, collectionID, datapoints, allowExisting)
+	response, err := d.dataIngestionService.IngestDatapoints(ctx, collectionID, datapoints, allowExisting)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +206,7 @@ type DeleteResponse struct {
 // Delete datapoints from a collection.
 //
 // The datapoints are identified by their IDs.
-func (d datapointsService) Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error) {
+func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error) {
 	datapointIDs := make([]uuid.UUID, len(data))
 	for i, datapoint := range data {
 		datapointIDs[i] = datapoint.Meta.ID
@@ -215,8 +216,8 @@ func (d datapointsService) Delete(ctx context.Context, collectionID uuid.UUID, d
 }
 
 // DeleteIDs deletes datapoints from a collection by their IDs.
-func (d datapointsService) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
-	response, err := d.service.DeleteDatapoints(ctx, collectionID, datapointIDs)
+func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
+	response, err := d.dataIngestionService.DeleteDatapoints(ctx, collectionID, datapointIDs)
 	if err != nil {
 		return nil, err
 	}
