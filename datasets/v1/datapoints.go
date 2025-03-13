@@ -14,16 +14,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type DataService interface {
+type DatapointsService interface {
 	Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error]
 	Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error)
 	Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error)
 	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error)
 }
 
-var _ DataService = &dataService{}
+var _ DatapointsService = &datapointsService{}
 
-type dataService struct {
+type datapointsService struct {
 	service Service
 }
 
@@ -82,7 +82,7 @@ func newLoadConfig(options []LoadOption) *loadConfig {
 // The output sequence can be transformed into typed Datapoint using CollectAs or As functions.
 //
 // Documentation: https://docs.tilebox.com/datasets/loading-data
-func (d dataService) Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error] {
+func (d datapointsService) Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error] {
 	cfg := newLoadConfig(options)
 
 	return func(yield func(*RawDatapoint, error) bool) {
@@ -160,7 +160,7 @@ type IngestResponse struct {
 // exist will be ignored, and the number of such existing datapoints will be returned in the response. If false, any
 // datapoints that already exist will result in an error. Setting this to true is useful for achieving idempotency (e.g.
 // allowing re-ingestion of datapoints that have already been ingested in the past).
-func (d dataService) Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error) {
+func (d datapointsService) Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error) {
 	datapoints := &datasetsv1.Datapoints{
 		Meta: make([]*datasetsv1.DatapointMetadata, len(data)),
 		Data: &datasetsv1.RepeatedAny{
@@ -205,7 +205,7 @@ type DeleteResponse struct {
 // Delete datapoints from a collection.
 //
 // The datapoints are identified by their IDs.
-func (d dataService) Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error) {
+func (d datapointsService) Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error) {
 	datapointIDs := make([]uuid.UUID, len(data))
 	for i, datapoint := range data {
 		datapointIDs[i] = datapoint.Meta.ID
@@ -215,7 +215,7 @@ func (d dataService) Delete(ctx context.Context, collectionID uuid.UUID, data []
 }
 
 // DeleteIDs deletes datapoints from a collection by their IDs.
-func (d dataService) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
+func (d datapointsService) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
 	response, err := d.service.DeleteDatapoints(ctx, collectionID, datapointIDs)
 	if err != nil {
 		return nil, err

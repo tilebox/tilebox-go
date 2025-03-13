@@ -20,7 +20,7 @@ const otelTracerName = "tilebox.com/observability"
 type Client struct {
 	Datasets    DatasetService
 	Collections CollectionService
-	Data        DataService
+	Datapoints  DatapointsService
 }
 
 // NewClient creates a new Tilebox Datasets client.
@@ -47,7 +47,7 @@ func NewClient(options ...ClientOption) *Client {
 	return &Client{
 		Datasets:    &datasetService{service: service},
 		Collections: &collectionService{service: service},
-		Data:        &dataService{service: service},
+		Datapoints:  &datapointsService{service: service},
 	}
 }
 

@@ -41,14 +41,14 @@ func main() {
 	}
 
 	// Ingest datapoints
-	ingestResponse, err := client.Data.Ingest(ctx, collection.ID, datapoints, false)
+	ingestResponse, err := client.Datapoints.Ingest(ctx, collection.ID, datapoints, false)
 	if err != nil {
 		log.Fatalf("Failed to ingest datapoints: %v", err)
 	}
 	slog.Info("Ingested datapoints", slog.Int64("created", ingestResponse.NumCreated))
 
 	// Delete datapoints again
-	deleteResponse, err := client.Data.DeleteIDs(ctx, collection.ID, ingestResponse.DatapointIDs)
+	deleteResponse, err := client.Datapoints.DeleteIDs(ctx, collection.ID, ingestResponse.DatapointIDs)
 	if err != nil {
 		log.Fatalf("Failed to delete datapoints: %v", err)
 	}
