@@ -20,13 +20,13 @@ func main() {
 	)
 
 	// Select a dataset
-	dataset, err := client.Dataset(ctx, "open_data.copernicus.sentinel1_sar")
+	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel1_sar")
 	if err != nil {
 		log.Fatalf("Failed to get dataset: %v", err)
 	}
 
 	// Create a collection
-	collection, err := dataset.CreateCollection(ctx, "My First Collection")
+	collection, err := client.Collections.Create(ctx, dataset.ID, "My First Collection")
 	if err != nil {
 		log.Fatalf("Failed to create collection: %v", err)
 	}
@@ -41,14 +41,14 @@ func main() {
 	}
 
 	// Ingest datapoints
-	ingestResponse, err := collection.Ingest(ctx, datapoints, false)
+	ingestResponse, err := client.Datapoints.Ingest(ctx, collection.ID, datapoints, false)
 	if err != nil {
 		log.Fatalf("Failed to ingest datapoints: %v", err)
 	}
 	slog.Info("Ingested datapoints", slog.Int64("created", ingestResponse.NumCreated))
 
 	// Delete datapoints again
-	deleteResponse, err := collection.DeleteIDs(ctx, ingestResponse.DatapointIDs)
+	deleteResponse, err := client.Datapoints.DeleteIDs(ctx, collection.ID, ingestResponse.DatapointIDs)
 	if err != nil {
 		log.Fatalf("Failed to delete datapoints: %v", err)
 	}

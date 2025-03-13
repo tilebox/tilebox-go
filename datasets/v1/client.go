@@ -8,10 +8,52 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/tilebox/tilebox-go/grpc"
+	"github.com/tilebox/tilebox-go/protogen/go/datasets/v1/datasetsv1connect"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
 )
+
+const otelTracerName = "tilebox.com/observability"
+
+// Client is a Tilebox Datasets client.
+type Client struct {
+	Datasets    DatasetClient
+	Collections CollectionClient
+	Datapoints  DatapointsClient
+}
+
+// NewClient creates a new Tilebox Datasets client.
+//
+// By default, the returned Client is configured with:
+//   - "https://api.tilebox.com" as the URL
+//   - no API key
+//   - a grpc.RetryHTTPClient HTTP client
+//   - the global tracer provider
+//
+// The passed options are used to override these default values and configure the returned Client appropriately.
+func NewClient(options ...ClientOption) *Client {
+	cfg := newClientConfig(options)
+	datasetConnectClient := newConnectClient(datasetsv1connect.NewDatasetServiceClient, cfg)
+	collectionConnectClient := newConnectClient(datasetsv1connect.NewCollectionServiceClient, cfg)
+	dataAccessConnectClient := newConnectClient(datasetsv1connect.NewDataAccessServiceClient, cfg)
+	dataIngestionConnectClient := newConnectClient(datasetsv1connect.NewDataIngestionServiceClient, cfg)
+
+	tracer := cfg.tracerProvider.Tracer(otelTracerName)
+
+	return &Client{
+		Datasets: &datasetClient{
+			service: newDatasetsService(datasetConnectClient, tracer),
+		},
+		Collections: &collectionClient{
+			service: newCollectionService(collectionConnectClient, tracer),
+		},
+		Datapoints: &datapointClient{
+			dataAccessService:    newDataAccessService(dataAccessConnectClient, tracer),
+			dataIngestionService: newDataIngestionService(dataIngestionConnectClient, tracer),
+		},
+	}
+}
 
 // clientConfig contains the configuration for Tilebox Datasets client.
 type clientConfig struct {

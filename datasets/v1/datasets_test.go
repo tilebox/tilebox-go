@@ -3,6 +3,7 @@ package datasets
 import (
 	"context"
 	"fmt"
+	"iter"
 	"net/http"
 	"os"
 	"testing"
@@ -19,7 +20,7 @@ import (
 
 const recordingDirectory = "testdata/recordings"
 
-func NewRecordClient(tb testing.TB, filename string) (Client, error) {
+func NewRecordClient(tb testing.TB, filename string) (*Client, error) {
 	err := os.MkdirAll(recordingDirectory, os.ModePerm)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create recording directory: %w", err)
@@ -49,7 +50,7 @@ func NewRecordClient(tb testing.TB, filename string) (Client, error) {
 	), nil
 }
 
-func NewReplayClient(tb testing.TB, filename string) (Client, error) {
+func NewReplayClient(tb testing.TB, filename string) (*Client, error) {
 	file, err := os.Open(fmt.Sprintf("%s/%s.rpcs.bin", recordingDirectory, filename))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open replay file: %w", err)
@@ -69,14 +70,14 @@ func NewReplayClient(tb testing.TB, filename string) (Client, error) {
 	), nil
 }
 
-func TestClient_Datasets(t *testing.T) {
+func TestClient_Datasets_List(t *testing.T) {
 	ctx := context.Background()
 	client, err := NewReplayClient(t, "datasets")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	datasets, err := client.Datasets(ctx)
+	datasets, err := client.Datasets.List(ctx)
 	require.NoError(t, err)
 
 	dataset := datasets[0]
@@ -84,31 +85,31 @@ func TestClient_Datasets(t *testing.T) {
 	assert.Equal(t, "49f17988-9f1c-446e-be2a-f949875b8274", dataset.ID.String())
 }
 
-func TestClient_Dataset(t *testing.T) {
+func TestClient_Datasets_Get(t *testing.T) {
 	ctx := context.Background()
 	client, err := NewReplayClient(t, "dataset")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	dataset, err := client.Dataset(ctx, "open_data.asf.ers_sar")
+	dataset, err := client.Datasets.Get(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)
 
 	assert.Equal(t, "ERS SAR Granules", dataset.Name)
 	assert.Equal(t, "49f17988-9f1c-446e-be2a-f949875b8274", dataset.ID.String())
 }
 
-func TestClient_Collections(t *testing.T) {
+func TestClient_Collections_List(t *testing.T) {
 	ctx := context.Background()
 	client, err := NewReplayClient(t, "collections")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	dataset, err := client.Dataset(ctx, "open_data.asf.ers_sar")
+	dataset, err := client.Datasets.Get(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)
 
-	collections, err := dataset.Collections(ctx)
+	collections, err := client.Collections.List(ctx, dataset.ID)
 	require.NoError(t, err)
 
 	names := lo.Map(collections, func(c *Collection, _ int) string {
@@ -117,17 +118,17 @@ func TestClient_Collections(t *testing.T) {
 	assert.Equal(t, []string{"ERS-1", "ERS-2"}, names)
 }
 
-func TestClient_Collection(t *testing.T) {
+func TestClient_Collections_Get(t *testing.T) {
 	ctx := context.Background()
 	client, err := NewReplayClient(t, "collection")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	dataset, err := client.Dataset(ctx, "open_data.asf.ers_sar")
+	dataset, err := client.Datasets.Get(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)
 
-	collection, err := dataset.Collection(ctx, "ERS-2")
+	collection, err := client.Collections.Get(ctx, dataset.ID, "ERS-2")
 	require.NoError(t, err)
 
 	assert.Equal(t, "ERS-2", collection.Name)
@@ -136,17 +137,17 @@ func TestClient_Collection(t *testing.T) {
 	assert.NotZero(t, collection.Count)
 }
 
-func TestClient_Load(t *testing.T) {
+func TestClient_Data_Load(t *testing.T) {
 	ctx := context.Background()
 	client, err := NewReplayClient(t, "load")
 	if err != nil {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	dataset, err := client.Dataset(ctx, "open_data.asf.ers_sar")
+	dataset, err := client.Datasets.Get(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)
 
-	collection, err := dataset.Collection(ctx, "ERS-2")
+	collection, err := client.Collections.Get(ctx, dataset.ID, "ERS-2")
 	require.NoError(t, err)
 	assert.Equal(t, "ERS-2", collection.Name)
 
@@ -154,7 +155,7 @@ func TestClient_Load(t *testing.T) {
 	interval := NewStandardTimeInterval(jan2000, jan2000.AddDate(0, 0, 7))
 
 	t.Run("CollectAs", func(t *testing.T) {
-		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](collection.Load(ctx, interval))
+		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](client.Datapoints.Load(ctx, collection.ID, interval))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 298)
@@ -164,7 +165,7 @@ func TestClient_Load(t *testing.T) {
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
-		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](collection.Load(ctx, interval, WithSkipData()))
+		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](client.Datapoints.Load(ctx, collection.ID, interval, WithSkipData()))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 298)
@@ -173,7 +174,7 @@ func TestClient_Load(t *testing.T) {
 	})
 
 	t.Run("CollectAs WithSkipMeta", func(t *testing.T) {
-		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](collection.Load(ctx, interval, WithSkipMeta()))
+		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](client.Datapoints.Load(ctx, collection.ID, interval, WithSkipMeta()))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 298)
@@ -183,7 +184,7 @@ func TestClient_Load(t *testing.T) {
 	})
 
 	t.Run("CollectAs WithSkipData WithSkipMeta", func(t *testing.T) {
-		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](collection.Load(ctx, interval, WithSkipData(), WithSkipMeta()))
+		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](client.Datapoints.Load(ctx, collection.ID, interval, WithSkipData(), WithSkipMeta()))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 298)
@@ -194,24 +195,24 @@ func TestClient_Load(t *testing.T) {
 }
 
 type mockService struct {
-	meta []*datasetsv1.DatapointMetadata
+	meta []*DatapointMetadata
 	data [][]byte
 
-	Service
+	DatapointsClient
 }
 
-func NewMockService(tb testing.TB, n int) Service {
+func NewMockDatapointsClient(tb testing.TB, n int) DatapointsClient {
 	// generate some mock data
-	meta := make([]*datasetsv1.DatapointMetadata, n)
+	meta := make([]*DatapointMetadata, n)
 	data := make([][]byte, n)
 	for i := range n {
-		id := uuid.New().String()
-		meta[i] = &datasetsv1.DatapointMetadata{
-			Id: &id,
+		id := uuid.New()
+		meta[i] = &DatapointMetadata{
+			ID: id,
 		}
 
 		datapoint := &datasetsv1.CopernicusDataspaceGranule{
-			GranuleName:     id,
+			GranuleName:     id.String(),
 			ProcessingLevel: datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1,
 			Satellite:       "Sentinel-1",
 			FlightDirection: datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING,
@@ -231,32 +232,37 @@ func NewMockService(tb testing.TB, n int) Service {
 	}
 }
 
-func (s *mockService) GetDatasetForInterval(_ context.Context, _ uuid.UUID, _ *datasetsv1.TimeInterval, _ *datasetsv1.DatapointInterval, _ *datasetsv1.Pagination, _ bool, _ bool) (*datasetsv1.DatapointPage, error) {
-	return &datasetsv1.DatapointPage{
-		Meta: s.meta,
-		Data: &datasetsv1.RepeatedAny{
-			Value: s.data,
-		},
-	}, nil
+func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ LoadInterval, _ ...LoadOption) iter.Seq2[*RawDatapoint, error] {
+	return func(yield func(*RawDatapoint, error) bool) {
+		for i := range s.meta {
+			datapoint := &RawDatapoint{
+				Meta: s.meta[i],
+				Data: s.data[i],
+			}
+			if !yield(datapoint, nil) {
+				return
+			}
+		}
+	}
 }
 
 // result is used to avoid the compiler optimizing away the benchmark output
 var result []*Datapoint[*datasetsv1.CopernicusDataspaceGranule]
 
-// BenchmarkCollectAsLoad benchmarks the CollectAs + Load functions
+// BenchmarkCollectAs benchmarks the CollectAs function
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
-func BenchmarkCollectAsLoad(b *testing.B) {
+func BenchmarkCollectAs(b *testing.B) {
 	ctx := context.Background()
+	collectionID := uuid.New()             // dummy collection ID
 	loadInterval := newEmptyTimeInterval() // dummy load interval
 
-	collection := &Collection{
-		service: NewMockService(b, 1000),
-	}
+	client := NewClient()
+	client.Datapoints = NewMockDatapointsClient(b, 1000)
 
 	var r []*Datapoint[*datasetsv1.CopernicusDataspaceGranule] // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
-			data := collection.Load(ctx, loadInterval)
+			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
 			r, _ = CollectAs[*datasetsv1.CopernicusDataspaceGranule](data)
 		}
 	})
@@ -264,7 +270,7 @@ func BenchmarkCollectAsLoad(b *testing.B) {
 
 	b.Run("Marshal and no reflection", func(b *testing.B) {
 		for range b.N {
-			data := collection.Load(ctx, loadInterval)
+			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
 			datapoints := make([]*datasetsv1.CopernicusDataspaceGranule, 0)
 			for datapoint, err := range data {
 				if err != nil {
@@ -283,7 +289,7 @@ func BenchmarkCollectAsLoad(b *testing.B) {
 
 	b.Run("No marshal and no reflection", func(b *testing.B) {
 		for range b.N {
-			data := collection.Load(ctx, loadInterval)
+			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
 			datapoints := make([]*RawDatapoint, 0)
 			for datapoint, err := range data {
 				if err != nil {

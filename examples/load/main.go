@@ -20,13 +20,13 @@ func main() {
 	)
 
 	// Select a dataset
-	dataset, err := client.Dataset(ctx, "open_data.copernicus.sentinel1_sar")
+	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel1_sar")
 	if err != nil {
 		log.Fatalf("Failed to get dataset: %v", err)
 	}
 
 	// Select a collection
-	collection, err := dataset.Collection(ctx, "S1A_EW_GRDM_1S-COG")
+	collection, err := client.Collections.Get(ctx, dataset.ID, "S1A_EW_GRDM_1S-COG")
 	if err != nil {
 		log.Fatalf("Failed to get collection: %v", err)
 	}
@@ -36,7 +36,7 @@ func main() {
 	loadInterval := tileboxdatasets.NewStandardTimeInterval(oneMonthAgo, time.Now())
 
 	// Load one month of data
-	datapoints, err := tileboxdatasets.CollectAs[*datasetsv1.CopernicusDataspaceGranule](collection.Load(ctx, loadInterval))
+	datapoints, err := tileboxdatasets.CollectAs[*datasetsv1.CopernicusDataspaceGranule](client.Datapoints.Load(ctx, collection.ID, loadInterval))
 	if err != nil {
 		log.Fatalf("Failed to load and collect datapoints: %v", err)
 	}
