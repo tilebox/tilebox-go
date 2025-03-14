@@ -36,9 +36,10 @@ func main() {
 	loadInterval := tileboxdatasets.NewStandardTimeInterval(oneMonthAgo, time.Now())
 
 	// Load one month of data
-	datapoints, err := tileboxdatasets.CollectAs[*datasetsv1.CopernicusDataspaceGranule](client.Datapoints.Load(ctx, collection.ID, loadInterval))
+	var datapoints []*tileboxdatasets.TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
+	err = client.Datapoints.LoadInto(ctx, collection.ID, loadInterval, &datapoints)
 	if err != nil {
-		log.Fatalf("Failed to load and collect datapoints: %v", err)
+		log.Fatalf("Failed to load datapoints: %v", err)
 	}
 
 	slog.Info("Datapoints loaded", slog.Int("count", len(datapoints)))

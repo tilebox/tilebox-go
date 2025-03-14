@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"iter"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,8 +17,9 @@ import (
 
 type DatapointsClient interface {
 	Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error]
-	Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error)
-	Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error)
+	LoadInto(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, datapoints any, options ...LoadOption) error
+	Ingest(ctx context.Context, collectionID uuid.UUID, data []*Datapoint, allowExisting bool) (*IngestResponse, error)
+	Delete(ctx context.Context, collectionID uuid.UUID, data []*Datapoint) (*DeleteResponse, error)
 	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error)
 }
 
@@ -143,6 +145,57 @@ func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, inter
 	}
 }
 
+// LoadInto loads datapoints from a collection into a slice of datapoints.
+// LoadInto is a convenience function for Load.
+//
+// Example usage:
+// var datapoints []*tileboxdatasets.TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
+// err := client.Datapoints.LoadInto(ctx, collection.ID, loadInterval, &datapoints)
+func (d datapointClient) LoadInto(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, datapoints any, options ...LoadOption) error {
+	rv := reflect.ValueOf(datapoints)
+	if rv.Kind() != reflect.Pointer || rv.IsNil() {
+		return fmt.Errorf("datapoints must be a pointer, got %v", reflect.TypeOf(datapoints))
+	}
+	slice := reflect.Indirect(rv)
+	if slice.Kind() != reflect.Slice {
+		return fmt.Errorf("datapoints must be a pointer to a slice, got %v", reflect.TypeOf(datapoints))
+	}
+	if slice.Type().Elem().Kind() != reflect.Pointer {
+		return fmt.Errorf("datapoints must be a pointer to a slice of *TypedDatapoint, got %v", reflect.TypeOf(datapoints))
+	}
+	if !strings.HasPrefix(slice.Type().Elem().Elem().Name(), "TypedDatapoint[") {
+		return fmt.Errorf("datapoints must be a pointer to a slice of *TypedDatapoint, got %v", reflect.TypeOf(datapoints))
+	}
+
+	typedDatapointType := slice.Type().Elem().Elem()
+	dataField, ok := typedDatapointType.FieldByName("Data")
+	if !ok {
+		return errors.New("datapoints does not contain a field named Data")
+	}
+	datapointType := dataField.Type.Elem()
+
+	rawDatapoints, err := Collect(d.Load(ctx, collectionID, interval, options...))
+	if err != nil {
+		return err
+	}
+
+	slice.Set(reflect.MakeSlice(slice.Type(), len(rawDatapoints), len(rawDatapoints)))
+
+	for i, rawDatapoint := range rawDatapoints {
+		typedDatapoint := reflect.New(typedDatapointType)
+		reflect.Indirect(typedDatapoint).FieldByName("Meta").Set(reflect.ValueOf(rawDatapoint.Meta))
+		reflect.Indirect(typedDatapoint).FieldByName("Data").Set(reflect.New(datapointType))
+
+		err := proto.Unmarshal(rawDatapoint.Data, reflect.Indirect(typedDatapoint).FieldByName("Data").Interface().(proto.Message))
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal datapoint data: %w", err)
+		}
+
+		slice.Index(i).Set(typedDatapoint)
+	}
+	return nil
+}
+
 // IngestResponse contains the response from the Ingest method.
 type IngestResponse struct {
 	// NumCreated is the number of datapoints that were created.
@@ -161,7 +214,12 @@ type IngestResponse struct {
 // exist will be ignored, and the number of such existing datapoints will be returned in the response. If false, any
 // datapoints that already exist will result in an error. Setting this to true is useful for achieving idempotency (e.g.
 // allowing re-ingestion of datapoints that have already been ingested in the past).
-func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint, allowExisting bool) (*IngestResponse, error) {
+func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, data []*Datapoint, allowExisting bool) (*IngestResponse, error) {
+	rawDatapoints, err := toRawDatapoints(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert datapoints to raw datapoints: %w", err)
+	}
+
 	datapoints := &datasetsv1.Datapoints{
 		Meta: make([]*datasetsv1.DatapointMetadata, len(data)),
 		Data: &datasetsv1.RepeatedAny{
@@ -169,7 +227,7 @@ func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, dat
 		},
 	}
 
-	for i, datapoint := range data {
+	for i, datapoint := range rawDatapoints {
 		datapoints.GetMeta()[i] = &datasetsv1.DatapointMetadata{
 			EventTime: timestamppb.New(datapoint.Meta.EventTime),
 		}
@@ -206,7 +264,7 @@ type DeleteResponse struct {
 // Delete datapoints from a collection.
 //
 // The datapoints are identified by their IDs.
-func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, data []*RawDatapoint) (*DeleteResponse, error) {
+func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, data []*Datapoint) (*DeleteResponse, error) {
 	datapointIDs := make([]uuid.UUID, len(data))
 	for i, datapoint := range data {
 		datapointIDs[i] = datapoint.Meta.ID
@@ -237,13 +295,20 @@ type DatapointMetadata struct {
 	IngestionTime time.Time
 }
 
-// Datapoint represents a datapoint in a collection.
-// It contains the metadata and the data itself.
-type Datapoint[T proto.Message] struct {
+type TypedDatapoint[T proto.Message] struct {
 	// Meta contains the metadata of the datapoint.
 	Meta *DatapointMetadata
 	// Data contains the data of the datapoint.
 	Data T
+}
+
+// Datapoint represents a datapoint in a collection.
+// It contains the metadata and the data itself.
+type Datapoint struct {
+	// Meta contains the metadata of the datapoint.
+	Meta *DatapointMetadata
+	// Data contains the data of the datapoint.
+	Data proto.Message
 }
 
 // RawDatapoint is an internal representation of a datapoint.
@@ -257,8 +322,8 @@ type RawDatapoint struct {
 }
 
 // NewDatapoint creates a new datapoint with the given time and message.
-func NewDatapoint[T proto.Message](time time.Time, message T) *Datapoint[T] {
-	return &Datapoint[T]{
+func NewDatapoint(time time.Time, message proto.Message) *Datapoint {
+	return &Datapoint{
 		Meta: &DatapointMetadata{
 			EventTime: time,
 		},
@@ -269,7 +334,7 @@ func NewDatapoint[T proto.Message](time time.Time, message T) *Datapoint[T] {
 // Datapoints converts a list of Datapoint to RawDatapoint.
 //
 // It is used to convert the data before ingesting it into a collection.
-func Datapoints[T proto.Message](data ...*Datapoint[T]) ([]*RawDatapoint, error) {
+func toRawDatapoints(data []*Datapoint) ([]*RawDatapoint, error) {
 	rawDatapoints := make([]*RawDatapoint, len(data))
 	for i, datapoint := range data {
 		message, err := proto.Marshal(datapoint.Data)
@@ -285,8 +350,8 @@ func Datapoints[T proto.Message](data ...*Datapoint[T]) ([]*RawDatapoint, error)
 	return rawDatapoints, nil
 }
 
-// CollectAs converts a sequence of RawDatapoint into a slice of Datapoint with the given type.
-func CollectAs[T proto.Message](seq iter.Seq2[*RawDatapoint, error]) ([]*Datapoint[T], error) {
+// CollectAs converts a sequence of RawDatapoint into a slice of TypedDatapoint with the given type.
+func CollectAs[T proto.Message](seq iter.Seq2[*RawDatapoint, error]) ([]*TypedDatapoint[T], error) {
 	return Collect(As[T](seq))
 }
 
@@ -305,12 +370,12 @@ func Collect[K any](seq iter.Seq2[K, error]) ([]K, error) {
 	return s, nil
 }
 
-// As converts a sequence of RawDatapoint into a sequence of Datapoint with the given type.
-func As[T proto.Message](seq iter.Seq2[*RawDatapoint, error]) iter.Seq2[*Datapoint[T], error] {
+// As converts a sequence of RawDatapoint into a sequence of TypedDatapoint with the given type.
+func As[T proto.Message](seq iter.Seq2[*RawDatapoint, error]) iter.Seq2[*TypedDatapoint[T], error] {
 	var t T
 	descriptor := reflect.New(reflect.TypeOf(t).Elem()).Interface().(T).ProtoReflect()
 
-	return func(yield func(*Datapoint[T], error) bool) {
+	return func(yield func(*TypedDatapoint[T], error) bool) {
 		for rawDatapoint, err := range seq {
 			if err != nil {
 				yield(nil, err)
@@ -324,7 +389,7 @@ func As[T proto.Message](seq iter.Seq2[*RawDatapoint, error]) iter.Seq2[*Datapoi
 				return
 			}
 
-			datapoint := &Datapoint[T]{
+			datapoint := &TypedDatapoint[T]{
 				Meta: rawDatapoint.Meta,
 				Data: data,
 			}
