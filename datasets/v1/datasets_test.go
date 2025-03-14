@@ -247,7 +247,7 @@ func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ LoadInterval, _ ...
 }
 
 // result is used to avoid the compiler optimizing away the benchmark output
-var result []*Datapoint[*datasetsv1.CopernicusDataspaceGranule]
+var result []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
 
 // BenchmarkCollectAs benchmarks the CollectAs function
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
@@ -259,7 +259,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	client := NewClient()
 	client.Datapoints = NewMockDatapointsClient(b, 1000)
 
-	var r []*Datapoint[*datasetsv1.CopernicusDataspaceGranule] // used to avoid the compiler optimizing the output
+	var r []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule] // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
