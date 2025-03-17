@@ -123,6 +123,11 @@ enum AcquisitionMode {
   ACQUISITION_MODE_TST = 26; // Test Mode
 }
 
+// Geometry is of a particular type, e.g. POINT, POLYGON, MULTIPOLYGON, encoded in a binary format
+message Geometry {
+  bytes wkb = 1;  // well-known binary representation of a geometry
+}
+
 
 // GeobufData is a protobuf schema for encoding GeoJSON-like data in a more compact binary format.
 // It's a super type for one of FeatureCollection, Feature, or Geometry.
