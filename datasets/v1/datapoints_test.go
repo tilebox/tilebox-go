@@ -13,11 +13,11 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func NewDatapointClient(n int) (DatapointsClient, error) {
+func NewDatapointClient(n int) DatapointClient {
 	return &datapointClient{
 		dataIngestionService: mockDataIngestionService{},
 		dataAccessService:    mockDataAccessService{n: n},
-	}, nil
+	}
 }
 
 type mockDataIngestionService struct {
@@ -64,8 +64,7 @@ func (m mockDataAccessService) GetDatasetForInterval(_ context.Context, _ uuid.U
 
 func Test_datapointClient_LoadInto(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewDatapointClient(10)
-	require.NoError(t, err)
+	client := NewDatapointClient(10)
 
 	collectionID := uuid.New()
 	interval := NewStandardTimeInterval(time.Now(), time.Now())
@@ -161,8 +160,7 @@ var resultLoadInto []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
 // BenchmarkCollectAs benchmarks the LoadInto method
 func Benchmark_LoadInto(b *testing.B) {
 	ctx := context.Background()
-	client, err := NewDatapointClient(1000)
-	require.NoError(b, err)
+	client := NewDatapointClient(1000)
 
 	collectionID := uuid.New()
 	interval := NewStandardTimeInterval(time.Now(), time.Now())
@@ -170,7 +168,7 @@ func Benchmark_LoadInto(b *testing.B) {
 	var datapoints []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
-			err = client.LoadInto(ctx, collectionID, interval, &datapoints)
+			err := client.LoadInto(ctx, collectionID, interval, &datapoints)
 			require.NoError(b, err)
 		}
 	})
@@ -238,10 +236,10 @@ type mockService struct {
 	meta []*DatapointMetadata
 	data [][]byte
 
-	DatapointsClient
+	DatapointClient
 }
 
-func NewMockDatapointsClient(tb testing.TB, n int) DatapointsClient {
+func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	// generate some mock data
 	meta := make([]*DatapointMetadata, n)
 	data := make([][]byte, n)
@@ -297,7 +295,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	loadInterval := newEmptyTimeInterval() // dummy load interval
 
 	client := NewClient()
-	client.Datapoints = NewMockDatapointsClient(b, 1000)
+	client.Datapoints = NewMockDatapointClient(b, 1000)
 
 	var r []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule] // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
