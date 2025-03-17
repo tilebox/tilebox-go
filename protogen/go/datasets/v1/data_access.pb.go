@@ -173,6 +173,7 @@ func (x *GetDatapointByIdRequest) GetSkipData() bool {
 	return false
 }
 
+// QueryFilters contains the filters to apply to a query.
 type QueryFilters struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Either time interval or datapoint interval must be set, but not both.
