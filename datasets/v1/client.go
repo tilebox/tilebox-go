@@ -20,7 +20,7 @@ const otelTracerName = "tilebox.com/observability"
 type Client struct {
 	Datasets    DatasetClient
 	Collections CollectionClient
-	Datapoints  DatapointsClient
+	Datapoints  DatapointClient
 }
 
 // NewClient creates a new Tilebox Datasets client.

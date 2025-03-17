@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type DatapointsClient interface {
+type DatapointClient interface {
 	Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error]
 	LoadInto(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, datapoints any, options ...LoadOption) error
 	Ingest(ctx context.Context, collectionID uuid.UUID, data []*Datapoint, allowExisting bool) (*IngestResponse, error)
@@ -23,7 +23,7 @@ type DatapointsClient interface {
 	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error)
 }
 
-var _ DatapointsClient = &datapointClient{}
+var _ DatapointClient = &datapointClient{}
 
 type datapointClient struct {
 	dataIngestionService DataIngestionService
