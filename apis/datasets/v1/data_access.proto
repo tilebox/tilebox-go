@@ -1,4 +1,4 @@
-// Proto messages and service definition for the APIs related to loading and quering data.
+// Proto messages and service definition for the APIs related to loading and querying data.
 
 syntax = "proto3";
 
@@ -29,7 +29,32 @@ message GetDatapointByIdRequest {
   bool skip_data = 3; // If true, only the datapoint metadata is returned.
 }
 
+message QueryFilters {
+  // Either time interval or datapoint interval must be set, but not both.
+  oneof temporal_interval {
+    TimeInterval time_interval = 1;
+    DatapointInterval datapoint_interval = 2;
+  }
+}
 
+// QueryRequest contains the request parameters for retrieving data from a Tilebox dataset.
+message QueryRequest {
+  repeated ID collection_ids = 1; // collection ids to query.
+  QueryFilters filters = 2; // Filters to apply to the query.
+
+  optional Pagination page = 3; // The pagination parameters for this request.
+  bool skip_data = 4; // If true, the datapoint data is not returned.
+  // If true, the datapoint metadata is not returned.
+  // If both skip_data and skip_meta are true,
+  // the response will only consist of a list of datapoint ids without any additional data or metadata.
+  bool skip_meta = 5;
+}
+
+// QueryResponse is a single page of data points of a Tilebox dataset
+message QueryResponse {
+  RepeatedAny data = 1; // The datapoints.
+  optional Pagination next_page = 2; // The pagination parameters for the next page.
+}
 
 // DataAccessService provides data access and querying capabilities for Tilebox datasets.
 service DataAccessService {
@@ -37,4 +62,6 @@ service DataAccessService {
   rpc GetDatasetForInterval(GetDatasetForIntervalRequest) returns (DatapointPage) {}
   // GetDatapointByID returns a single datapoint by its ID.
   rpc GetDatapointByID(GetDatapointByIdRequest) returns (Datapoint) {}
+  // Query returns a list of data points.
+  rpc Query(QueryRequest) returns (QueryResponse) {}
 }
