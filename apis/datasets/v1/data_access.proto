@@ -29,13 +29,18 @@ message GetDatapointByIdRequest {
   bool skip_data = 3; // If true, only the datapoint metadata is returned.
 }
 
+message QueryFilters {
+  // Either time interval or datapoint interval must be set, but not both.
+  oneof temporal_interval {
+    TimeInterval time_interval = 1;
+    DatapointInterval datapoint_interval = 2;
+  }
+}
+
 // QueryRequest contains the request parameters for retrieving data from a Tilebox dataset.
 message QueryRequest {
   repeated ID collection_ids = 1; // collection ids to query.
-
-  // Either time interval or datapoint interval must be set, but not both.
-  TimeInterval time_interval = 2; // The time interval for which data is requested.
-  DatapointInterval datapoint_interval = 6; // The datapoint interval for which data is requested.
+  QueryFilters filters = 2; // Filters to apply to the query.
 
   optional Pagination page = 3; // The pagination parameters for this request.
   bool skip_data = 4; // If true, the datapoint data is not returned.
