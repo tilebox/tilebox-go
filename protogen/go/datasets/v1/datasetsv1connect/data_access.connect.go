@@ -41,6 +41,9 @@ const (
 	// DataAccessServiceGetDatapointByIDProcedure is the fully-qualified name of the DataAccessService's
 	// GetDatapointByID RPC.
 	DataAccessServiceGetDatapointByIDProcedure = "/datasets.v1.DataAccessService/GetDatapointByID"
+	// DataAccessServiceQueryByIDProcedure is the fully-qualified name of the DataAccessService's
+	// QueryByID RPC.
+	DataAccessServiceQueryByIDProcedure = "/datasets.v1.DataAccessService/QueryByID"
 	// DataAccessServiceQueryProcedure is the fully-qualified name of the DataAccessService's Query RPC.
 	DataAccessServiceQueryProcedure = "/datasets.v1.DataAccessService/Query"
 )
@@ -51,8 +54,10 @@ type DataAccessServiceClient interface {
 	GetDatasetForInterval(context.Context, *connect.Request[v1.GetDatasetForIntervalRequest]) (*connect.Response[v1.DatapointPage], error)
 	// GetDatapointByID returns a single datapoint by its ID.
 	GetDatapointByID(context.Context, *connect.Request[v1.GetDatapointByIdRequest]) (*connect.Response[v1.Datapoint], error)
-	// Query returns a list of data points.
-	Query(context.Context, *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResponse], error)
+	// QueryByID returns a single data point by its ID.
+	QueryByID(context.Context, *connect.Request[v1.QueryByIDRequest]) (*connect.Response[v1.Any], error)
+	// Query returns a list of data points matching the given query filters.
+	Query(context.Context, *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResultPage], error)
 }
 
 // NewDataAccessServiceClient constructs a client for the datasets.v1.DataAccessService service. By
@@ -78,7 +83,13 @@ func NewDataAccessServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(dataAccessServiceMethods.ByName("GetDatapointByID")),
 			connect.WithClientOptions(opts...),
 		),
-		query: connect.NewClient[v1.QueryRequest, v1.QueryResponse](
+		queryByID: connect.NewClient[v1.QueryByIDRequest, v1.Any](
+			httpClient,
+			baseURL+DataAccessServiceQueryByIDProcedure,
+			connect.WithSchema(dataAccessServiceMethods.ByName("QueryByID")),
+			connect.WithClientOptions(opts...),
+		),
+		query: connect.NewClient[v1.QueryRequest, v1.QueryResultPage](
 			httpClient,
 			baseURL+DataAccessServiceQueryProcedure,
 			connect.WithSchema(dataAccessServiceMethods.ByName("Query")),
@@ -91,7 +102,8 @@ func NewDataAccessServiceClient(httpClient connect.HTTPClient, baseURL string, o
 type dataAccessServiceClient struct {
 	getDatasetForInterval *connect.Client[v1.GetDatasetForIntervalRequest, v1.DatapointPage]
 	getDatapointByID      *connect.Client[v1.GetDatapointByIdRequest, v1.Datapoint]
-	query                 *connect.Client[v1.QueryRequest, v1.QueryResponse]
+	queryByID             *connect.Client[v1.QueryByIDRequest, v1.Any]
+	query                 *connect.Client[v1.QueryRequest, v1.QueryResultPage]
 }
 
 // GetDatasetForInterval calls datasets.v1.DataAccessService.GetDatasetForInterval.
@@ -104,8 +116,13 @@ func (c *dataAccessServiceClient) GetDatapointByID(ctx context.Context, req *con
 	return c.getDatapointByID.CallUnary(ctx, req)
 }
 
+// QueryByID calls datasets.v1.DataAccessService.QueryByID.
+func (c *dataAccessServiceClient) QueryByID(ctx context.Context, req *connect.Request[v1.QueryByIDRequest]) (*connect.Response[v1.Any], error) {
+	return c.queryByID.CallUnary(ctx, req)
+}
+
 // Query calls datasets.v1.DataAccessService.Query.
-func (c *dataAccessServiceClient) Query(ctx context.Context, req *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResponse], error) {
+func (c *dataAccessServiceClient) Query(ctx context.Context, req *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResultPage], error) {
 	return c.query.CallUnary(ctx, req)
 }
 
@@ -115,8 +132,10 @@ type DataAccessServiceHandler interface {
 	GetDatasetForInterval(context.Context, *connect.Request[v1.GetDatasetForIntervalRequest]) (*connect.Response[v1.DatapointPage], error)
 	// GetDatapointByID returns a single datapoint by its ID.
 	GetDatapointByID(context.Context, *connect.Request[v1.GetDatapointByIdRequest]) (*connect.Response[v1.Datapoint], error)
-	// Query returns a list of data points.
-	Query(context.Context, *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResponse], error)
+	// QueryByID returns a single data point by its ID.
+	QueryByID(context.Context, *connect.Request[v1.QueryByIDRequest]) (*connect.Response[v1.Any], error)
+	// Query returns a list of data points matching the given query filters.
+	Query(context.Context, *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResultPage], error)
 }
 
 // NewDataAccessServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -138,6 +157,12 @@ func NewDataAccessServiceHandler(svc DataAccessServiceHandler, opts ...connect.H
 		connect.WithSchema(dataAccessServiceMethods.ByName("GetDatapointByID")),
 		connect.WithHandlerOptions(opts...),
 	)
+	dataAccessServiceQueryByIDHandler := connect.NewUnaryHandler(
+		DataAccessServiceQueryByIDProcedure,
+		svc.QueryByID,
+		connect.WithSchema(dataAccessServiceMethods.ByName("QueryByID")),
+		connect.WithHandlerOptions(opts...),
+	)
 	dataAccessServiceQueryHandler := connect.NewUnaryHandler(
 		DataAccessServiceQueryProcedure,
 		svc.Query,
@@ -150,6 +175,8 @@ func NewDataAccessServiceHandler(svc DataAccessServiceHandler, opts ...connect.H
 			dataAccessServiceGetDatasetForIntervalHandler.ServeHTTP(w, r)
 		case DataAccessServiceGetDatapointByIDProcedure:
 			dataAccessServiceGetDatapointByIDHandler.ServeHTTP(w, r)
+		case DataAccessServiceQueryByIDProcedure:
+			dataAccessServiceQueryByIDHandler.ServeHTTP(w, r)
 		case DataAccessServiceQueryProcedure:
 			dataAccessServiceQueryHandler.ServeHTTP(w, r)
 		default:
@@ -169,6 +196,10 @@ func (UnimplementedDataAccessServiceHandler) GetDatapointByID(context.Context, *
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataAccessService.GetDatapointByID is not implemented"))
 }
 
-func (UnimplementedDataAccessServiceHandler) Query(context.Context, *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResponse], error) {
+func (UnimplementedDataAccessServiceHandler) QueryByID(context.Context, *connect.Request[v1.QueryByIDRequest]) (*connect.Response[v1.Any], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataAccessService.QueryByID is not implemented"))
+}
+
+func (UnimplementedDataAccessServiceHandler) Query(context.Context, *connect.Request[v1.QueryRequest]) (*connect.Response[v1.QueryResultPage], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataAccessService.Query is not implemented"))
 }

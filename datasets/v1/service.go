@@ -213,8 +213,9 @@ func (s *dataAccessService) GetDatapointByID(ctx context.Context, collectionID u
 }
 
 type DataIngestionService interface {
-	IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestDatapointsResponse, error)
-	DeleteDatapoints(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteDatapointsResponse, error)
+	// IngestDatapoints is the legacy name for where datapoints are separated into Meta/Data. change this to Ingest() in the future
+	IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestResponse, error)
+	Delete(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteResponse, error)
 }
 
 var _ DataIngestionService = &dataIngestionService{}
@@ -231,8 +232,8 @@ func newDataIngestionService(dataIngestionClient datasetsv1connect.DataIngestion
 	}
 }
 
-func (s *dataIngestionService) IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestDatapointsResponse, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/ingest", func(ctx context.Context) (*datasetsv1.IngestDatapointsResponse, error) {
+func (s *dataIngestionService) IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/ingest", func(ctx context.Context) (*datasetsv1.IngestResponse, error) {
 		res, err := s.dataIngestionClient.IngestDatapoints(ctx, connect.NewRequest(
 			&datasetsv1.IngestDatapointsRequest{
 				CollectionId:  uuidToProtobuf(collectionID),
@@ -248,10 +249,10 @@ func (s *dataIngestionService) IngestDatapoints(ctx context.Context, collectionI
 	})
 }
 
-func (s *dataIngestionService) DeleteDatapoints(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteDatapointsResponse, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/delete", func(ctx context.Context) (*datasetsv1.DeleteDatapointsResponse, error) {
-		res, err := s.dataIngestionClient.DeleteDatapoints(ctx, connect.NewRequest(
-			&datasetsv1.DeleteDatapointsRequest{
+func (s *dataIngestionService) Delete(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/delete", func(ctx context.Context) (*datasetsv1.DeleteResponse, error) {
+		res, err := s.dataIngestionClient.Delete(ctx, connect.NewRequest(
+			&datasetsv1.DeleteRequest{
 				CollectionId: uuidToProtobuf(collectionID),
 				DatapointIds: lo.Map(datapointIDs, func(datapointID uuid.UUID, _ int) *datasetsv1.ID {
 					return uuidToProtobuf(datapointID)

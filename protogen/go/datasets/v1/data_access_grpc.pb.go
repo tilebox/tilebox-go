@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	DataAccessService_GetDatasetForInterval_FullMethodName = "/datasets.v1.DataAccessService/GetDatasetForInterval"
 	DataAccessService_GetDatapointByID_FullMethodName      = "/datasets.v1.DataAccessService/GetDatapointByID"
+	DataAccessService_QueryByID_FullMethodName             = "/datasets.v1.DataAccessService/QueryByID"
 	DataAccessService_Query_FullMethodName                 = "/datasets.v1.DataAccessService/Query"
 )
 
@@ -36,8 +37,10 @@ type DataAccessServiceClient interface {
 	GetDatasetForInterval(ctx context.Context, in *GetDatasetForIntervalRequest, opts ...grpc.CallOption) (*DatapointPage, error)
 	// GetDatapointByID returns a single datapoint by its ID.
 	GetDatapointByID(ctx context.Context, in *GetDatapointByIdRequest, opts ...grpc.CallOption) (*Datapoint, error)
-	// Query returns a list of data points.
-	Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResponse, error)
+	// QueryByID returns a single data point by its ID.
+	QueryByID(ctx context.Context, in *QueryByIDRequest, opts ...grpc.CallOption) (*Any, error)
+	// Query returns a list of data points matching the given query filters.
+	Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResultPage, error)
 }
 
 type dataAccessServiceClient struct {
@@ -68,9 +71,19 @@ func (c *dataAccessServiceClient) GetDatapointByID(ctx context.Context, in *GetD
 	return out, nil
 }
 
-func (c *dataAccessServiceClient) Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResponse, error) {
+func (c *dataAccessServiceClient) QueryByID(ctx context.Context, in *QueryByIDRequest, opts ...grpc.CallOption) (*Any, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(QueryResponse)
+	out := new(Any)
+	err := c.cc.Invoke(ctx, DataAccessService_QueryByID_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *dataAccessServiceClient) Query(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResultPage, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(QueryResultPage)
 	err := c.cc.Invoke(ctx, DataAccessService_Query_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -88,8 +101,10 @@ type DataAccessServiceServer interface {
 	GetDatasetForInterval(context.Context, *GetDatasetForIntervalRequest) (*DatapointPage, error)
 	// GetDatapointByID returns a single datapoint by its ID.
 	GetDatapointByID(context.Context, *GetDatapointByIdRequest) (*Datapoint, error)
-	// Query returns a list of data points.
-	Query(context.Context, *QueryRequest) (*QueryResponse, error)
+	// QueryByID returns a single data point by its ID.
+	QueryByID(context.Context, *QueryByIDRequest) (*Any, error)
+	// Query returns a list of data points matching the given query filters.
+	Query(context.Context, *QueryRequest) (*QueryResultPage, error)
 	mustEmbedUnimplementedDataAccessServiceServer()
 }
 
@@ -106,7 +121,10 @@ func (UnimplementedDataAccessServiceServer) GetDatasetForInterval(context.Contex
 func (UnimplementedDataAccessServiceServer) GetDatapointByID(context.Context, *GetDatapointByIdRequest) (*Datapoint, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDatapointByID not implemented")
 }
-func (UnimplementedDataAccessServiceServer) Query(context.Context, *QueryRequest) (*QueryResponse, error) {
+func (UnimplementedDataAccessServiceServer) QueryByID(context.Context, *QueryByIDRequest) (*Any, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QueryByID not implemented")
+}
+func (UnimplementedDataAccessServiceServer) Query(context.Context, *QueryRequest) (*QueryResultPage, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Query not implemented")
 }
 func (UnimplementedDataAccessServiceServer) mustEmbedUnimplementedDataAccessServiceServer() {}
@@ -166,6 +184,24 @@ func _DataAccessService_GetDatapointByID_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DataAccessService_QueryByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryByIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataAccessServiceServer).QueryByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DataAccessService_QueryByID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataAccessServiceServer).QueryByID(ctx, req.(*QueryByIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _DataAccessService_Query_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryRequest)
 	if err := dec(in); err != nil {
@@ -198,6 +234,10 @@ var DataAccessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDatapointByID",
 			Handler:    _DataAccessService_GetDatapointByID_Handler,
+		},
+		{
+			MethodName: "QueryByID",
+			Handler:    _DataAccessService_QueryByID_Handler,
 		},
 		{
 			MethodName: "Query",

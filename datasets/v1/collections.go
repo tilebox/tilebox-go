@@ -85,7 +85,7 @@ func (c collectionClient) List(ctx context.Context, datasetID uuid.UUID) ([]*Col
 }
 
 func protoToCollection(c *datasetsv1.CollectionInfo) (*Collection, error) {
-	id, err := uuid.Parse(c.GetCollection().GetId())
+	id, err := protoToUUID(c.GetCollection().GetId())
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse collection id: %w", err)
 	}

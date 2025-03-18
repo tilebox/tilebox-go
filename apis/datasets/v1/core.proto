@@ -113,8 +113,9 @@ message Datapoint {
 
 // Collection contains basic information about a dataset collection
 message Collection {
-  string id = 1;
+  string legacy_id = 1; // Here for backwards compatibility, to be removed in the future.
   string name = 2;
+  ID id = 3;
 }
 
 // CollectionInfo contains information about the data available in a dataset collection
