@@ -24,7 +24,7 @@ message GetDatasetRequest {
   // slug of the dataset to be returned, e.g. "open_data.copernicus.sentinel1_sar"
   string slug = 1;
   // or alternatively a dataset id
-  string id = 2;
+  ID id = 2;
 }
 
 // UpdateDatasetRequest is used to update a dataset.
@@ -79,10 +79,11 @@ message ListDatasetsResponse {
   repeated DatasetGroup groups = 2;
   // an optional message to be displayed to the user when they access a list of datasets
   string server_message = 3;
-  // Number of datasets created by the organization
-  int64 nb_created_datasets = 4;
-  // Maximum number of datasets created by the organization
-  int64 nb_created_datasets_limit = 5;
+
+  // Number of datasets that the users organization is the owner of
+  int64 owned_datasets = 4;
+  // Maximum number of datasets that can be created and therefore owned by the organization. Nil means unlimited.
+  optional int64 maximum_owned_datasets = 5;
 }
 
 // DatasetsService is the CRUD service for Tilebox datasets.

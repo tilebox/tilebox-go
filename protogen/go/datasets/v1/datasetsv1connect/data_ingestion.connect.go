@@ -38,15 +38,20 @@ const (
 	// DataIngestionServiceIngestDatapointsProcedure is the fully-qualified name of the
 	// DataIngestionService's IngestDatapoints RPC.
 	DataIngestionServiceIngestDatapointsProcedure = "/datasets.v1.DataIngestionService/IngestDatapoints"
-	// DataIngestionServiceDeleteDatapointsProcedure is the fully-qualified name of the
-	// DataIngestionService's DeleteDatapoints RPC.
-	DataIngestionServiceDeleteDatapointsProcedure = "/datasets.v1.DataIngestionService/DeleteDatapoints"
+	// DataIngestionServiceIngestProcedure is the fully-qualified name of the DataIngestionService's
+	// Ingest RPC.
+	DataIngestionServiceIngestProcedure = "/datasets.v1.DataIngestionService/Ingest"
+	// DataIngestionServiceDeleteProcedure is the fully-qualified name of the DataIngestionService's
+	// Delete RPC.
+	DataIngestionServiceDeleteProcedure = "/datasets.v1.DataIngestionService/Delete"
 )
 
 // DataIngestionServiceClient is a client for the datasets.v1.DataIngestionService service.
 type DataIngestionServiceClient interface {
-	IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestDatapointsResponse], error)
-	DeleteDatapoints(context.Context, *connect.Request[v1.DeleteDatapointsRequest]) (*connect.Response[v1.DeleteDatapointsResponse], error)
+	// legacy ingest endpoint, that separates datapoints into meta and data. Will be removed in the future.
+	IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestResponse], error)
+	Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error)
+	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
 }
 
 // NewDataIngestionServiceClient constructs a client for the datasets.v1.DataIngestionService
@@ -60,16 +65,22 @@ func NewDataIngestionServiceClient(httpClient connect.HTTPClient, baseURL string
 	baseURL = strings.TrimRight(baseURL, "/")
 	dataIngestionServiceMethods := v1.File_datasets_v1_data_ingestion_proto.Services().ByName("DataIngestionService").Methods()
 	return &dataIngestionServiceClient{
-		ingestDatapoints: connect.NewClient[v1.IngestDatapointsRequest, v1.IngestDatapointsResponse](
+		ingestDatapoints: connect.NewClient[v1.IngestDatapointsRequest, v1.IngestResponse](
 			httpClient,
 			baseURL+DataIngestionServiceIngestDatapointsProcedure,
 			connect.WithSchema(dataIngestionServiceMethods.ByName("IngestDatapoints")),
 			connect.WithClientOptions(opts...),
 		),
-		deleteDatapoints: connect.NewClient[v1.DeleteDatapointsRequest, v1.DeleteDatapointsResponse](
+		ingest: connect.NewClient[v1.IngestRequest, v1.IngestResponse](
 			httpClient,
-			baseURL+DataIngestionServiceDeleteDatapointsProcedure,
-			connect.WithSchema(dataIngestionServiceMethods.ByName("DeleteDatapoints")),
+			baseURL+DataIngestionServiceIngestProcedure,
+			connect.WithSchema(dataIngestionServiceMethods.ByName("Ingest")),
+			connect.WithClientOptions(opts...),
+		),
+		delete: connect.NewClient[v1.DeleteRequest, v1.DeleteResponse](
+			httpClient,
+			baseURL+DataIngestionServiceDeleteProcedure,
+			connect.WithSchema(dataIngestionServiceMethods.ByName("Delete")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -77,24 +88,32 @@ func NewDataIngestionServiceClient(httpClient connect.HTTPClient, baseURL string
 
 // dataIngestionServiceClient implements DataIngestionServiceClient.
 type dataIngestionServiceClient struct {
-	ingestDatapoints *connect.Client[v1.IngestDatapointsRequest, v1.IngestDatapointsResponse]
-	deleteDatapoints *connect.Client[v1.DeleteDatapointsRequest, v1.DeleteDatapointsResponse]
+	ingestDatapoints *connect.Client[v1.IngestDatapointsRequest, v1.IngestResponse]
+	ingest           *connect.Client[v1.IngestRequest, v1.IngestResponse]
+	delete           *connect.Client[v1.DeleteRequest, v1.DeleteResponse]
 }
 
 // IngestDatapoints calls datasets.v1.DataIngestionService.IngestDatapoints.
-func (c *dataIngestionServiceClient) IngestDatapoints(ctx context.Context, req *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestDatapointsResponse], error) {
+func (c *dataIngestionServiceClient) IngestDatapoints(ctx context.Context, req *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestResponse], error) {
 	return c.ingestDatapoints.CallUnary(ctx, req)
 }
 
-// DeleteDatapoints calls datasets.v1.DataIngestionService.DeleteDatapoints.
-func (c *dataIngestionServiceClient) DeleteDatapoints(ctx context.Context, req *connect.Request[v1.DeleteDatapointsRequest]) (*connect.Response[v1.DeleteDatapointsResponse], error) {
-	return c.deleteDatapoints.CallUnary(ctx, req)
+// Ingest calls datasets.v1.DataIngestionService.Ingest.
+func (c *dataIngestionServiceClient) Ingest(ctx context.Context, req *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error) {
+	return c.ingest.CallUnary(ctx, req)
+}
+
+// Delete calls datasets.v1.DataIngestionService.Delete.
+func (c *dataIngestionServiceClient) Delete(ctx context.Context, req *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error) {
+	return c.delete.CallUnary(ctx, req)
 }
 
 // DataIngestionServiceHandler is an implementation of the datasets.v1.DataIngestionService service.
 type DataIngestionServiceHandler interface {
-	IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestDatapointsResponse], error)
-	DeleteDatapoints(context.Context, *connect.Request[v1.DeleteDatapointsRequest]) (*connect.Response[v1.DeleteDatapointsResponse], error)
+	// legacy ingest endpoint, that separates datapoints into meta and data. Will be removed in the future.
+	IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestResponse], error)
+	Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error)
+	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
 }
 
 // NewDataIngestionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -110,18 +129,26 @@ func NewDataIngestionServiceHandler(svc DataIngestionServiceHandler, opts ...con
 		connect.WithSchema(dataIngestionServiceMethods.ByName("IngestDatapoints")),
 		connect.WithHandlerOptions(opts...),
 	)
-	dataIngestionServiceDeleteDatapointsHandler := connect.NewUnaryHandler(
-		DataIngestionServiceDeleteDatapointsProcedure,
-		svc.DeleteDatapoints,
-		connect.WithSchema(dataIngestionServiceMethods.ByName("DeleteDatapoints")),
+	dataIngestionServiceIngestHandler := connect.NewUnaryHandler(
+		DataIngestionServiceIngestProcedure,
+		svc.Ingest,
+		connect.WithSchema(dataIngestionServiceMethods.ByName("Ingest")),
+		connect.WithHandlerOptions(opts...),
+	)
+	dataIngestionServiceDeleteHandler := connect.NewUnaryHandler(
+		DataIngestionServiceDeleteProcedure,
+		svc.Delete,
+		connect.WithSchema(dataIngestionServiceMethods.ByName("Delete")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/datasets.v1.DataIngestionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case DataIngestionServiceIngestDatapointsProcedure:
 			dataIngestionServiceIngestDatapointsHandler.ServeHTTP(w, r)
-		case DataIngestionServiceDeleteDatapointsProcedure:
-			dataIngestionServiceDeleteDatapointsHandler.ServeHTTP(w, r)
+		case DataIngestionServiceIngestProcedure:
+			dataIngestionServiceIngestHandler.ServeHTTP(w, r)
+		case DataIngestionServiceDeleteProcedure:
+			dataIngestionServiceDeleteHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -131,10 +158,14 @@ func NewDataIngestionServiceHandler(svc DataIngestionServiceHandler, opts ...con
 // UnimplementedDataIngestionServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedDataIngestionServiceHandler struct{}
 
-func (UnimplementedDataIngestionServiceHandler) IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestDatapointsResponse], error) {
+func (UnimplementedDataIngestionServiceHandler) IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.IngestDatapoints is not implemented"))
 }
 
-func (UnimplementedDataIngestionServiceHandler) DeleteDatapoints(context.Context, *connect.Request[v1.DeleteDatapointsRequest]) (*connect.Response[v1.DeleteDatapointsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.DeleteDatapoints is not implemented"))
+func (UnimplementedDataIngestionServiceHandler) Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.Ingest is not implemented"))
+}
+
+func (UnimplementedDataIngestionServiceHandler) Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.Delete is not implemented"))
 }

@@ -275,7 +275,7 @@ func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, dat
 
 // DeleteIDs deletes datapoints from a collection by their IDs.
 func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
-	response, err := d.dataIngestionService.DeleteDatapoints(ctx, collectionID, datapointIDs)
+	response, err := d.dataIngestionService.Delete(ctx, collectionID, datapointIDs)
 	if err != nil {
 		return nil, err
 	}
