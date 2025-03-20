@@ -182,7 +182,7 @@ func (s *dataAccessService) GetDatasetForInterval(ctx context.Context, collectio
 				CollectionId:      collectionID.String(),
 				TimeInterval:      timeInterval,
 				DatapointInterval: datapointInterval,
-				Page:              page,
+				Page:              paginationToLegacyPagination(page),
 				SkipData:          skipData,
 				SkipMeta:          skipMeta,
 			},
@@ -265,4 +265,38 @@ func (s *dataIngestionService) Delete(ctx context.Context, collectionID uuid.UUI
 
 		return res.Msg, nil
 	})
+}
+
+func paginationToLegacyPagination(pagination *datasetsv1.Pagination) *datasetsv1.LegacyPagination {
+	if pagination == nil {
+		return nil
+	}
+	p := &datasetsv1.LegacyPagination{
+		Limit: pagination.Limit, //nolint:protogetter // do not use GetLimit() since that converts nil to 0
+	}
+	id, err := protoToUUID(pagination.GetStartingAfter())
+	if err != nil {
+		id = uuid.Nil
+	}
+	if id != uuid.Nil {
+		idAsString := id.String()
+		p.StartingAfter = &idAsString
+	}
+	return p
+}
+
+func paginationFromLegacyPagination(pagination *datasetsv1.LegacyPagination) *datasetsv1.Pagination {
+	if pagination == nil {
+		return nil
+	}
+	p := &datasetsv1.Pagination{
+		Limit: pagination.Limit, //nolint:protogetter // do not use GetLimit() since that converts nil to 0
+	}
+	if pagination.StartingAfter != nil {
+		id, err := uuid.Parse(pagination.GetStartingAfter())
+		if err != nil && id != uuid.Nil {
+			p.StartingAfter = uuidToProtobuf(id)
+		}
+	}
+	return p
 }

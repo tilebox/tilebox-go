@@ -43,8 +43,8 @@ message TimeInterval {
 
 // A datapoint interval
 message DatapointInterval {
-  string start_id = 1; // The id of the first data point in the interval.
-  string end_id = 2; // The id of the last data point in the interval.
+  ID start_id = 1; // The id of the first data point in the interval.
+  ID end_id = 2; // The id of the last data point in the interval.
 
   // We use exclusive for start and inclusive for end, because that way when both are false
   // we have a half-open interval [start, end) which is the default behaviour we want to achieve.
@@ -56,13 +56,22 @@ message DatapointInterval {
   bool end_inclusive = 4;
 }
 
+// LegacyPagination - used for backwards compatibility, will be removed as soon as all datasets are migrated
+message LegacyPagination {
+  // The maximum number of entries to return.
+  optional int64 limit = 1;
+  // Return entries starting after this entry.
+  // This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
+  optional string starting_after = 2;
+}
+
 // Pagination information for paginated queries
 message Pagination {
   // The maximum number of entries to return.
   optional int64 limit = 1;
   // Return entries starting after this entry.
   // This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
-  optional string starting_after = 2;
+  optional ID starting_after = 2;
 }
 
 // Any is a message that can hold any other message as bytes.
@@ -102,7 +111,7 @@ message Datapoints {
 message DatapointPage {
   repeated DatapointMetadata meta = 1; // A metadata for a datapoint.
   RepeatedAny data = 2; // The datapoints.
-  optional Pagination next_page = 3; // The pagination parameters for the next page.
+  optional LegacyPagination next_page = 3; // The pagination parameters for the next page.
 }
 
 // Datapoint is a single datapoint in a Tilebox Dataset
