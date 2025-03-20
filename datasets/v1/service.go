@@ -294,7 +294,7 @@ func paginationFromLegacyPagination(pagination *datasetsv1.LegacyPagination) *da
 	}
 	if pagination.StartingAfter != nil {
 		id, err := uuid.Parse(pagination.GetStartingAfter())
-		if err != nil && id != uuid.Nil {
+		if err == nil && id != uuid.Nil {
 			p.StartingAfter = uuidToProtobuf(id)
 		}
 	}
