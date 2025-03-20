@@ -137,7 +137,7 @@ func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, inter
 				}
 			}
 
-			page = datapointsMessage.GetNextPage()
+			page = paginationFromLegacyPagination(datapointsMessage.GetNextPage())
 			if page == nil {
 				break
 			}

@@ -15,7 +15,7 @@ message GetDatasetForIntervalRequest {
   TimeInterval time_interval = 2; // The time interval for which data is requested.
   DatapointInterval datapoint_interval = 6; // The datapoint interval for which data is requested.
 
-  optional Pagination page = 3; // The pagination parameters for this request.
+  optional LegacyPagination page = 3; // The pagination parameters for this request.
   bool skip_data = 4; // If true, the datapoint data is not returned.
   // If true, the datapoint metadata is not returned.
   // If both skip_data and skip_meta are true,
