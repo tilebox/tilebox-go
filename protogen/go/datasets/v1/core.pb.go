@@ -557,6 +557,7 @@ func (x *RepeatedAny) GetValue() [][]byte {
 }
 
 // DatapointMetadata contains the metadata for a single data point.
+// legacy, only relevant for old endpoints
 type DatapointMetadata struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EventTime     *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=event_time,json=eventTime,proto3" json:"event_time,omitempty"`             // The time the message was received by the on-board computer.

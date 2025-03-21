@@ -95,6 +95,7 @@ message RepeatedAny {
  */
 
 // DatapointMetadata contains the metadata for a single data point.
+// legacy, only relevant for old endpoints
 message DatapointMetadata {
   google.protobuf.Timestamp event_time = 1; // The time the message was received by the on-board computer.
   google.protobuf.Timestamp ingestion_time = 2; // The time the message was ingested by Tilebox.

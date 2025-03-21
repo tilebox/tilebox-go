@@ -5,6 +5,9 @@ syntax = "proto3";
 package datasets.v1;
 
 import "google/protobuf/descriptor.proto";
+import "google/protobuf/timestamp.proto";
+
+import "datasets/v1/well_known_types.proto";
 
 // Field describes a field of a dataset.
 message Field {
@@ -57,4 +60,22 @@ message AnnotatedType {
   reserved 3;
   repeated FieldAnnotation field_annotations = 4;
   DatasetKind kind = 5;
+}
+
+
+// TemporalDatapoint is a single datapoint in a temporal dataset. The message is a superset of all
+// message types that are Temporal Datasets.
+message TemporalDatapoint {
+  google.protobuf.Timestamp time = 1;  // The timestamp associated with ach data point.
+  UUID id = 2;  // A universally unique identifier (UUID) that uniquely identifies each data point.
+  google.protobuf.Timestamp ingestion_time = 3; // The time the data point was ingested into the Tilebox API.
+}
+
+// SpatioTemporalDatapoint is a single datapoint in a spatiotemporal dataset. The message is a superset of all
+// message types that are spatiotemporal Datasets.
+message SpatioTemporalDatapoint {
+  google.protobuf.Timestamp time = 1;  // The timestamp associated with each data point.
+  UUID id = 2;  // A universally unique identifier (UUID) that uniquely identifies each data point.
+  google.protobuf.Timestamp ingestion_time = 3; // The time the data point was ingested into the Tilebox API.
+  Geometry geometry = 4; // The geometry associated with each data point.
 }
