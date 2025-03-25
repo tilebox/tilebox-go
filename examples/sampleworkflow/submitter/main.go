@@ -16,8 +16,10 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-var serviceName = "task-runner"
-var version = "dev"
+var (
+	serviceName = "task-runner"
+	version     = "dev"
+)
 
 func main() {
 	ctx := context.Background()

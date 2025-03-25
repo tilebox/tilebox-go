@@ -272,7 +272,7 @@ func paginationToLegacyPagination(pagination *datasetsv1.Pagination) *datasetsv1
 		return nil
 	}
 	p := &datasetsv1.LegacyPagination{
-		Limit: pagination.Limit, //nolint:protogetter // do not use GetLimit() since that converts nil to 0
+		Limit: pagination.Limit,
 	}
 	id, err := protoToUUID(pagination.GetStartingAfter())
 	if err != nil {
@@ -290,7 +290,7 @@ func paginationFromLegacyPagination(pagination *datasetsv1.LegacyPagination) *da
 		return nil
 	}
 	p := &datasetsv1.Pagination{
-		Limit: pagination.Limit, //nolint:protogetter // do not use GetLimit() since that converts nil to 0
+		Limit: pagination.Limit,
 	}
 	if pagination.StartingAfter != nil {
 		id, err := uuid.Parse(pagination.GetStartingAfter())

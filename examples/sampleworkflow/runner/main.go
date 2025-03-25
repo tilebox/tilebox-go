@@ -15,8 +15,10 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-var serviceName = "task-runner"
-var version = "dev"
+var (
+	serviceName = "task-runner"
+	version     = "dev"
+)
 
 func main() {
 	ctx := context.Background()
@@ -64,7 +66,6 @@ func main() {
 		workflows.WithRunnerLogger(log),
 		workflows.WithRunnerTracerProvider(tracerProvider),
 	)
-
 	if err != nil {
 		log.Error("failed to create task runner", "error", err)
 		return
