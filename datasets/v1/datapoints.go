@@ -33,7 +33,6 @@ type datapointClient struct {
 // loadConfig contains the configuration for a Load request.
 type loadConfig struct {
 	skipData bool
-	skipMeta bool
 }
 
 // LoadOption is an interface for configuring a Load request.
@@ -41,7 +40,7 @@ type LoadOption func(*loadConfig)
 
 // WithSkipData skips the data when loading datapoints.
 // It is an optional flag for omitting the actual datapoint data from the response.
-// If set, no datapoint data will be returned.
+// If set, only the datapoint metadata will be returned.
 //
 // Defaults to false.
 func WithSkipData() LoadOption {
@@ -50,21 +49,9 @@ func WithSkipData() LoadOption {
 	}
 }
 
-// WithSkipMeta skips the metadata when loading datapoints.
-// It is an optional flag for omitting the metadata from the response.
-// If set, no metadata will be returned.
-//
-// Defaults to false.
-func WithSkipMeta() LoadOption {
-	return func(cfg *loadConfig) {
-		cfg.skipMeta = true
-	}
-}
-
 func newLoadConfig(options []LoadOption) *loadConfig {
 	cfg := &loadConfig{
 		skipData: false,
-		skipMeta: false,
 	}
 	for _, option := range options {
 		option(cfg)
@@ -77,9 +64,7 @@ func newLoadConfig(options []LoadOption) *loadConfig {
 //
 // interval specifies the time or data point interval for which data should be loaded.
 //
-// WithSkipData and WithSkipMeta can be used to skip the data or metadata when loading datapoints.
-// If both WithSkipData and WithSkipMeta are specified, the response will only consist of a list of datapoint IDs without any
-// additional data or metadata.
+// WithSkipData can be used to skip the data when loading datapoints.
 //
 // The datapoints are loaded in a lazy manner, and returned as a sequence of RawDatapoint.
 // The output sequence can be transformed into typed Datapoint using CollectAs or As functions.
@@ -87,6 +72,8 @@ func newLoadConfig(options []LoadOption) *loadConfig {
 // Documentation: https://docs.tilebox.com/datasets/loading-data
 func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[*RawDatapoint, error] {
 	cfg := newLoadConfig(options)
+
+	collectionIDs := []uuid.UUID{collectionID}
 
 	return func(yield func(*RawDatapoint, error) bool) {
 		var page *datasetsv1.Pagination // nil for the first request
@@ -99,45 +86,28 @@ func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, inter
 			return
 		}
 
+		filters := &datasetsv1.QueryFilters{}
+		if timeInterval != nil {
+			filters.TemporalInterval = &datasetsv1.QueryFilters_TimeInterval{TimeInterval: timeInterval}
+		} else {
+			filters.TemporalInterval = &datasetsv1.QueryFilters_DatapointInterval{DatapointInterval: datapointInterval}
+		}
+
 		for {
-			datapointsMessage, err := d.dataAccessService.GetDatasetForInterval(ctx, collectionID, timeInterval, datapointInterval, page, cfg.skipData, cfg.skipMeta)
+			datapointsMessage, err := d.dataAccessService.Query(ctx, collectionIDs, filters, page, cfg.skipData)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			// if skipMeta is true, datapointsMessage.GetMeta() is not nil and contains the datapoint ids
-			for i, dp := range datapointsMessage.GetMeta() {
-				datapointID, err := uuid.Parse(dp.GetId())
-				if err != nil {
-					yield(nil, fmt.Errorf("failed to parse datapoint id from response: %w", err))
-					return
-				}
-
-				meta := &DatapointMetadata{
-					ID: datapointID,
-				}
-				var data []byte
-
-				if !cfg.skipMeta {
-					meta.EventTime = dp.GetEventTime().AsTime()
-					meta.IngestionTime = dp.GetIngestionTime().AsTime()
-				}
-
-				if !cfg.skipData {
-					data = datapointsMessage.GetData().GetValue()[i]
-				}
-
-				datapoint := &RawDatapoint{
-					Meta: meta,
-					Data: data,
-				}
+			for _, data := range datapointsMessage.GetData().GetValue() {
+				datapoint := &RawDatapoint{Data: data}
 				if !yield(datapoint, nil) {
 					return
 				}
 			}
 
-			page = paginationFromLegacyPagination(datapointsMessage.GetNextPage())
+			page = datapointsMessage.GetNextPage()
 			if page == nil {
 				break
 			}
@@ -183,10 +153,9 @@ func (d datapointClient) LoadInto(ctx context.Context, collectionID uuid.UUID, i
 
 	for i, rawDatapoint := range rawDatapoints {
 		typedDatapoint := reflect.New(typedDatapointType)
-		reflect.Indirect(typedDatapoint).FieldByName("Meta").Set(reflect.ValueOf(rawDatapoint.Meta))
 		reflect.Indirect(typedDatapoint).FieldByName("Data").Set(reflect.New(datapointType))
 
-		err := proto.Unmarshal(rawDatapoint.Data, reflect.Indirect(typedDatapoint).FieldByName("Data").Interface().(proto.Message))
+		err = proto.Unmarshal(rawDatapoint.Data, reflect.Indirect(typedDatapoint).FieldByName("Data").Interface().(proto.Message))
 		if err != nil {
 			return fmt.Errorf("failed to unmarshal datapoint data: %w", err)
 		}
@@ -229,7 +198,7 @@ func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, dat
 
 	for i, datapoint := range rawDatapoints {
 		datapoints.GetMeta()[i] = &datasetsv1.DatapointMetadata{
-			EventTime: timestamppb.New(datapoint.Meta.EventTime),
+			EventTime: timestamppb.New(data[i].Meta.EventTime),
 		}
 		datapoints.GetData().GetValue()[i] = datapoint.Data
 	}
@@ -315,8 +284,6 @@ type Datapoint struct {
 //
 // It can be transformed into a Datapoint using CollectAs or As functions.
 type RawDatapoint struct {
-	// Meta contains the metadata of the datapoint.
-	Meta *DatapointMetadata
 	// Data contains the data of the datapoint in an internal raw format.
 	Data []byte
 }
@@ -342,10 +309,7 @@ func toRawDatapoints(data []*Datapoint) ([]*RawDatapoint, error) {
 			return nil, fmt.Errorf("failed to marshal datapoint data: %w", err)
 		}
 
-		rawDatapoints[i] = &RawDatapoint{
-			Meta: datapoint.Meta,
-			Data: message,
-		}
+		rawDatapoints[i] = &RawDatapoint{Data: message}
 	}
 	return rawDatapoints, nil
 }
@@ -390,7 +354,6 @@ func As[T proto.Message](seq iter.Seq2[*RawDatapoint, error]) iter.Seq2[*TypedDa
 			}
 
 			datapoint := &TypedDatapoint[T]{
-				Meta: rawDatapoint.Meta,
 				Data: data,
 			}
 			if !yield(datapoint, nil) {
