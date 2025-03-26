@@ -25,22 +25,22 @@ type mockDataIngestionService struct {
 	DataIngestionService
 }
 
+func (m mockDataIngestionService) Ingest(_ context.Context, _ uuid.UUID, datapoints [][]byte, _ bool) (*datasetsv1.IngestResponse, error) {
+	return &datasetsv1.IngestResponse{
+		NumCreated: int64(len(datapoints)),
+	}, nil
+}
+
 type mockDataAccessService struct {
 	n int
 	DataAccessService
 }
 
 func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *datasetsv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
-	meta := make([]*datasetsv1.DatapointMetadata, m.n)
 	data := make([][]byte, m.n)
 	for i := range m.n {
-		id := uuid.New().String()
-		meta[i] = &datasetsv1.DatapointMetadata{
-			Id: &id,
-		}
-
 		datapoint := &datasetsv1.CopernicusDataspaceGranule{
-			GranuleName:     id,
+			GranuleName:     uuid.New().String(),
 			ProcessingLevel: datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1,
 			Satellite:       "Sentinel-1",
 			FlightDirection: datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING,
@@ -85,7 +85,7 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 			args: args{
 				collectionID: collectionID,
 				interval:     interval,
-				datapoints:   &[]*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]{},
+				datapoints:   &[]*datasetsv1.CopernicusDataspaceGranule{},
 				options:      nil,
 			},
 		},
@@ -111,25 +111,11 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 			wantErr: "datapoints must be a pointer to a slice, got *uuid.UUID",
 		},
 		{
-			name: "LoadInto slice wrong type and no pointer",
+			name: "LoadInto slice wrong interface",
 			args: args{
-				datapoints: &[]uuid.UUID{},
+				datapoints: &[]context.Context{},
 			},
-			wantErr: "datapoints must be a pointer to a slice of *TypedDatapoint, got *[]uuid.UUID",
-		},
-		{
-			name: "LoadInto slice pointer but wrong type",
-			args: args{
-				datapoints: &[]*uuid.UUID{},
-			},
-			wantErr: "datapoints must be a pointer to a slice of *TypedDatapoint, got *[]*uuid.UUID",
-		},
-		{
-			name: "LoadInto slice good type but not pointer",
-			args: args{
-				datapoints: &[]TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]{},
-			},
-			wantErr: "datapoints must be a pointer to a slice of *TypedDatapoint, got *[]datasets.TypedDatapoint[*github.com/tilebox/tilebox-go/protogen/go/datasets/v1.CopernicusDataspaceGranule]",
+			wantErr: "datapoints must be a pointer to a slice of proto.Message, got *[]context.Context",
 		},
 	}
 
@@ -145,16 +131,16 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 			// we didn't want an error:
 			require.NoError(t, err, "got an unexpected error")
 
-			datapoints := *tt.args.datapoints.(*[]*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule])
+			datapoints := *tt.args.datapoints.(*[]*datasetsv1.CopernicusDataspaceGranule)
 
 			assert.Len(t, datapoints, 10)
-			assert.NotNil(t, datapoints[0].Data)
+			assert.NotNil(t, datapoints[0])
 		})
 	}
 }
 
 // resultLoadInto is used to avoid the compiler optimizing away the benchmark output
-var resultLoadInto []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
+var resultLoadInto []*datasetsv1.CopernicusDataspaceGranule
 
 // BenchmarkCollectAs benchmarks the LoadInto method
 func Benchmark_LoadInto(b *testing.B) {
@@ -164,7 +150,7 @@ func Benchmark_LoadInto(b *testing.B) {
 	collectionID := uuid.New()
 	interval := NewStandardTimeInterval(time.Now(), time.Now())
 
-	var datapoints []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
+	var datapoints []*datasetsv1.CopernicusDataspaceGranule
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
 			err := client.LoadInto(ctx, collectionID, interval, &datapoints)
@@ -196,9 +182,9 @@ func Test_datapointClient_Load(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 315)
-		assert.Equal(t, "00e3c7a7-3400-00ad-770d-e7789458d06d", uuid.Must(uuid.FromBytes(datapoints[0].Data.GetId().GetUuid())).String())
-		assert.Equal(t, "2001-01-01 00:00:00 +0000 UTC", datapoints[0].Data.GetTime().AsTime().String())
-		assert.Equal(t, "MCD12Q1.A2001001.h13v12.061.2022146061358.hdf", datapoints[0].Data.GetGranuleName())
+		assert.Equal(t, "00e3c7a7-3400-00ad-770d-e7789458d06d", uuid.Must(uuid.FromBytes(datapoints[0].GetId().GetUuid())).String())
+		assert.Equal(t, "2001-01-01 00:00:00 +0000 UTC", datapoints[0].GetTime().AsTime().String())
+		assert.Equal(t, "MCD12Q1.A2001001.h13v12.061.2022146061358.hdf", datapoints[0].GetGranuleName())
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
@@ -206,13 +192,12 @@ func Test_datapointClient_Load(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 315)
-		assert.Equal(t, "00e3c7a7-3400-00ad-770d-e7789458d06d", uuid.Must(uuid.FromBytes(datapoints[0].Data.GetId().GetUuid())).String())
-		assert.Empty(t, datapoints[0].Data.GetGranuleName())
+		assert.Equal(t, "00e3c7a7-3400-00ad-770d-e7789458d06d", uuid.Must(uuid.FromBytes(datapoints[0].GetId().GetUuid())).String())
+		assert.Empty(t, datapoints[0].GetGranuleName())
 	})
 }
 
 type mockService struct {
-	meta []*DatapointMetadata
 	data [][]byte
 
 	DatapointClient
@@ -220,16 +205,10 @@ type mockService struct {
 
 func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	// generate some mock data
-	meta := make([]*DatapointMetadata, n)
 	data := make([][]byte, n)
 	for i := range n {
-		id := uuid.New()
-		meta[i] = &DatapointMetadata{
-			ID: id,
-		}
-
 		datapoint := &datasetsv1.CopernicusDataspaceGranule{
-			GranuleName:     id.String(),
+			GranuleName:     uuid.New().String(),
 			ProcessingLevel: datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1,
 			Satellite:       "Sentinel-1",
 			FlightDirection: datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING,
@@ -244,18 +223,14 @@ func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	}
 
 	return &mockService{
-		meta: meta,
 		data: data,
 	}
 }
 
-func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ LoadInterval, _ ...LoadOption) iter.Seq2[*RawDatapoint, error] {
-	return func(yield func(*RawDatapoint, error) bool) {
-		for i := range s.meta {
-			datapoint := &RawDatapoint{
-				Data: s.data[i],
-			}
-			if !yield(datapoint, nil) {
+func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ LoadInterval, _ ...LoadOption) iter.Seq2[[]byte, error] {
+	return func(yield func([]byte, error) bool) {
+		for _, data := range s.data {
+			if !yield(data, nil) {
 				return
 			}
 		}
@@ -263,7 +238,7 @@ func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ LoadInterval, _ ...
 }
 
 // result is used to avoid the compiler optimizing away the benchmark output
-var result []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
+var result []*datasetsv1.CopernicusDataspaceGranule
 
 // BenchmarkCollectAs benchmarks the CollectAs function
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
@@ -275,7 +250,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	client := NewClient()
 	client.Datapoints = NewMockDatapointClient(b, 1000)
 
-	var r []*TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule] // used to avoid the compiler optimizing the output
+	var r []*datasetsv1.CopernicusDataspaceGranule // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
@@ -294,7 +269,7 @@ func BenchmarkCollectAs(b *testing.B) {
 				}
 				r := &datasetsv1.CopernicusDataspaceGranule{}
 
-				err = proto.Unmarshal(datapoint.Data, r)
+				err = proto.Unmarshal(datapoint, r)
 				if err != nil {
 					b.Fatalf("failed to unmarshal datapoint: %v", err)
 				}
@@ -306,7 +281,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	b.Run("No marshal and no reflection", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
-			datapoints := make([]*RawDatapoint, 0)
+			datapoints := make([][]byte, 0)
 			for datapoint, err := range data {
 				if err != nil {
 					b.Fatalf("failed to load datapoint: %v", err)
@@ -315,4 +290,75 @@ func BenchmarkCollectAs(b *testing.B) {
 			}
 		}
 	})
+}
+
+func Test_datapointClient_Ingest(t *testing.T) {
+	ctx := context.Background()
+	client := NewDatapointClient(10)
+
+	collectionID := uuid.New()
+
+	type args struct {
+		collectionID  uuid.UUID
+		datapoints    any
+		allowExisting bool
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *IngestResponse
+		wantErr string
+	}{
+		{
+			name: "Ingest",
+			args: args{
+				collectionID:  collectionID,
+				datapoints:    &[]*datasetsv1.CopernicusDataspaceGranule{},
+				allowExisting: false,
+			},
+		},
+		{
+			name: "Ingest nil",
+			args: args{
+				datapoints: nil,
+			},
+			wantErr: "datapoints must be a pointer, got <nil>",
+		},
+		{
+			name: "Ingest not a pointer",
+			args: args{
+				datapoints: collectionID,
+			},
+			wantErr: "datapoints must be a pointer, got uuid.UUID",
+		},
+		{
+			name: "Ingest not a slice",
+			args: args{
+				datapoints: &collectionID,
+			},
+			wantErr: "datapoints must be a pointer to a slice, got *uuid.UUID",
+		},
+		{
+			name: "Ingest slice wrong interface",
+			args: args{
+				datapoints: &[]context.Context{},
+			},
+			wantErr: "datapoints must be a pointer to a slice of proto.Message, got *[]context.Context",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := client.Ingest(ctx, tt.args.collectionID, tt.args.datapoints, tt.args.allowExisting)
+			if tt.wantErr != "" {
+				// we wanted an error, let's check if we got one
+				require.Error(t, err, "expected an error, got none")
+				assert.Contains(t, err.Error(), tt.wantErr, "error didn't contain expected message: '%s', got error '%s' instead.", tt.wantErr, err.Error())
+				return
+			}
+			// we didn't want an error:
+			require.NoError(t, err, "got an unexpected error")
+
+			assert.NotNil(t, got)
+		})
+	}
 }
