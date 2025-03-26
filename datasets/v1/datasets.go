@@ -107,9 +107,9 @@ func uuidToProtobuf(id uuid.UUID) *datasetsv1.ID {
 }
 
 func uuidsToProtobuf(ids []uuid.UUID) []*datasetsv1.ID {
-	pbIds := make([]*datasetsv1.ID, 0, len(ids))
+	pbIDs := make([]*datasetsv1.ID, 0, len(ids))
 	for _, id := range ids {
-		pbIds = append(pbIds, uuidToProtobuf(id))
+		pbIDs = append(pbIDs, uuidToProtobuf(id))
 	}
-	return pbIds
+	return pbIDs
 }

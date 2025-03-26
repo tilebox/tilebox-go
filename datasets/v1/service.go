@@ -264,37 +264,3 @@ func (s *dataIngestionService) Delete(ctx context.Context, collectionID uuid.UUI
 		return res.Msg, nil
 	})
 }
-
-func paginationToLegacyPagination(pagination *datasetsv1.Pagination) *datasetsv1.LegacyPagination {
-	if pagination == nil {
-		return nil
-	}
-	p := &datasetsv1.LegacyPagination{
-		Limit: pagination.Limit,
-	}
-	id, err := protoToUUID(pagination.GetStartingAfter())
-	if err != nil {
-		id = uuid.Nil
-	}
-	if id != uuid.Nil {
-		idAsString := id.String()
-		p.StartingAfter = &idAsString
-	}
-	return p
-}
-
-func paginationFromLegacyPagination(pagination *datasetsv1.LegacyPagination) *datasetsv1.Pagination {
-	if pagination == nil {
-		return nil
-	}
-	p := &datasetsv1.Pagination{
-		Limit: pagination.Limit,
-	}
-	if pagination.StartingAfter != nil {
-		id, err := uuid.Parse(pagination.GetStartingAfter())
-		if err == nil && id != uuid.Nil {
-			p.StartingAfter = uuidToProtobuf(id)
-		}
-	}
-	return p
-}
