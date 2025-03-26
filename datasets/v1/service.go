@@ -211,8 +211,7 @@ func (s *dataAccessService) QueryByID(ctx context.Context, collectionIDs []uuid.
 }
 
 type DataIngestionService interface {
-	// IngestDatapoints is the legacy name for where datapoints are separated into Meta/Data. change this to Ingest() in the future
-	IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestResponse, error)
+	Ingest(ctx context.Context, collectionID uuid.UUID, datapoints [][]byte, allowExisting bool) (*datasetsv1.IngestResponse, error)
 	Delete(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteResponse, error)
 }
 
@@ -230,12 +229,12 @@ func newDataIngestionService(dataIngestionClient datasetsv1connect.DataIngestion
 	}
 }
 
-func (s *dataIngestionService) IngestDatapoints(ctx context.Context, collectionID uuid.UUID, datapoints *datasetsv1.Datapoints, allowExisting bool) (*datasetsv1.IngestResponse, error) {
+func (s *dataIngestionService) Ingest(ctx context.Context, collectionID uuid.UUID, datapoints [][]byte, allowExisting bool) (*datasetsv1.IngestResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/ingest", func(ctx context.Context) (*datasetsv1.IngestResponse, error) {
-		res, err := s.dataIngestionClient.IngestDatapoints(ctx, connect.NewRequest(
-			&datasetsv1.IngestDatapointsRequest{
+		res, err := s.dataIngestionClient.Ingest(ctx, connect.NewRequest(
+			&datasetsv1.IngestRequest{
 				CollectionId:  uuidToProtobuf(collectionID),
-				Datapoints:    datapoints,
+				Values:        datapoints,
 				AllowExisting: allowExisting,
 			},
 		))

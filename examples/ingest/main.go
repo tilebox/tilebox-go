@@ -8,7 +8,8 @@ import (
 	"time"
 
 	tileboxdatasets "github.com/tilebox/tilebox-go/datasets/v1"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func main() {
@@ -20,7 +21,7 @@ func main() {
 	)
 
 	// Select a dataset
-	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel1_sar")
+	dataset, err := client.Datasets.Get(ctx, "tilebox.modis")
 	if err != nil {
 		log.Fatalf("Failed to get dataset: %v", err)
 	}
@@ -32,13 +33,19 @@ func main() {
 	}
 
 	// Create datapoints
-	datapoints := []*tileboxdatasets.Datapoint{
-		tileboxdatasets.NewDatapoint(time.Now(), &datasetsv1.CopernicusDataspaceGranule{GranuleName: "Granule 1"}),
-		tileboxdatasets.NewDatapoint(time.Now().Add(-5*time.Hour), &datasetsv1.CopernicusDataspaceGranule{GranuleName: "Past Granule 2"}),
+	datapoints := []*testv1.Modis{
+		testv1.Modis_builder{
+			Time:        timestamppb.New(time.Now()),
+			GranuleName: "Granule 1",
+		}.Build(),
+		testv1.Modis_builder{
+			Time:        timestamppb.New(time.Now().Add(-5 * time.Hour)),
+			GranuleName: "Past Granule 2",
+		}.Build(),
 	}
 
 	// Ingest datapoints
-	ingestResponse, err := client.Datapoints.Ingest(ctx, collection.ID, datapoints, false)
+	ingestResponse, err := client.Datapoints.Ingest(ctx, collection.ID, &datapoints, false)
 	if err != nil {
 		log.Fatalf("Failed to ingest datapoints: %v", err)
 	}
