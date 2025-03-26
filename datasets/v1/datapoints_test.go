@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	v1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"google.golang.org/protobuf/proto"
 )
@@ -180,32 +181,32 @@ func Test_datapointClient_Load(t *testing.T) {
 		t.Fatalf("Failed to create client: %v", err)
 	}
 
-	dataset, err := client.Datasets.Get(ctx, "open_data.asf.ers_sar")
+	dataset, err := client.Datasets.Get(ctx, "tilebox.modis")
 	require.NoError(t, err)
 
-	collection, err := client.Collections.Get(ctx, dataset.ID, "ERS-2")
+	collection, err := client.Collections.Get(ctx, dataset.ID, "MCD12Q1")
 	require.NoError(t, err)
-	assert.Equal(t, "ERS-2", collection.Name)
+	assert.Equal(t, "MCD12Q1", collection.Name)
 
-	jan2000 := time.Date(2000, time.January, 1, 0, 0, 0, 0, time.UTC)
-	interval := NewStandardTimeInterval(jan2000, jan2000.AddDate(0, 0, 7))
+	jan2001 := time.Date(2001, time.January, 1, 0, 0, 0, 0, time.UTC)
+	interval := NewStandardTimeInterval(jan2001, jan2001.AddDate(0, 0, 7))
 
 	t.Run("CollectAs", func(t *testing.T) {
-		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](client.Datapoints.Load(ctx, collection.ID, interval))
+		datapoints, err := CollectAs[*v1.Modis](client.Datapoints.Load(ctx, collection.ID, interval))
 		require.NoError(t, err)
 
-		assert.Len(t, datapoints, 298)
-		assert.Equal(t, "00dc7952-6c90-f40d-9b5e-3b72d4e790e0", datapoints[0].Meta.ID.String())
-		assert.Equal(t, "2000-01-03 19:37:30 +0000 UTC", datapoints[0].Meta.EventTime.String())
-		assert.Equal(t, "E2_24602_STD_F619", datapoints[0].Data.GetGranuleName())
+		assert.Len(t, datapoints, 315)
+		assert.Equal(t, "00e3c7a7-3400-00ad-770d-e7789458d06d", uuid.Must(uuid.FromBytes(datapoints[0].Data.GetId().GetUuid())).String())
+		assert.Equal(t, "2001-01-01 00:00:00 +0000 UTC", datapoints[0].Data.GetTime().AsTime().String())
+		assert.Equal(t, "MCD12Q1.A2001001.h13v12.061.2022146061358.hdf", datapoints[0].Data.GetGranuleName())
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
-		datapoints, err := CollectAs[*datasetsv1.ASFSarGranule](client.Datapoints.Load(ctx, collection.ID, interval, WithSkipData()))
+		datapoints, err := CollectAs[*v1.Modis](client.Datapoints.Load(ctx, collection.ID, interval, WithSkipData()))
 		require.NoError(t, err)
 
-		assert.Len(t, datapoints, 298)
-		assert.Equal(t, "00dc7952-6c90-f40d-9b5e-3b72d4e790e0", datapoints[0].Meta.ID.String())
+		assert.Len(t, datapoints, 315)
+		assert.Equal(t, "00e3c7a7-3400-00ad-770d-e7789458d06d", uuid.Must(uuid.FromBytes(datapoints[0].Data.GetId().GetUuid())).String())
 		assert.Empty(t, datapoints[0].Data.GetGranuleName())
 	})
 }
