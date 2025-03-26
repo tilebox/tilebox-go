@@ -157,8 +157,8 @@ func (s *collectionService) ListCollections(ctx context.Context, datasetID uuid.
 }
 
 type DataAccessService interface {
-	GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData bool, skipMeta bool) (*datasetsv1.DatapointPage, error)
-	GetDatapointByID(ctx context.Context, collectionID uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Datapoint, error)
+	Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *datasetsv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error)
+	QueryByID(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error)
 }
 
 var _ DataAccessService = &dataAccessService{}
@@ -175,37 +175,35 @@ func newDataAccessService(dataAccessClient datasetsv1connect.DataAccessServiceCl
 	}
 }
 
-func (s *dataAccessService) GetDatasetForInterval(ctx context.Context, collectionID uuid.UUID, timeInterval *datasetsv1.TimeInterval, datapointInterval *datasetsv1.DatapointInterval, page *datasetsv1.Pagination, skipData, skipMeta bool) (*datasetsv1.DatapointPage, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/load", func(ctx context.Context) (*datasetsv1.DatapointPage, error) {
-		res, err := s.dataAccessClient.GetDatasetForInterval(ctx, connect.NewRequest(
-			&datasetsv1.GetDatasetForIntervalRequest{
-				CollectionId:      collectionID.String(),
-				TimeInterval:      timeInterval,
-				DatapointInterval: datapointInterval,
-				Page:              paginationToLegacyPagination(page),
-				SkipData:          skipData,
-				SkipMeta:          skipMeta,
+func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *datasetsv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/load", func(ctx context.Context) (*datasetsv1.QueryResultPage, error) {
+		res, err := s.dataAccessClient.Query(ctx, connect.NewRequest(
+			&datasetsv1.QueryRequest{
+				CollectionIds: uuidsToProtobuf(collectionIDs),
+				Filters:       filters,
+				Page:          page,
+				SkipData:      skipData,
 			},
 		))
 		if err != nil {
-			return nil, fmt.Errorf("failed to get dataset for interval: %w", err)
+			return nil, fmt.Errorf("failed to query datpoints: %w", err)
 		}
 
 		return res.Msg, nil
 	})
 }
 
-func (s *dataAccessService) GetDatapointByID(ctx context.Context, collectionID uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Datapoint, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/get", func(ctx context.Context) (*datasetsv1.Datapoint, error) {
-		res, err := s.dataAccessClient.GetDatapointByID(ctx, connect.NewRequest(
-			&datasetsv1.GetDatapointByIdRequest{
-				CollectionId: collectionID.String(),
-				Id:           datapointID.String(),
-				SkipData:     skipData,
+func (s *dataAccessService) QueryByID(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/get", func(ctx context.Context) (*datasetsv1.Any, error) {
+		res, err := s.dataAccessClient.QueryByID(ctx, connect.NewRequest(
+			&datasetsv1.QueryByIDRequest{
+				CollectionIds: uuidsToProtobuf(collectionIDs),
+				Id:            uuidToProtobuf(datapointID),
+				SkipData:      skipData,
 			},
 		))
 		if err != nil {
-			return nil, fmt.Errorf("failed to get datapoint by id: %w", err)
+			return nil, fmt.Errorf("failed to query datapoint by id: %w", err)
 		}
 
 		return res.Msg, nil
@@ -265,38 +263,4 @@ func (s *dataIngestionService) Delete(ctx context.Context, collectionID uuid.UUI
 
 		return res.Msg, nil
 	})
-}
-
-func paginationToLegacyPagination(pagination *datasetsv1.Pagination) *datasetsv1.LegacyPagination {
-	if pagination == nil {
-		return nil
-	}
-	p := &datasetsv1.LegacyPagination{
-		Limit: pagination.Limit,
-	}
-	id, err := protoToUUID(pagination.GetStartingAfter())
-	if err != nil {
-		id = uuid.Nil
-	}
-	if id != uuid.Nil {
-		idAsString := id.String()
-		p.StartingAfter = &idAsString
-	}
-	return p
-}
-
-func paginationFromLegacyPagination(pagination *datasetsv1.LegacyPagination) *datasetsv1.Pagination {
-	if pagination == nil {
-		return nil
-	}
-	p := &datasetsv1.Pagination{
-		Limit: pagination.Limit,
-	}
-	if pagination.StartingAfter != nil {
-		id, err := uuid.Parse(pagination.GetStartingAfter())
-		if err == nil && id != uuid.Nil {
-			p.StartingAfter = uuidToProtobuf(id)
-		}
-	}
-	return p
 }
