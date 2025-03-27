@@ -9,10 +9,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	v1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
+	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"google.golang.org/protobuf/proto"
 )
+
+func pointer[T any](x T) *T {
+	return &x
+}
 
 func NewDatapointClient(n int) DatapointClient {
 	return &datapointClient{
@@ -39,12 +43,12 @@ type mockDataAccessService struct {
 func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *datasetsv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
 	data := make([][]byte, m.n)
 	for i := range m.n {
-		datapoint := &datasetsv1.CopernicusDataspaceGranule{
-			GranuleName:     uuid.New().String(),
-			ProcessingLevel: datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1,
-			Satellite:       "Sentinel-1",
-			FlightDirection: datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING,
-		}
+		datapoint := testv1.Sentinel2Msi_builder{
+			GranuleName:     pointer(uuid.New().String()),
+			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
+			Satellite:       pointer("Sentinel-2"),
+			FlightDirection: pointer(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
+		}.Build()
 
 		message, err := proto.Marshal(datapoint)
 		if err != nil {
@@ -85,7 +89,7 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 			args: args{
 				collectionID: collectionID,
 				interval:     interval,
-				datapoints:   &[]*datasetsv1.CopernicusDataspaceGranule{},
+				datapoints:   &[]*testv1.Sentinel2Msi{},
 				options:      nil,
 			},
 		},
@@ -131,7 +135,7 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 			// we didn't want an error:
 			require.NoError(t, err, "got an unexpected error")
 
-			datapoints := *tt.args.datapoints.(*[]*datasetsv1.CopernicusDataspaceGranule)
+			datapoints := *tt.args.datapoints.(*[]*testv1.Sentinel2Msi)
 
 			assert.Len(t, datapoints, 10)
 			assert.NotNil(t, datapoints[0])
@@ -140,7 +144,7 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 }
 
 // resultLoadInto is used to avoid the compiler optimizing away the benchmark output
-var resultLoadInto []*datasetsv1.CopernicusDataspaceGranule
+var resultLoadInto []*testv1.Sentinel2Msi
 
 // BenchmarkCollectAs benchmarks the LoadInto method
 func Benchmark_LoadInto(b *testing.B) {
@@ -150,7 +154,7 @@ func Benchmark_LoadInto(b *testing.B) {
 	collectionID := uuid.New()
 	interval := NewStandardTimeInterval(time.Now(), time.Now())
 
-	var datapoints []*datasetsv1.CopernicusDataspaceGranule
+	var datapoints []*testv1.Sentinel2Msi
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
 			err := client.LoadInto(ctx, collectionID, interval, &datapoints)
@@ -178,7 +182,7 @@ func Test_datapointClient_Load(t *testing.T) {
 	interval := NewStandardTimeInterval(jan2001, jan2001.AddDate(0, 0, 7))
 
 	t.Run("CollectAs", func(t *testing.T) {
-		datapoints, err := CollectAs[*v1.Modis](client.Datapoints.Load(ctx, collection.ID, interval))
+		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Load(ctx, collection.ID, interval))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 315)
@@ -188,7 +192,7 @@ func Test_datapointClient_Load(t *testing.T) {
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
-		datapoints, err := CollectAs[*v1.Modis](client.Datapoints.Load(ctx, collection.ID, interval, WithSkipData()))
+		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Load(ctx, collection.ID, interval, WithSkipData()))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 315)
@@ -207,12 +211,12 @@ func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	// generate some mock data
 	data := make([][]byte, n)
 	for i := range n {
-		datapoint := &datasetsv1.CopernicusDataspaceGranule{
-			GranuleName:     uuid.New().String(),
-			ProcessingLevel: datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1,
-			Satellite:       "Sentinel-1",
-			FlightDirection: datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING,
-		}
+		datapoint := testv1.Sentinel2Msi_builder{
+			GranuleName:     pointer(uuid.New().String()),
+			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
+			Satellite:       pointer("Sentinel-2"),
+			FlightDirection: pointer(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
+		}.Build()
 
 		message, err := proto.Marshal(datapoint)
 		if err != nil {
@@ -238,7 +242,7 @@ func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ LoadInterval, _ ...
 }
 
 // result is used to avoid the compiler optimizing away the benchmark output
-var result []*datasetsv1.CopernicusDataspaceGranule
+var result []*testv1.Sentinel2Msi
 
 // BenchmarkCollectAs benchmarks the CollectAs function
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
@@ -250,11 +254,11 @@ func BenchmarkCollectAs(b *testing.B) {
 	client := NewClient()
 	client.Datapoints = NewMockDatapointClient(b, 1000)
 
-	var r []*datasetsv1.CopernicusDataspaceGranule // used to avoid the compiler optimizing the output
+	var r []*testv1.Sentinel2Msi // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
-			r, _ = CollectAs[*datasetsv1.CopernicusDataspaceGranule](data)
+			r, _ = CollectAs[*testv1.Sentinel2Msi](data)
 		}
 	})
 	result = r
@@ -262,12 +266,12 @@ func BenchmarkCollectAs(b *testing.B) {
 	b.Run("Marshal and no reflection", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
-			datapoints := make([]*datasetsv1.CopernicusDataspaceGranule, 0)
+			datapoints := make([]*testv1.Sentinel2Msi, 0)
 			for datapoint, err := range data {
 				if err != nil {
 					b.Fatalf("failed to load datapoint: %v", err)
 				}
-				r := &datasetsv1.CopernicusDataspaceGranule{}
+				r := &testv1.Sentinel2Msi{}
 
 				err = proto.Unmarshal(datapoint, r)
 				if err != nil {
@@ -313,7 +317,7 @@ func Test_datapointClient_Ingest(t *testing.T) {
 			name: "Ingest",
 			args: args{
 				collectionID:  collectionID,
-				datapoints:    &[]*datasetsv1.CopernicusDataspaceGranule{},
+				datapoints:    &[]*testv1.Sentinel2Msi{},
 				allowExisting: false,
 			},
 		},
