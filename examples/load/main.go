@@ -48,7 +48,7 @@ func main() {
 	}
 
 	slog.Info("First datapoint",
-		slog.Any("id", datapoints[0].GetId()),
+		slog.String("id", datapoints[0].GetId().AsUUID().String()),
 		slog.Time("event time", datapoints[0].GetTime().AsTime()),
 		slog.Time("ingestion time", datapoints[0].GetIngestionTime().AsTime()),
 		slog.String("granule name", datapoints[0].GetGranuleName()),
