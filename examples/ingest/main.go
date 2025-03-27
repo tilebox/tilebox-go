@@ -36,11 +36,11 @@ func main() {
 	datapoints := []*testv1.Modis{
 		testv1.Modis_builder{
 			Time:        timestamppb.New(time.Now()),
-			GranuleName: "Granule 1",
+			GranuleName: p("Granule 1"),
 		}.Build(),
 		testv1.Modis_builder{
 			Time:        timestamppb.New(time.Now().Add(-5 * time.Hour)),
-			GranuleName: "Past Granule 2",
+			GranuleName: p("Past Granule 2"),
 		}.Build(),
 	}
 
@@ -57,4 +57,8 @@ func main() {
 		log.Fatalf("Failed to delete datapoints: %v", err)
 	}
 	slog.Info("Deleted datapoints", slog.Int64("deleted", deleteResponse.NumDeleted))
+}
+
+func p[T any](x T) *T {
+	return &x
 }

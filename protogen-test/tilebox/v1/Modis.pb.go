@@ -28,18 +28,20 @@ type Modis struct {
 	xxx_hidden_Time                 *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time"`
 	xxx_hidden_Id                   *v1.UUID               `protobuf:"bytes,2,opt,name=id"`
 	xxx_hidden_IngestionTime        *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=ingestion_time,json=ingestionTime"`
-	xxx_hidden_GranuleName          string                 `protobuf:"bytes,4,opt,name=granule_name,json=granuleName"`
+	xxx_hidden_GranuleName          *string                `protobuf:"bytes,4,opt,name=granule_name,json=granuleName"`
 	xxx_hidden_Geometry             *v1.Geometry           `protobuf:"bytes,5,opt,name=geometry"`
 	xxx_hidden_EndTime              *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=end_time,json=endTime"`
 	xxx_hidden_HorizontalTileNumber int64                  `protobuf:"varint,7,opt,name=horizontal_tile_number,json=horizontalTileNumber"`
 	xxx_hidden_VerticalTileNumber   int64                  `protobuf:"varint,8,opt,name=vertical_tile_number,json=verticalTileNumber"`
 	xxx_hidden_TileId               int64                  `protobuf:"varint,9,opt,name=tile_id,json=tileId"`
 	xxx_hidden_FileSize             uint64                 `protobuf:"varint,10,opt,name=file_size,json=fileSize"`
-	xxx_hidden_Checksum             string                 `protobuf:"bytes,11,opt,name=checksum"`
-	xxx_hidden_ChecksumType         string                 `protobuf:"bytes,12,opt,name=checksum_type,json=checksumType"`
-	xxx_hidden_DayNightFlag         string                 `protobuf:"bytes,13,opt,name=day_night_flag,json=dayNightFlag"`
-	xxx_hidden_BrowseGranuleId      string                 `protobuf:"bytes,14,opt,name=browse_granule_id,json=browseGranuleId"`
+	xxx_hidden_Checksum             *string                `protobuf:"bytes,11,opt,name=checksum"`
+	xxx_hidden_ChecksumType         *string                `protobuf:"bytes,12,opt,name=checksum_type,json=checksumType"`
+	xxx_hidden_DayNightFlag         *string                `protobuf:"bytes,13,opt,name=day_night_flag,json=dayNightFlag"`
+	xxx_hidden_BrowseGranuleId      *string                `protobuf:"bytes,14,opt,name=browse_granule_id,json=browseGranuleId"`
 	xxx_hidden_PublishedAt          *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=published_at,json=publishedAt"`
+	XXX_raceDetectHookData          protoimpl.RaceDetectHookData
+	XXX_presence                    [1]uint32
 	unknownFields                   protoimpl.UnknownFields
 	sizeCache                       protoimpl.SizeCache
 }
@@ -92,7 +94,10 @@ func (x *Modis) GetIngestionTime() *timestamppb.Timestamp {
 
 func (x *Modis) GetGranuleName() string {
 	if x != nil {
-		return x.xxx_hidden_GranuleName
+		if x.xxx_hidden_GranuleName != nil {
+			return *x.xxx_hidden_GranuleName
+		}
+		return ""
 	}
 	return ""
 }
@@ -141,28 +146,40 @@ func (x *Modis) GetFileSize() uint64 {
 
 func (x *Modis) GetChecksum() string {
 	if x != nil {
-		return x.xxx_hidden_Checksum
+		if x.xxx_hidden_Checksum != nil {
+			return *x.xxx_hidden_Checksum
+		}
+		return ""
 	}
 	return ""
 }
 
 func (x *Modis) GetChecksumType() string {
 	if x != nil {
-		return x.xxx_hidden_ChecksumType
+		if x.xxx_hidden_ChecksumType != nil {
+			return *x.xxx_hidden_ChecksumType
+		}
+		return ""
 	}
 	return ""
 }
 
 func (x *Modis) GetDayNightFlag() string {
 	if x != nil {
-		return x.xxx_hidden_DayNightFlag
+		if x.xxx_hidden_DayNightFlag != nil {
+			return *x.xxx_hidden_DayNightFlag
+		}
+		return ""
 	}
 	return ""
 }
 
 func (x *Modis) GetBrowseGranuleId() string {
 	if x != nil {
-		return x.xxx_hidden_BrowseGranuleId
+		if x.xxx_hidden_BrowseGranuleId != nil {
+			return *x.xxx_hidden_BrowseGranuleId
+		}
+		return ""
 	}
 	return ""
 }
@@ -187,7 +204,8 @@ func (x *Modis) SetIngestionTime(v *timestamppb.Timestamp) {
 }
 
 func (x *Modis) SetGranuleName(v string) {
-	x.xxx_hidden_GranuleName = v
+	x.xxx_hidden_GranuleName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 15)
 }
 
 func (x *Modis) SetGeometry(v *v1.Geometry) {
@@ -200,34 +218,42 @@ func (x *Modis) SetEndTime(v *timestamppb.Timestamp) {
 
 func (x *Modis) SetHorizontalTileNumber(v int64) {
 	x.xxx_hidden_HorizontalTileNumber = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 15)
 }
 
 func (x *Modis) SetVerticalTileNumber(v int64) {
 	x.xxx_hidden_VerticalTileNumber = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 15)
 }
 
 func (x *Modis) SetTileId(v int64) {
 	x.xxx_hidden_TileId = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 15)
 }
 
 func (x *Modis) SetFileSize(v uint64) {
 	x.xxx_hidden_FileSize = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 9, 15)
 }
 
 func (x *Modis) SetChecksum(v string) {
-	x.xxx_hidden_Checksum = v
+	x.xxx_hidden_Checksum = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 10, 15)
 }
 
 func (x *Modis) SetChecksumType(v string) {
-	x.xxx_hidden_ChecksumType = v
+	x.xxx_hidden_ChecksumType = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 11, 15)
 }
 
 func (x *Modis) SetDayNightFlag(v string) {
-	x.xxx_hidden_DayNightFlag = v
+	x.xxx_hidden_DayNightFlag = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 12, 15)
 }
 
 func (x *Modis) SetBrowseGranuleId(v string) {
-	x.xxx_hidden_BrowseGranuleId = v
+	x.xxx_hidden_BrowseGranuleId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 13, 15)
 }
 
 func (x *Modis) SetPublishedAt(v *timestamppb.Timestamp) {
@@ -255,6 +281,13 @@ func (x *Modis) HasIngestionTime() bool {
 	return x.xxx_hidden_IngestionTime != nil
 }
 
+func (x *Modis) HasGranuleName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
 func (x *Modis) HasGeometry() bool {
 	if x == nil {
 		return false
@@ -267,6 +300,62 @@ func (x *Modis) HasEndTime() bool {
 		return false
 	}
 	return x.xxx_hidden_EndTime != nil
+}
+
+func (x *Modis) HasHorizontalTileNumber() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
+}
+
+func (x *Modis) HasVerticalTileNumber() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
+}
+
+func (x *Modis) HasTileId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 8)
+}
+
+func (x *Modis) HasFileSize() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 9)
+}
+
+func (x *Modis) HasChecksum() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 10)
+}
+
+func (x *Modis) HasChecksumType() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 11)
+}
+
+func (x *Modis) HasDayNightFlag() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 12)
+}
+
+func (x *Modis) HasBrowseGranuleId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 13)
 }
 
 func (x *Modis) HasPublishedAt() bool {
@@ -288,12 +377,57 @@ func (x *Modis) ClearIngestionTime() {
 	x.xxx_hidden_IngestionTime = nil
 }
 
+func (x *Modis) ClearGranuleName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_GranuleName = nil
+}
+
 func (x *Modis) ClearGeometry() {
 	x.xxx_hidden_Geometry = nil
 }
 
 func (x *Modis) ClearEndTime() {
 	x.xxx_hidden_EndTime = nil
+}
+
+func (x *Modis) ClearHorizontalTileNumber() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
+	x.xxx_hidden_HorizontalTileNumber = 0
+}
+
+func (x *Modis) ClearVerticalTileNumber() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
+	x.xxx_hidden_VerticalTileNumber = 0
+}
+
+func (x *Modis) ClearTileId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 8)
+	x.xxx_hidden_TileId = 0
+}
+
+func (x *Modis) ClearFileSize() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 9)
+	x.xxx_hidden_FileSize = 0
+}
+
+func (x *Modis) ClearChecksum() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 10)
+	x.xxx_hidden_Checksum = nil
+}
+
+func (x *Modis) ClearChecksumType() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 11)
+	x.xxx_hidden_ChecksumType = nil
+}
+
+func (x *Modis) ClearDayNightFlag() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 12)
+	x.xxx_hidden_DayNightFlag = nil
+}
+
+func (x *Modis) ClearBrowseGranuleId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 13)
+	x.xxx_hidden_BrowseGranuleId = nil
 }
 
 func (x *Modis) ClearPublishedAt() {
@@ -306,17 +440,17 @@ type Modis_builder struct {
 	Time                 *timestamppb.Timestamp
 	Id                   *v1.UUID
 	IngestionTime        *timestamppb.Timestamp
-	GranuleName          string
+	GranuleName          *string
 	Geometry             *v1.Geometry
 	EndTime              *timestamppb.Timestamp
-	HorizontalTileNumber int64
-	VerticalTileNumber   int64
-	TileId               int64
-	FileSize             uint64
-	Checksum             string
-	ChecksumType         string
-	DayNightFlag         string
-	BrowseGranuleId      string
+	HorizontalTileNumber *int64
+	VerticalTileNumber   *int64
+	TileId               *int64
+	FileSize             *uint64
+	Checksum             *string
+	ChecksumType         *string
+	DayNightFlag         *string
+	BrowseGranuleId      *string
 	PublishedAt          *timestamppb.Timestamp
 }
 
@@ -327,17 +461,44 @@ func (b0 Modis_builder) Build() *Modis {
 	x.xxx_hidden_Time = b.Time
 	x.xxx_hidden_Id = b.Id
 	x.xxx_hidden_IngestionTime = b.IngestionTime
-	x.xxx_hidden_GranuleName = b.GranuleName
+	if b.GranuleName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 15)
+		x.xxx_hidden_GranuleName = b.GranuleName
+	}
 	x.xxx_hidden_Geometry = b.Geometry
 	x.xxx_hidden_EndTime = b.EndTime
-	x.xxx_hidden_HorizontalTileNumber = b.HorizontalTileNumber
-	x.xxx_hidden_VerticalTileNumber = b.VerticalTileNumber
-	x.xxx_hidden_TileId = b.TileId
-	x.xxx_hidden_FileSize = b.FileSize
-	x.xxx_hidden_Checksum = b.Checksum
-	x.xxx_hidden_ChecksumType = b.ChecksumType
-	x.xxx_hidden_DayNightFlag = b.DayNightFlag
-	x.xxx_hidden_BrowseGranuleId = b.BrowseGranuleId
+	if b.HorizontalTileNumber != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 15)
+		x.xxx_hidden_HorizontalTileNumber = *b.HorizontalTileNumber
+	}
+	if b.VerticalTileNumber != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 15)
+		x.xxx_hidden_VerticalTileNumber = *b.VerticalTileNumber
+	}
+	if b.TileId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 15)
+		x.xxx_hidden_TileId = *b.TileId
+	}
+	if b.FileSize != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 9, 15)
+		x.xxx_hidden_FileSize = *b.FileSize
+	}
+	if b.Checksum != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 10, 15)
+		x.xxx_hidden_Checksum = b.Checksum
+	}
+	if b.ChecksumType != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 11, 15)
+		x.xxx_hidden_ChecksumType = b.ChecksumType
+	}
+	if b.DayNightFlag != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 12, 15)
+		x.xxx_hidden_DayNightFlag = b.DayNightFlag
+	}
+	if b.BrowseGranuleId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 13, 15)
+		x.xxx_hidden_BrowseGranuleId = b.BrowseGranuleId
+	}
 	x.xxx_hidden_PublishedAt = b.PublishedAt
 	return m0
 }
@@ -395,9 +556,9 @@ var file_tilebox_v1_Modis_proto_rawDesc = string([]byte{
 	0x73, 0x68, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x0f, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e,
 	0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e,
 	0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x0b, 0x70, 0x75, 0x62, 0x6c, 0x69,
-	0x73, 0x68, 0x65, 0x64, 0x41, 0x74, 0x42, 0x11, 0x5a, 0x0a, 0x74, 0x69, 0x6c, 0x65, 0x62, 0x6f,
-	0x78, 0x2f, 0x76, 0x31, 0x92, 0x03, 0x02, 0x08, 0x02, 0x62, 0x08, 0x65, 0x64, 0x69, 0x74, 0x69,
-	0x6f, 0x6e, 0x73, 0x70, 0xe8, 0x07,
+	0x73, 0x68, 0x65, 0x64, 0x41, 0x74, 0x42, 0x0c, 0x5a, 0x0a, 0x74, 0x69, 0x6c, 0x65, 0x62, 0x6f,
+	0x78, 0x2f, 0x76, 0x31, 0x62, 0x08, 0x65, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x70, 0xe8,
+	0x07,
 })
 
 var file_tilebox_v1_Modis_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
