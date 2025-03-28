@@ -10,14 +10,15 @@ import (
 )
 
 func main() {
-	runner, err := workflows.NewTaskRunner(
-		workflows.NewTaskClient(
-			workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-		),
+	client := workflows.NewClient(
+		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
+	)
+
+	runner, err := client.NewTaskRunner(
 		workflows.WithCluster("testing-4qgCk4qHH85qR7"),
 	)
 	if err != nil {
-		slog.Error("failed to create task runner", "error", err)
+		slog.Error("failed to create task runner", slog.Any("error", err))
 		return
 	}
 
@@ -25,7 +26,7 @@ func main() {
 		&helloworld.HelloTask{},
 	)
 	if err != nil {
-		slog.Error("failed to register task", "error", err)
+		slog.Error("failed to register task", slog.Any("error", err))
 		return
 	}
 

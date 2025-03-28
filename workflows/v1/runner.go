@@ -1,4 +1,4 @@
-package workflows
+package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
 
 import (
 	"context"
@@ -12,21 +12,17 @@ import (
 	"syscall"
 	"time"
 
-	"connectrpc.com/connect"
 	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
-	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/types/known/durationpb"
 )
 
-type ContextKeyTaskExecutionType string
+type contextKeyTaskExecutionType string
 
-const ContextKeyTaskExecution ContextKeyTaskExecutionType = "x-tilebox-task-execution-object"
+const contextKeyTaskExecution contextKeyTaskExecutionType = "x-tilebox-task-execution-object"
 
 const (
 	pollingInterval = 5 * time.Second
@@ -35,8 +31,6 @@ const (
 
 type taskRunnerConfig struct {
 	clusterSlug       string
-	tracerProvider    trace.TracerProvider
-	tracerName        string
 	logger            *slog.Logger
 	logExecutionTimes bool // let's replace this with opentelemetry metrics at some point, when axiom supports it
 }
@@ -46,18 +40,6 @@ type TaskRunnerOption func(*taskRunnerConfig)
 func WithCluster(clusterSlug string) TaskRunnerOption {
 	return func(cfg *taskRunnerConfig) {
 		cfg.clusterSlug = clusterSlug
-	}
-}
-
-func WithRunnerTracerProvider(tracerProvider trace.TracerProvider) TaskRunnerOption {
-	return func(cfg *taskRunnerConfig) {
-		cfg.tracerProvider = tracerProvider
-	}
-}
-
-func WithRunnerTracerName(tracerName string) TaskRunnerOption {
-	return func(cfg *taskRunnerConfig) {
-		cfg.tracerName = tracerName
 	}
 }
 
@@ -75,8 +57,6 @@ func WithLogExecutionTimes(logExecutionTimes bool) TaskRunnerOption {
 
 func newTaskRunnerConfig(options []TaskRunnerOption) (*taskRunnerConfig, error) {
 	cfg := &taskRunnerConfig{
-		tracerProvider:    otel.GetTracerProvider(),    // use the global tracer provider by default
-		tracerName:        "tilebox.com/observability", // the default tracer name we use
 		logger:            slog.Default(),
 		logExecutionTimes: false,
 	}
@@ -92,7 +72,7 @@ func newTaskRunnerConfig(options []TaskRunnerOption) (*taskRunnerConfig, error) 
 }
 
 type TaskRunner struct {
-	client          workflowsv1connect.TaskServiceClient
+	service         TaskService
 	taskDefinitions map[taskIdentifier]ExecutableTask
 
 	cluster           string
@@ -101,17 +81,18 @@ type TaskRunner struct {
 	logExecutionTimes bool
 }
 
-func NewTaskRunner(client workflowsv1connect.TaskServiceClient, options ...TaskRunnerOption) (*TaskRunner, error) {
+func newTaskRunner(service TaskService, tracer trace.Tracer, options ...TaskRunnerOption) (*TaskRunner, error) {
 	cfg, err := newTaskRunnerConfig(options)
 	if err != nil {
 		return nil, err
 	}
+
 	return &TaskRunner{
-		client:          client,
+		service:         service,
 		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 
 		cluster:           cfg.clusterSlug,
-		tracer:            cfg.tracerProvider.Tracer(cfg.tracerName),
+		tracer:            tracer,
 		logger:            cfg.logger,
 		logExecutionTimes: cfg.logExecutionTimes,
 	}, nil
@@ -142,21 +123,8 @@ func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
 	return nil
 }
 
-func protobufToUUID(id *workflowsv1.UUID) (uuid.UUID, error) {
-	if id == nil || len(id.GetUuid()) == 0 {
-		return uuid.Nil, nil
-	}
-
-	bytes, err := uuid.FromBytes(id.GetUuid())
-	if err != nil {
-		return uuid.Nil, err
-	}
-
-	return bytes, nil
-}
-
 func isEmpty(id *workflowsv1.UUID) bool {
-	taskID, err := protobufToUUID(id)
+	taskID, err := protoToUUID(id)
 	if err != nil {
 		return false
 	}
@@ -183,14 +151,15 @@ func (t *TaskRunner) Run(ctx context.Context) {
 
 	for {
 		if task == nil { // if we don't have a task, let's try work-stealing one
-			taskResponse, err := t.client.NextTask(ctx, connect.NewRequest(&workflowsv1.NextTaskRequest{
-				NextTaskToRun: &workflowsv1.NextTaskToRun{ClusterSlug: t.cluster, Identifiers: identifiers},
-			}))
+			taskResponse, err := t.service.NextTask(ctx,
+				nil,
+				&workflowsv1.NextTaskToRun{ClusterSlug: t.cluster, Identifiers: identifiers},
+			)
 			if err != nil {
-				t.logger.ErrorContext(ctx, "failed to work-steal a task", "error", err)
+				t.logger.ErrorContext(ctx, "failed to work-steal a task", slog.Any("error", err))
 				// return  // should we even try again, or just stop here?
 			} else {
-				task = taskResponse.Msg.GetNextTask()
+				task = taskResponse.GetNextTask()
 			}
 		}
 
@@ -225,32 +194,33 @@ func (t *TaskRunner) Run(ctx context.Context) {
 
 				task, err = retry.DoWithData(
 					func() (*workflowsv1.Task, error) {
-						taskResponse, err := t.client.NextTask(ctx, connect.NewRequest(&workflowsv1.NextTaskRequest{
-							ComputedTask: computedTask, NextTaskToRun: nextTaskToRun,
-						}))
+						taskResponse, err := t.service.NextTask(ctx, computedTask, nextTaskToRun)
 						if err != nil {
-							t.logger.ErrorContext(ctx, "failed to mark task as computed, retrying", "error", err)
+							t.logger.ErrorContext(ctx, "failed to mark task as computed, retrying", slog.Any("error", err))
 							return nil, err
 						}
-						return taskResponse.Msg.GetNextTask(), nil
+						return taskResponse.GetNextTask(), nil
 					}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
 				)
 				if err != nil {
 					if !errors.Is(err, context.Canceled) {
-						t.logger.ErrorContext(ctx, "failed to retry NextTask", "error", err)
+						t.logger.ErrorContext(ctx, "failed to retry NextTask", slog.Any("error", err))
 					}
 					return // we got a cancellation signal, so let's just stop here
 				}
 			} else { // err != nil
+				taskID, err := protoToUUID(task.GetId())
+				if err != nil {
+					t.logger.ErrorContext(ctx, "failed to convert task id to uuid", slog.Any("error", err))
+					return
+				}
+
 				// the error itself is already logged in executeTask, so we just need to report the task as failed
 				err = retry.Do(
 					func() error {
-						_, err := t.client.TaskFailed(ctx, connect.NewRequest(&workflowsv1.TaskFailedRequest{
-							TaskId:    task.GetId(),
-							CancelJob: true,
-						}))
+						_, err := t.service.TaskFailed(ctx, taskID, "", true)
 						if err != nil {
-							t.logger.ErrorContext(ctx, "failed to report task failure", "error", err)
+							t.logger.ErrorContext(ctx, "failed to report task failure", slog.Any("error", err))
 							return err
 						}
 						return nil
@@ -258,7 +228,7 @@ func (t *TaskRunner) Run(ctx context.Context) {
 				)
 				if err != nil {
 					if !errors.Is(err, context.Canceled) {
-						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", "error", err)
+						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", slog.Any("error", err))
 					}
 					return // we got a cancellation signal, so let's just stop here
 				}
@@ -287,9 +257,21 @@ func (t *TaskRunner) Run(ctx context.Context) {
 }
 
 func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*taskExecutionContext, error) {
+	taskID, err := protoToUUID(task.GetId())
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert task id to uuid: %w", err)
+	}
+
 	// start a goroutine to extend the lease of the task continuously until the task execution is finished
 	leaseCtx, stopLeaseExtensions := context.WithCancel(ctx)
-	go t.extendTaskLease(leaseCtx, t.client, task.GetId(), task.GetLease().GetLease().AsDuration(), task.GetLease().GetRecommendedWaitUntilNextExtension().AsDuration())
+
+	go t.extendTaskLease(
+		leaseCtx,
+		t.service,
+		taskID,
+		task.GetLease().GetLease().AsDuration(),
+		task.GetLease().GetRecommendedWaitUntilNextExtension().AsDuration(),
+	)
 	defer stopLeaseExtensions()
 
 	// actually execute the task
@@ -304,7 +286,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 		return nil, fmt.Errorf("task %s is not registered on this runner", task.GetIdentifier().GetName())
 	}
 
-	jobID, err := protobufToUUID(task.GetJob().GetId())
+	jobID, err := protoToUUID(task.GetJob().GetId())
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert job id to uuid: %w", err)
 	}
@@ -354,7 +336,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 		)
 
 		if err != nil {
-			log.ErrorContext(ctx, "task execution failed", slog.String("error", err.Error()), slog.Int64("retry_attempt", task.GetRetryCount()))
+			log.ErrorContext(ctx, "task execution failed", slog.Any("error", err), slog.Int64("retry_attempt", task.GetRetryCount()))
 			return nil, fmt.Errorf("failed to execute task: %w", err)
 		}
 
@@ -375,7 +357,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 
 // extendTaskLease is a function designed to be run as a goroutine, extending the lease of a task continuously until the
 // context is cancelled, which indicates that the execution of the task is finished.
-func (t *TaskRunner) extendTaskLease(ctx context.Context, client workflowsv1connect.TaskServiceClient, taskID *workflowsv1.UUID, initialLease, initialWait time.Duration) {
+func (t *TaskRunner) extendTaskLease(ctx context.Context, service TaskService, taskID uuid.UUID, initialLease, initialWait time.Duration) {
 	wait := initialWait
 	lease := initialLease
 	for {
@@ -386,26 +368,23 @@ func (t *TaskRunner) extendTaskLease(ctx context.Context, client workflowsv1conn
 			return
 		case <-timer.C: // the timer expired, let's try to extend the lease
 		}
-		t.logger.DebugContext(ctx, "extending task lease", "task_id", uuid.Must(uuid.FromBytes(taskID.GetUuid())), "lease", lease, "wait", wait)
-		req := &workflowsv1.TaskLeaseRequest{
-			TaskId:         taskID,
-			RequestedLease: durationpb.New(2 * lease), // double the current lease duration for the next extension
-		}
-		extension, err := client.ExtendTaskLease(ctx, connect.NewRequest(req))
+		t.logger.DebugContext(ctx, "extending task lease", slog.String("task_id", taskID.String()), slog.Duration("lease", lease), slog.Duration("wait", wait))
+		// double the current lease duration for the next extension
+		extension, err := service.ExtendTaskLease(ctx, taskID, 2*lease)
 		if err != nil {
-			t.logger.ErrorContext(ctx, "failed to extend task lease", "error", err, "task_id", uuid.Must(uuid.FromBytes(taskID.GetUuid())))
+			t.logger.ErrorContext(ctx, "failed to extend task lease", slog.Any("error", err), slog.String("task_id", taskID.String()))
 			// The server probably has an internal error, but there is no point in trying to extend the lease again
 			// because it will be expired then, so let's just return
 			return
 		}
-		if extension.Msg.GetLease() == nil {
+		if extension.GetLease() == nil {
 			// the server did not return a lease extension, it means that there is no need in trying to extend the lease
-			t.logger.DebugContext(ctx, "task lease extension not granted", "task_id", uuid.Must(uuid.FromBytes(taskID.GetUuid())))
+			t.logger.DebugContext(ctx, "task lease extension not granted", slog.String("task_id", taskID.String()))
 			return
 		}
 		// will probably be double the previous lease (since we requested that) or capped by the server at maxLeaseDuration
-		lease = extension.Msg.GetLease().AsDuration()
-		wait = extension.Msg.GetRecommendedWaitUntilNextExtension().AsDuration()
+		lease = extension.GetLease().AsDuration()
+		wait = extension.GetRecommendedWaitUntilNextExtension().AsDuration()
 	}
 }
 
@@ -416,7 +395,7 @@ type taskExecutionContext struct {
 }
 
 func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflowsv1.Task) context.Context {
-	return context.WithValue(ctx, ContextKeyTaskExecution, &taskExecutionContext{
+	return context.WithValue(ctx, contextKeyTaskExecution, &taskExecutionContext{
 		CurrentTask: task,
 		runner:      t,
 		Subtasks:    make([]*workflowsv1.TaskSubmission, 0),
@@ -424,7 +403,7 @@ func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflo
 }
 
 func getTaskExecutionContext(ctx context.Context) *taskExecutionContext {
-	executionContext := ctx.Value(ContextKeyTaskExecution)
+	executionContext := ctx.Value(contextKeyTaskExecution)
 	if executionContext == nil {
 		return nil
 	}
@@ -505,7 +484,7 @@ var divs = []time.Duration{
 	time.Duration(1), time.Duration(10), time.Duration(100), time.Duration(1000),
 }
 
-// human readable, rounded duration, taken from
+// human-readable, rounded duration, taken from
 // https://stackoverflow.com/questions/58414820/limiting-significant-digits-in-formatted-durations
 func roundDuration(d time.Duration, digits int) time.Duration {
 	switch {

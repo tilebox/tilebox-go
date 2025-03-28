@@ -99,7 +99,7 @@ func GetTraceParentOfCurrentSpan(ctx context.Context) string {
 		// In this case, we generate a random one.
 		traceparent, err := generateTraceParent()
 		if err != nil {
-			slog.ErrorContext(ctx, "failed to generate traceparent", "error", err)
+			slog.ErrorContext(ctx, "failed to generate traceparent", slog.Any("error", err))
 			return ""
 		}
 		return traceparent

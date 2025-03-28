@@ -25,7 +25,7 @@ func RetryOnStatusUnavailable(ctx context.Context, resp *http.Response, err erro
 		if errors.As(err, &v) {
 			// Retry if the error was due to a connection refused.
 			if strings.Contains(v.Error(), "connect: connection refused") {
-				slog.InfoContext(ctx, "Auth client retry", "error", v.Error())
+				slog.InfoContext(ctx, "Auth client retry", slog.Any("error", v))
 				return true, v
 			}
 		}
@@ -34,9 +34,9 @@ func RetryOnStatusUnavailable(ctx context.Context, resp *http.Response, err erro
 	if resp != nil {
 		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
 			slog.InfoContext(ctx, "Auth client retry",
-				"status", resp.Status,
-				"status_code", resp.StatusCode,
-				"protocol", resp.Proto,
+				slog.String("status", resp.Status),
+				slog.Int("status_code", resp.StatusCode),
+				slog.String("protocol", resp.Proto),
 			)
 			return true, nil
 		}

@@ -7,7 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/integrii/flaggy"
 	slogmulti "github.com/samber/slog-multi"
 	"github.com/tilebox/tilebox-go/examples/sampleworkflow"
@@ -39,7 +38,7 @@ func main() {
 		axiomLogHandler, shutdownLogger, err := observability.NewAxiomLogger(config.axiomLogsDataset, config.axiomAPIKey, slog.LevelDebug, true)
 		defer shutdownLogger()
 		if err != nil {
-			log.Error("failed to set up axiom log handler", "error", err.Error())
+			log.Error("failed to set up axiom log handler", slog.Any("error", err))
 		} else {
 			log = slog.New(slogmulti.Fanout(axiomLogHandler, stdoutHandler))
 		}
@@ -47,26 +46,22 @@ func main() {
 	slog.SetDefault(log) // set the global slog logger also to our axiom logger
 
 	// Setup OpenTelemetry tracer provider
-	tracerProvider := otel.GetTracerProvider()
 	if config.axiomTracesDataset != "" {
 		axiomTracerProvider, shutdownTracer, err := observability.NewAxiomTracerProvider(ctx, config.axiomTracesDataset, config.axiomAPIKey, serviceName, version)
 		defer shutdownTracer()
 		if err != nil {
-			log.Error("failed to set up axiom trace exporter", "error", err)
+			log.Error("failed to set up axiom trace exporter", slog.Any("error", err))
 		} else {
-			tracerProvider = axiomTracerProvider
+			otel.SetTracerProvider(axiomTracerProvider)
 		}
 	}
 
-	jobs := workflows.NewJobService(
-		workflows.NewJobClient(
-			workflows.WithURL(config.url),
-			workflows.WithAPIKey(config.authToken),
-		),
-		workflows.WithJobServiceTracerProvider(tracerProvider),
+	client := workflows.NewClient(
+		workflows.WithURL(config.url),
+		workflows.WithAPIKey(config.authToken),
 	)
 
-	job, err := jobs.Submit(ctx, "spawn-workflow-tree", "testing-4qgCk4qHH85qR7", 0,
+	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree", "testing-4qgCk4qHH85qR7", 0,
 		&sampleworkflow.SampleTask{
 			Message:      "hello go runner!",
 			Depth:        8,
@@ -78,7 +73,7 @@ func main() {
 		return
 	}
 
-	slog.InfoContext(ctx, "Job submitted", "job_id", uuid.Must(uuid.FromBytes(job.GetId().GetUuid())))
+	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
 }
 
 type Config struct {

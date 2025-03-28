@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/examples/helloworld"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
@@ -13,21 +12,19 @@ import (
 func main() {
 	ctx := context.Background()
 
-	jobs := workflows.NewJobService(
-		workflows.NewJobClient(
-			workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-		),
+	client := workflows.NewClient(
+		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
 	)
 
-	job, err := jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0,
+	job, err := client.Jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0,
 		&helloworld.HelloTask{
 			Name: "Tilebox",
 		},
 	)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to submit job", "error", err)
+		slog.ErrorContext(ctx, "Failed to submit job", slog.Any("error", err))
 		return
 	}
 
-	slog.InfoContext(ctx, "Job submitted", "job_id", uuid.Must(uuid.FromBytes(job.GetId().GetUuid())))
+	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
 }
