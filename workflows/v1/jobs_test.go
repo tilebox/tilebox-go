@@ -104,7 +104,7 @@ func Test_jobClient_Get(t *testing.T) {
 
 	assert.Equal(t, "my-windows-job", job.Name)
 	assert.Equal(t, "0194ad17-bdaf-ff8e-983b-d1299fd2d235", job.ID.String())
-	assert.Equal(t, workflowsv1.JobState_JOB_STATE_COMPLETED, job.State)
+	assert.Equal(t, JobCompleted, job.State)
 }
 
 func Test_jobClient_List(t *testing.T) {
@@ -123,5 +123,5 @@ func Test_jobClient_List(t *testing.T) {
 	job := jobs[0]
 	assert.Equal(t, "my-windows-job", job.Name)
 	assert.Equal(t, "0194ad17-bdaf-ff8e-983b-d1299fd2d235", job.ID.String())
-	assert.Equal(t, workflowsv1.JobState_JOB_STATE_COMPLETED, job.State)
+	assert.Equal(t, JobCompleted, job.State)
 }

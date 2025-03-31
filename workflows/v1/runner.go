@@ -29,6 +29,7 @@ const (
 	jitterInterval  = 5 * time.Second
 )
 
+// taskRunnerConfig contains the configuration for Tilebox Workflows Task Runner.
 type taskRunnerConfig struct {
 	clusterSlug       string
 	logger            *slog.Logger
@@ -37,12 +38,18 @@ type taskRunnerConfig struct {
 
 type TaskRunnerOption func(*taskRunnerConfig)
 
+// WithCluster sets the cluster slug to use for the task runner.
+//
+// Defaults to empty string.
 func WithCluster(clusterSlug string) TaskRunnerOption {
 	return func(cfg *taskRunnerConfig) {
 		cfg.clusterSlug = clusterSlug
 	}
 }
 
+// WithRunnerLogger sets the logger to use for the task runner.
+//
+// Defaults to slog.Default().
 func WithRunnerLogger(logger *slog.Logger) TaskRunnerOption {
 	return func(cfg *taskRunnerConfig) {
 		cfg.logger = logger
@@ -71,6 +78,7 @@ func newTaskRunnerConfig(options []TaskRunnerOption) (*taskRunnerConfig, error) 
 	return cfg, nil
 }
 
+// TaskRunner executes tasks.
 type TaskRunner struct {
 	service         TaskService
 	taskDefinitions map[taskIdentifier]ExecutableTask
@@ -98,6 +106,7 @@ func newTaskRunner(service TaskService, tracer trace.Tracer, options ...TaskRunn
 	}, nil
 }
 
+// RegisterTask makes the task runner aware of a task.
 func (t *TaskRunner) RegisterTask(task ExecutableTask) error {
 	identifier := identifierFromTask(task)
 	err := ValidateIdentifier(identifier)
@@ -108,11 +117,13 @@ func (t *TaskRunner) RegisterTask(task ExecutableTask) error {
 	return nil
 }
 
+// GetRegisteredTask returns the task with the given identifier.
 func (t *TaskRunner) GetRegisteredTask(identifier TaskIdentifier) (ExecutableTask, bool) {
 	registeredTask, found := t.taskDefinitions[taskIdentifier{name: identifier.Name(), version: identifier.Version()}]
 	return registeredTask, found
 }
 
+// RegisterTasks makes the task runner aware of multiple tasks.
 func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
 	for _, task := range tasks {
 		err := t.RegisterTask(task)
@@ -410,6 +421,9 @@ func getTaskExecutionContext(ctx context.Context) *taskExecutionContext {
 	return executionContext.(*taskExecutionContext)
 }
 
+// GetCurrentCluster returns the current cluster slug.
+//
+// This function is intended to be used in tasks to get the current cluster slug.
 func GetCurrentCluster(ctx context.Context) (string, error) {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil {
@@ -418,6 +432,9 @@ func GetCurrentCluster(ctx context.Context) (string, error) {
 	return executionContext.runner.cluster, nil
 }
 
+// SubmitSubtasks submits multiple subtasks to the task runner.
+//
+// This function is intended to be used in tasks to submit subtasks to the task runner.
 func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil {
@@ -462,6 +479,10 @@ func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
 	return nil
 }
 
+// WithTaskSpanResult is a helper function that wraps a function with a tracing span.
+// It returns the result of the function and an error if any.
+//
+// This function is intended to be used in tasks to wrap a function with a tracing span.
 func WithTaskSpanResult[Result any](ctx context.Context, name string, f func(ctx context.Context) (Result, error)) (Result, error) {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil || executionContext.runner.tracer == nil {
@@ -471,6 +492,9 @@ func WithTaskSpanResult[Result any](ctx context.Context, name string, f func(ctx
 	return observability.WithSpanResult(ctx, executionContext.runner.tracer, name, f)
 }
 
+// WithTaskSpan is a helper function that wraps a function with a tracing span.
+//
+// This function is intended to be used in tasks to wrap a function with a tracing span.
 func WithTaskSpan(ctx context.Context, name string, f func(ctx context.Context) error) error {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil || executionContext.runner.tracer == nil {
