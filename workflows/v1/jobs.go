@@ -24,16 +24,58 @@ type Job struct {
 	// Canceled indicates whether the job has been canceled.
 	Canceled bool
 	// State is the current state of the job.
-	State workflowsv1.JobState
+	State JobState
 	// SubmittedAt is the time the job was submitted.
 	SubmittedAt time.Time
 	// StartedAt is the time the job started running.
 	StartedAt time.Time
 	// TaskSummaries is the task summaries of the job.
-	TaskSummaries []*workflowsv1.TaskSummary
+	TaskSummaries []*TaskSummary
 	// AutomationID is the ID of the automation that submitted the job.
 	AutomationID uuid.UUID
 }
+
+// JobState is the state of a Job.
+type JobState int32
+
+// JobState values.
+const (
+	_            JobState = iota
+	JobQueued             // The job is queued and waiting to be run.
+	JobStarted            // At least one task of the job has been started.
+	JobCompleted          // All tasks of the job have been completed.
+)
+
+// TaskSummary is a summary of a task.
+type TaskSummary struct {
+	// ID is the unique identifier of the task.
+	ID uuid.UUID
+	// Display is the display message of the task.
+	Display string
+	// State is the state of the task.
+	State TaskState
+	// ParentID is the ID of the parent task.
+	ParentID uuid.UUID
+	// DependsOn is the list of IDs of the tasks that this task depends on.
+	DependsOn []uuid.UUID
+	// StartedAt is the time the task started.
+	StartedAt time.Time
+	// StoppedAt is the time the task stopped.
+	StoppedAt time.Time
+}
+
+// TaskState is the state of a Task.
+type TaskState int32
+
+// TaskState values.
+const (
+	_             TaskState = iota
+	TaskQueued              // The task is queued and waiting to be run.
+	TaskRunning             // The task is currently running on some task runner.
+	TaskComputed            // The task has been computed and the output is available.
+	TaskFailed              // The task has failed.
+	TaskCancelled           // The task has been cancelled due to user request.
+)
 
 type JobClient interface {
 	Submit(ctx context.Context, jobName string, clusterSlug string, maxRetries int, tasks ...Task) (*Job, error)
@@ -200,15 +242,53 @@ func protoToJob(job *workflowsv1.Job) (*Job, error) {
 		return nil, fmt.Errorf("failed to parse automation id: %w", err)
 	}
 
+	taskSummaries := make([]*TaskSummary, len(job.GetTaskSummaries()))
+	for i, taskSummary := range job.GetTaskSummaries() {
+		taskSummaries[i], err = protoToTaskSummary(taskSummary)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert task summary from response: %w", err)
+		}
+	}
+
 	return &Job{
 		ID:            id,
 		Name:          job.GetName(),
 		Canceled:      job.GetCanceled(),
-		State:         job.GetState(),
+		State:         JobState(job.GetState()),
 		SubmittedAt:   job.GetSubmittedAt().AsTime(),
 		StartedAt:     job.GetStartedAt().AsTime(),
-		TaskSummaries: job.GetTaskSummaries(),
+		TaskSummaries: taskSummaries,
 		AutomationID:  automationID,
+	}, nil
+}
+
+func protoToTaskSummary(t *workflowsv1.TaskSummary) (*TaskSummary, error) {
+	taskSummaryID, err := protoToUUID(t.GetId())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse task summary id: %w", err)
+	}
+
+	parentID, err := protoToUUID(t.GetParentId())
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse task summary parent id: %w", err)
+	}
+
+	dependsOn := make([]uuid.UUID, len(t.GetDependsOn()))
+	for j, dependsOnID := range t.GetDependsOn() {
+		dependsOn[j], err = protoToUUID(dependsOnID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse task summary depends on id: %w", err)
+		}
+	}
+
+	return &TaskSummary{
+		ID:        taskSummaryID,
+		Display:   t.GetDisplay(),
+		State:     TaskState(t.GetState()),
+		ParentID:  parentID,
+		DependsOn: dependsOn,
+		StartedAt: t.GetStartedAt().AsTime(),
+		StoppedAt: t.GetStoppedAt().AsTime(),
 	}, nil
 }
 

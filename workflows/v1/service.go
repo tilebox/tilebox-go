@@ -35,12 +35,12 @@ type automationService struct {
 	tracer           trace.Tracer
 }
 
-/*func newAutomationService(automationClient workflowsv1connect.AutomationServiceClient, tracer trace.Tracer) AutomationService {
+func newAutomationService(automationClient workflowsv1connect.AutomationServiceClient, tracer trace.Tracer) AutomationService {
 	return &automationService{
 		automationClient: automationClient,
 		tracer:           tracer,
 	}
-}*/
+}
 
 func (s *automationService) CreateStorageLocation(ctx context.Context, location string, storageType workflowsv1.StorageType) (*workflowsv1.StorageLocation, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/create", func(ctx context.Context) (*workflowsv1.StorageLocation, error) {
