@@ -11,6 +11,6 @@ type HelloTask struct {
 
 // The Execute method isn't needed to submit a task.
 func (t *HelloTask) Execute(context.Context) error {
-	slog.Info("Hello World!", "Name", t.Name)
+	slog.Info("Hello World!", slog.String("Name", t.Name))
 	return nil
 }

@@ -1,4 +1,4 @@
-package workflows
+package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
 
 import (
 	"context"
@@ -9,18 +9,20 @@ import (
 	"strconv"
 )
 
+// TaskIdentifier is the struct that defines the unique identifier of a task.
+// It is used to uniquely identify a task and specify its version.
 type TaskIdentifier interface {
 	Name() string
 	Version() string
 	Display() string
 }
 
-// TaskIdentifier is the struct that defines the unique identifier of a task.
-// It is used to uniquely identify a task and specify its version.
 type taskIdentifier struct {
 	name    string
 	version string
 }
+
+var _ TaskIdentifier = &taskIdentifier{}
 
 func NewTaskIdentifier(name, version string) TaskIdentifier {
 	return taskIdentifier{

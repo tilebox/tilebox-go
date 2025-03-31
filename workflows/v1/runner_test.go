@@ -7,11 +7,11 @@ import (
 
 	"github.com/google/uuid"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
-	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
-type mockClient struct {
-	workflowsv1connect.TaskServiceClient
+type mockTaskService struct {
+	TaskService
 }
 
 type testTask1 struct {
@@ -31,6 +31,9 @@ func (t *badIdentifierTask) Identifier() TaskIdentifier {
 }
 
 func TestTaskRunner_RegisterTask(t *testing.T) {
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+
 	type args struct {
 		task ExecutableTask
 	}
@@ -55,7 +58,7 @@ func TestTaskRunner_RegisterTask(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t1 *testing.T) {
-			runner, err := NewTaskRunner(mockClient{}, WithCluster("testing-4qgCk4qHH85qR7"))
+			runner, err := newTaskRunner(service, tracer, WithCluster("testing-4qgCk4qHH85qR7"))
 			if err != nil {
 				t1.Fatalf("Failed to create TaskRunner: %v", err)
 				return
@@ -79,6 +82,9 @@ func TestTaskRunner_RegisterTask(t *testing.T) {
 }
 
 func TestTaskRunner_RegisterTasks(t *testing.T) {
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+
 	type args struct {
 		tasks []ExecutableTask
 	}
@@ -124,7 +130,7 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t1 *testing.T) {
-			runner, err := NewTaskRunner(mockClient{}, WithCluster("testing-4qgCk4qHH85qR7"))
+			runner, err := newTaskRunner(service, tracer, WithCluster("testing-4qgCk4qHH85qR7"))
 			if err != nil {
 				t1.Fatalf("Failed to create TaskRunner: %v", err)
 				return
@@ -190,9 +196,9 @@ func Test_isEmpty(t *testing.T) {
 }
 
 func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
-	cluster := "testing-4qgCk4qHH85qR7"
-
-	runner, err := NewTaskRunner(mockClient{}, WithCluster(cluster))
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+	runner, err := newTaskRunner(service, tracer, WithCluster("testing-4qgCk4qHH85qR7"))
 	if err != nil {
 		t.Fatalf("Failed to create TaskRunner: %v", err)
 	}
@@ -232,9 +238,10 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 }
 
 func TestSubmitSubtasks(t *testing.T) {
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
 	cluster := "testing-4qgCk4qHH85qR7"
-
-	runner, err := NewTaskRunner(mockClient{}, WithCluster(cluster))
+	runner, err := newTaskRunner(service, tracer, WithCluster(cluster))
 	if err != nil {
 		t.Fatalf("Failed to create TaskRunner: %v", err)
 	}

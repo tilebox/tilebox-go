@@ -38,7 +38,7 @@ func main() {
 		axiomLogHandler, shutdownLogger, err := observability.NewAxiomLogger(config.axiomLogsDataset, config.axiomAPIKey, slog.LevelDebug, true)
 		defer shutdownLogger()
 		if err != nil {
-			log.Error("failed to set up axiom log handler", "error", err.Error())
+			log.Error("failed to set up axiom log handler", slog.Any("error", err))
 		} else {
 			log = slog.New(slogmulti.Fanout(axiomLogHandler, stdoutHandler))
 		}
@@ -46,28 +46,27 @@ func main() {
 	slog.SetDefault(log) // set the global slog logger also to our axiom logger
 
 	// Setup OpenTelemetry tracer provider
-	tracerProvider := otel.GetTracerProvider()
 	if config.axiomTracesDataset != "" {
 		axiomTracerProvider, shutdownTracer, err := observability.NewAxiomTracerProvider(ctx, config.axiomTracesDataset, config.axiomAPIKey, serviceName, version)
 		defer shutdownTracer()
 		if err != nil {
-			log.Error("failed to set up axiom trace exporter", "error", err)
+			log.Error("failed to set up axiom trace exporter", slog.Any("error", err))
 		} else {
-			tracerProvider = axiomTracerProvider
+			otel.SetTracerProvider(axiomTracerProvider)
 		}
 	}
 
-	runner, err := workflows.NewTaskRunner(
-		workflows.NewTaskClient(
-			workflows.WithURL(config.url),
-			workflows.WithAPIKey(config.authToken),
-		),
+	client := workflows.NewClient(
+		workflows.WithURL(config.url),
+		workflows.WithAPIKey(config.authToken),
+	)
+
+	runner, err := client.NewTaskRunner(
 		workflows.WithCluster("testing-4qgCk4qHH85qR7"),
 		workflows.WithRunnerLogger(log),
-		workflows.WithRunnerTracerProvider(tracerProvider),
 	)
 	if err != nil {
-		log.Error("failed to create task runner", "error", err)
+		log.Error("failed to create task runner", slog.Any("error", err))
 		return
 	}
 
@@ -76,7 +75,7 @@ func main() {
 		&sampleworkflow.SpawnWorkflowTreeTask{},
 	)
 	if err != nil {
-		slog.Error("failed to register task", "error", err.Error())
+		slog.Error("failed to register task", slog.Any("error", err))
 		return // exit the program if we can't register one of the tasks
 	}
 

@@ -5,22 +5,23 @@ import (
 	"reflect"
 	"testing"
 
-	"connectrpc.com/connect"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
-	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 )
 
-type mockJobServiceClient struct {
-	workflowsv1connect.JobServiceClient
+type mockJobService struct {
+	JobService
 	reqs []*workflowsv1.SubmitJobRequest
 }
 
-func (m *mockJobServiceClient) SubmitJob(_ context.Context, req *connect.Request[workflowsv1.SubmitJobRequest]) (*connect.Response[workflowsv1.Job], error) {
-	m.reqs = append(m.reqs, req.Msg)
+func (m *mockJobService) SubmitJob(_ context.Context, req *workflowsv1.SubmitJobRequest) (*workflowsv1.Job, error) {
+	m.reqs = append(m.reqs, req)
 
-	return connect.NewResponse(&workflowsv1.Job{
-		Name: req.Msg.GetJobName(),
-	}), nil
+	return &workflowsv1.Job{
+		Name: req.GetJobName(),
+	}, nil
 }
 
 func TestJobService_Submit(t *testing.T) {
@@ -34,7 +35,7 @@ func TestJobService_Submit(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *workflowsv1.Job
+		want    *Job
 		wantReq *workflowsv1.SubmitJobRequest
 		wantErr bool
 	}{
@@ -45,7 +46,7 @@ func TestJobService_Submit(t *testing.T) {
 				clusterSlug: "test-cluster",
 				tasks:       []Task{&testTask1{}},
 			},
-			want: &workflowsv1.Job{
+			want: &Job{
 				Name: "test-job",
 			},
 			wantReq: &workflowsv1.SubmitJobRequest{
@@ -66,28 +67,61 @@ func TestJobService_Submit(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := mockJobServiceClient{}
-			js := NewJobService(&client)
+			service := &mockJobService{}
+			js := jobClient{service: service}
 			got, err := js.Submit(ctx, tt.args.jobName, tt.args.clusterSlug, 0, tt.args.tasks...)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Submit() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Submit() got = %v, want %v", got, tt.want)
-			}
+
+			assert.Equal(t, tt.want.Name, got.Name)
 
 			// Verify the submitted request
-			if len(client.reqs) != 1 {
-				t.Fatalf("Submit() expected 1 request, got %d", len(client.reqs))
+			if len(service.reqs) != 1 {
+				t.Fatalf("Submit() expected 1 request, got %d", len(service.reqs))
 			}
-			if !reflect.DeepEqual(client.reqs[0].GetTasks(), tt.wantReq.GetTasks()) {
-				t.Errorf("Submit() request = %v, want %v", client.reqs[0], tt.wantReq)
+			if !reflect.DeepEqual(service.reqs[0].GetTasks(), tt.wantReq.GetTasks()) {
+				t.Errorf("Submit() request = %v, want %v", service.reqs[0], tt.wantReq)
 			}
-			if !reflect.DeepEqual(client.reqs[0].GetJobName(), tt.wantReq.GetJobName()) {
-				t.Errorf("Submit() request = %v, want %v", client.reqs[0], tt.wantReq)
+			if !reflect.DeepEqual(service.reqs[0].GetJobName(), tt.wantReq.GetJobName()) {
+				t.Errorf("Submit() request = %v, want %v", service.reqs[0], tt.wantReq)
 			}
 			// We don't compare traceparent because it's generated randomly
 		})
 	}
+}
+
+func Test_jobClient_Get(t *testing.T) {
+	ctx := context.Background()
+	client, err := NewReplayClient(t, "Job")
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	job, err := client.Jobs.Get(ctx, uuid.MustParse("0194ad17-bdaf-ff8e-983b-d1299fd2d235"))
+	require.NoError(t, err)
+
+	assert.Equal(t, "my-windows-job", job.Name)
+	assert.Equal(t, "0194ad17-bdaf-ff8e-983b-d1299fd2d235", job.ID.String())
+	assert.Equal(t, JobCompleted, job.State)
+}
+
+func Test_jobClient_List(t *testing.T) {
+	ctx := context.Background()
+	client, err := NewReplayClient(t, "Jobs")
+	if err != nil {
+		t.Fatalf("Failed to create client: %v", err)
+	}
+
+	jobs, err := Collect(client.Jobs.List(ctx, &workflowsv1.IDInterval{
+		StartId: "00000000-0000-0000-0000-000000000000",
+		EndId:   "ffffffff-ffff-ffff-ffff-ffffffffffff",
+	}))
+	require.NoError(t, err)
+
+	job := jobs[0]
+	assert.Equal(t, "my-windows-job", job.Name)
+	assert.Equal(t, "0194ad17-bdaf-ff8e-983b-d1299fd2d235", job.ID.String())
+	assert.Equal(t, JobCompleted, job.State)
 }

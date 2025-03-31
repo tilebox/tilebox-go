@@ -1,4 +1,4 @@
-package datasets
+package datasets // import "github.com/tilebox/tilebox-go/datasets/v1"
 
 import (
 	"context"
