@@ -16,6 +16,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 )
@@ -31,9 +34,9 @@ const (
 
 // taskRunnerConfig contains the configuration for Tilebox Workflows Task Runner.
 type taskRunnerConfig struct {
-	clusterSlug       string
-	logger            *slog.Logger
-	logExecutionTimes bool // let's replace this with opentelemetry metrics at some point, when axiom supports it
+	clusterSlug   string
+	logger        *slog.Logger
+	meterProvider metric.MeterProvider
 }
 
 type TaskRunnerOption func(*taskRunnerConfig)
@@ -56,16 +59,17 @@ func WithRunnerLogger(logger *slog.Logger) TaskRunnerOption {
 	}
 }
 
-func WithLogExecutionTimes(logExecutionTimes bool) TaskRunnerOption {
+// WithDisableMetrics disables OpenTelemetry metrics for the task runner.
+func WithDisableMetrics() TaskRunnerOption {
 	return func(cfg *taskRunnerConfig) {
-		cfg.logExecutionTimes = logExecutionTimes
+		cfg.meterProvider = noop.NewMeterProvider()
 	}
 }
 
 func newTaskRunnerConfig(options []TaskRunnerOption) (*taskRunnerConfig, error) {
 	cfg := &taskRunnerConfig{
-		logger:            slog.Default(),
-		logExecutionTimes: false,
+		logger:        slog.Default(),
+		meterProvider: otel.GetMeterProvider(),
 	}
 	for _, option := range options {
 		option(cfg)
@@ -83,10 +87,10 @@ type TaskRunner struct {
 	service         TaskService
 	taskDefinitions map[taskIdentifier]ExecutableTask
 
-	cluster           string
-	tracer            trace.Tracer
-	logger            *slog.Logger
-	logExecutionTimes bool
+	cluster            string
+	tracer             trace.Tracer
+	logger             *slog.Logger
+	taskDurationMetric metric.Float64Histogram
 }
 
 func newTaskRunner(service TaskService, tracer trace.Tracer, options ...TaskRunnerOption) (*TaskRunner, error) {
@@ -95,14 +99,25 @@ func newTaskRunner(service TaskService, tracer trace.Tracer, options ...TaskRunn
 		return nil, err
 	}
 
+	meter := cfg.meterProvider.Meter(otelMeterName)
+
+	taskDurationMetric, err := meter.Float64Histogram(
+		"task.execution.duration",
+		metric.WithDescription("Task execution duration"),
+		metric.WithUnit("s"),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create task execution duration metric: %w", err)
+	}
+
 	return &TaskRunner{
 		service:         service,
 		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 
-		cluster:           cfg.clusterSlug,
-		tracer:            tracer,
-		logger:            cfg.logger,
-		logExecutionTimes: cfg.logExecutionTimes,
+		cluster:            cfg.clusterSlug,
+		tracer:             tracer,
+		logger:             cfg.logger,
+		taskDurationMetric: taskDurationMetric,
 	}, nil
 }
 
@@ -351,16 +366,8 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 			return nil, fmt.Errorf("failed to execute task: %w", err)
 		}
 
-		// log successful task execution and the time it took to log run the task
-		// we read this and display it in a axiom dashboard.
-		// TODO: replace this with opentelemetry metrics at some point, when axiom supports it
-		// right now (according to their discord) they plan to add otel metrics support in Q4 2024
-		// for execution time, the right metric will probably be histogram:
-		// https://uptrace.dev/opentelemetry/metrics.html#histogram
-		if t.logExecutionTimes {
-			// execution time already attached to log
-			log.InfoContext(ctx, "task execution succeeded")
-		}
+		// record the time it took to run a successful task
+		t.taskDurationMetric.Record(ctx, executionTime.Seconds())
 
 		return getTaskExecutionContext(executionContext), nil
 	})

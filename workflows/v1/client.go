@@ -14,7 +14,10 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
-const otelTracerName = "tilebox.com/observability"
+const (
+	otelTracerName = "tilebox.com/observability"
+	otelMeterName  = otelTracerName
+)
 
 // Client is a Tilebox Workflows client.
 type Client struct {
