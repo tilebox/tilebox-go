@@ -14,15 +14,15 @@ import (
 
 const recordingDirectory = "testdata/recordings"
 
-func NewRecordClient(tb testing.TB, filename string) (*Client, error) {
+func NewRecordClient(tb testing.TB, filename string) *Client {
 	err := os.MkdirAll(recordingDirectory, os.ModePerm)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create recording directory: %w", err)
+		tb.Fatalf("failed to create recording directory: %v", err)
 	}
 
 	file, err := os.Create(fmt.Sprintf("%s/%s.rpcs.bin", recordingDirectory, filename))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create replay file: %w", err)
+		tb.Fatalf("failed to create replay file: %v", err)
 	}
 	tb.Cleanup(func() {
 		_ = file.Close()
@@ -41,13 +41,13 @@ func NewRecordClient(tb testing.TB, filename string) (*Client, error) {
 		WithURL("https://api.tilebox.com"),
 		WithAPIKey(apiKey),
 		WithHTTPClient(httpClient),
-	), nil
+	)
 }
 
-func NewReplayClient(tb testing.TB, filename string) (*Client, error) {
+func NewReplayClient(tb testing.TB, filename string) *Client {
 	file, err := os.Open(fmt.Sprintf("%s/%s.rpcs.bin", recordingDirectory, filename))
 	if err != nil {
-		return nil, fmt.Errorf("failed to open replay file: %w", err)
+		tb.Fatalf("failed to open replay file: %v", err)
 	}
 	tb.Cleanup(func() {
 		_ = file.Close()
@@ -61,15 +61,12 @@ func NewReplayClient(tb testing.TB, filename string) (*Client, error) {
 		WithURL("https://api.tilebox.com"), // url/key doesn't matter
 		WithAPIKey("key"),
 		WithHTTPClient(httpClient),
-	), nil
+	)
 }
 
 func Test_clusterClient_Get(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayClient(t, "cluster")
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
+	client := NewReplayClient(t, "cluster")
 
 	cluster, err := client.Clusters.Get(ctx, "dev-cluster-ESugE7S4cwADVK")
 	require.NoError(t, err)
@@ -80,10 +77,7 @@ func Test_clusterClient_Get(t *testing.T) {
 
 func Test_clusterClient_List(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayClient(t, "clusters")
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
+	client := NewReplayClient(t, "clusters")
 
 	clusters, err := client.Clusters.List(ctx)
 	require.NoError(t, err)

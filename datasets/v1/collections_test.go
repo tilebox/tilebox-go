@@ -11,10 +11,7 @@ import (
 
 func Test_collectionClient_Get(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayClient(t, "collection")
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
+	client := NewReplayClient(t, "collection")
 
 	dataset, err := client.Datasets.Get(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)
@@ -30,10 +27,7 @@ func Test_collectionClient_Get(t *testing.T) {
 
 func Test_collectionClient_List(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayClient(t, "collections")
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
+	client := NewReplayClient(t, "collections")
 
 	dataset, err := client.Datasets.Get(ctx, "open_data.asf.ers_sar")
 	require.NoError(t, err)

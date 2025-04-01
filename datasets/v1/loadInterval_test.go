@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"pgregory.net/rapid"
 )
@@ -11,9 +12,7 @@ import (
 func TestNewEmptyTimeInterval(t *testing.T) {
 	got := newEmptyTimeInterval()
 
-	if got.Duration() != 0 {
-		t.Errorf("newEmptyTimeInterval() Duration = %v, want 0", got.Duration())
-	}
+	assert.Equal(t, time.Duration(0), got.Duration())
 }
 
 func TestTimeInterval_Duration(t *testing.T) {
@@ -69,9 +68,8 @@ func TestTimeInterval_Duration(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.timeInterval.Duration(); got != tt.want {
-				t.Errorf("Duration() = %v, want %v", got, tt.want)
-			}
+			got := tt.timeInterval.Duration()
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -125,12 +123,8 @@ func TestTimeInterval_ToHalfOpen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.timeInterval.ToHalfOpen()
 
-			if got.StartExclusive {
-				t.Errorf("ToHalfOpen() StartExclusive = %v, want false", got.StartExclusive)
-			}
-			if got.EndInclusive {
-				t.Errorf("ToHalfOpen() EndInclusive = %v, want false", got.EndInclusive)
-			}
+			assert.False(t, got.StartExclusive)
+			assert.False(t, got.EndInclusive)
 		})
 	}
 }
@@ -144,9 +138,7 @@ func TestTimeInterval_ToProtoDatapointInterval(t *testing.T) {
 	)
 	got := timeInterval.ToProtoDatapointInterval()
 
-	if got != nil {
-		t.Errorf("ToProtoDatapointInterval() = %v, want nil", got)
-	}
+	assert.Nil(t, got)
 }
 
 func TestTimeInterval_ToProtoTimeInterval(t *testing.T) {
@@ -169,18 +161,10 @@ func TestTimeInterval_ToProtoTimeInterval(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := tt.timeInterval.ToProtoTimeInterval()
 
-			if !got.GetStartTime().AsTime().Equal(tt.timeInterval.Start) {
-				t.Errorf("ToProtoTimeInterval() Start = %v, want %v", got.GetStartTime().AsTime(), tt.timeInterval.Start)
-			}
-			if !got.GetEndTime().AsTime().Equal(tt.timeInterval.End) {
-				t.Errorf("ToProtoTimeInterval() End = %v, want %v", got.GetEndTime().AsTime(), tt.timeInterval.End)
-			}
-			if got.GetStartExclusive() != tt.timeInterval.StartExclusive {
-				t.Errorf("ToProtoTimeInterval() StartExclusive = %v, want %v", got.GetStartExclusive(), tt.timeInterval.StartExclusive)
-			}
-			if got.GetEndInclusive() != tt.timeInterval.EndInclusive {
-				t.Errorf("ToProtoTimeInterval() EndInclusive = %v, want %v", got.GetEndInclusive(), tt.timeInterval.EndInclusive)
-			}
+			assert.True(t, got.GetStartTime().AsTime().Equal(tt.timeInterval.Start))
+			assert.True(t, got.GetEndTime().AsTime().Equal(tt.timeInterval.End))
+			assert.Equal(t, tt.timeInterval.StartExclusive, got.GetStartExclusive())
+			assert.Equal(t, tt.timeInterval.EndInclusive, got.GetEndInclusive())
 		})
 	}
 }
@@ -200,17 +184,9 @@ func Test_protoToTimeIntervalRoundtrip(t *testing.T) {
 
 		got := protoToTimeInterval(input.ToProtoTimeInterval())
 
-		if got.Start != input.Start {
-			t.Errorf("protoToTimeInterval() Start = %v, want %v", got.Start, input.Start)
-		}
-		if got.End != input.End {
-			t.Errorf("protoToTimeInterval() End = %v, want %v", got.End, input.End)
-		}
-		if got.StartExclusive != input.StartExclusive {
-			t.Errorf("protoToTimeInterval() StartExclusive = %v, want %v", got.StartExclusive, input.StartExclusive)
-		}
-		if got.EndInclusive != input.EndInclusive {
-			t.Errorf("protoToTimeInterval() EndInclusive = %v, want %v", got.EndInclusive, input.EndInclusive)
-		}
+		assert.Equal(t, input.Start, got.Start)
+		assert.Equal(t, input.End, got.End)
+		assert.Equal(t, input.StartExclusive, got.StartExclusive)
+		assert.Equal(t, input.EndInclusive, got.EndInclusive)
 	})
 }

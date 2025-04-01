@@ -3,6 +3,9 @@ package workflows
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewTaskIdentifier(t *testing.T) {
@@ -30,9 +33,9 @@ func TestNewTaskIdentifier(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := NewTaskIdentifier(tt.args.name, tt.args.version)
-			if got.Name() != tt.want.Name() || got.Version() != tt.want.Version() {
-				t.Errorf("NewTaskIdentifier() = %v, want %v", got, tt.want)
-			}
+
+			assert.Equal(t, tt.want.Name(), got.Name())
+			assert.Equal(t, tt.want.Version(), got.Version())
 		})
 	}
 }
@@ -81,9 +84,9 @@ func Test_identifierFromTask(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := identifierFromTask(tt.args.task)
-			if got.Name() != tt.want.Name() || got.Version() != tt.want.Version() {
-				t.Errorf("identifierFromTask() = %v, wantMajor %v", got, tt.want)
-			}
+
+			assert.Equal(t, tt.want.Name(), got.Name())
+			assert.Equal(t, tt.want.Version(), got.Version())
 		})
 	}
 }
@@ -93,10 +96,9 @@ func TestValidateIdentifier(t *testing.T) {
 		identifier TaskIdentifier
 	}
 	tests := []struct {
-		name           string
-		args           args
-		wantErr        bool
-		wantErrMessage string
+		name    string
+		args    args
+		wantErr string
 	}{
 		{
 			name: "ValidateIdentifier",
@@ -106,7 +108,6 @@ func TestValidateIdentifier(t *testing.T) {
 					version: "v0.0",
 				},
 			},
-			wantErr: false,
 		},
 		{
 			name: "ValidateIdentifier name empty",
@@ -116,8 +117,7 @@ func TestValidateIdentifier(t *testing.T) {
 					version: "v0.0",
 				},
 			},
-			wantErr:        true,
-			wantErrMessage: "task name is empty",
+			wantErr: "task name is empty",
 		},
 		{
 			name: "ValidateIdentifier name too long",
@@ -127,23 +127,20 @@ func TestValidateIdentifier(t *testing.T) {
 					version: "v0.0",
 				},
 			},
-			wantErr:        true,
-			wantErrMessage: "task name is too long",
+			wantErr: "task name is too long",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := ValidateIdentifier(tt.args.identifier)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidateIdentifier() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			if tt.wantErr {
-				if !strings.Contains(err.Error(), tt.wantErrMessage) {
-					t.Errorf("CreateCluster() error = %v, wantErrMessage %v", err, tt.wantErrMessage)
-				}
+			if tt.wantErr != "" {
+				// we wanted an error, let's check if we got one
+				require.Error(t, err, "expected an error, got none")
+				assert.Contains(t, err.Error(), tt.wantErr, "error didn't contain expected message: '%s', got error '%s' instead.", tt.wantErr, err.Error())
 				return
 			}
+			// we didn't want an error:
+			require.NoError(t, err, "got an unexpected error")
 		})
 	}
 }
@@ -206,12 +203,9 @@ func Test_parseVersion(t *testing.T) {
 				t.Errorf("parseVersion() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotMajor != tt.wantMajor {
-				t.Errorf("parseVersion() gotMajor = %v, wantMajor %v", gotMajor, tt.wantMajor)
-			}
-			if gotMinor != tt.wantMinor {
-				t.Errorf("parseVersion() gotMinor = %v, wantMajor %v", gotMinor, tt.wantMinor)
-			}
+
+			assert.Equal(t, tt.wantMajor, gotMajor)
+			assert.Equal(t, tt.wantMinor, gotMinor)
 		})
 	}
 }

@@ -2,10 +2,11 @@ package workflows
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"go.opentelemetry.io/otel/trace/noop"
 )
@@ -57,25 +58,23 @@ func TestTaskRunner_RegisterTask(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t1 *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			runner, err := newTaskRunner(service, tracer, WithCluster("testing-4qgCk4qHH85qR7"))
-			if err != nil {
-				t1.Fatalf("Failed to create TaskRunner: %v", err)
-				return
-			}
+			require.NoError(t, err)
 
 			err = runner.RegisterTask(tt.args.task)
 			if (err != nil) != tt.wantErr {
-				t1.Errorf("RegisterTask() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("RegisterTask() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			identifier := identifierFromTask(tt.args.task)
 			_, ok := runner.GetRegisteredTask(identifier)
+
 			if ok && tt.wantErr {
-				t1.Errorf("RegisterTask() task found in taskDefinitions")
+				t.Errorf("RegisterTask() task found in taskDefinitions")
 			}
 			if !ok && !tt.wantErr {
-				t1.Errorf("RegisterTask() task not found in taskDefinitions")
+				t.Errorf("RegisterTask() task not found in taskDefinitions")
 			}
 		})
 	}
@@ -129,27 +128,20 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t1 *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			runner, err := newTaskRunner(service, tracer, WithCluster("testing-4qgCk4qHH85qR7"))
-			if err != nil {
-				t1.Fatalf("Failed to create TaskRunner: %v", err)
-				return
-			}
+			require.NoError(t, err)
 
 			err = runner.RegisterTasks(tt.args.tasks...)
 			if (err != nil) != tt.wantErr {
-				t1.Errorf("RegisterTasks() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("RegisterTasks() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if len(runner.taskDefinitions) != len(tt.wantTasks) {
-				t1.Errorf("RegisterTasks() taskDefinitions length = %v, want %v", len(runner.taskDefinitions), len(tt.wantTasks))
-			}
+			assert.Len(t, runner.taskDefinitions, len(tt.wantTasks))
 			for _, task := range tt.wantTasks {
 				identifier := identifierFromTask(task)
 				_, ok := runner.GetRegisteredTask(identifier)
-				if !ok {
-					t1.Errorf("RegisterTasks() task not found in taskDefinitions")
-				}
+				assert.True(t, ok, "task not found in taskDefinitions")
 			}
 		})
 	}
@@ -188,9 +180,8 @@ func Test_isEmpty(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := isEmpty(tt.args.id); got != tt.want {
-				t.Errorf("isEmpty() = %v, want %v", got, tt.want)
-			}
+			got := isEmpty(tt.args.id)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -199,9 +190,7 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
 	runner, err := newTaskRunner(service, tracer, WithCluster("testing-4qgCk4qHH85qR7"))
-	if err != nil {
-		t.Fatalf("Failed to create TaskRunner: %v", err)
-	}
+	require.NoError(t, err)
 
 	taskID := uuid.New()
 
@@ -227,12 +216,8 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			updatedCtx := runner.withTaskExecutionContext(tt.args.ctx, tt.args.task)
 			got := getTaskExecutionContext(updatedCtx)
-			if len(got.Subtasks) != 0 {
-				t.Errorf("withTaskExecutionContext() Subtasks length = %v, want 0", len(got.Subtasks))
-			}
-			if got.CurrentTask.GetId() != tt.args.task.GetId() {
-				t.Errorf("withTaskExecutionContext() CurrentTask = %v, want %v", got.CurrentTask, tt.args.task)
-			}
+			assert.Empty(t, got.Subtasks)
+			assert.Equal(t, tt.args.task.GetId(), got.CurrentTask.GetId())
 		})
 	}
 }
@@ -242,9 +227,7 @@ func TestSubmitSubtasks(t *testing.T) {
 	service := mockTaskService{}
 	cluster := "testing-4qgCk4qHH85qR7"
 	runner, err := newTaskRunner(service, tracer, WithCluster(cluster))
-	if err != nil {
-		t.Fatalf("Failed to create TaskRunner: %v", err)
-	}
+	require.NoError(t, err)
 
 	currentTaskID := uuid.New()
 
@@ -316,14 +299,10 @@ func TestSubmitSubtasks(t *testing.T) {
 			}
 
 			te := getTaskExecutionContext(ctx)
-			if len(te.Subtasks) != len(tt.wantSubtasks) {
-				t.Errorf("SubmitSubtasks() Subtasks length = %v, want %v", len(te.Subtasks), len(tt.wantSubtasks))
-			}
+			assert.Len(t, te.Subtasks, len(tt.wantSubtasks))
 
 			for i, task := range tt.wantSubtasks {
-				if !reflect.DeepEqual(te.Subtasks[i], task) {
-					t.Errorf("SubmitSubtasks() Subtask %v = %v, want %v", i, te.Subtasks[i], task)
-				}
+				assert.Equal(t, task, te.Subtasks[i])
 			}
 		})
 	}
