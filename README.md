@@ -90,23 +90,21 @@ type HelloTask struct {
 func main() {
 	ctx := context.Background()
 
-	jobs := workflows.NewJobService(
-		workflows.NewJobClient(
-			workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-		),
+	client := workflows.NewClient(
+		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
 	)
 
-	job, err := jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0,
+	job, err := client.Jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0,
 		&HelloTask{
 			Name: "Tilebox",
 		},
 	)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to submit job", "error", err)
+		slog.ErrorContext(ctx, "Failed to submit job", slog.Any("error", err))
 		return
 	}
 
-	slog.InfoContext(ctx, "Job submitted", "job_id", uuid.Must(uuid.FromBytes(job.GetId().GetUuid())))
+	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
 }
 ```
 
@@ -136,22 +134,23 @@ func (t *HelloTask) Execute(context.Context) error {
 }
 
 func main() {
-	runner, err := workflows.NewTaskRunner(
-		workflows.NewTaskClient(
-			workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-		),
+	client := workflows.NewClient(
+		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
+	)
+
+	runner, err := client.NewTaskRunner(
 		workflows.WithCluster("testing-4qgCk4qHH85qR7"),
 	)
 	if err != nil {
-		slog.Error("failed to create task runner", "error", err)
+		slog.Error("failed to create task runner", slog.Any("error", err))
 		return
 	}
 
 	err = runner.RegisterTasks(
-		&HelloTask{},
+		&helloworld.HelloTask{},
 	)
 	if err != nil {
-		slog.Error("failed to register task", "error", err)
+		slog.Error("failed to register task", slog.Any("error", err))
 		return
 	}
 
