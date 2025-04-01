@@ -206,7 +206,6 @@ type Job struct {
 	Id            *UUID                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	TraceParent   string                 `protobuf:"bytes,3,opt,name=trace_parent,json=traceParent,proto3" json:"trace_parent,omitempty"`
-	Completed     bool                   `protobuf:"varint,4,opt,name=completed,proto3" json:"completed,omitempty"`                             // deprecated: use state instead
 	Canceled      bool                   `protobuf:"varint,5,opt,name=canceled,proto3" json:"canceled,omitempty"`                               // Whether the job has been canceled.
 	State         JobState               `protobuf:"varint,6,opt,name=state,proto3,enum=workflows.v1.JobState" json:"state,omitempty"`          // The current state of the job.
 	SubmittedAt   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=submitted_at,json=submittedAt,proto3" json:"submitted_at,omitempty"`       // The time the job was submitted.
@@ -266,13 +265,6 @@ func (x *Job) GetTraceParent() string {
 		return x.TraceParent
 	}
 	return ""
-}
-
-func (x *Job) GetCompleted() bool {
-	if x != nil {
-		return x.Completed
-	}
-	return false
 }
 
 func (x *Job) GetCanceled() bool {
@@ -949,12 +941,11 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"@\n" +
 	"\aCluster\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12!\n" +
-	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"\xbd\x03\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"\xa5\x03\n" +
 	"\x03Job\x12\"\n" +
 	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
-	"\ftrace_parent\x18\x03 \x01(\tR\vtraceParent\x12\x1c\n" +
-	"\tcompleted\x18\x04 \x01(\bR\tcompleted\x12\x1a\n" +
+	"\ftrace_parent\x18\x03 \x01(\tR\vtraceParent\x12\x1a\n" +
 	"\bcanceled\x18\x05 \x01(\bR\bcanceled\x12,\n" +
 	"\x05state\x18\x06 \x01(\x0e2\x16.workflows.v1.JobStateR\x05state\x12=\n" +
 	"\fsubmitted_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\vsubmittedAt\x129\n" +
@@ -962,7 +953,7 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"started_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x12@\n" +
 	"\x0etask_summaries\x18\t \x03(\v2\x19.workflows.v1.TaskSummaryR\rtaskSummaries\x127\n" +
 	"\rautomation_id\x18\n" +
-	" \x01(\v2\x12.workflows.v1.UUIDR\fautomationId\"\xd4\x02\n" +
+	" \x01(\v2\x12.workflows.v1.UUIDR\fautomationIdJ\x04\b\x04\x10\x05\"\xd4\x02\n" +
 	"\vTaskSummary\x12\"\n" +
 	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x18\n" +
 	"\adisplay\x18\x02 \x01(\tR\adisplay\x12-\n" +
