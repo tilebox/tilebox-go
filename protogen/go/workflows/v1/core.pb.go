@@ -814,8 +814,8 @@ func (x *TaskLease) GetRecommendedWaitUntilNextExtension() *durationpb.Duration 
 // An ID interval
 type IDInterval struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
-	StartId string                 `protobuf:"bytes,1,opt,name=start_id,json=startId,proto3" json:"start_id,omitempty"` // The id of the first data point in the interval.
-	EndId   string                 `protobuf:"bytes,2,opt,name=end_id,json=endId,proto3" json:"end_id,omitempty"`       // The id of the last data point in the interval.
+	StartId *UUID                  `protobuf:"bytes,1,opt,name=start_id,json=startId,proto3" json:"start_id,omitempty"` // The id of the first data point in the interval.
+	EndId   *UUID                  `protobuf:"bytes,2,opt,name=end_id,json=endId,proto3" json:"end_id,omitempty"`       // The id of the last data point in the interval.
 	// We use exclusive for start and inclusive for end, because that way when both are false
 	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
 	// Flag indicating whether the start id is exclusive.
@@ -858,18 +858,18 @@ func (*IDInterval) Descriptor() ([]byte, []int) {
 	return file_workflows_v1_core_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *IDInterval) GetStartId() string {
+func (x *IDInterval) GetStartId() *UUID {
 	if x != nil {
 		return x.StartId
 	}
-	return ""
+	return nil
 }
 
-func (x *IDInterval) GetEndId() string {
+func (x *IDInterval) GetEndId() *UUID {
 	if x != nil {
 		return x.EndId
 	}
-	return ""
+	return nil
 }
 
 func (x *IDInterval) GetStartExclusive() bool {
@@ -1012,11 +1012,11 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x04uuid\x18\x01 \x01(\fR\x04uuid\"\xa9\x01\n" +
 	"\tTaskLease\x12/\n" +
 	"\x05lease\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x05lease\x12k\n" +
-	"%recommended_wait_until_next_extension\x18\x02 \x01(\v2\x19.google.protobuf.DurationR!recommendedWaitUntilNextExtension\"\x8c\x01\n" +
+	"%recommended_wait_until_next_extension\x18\x02 \x01(\v2\x19.google.protobuf.DurationR!recommendedWaitUntilNextExtension\"\xb4\x01\n" +
 	"\n" +
-	"IDInterval\x12\x19\n" +
-	"\bstart_id\x18\x01 \x01(\tR\astartId\x12\x15\n" +
-	"\x06end_id\x18\x02 \x01(\tR\x05endId\x12'\n" +
+	"IDInterval\x12-\n" +
+	"\bstart_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\astartId\x12)\n" +
+	"\x06end_id\x18\x02 \x01(\v2\x12.workflows.v1.UUIDR\x05endId\x12'\n" +
 	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
 	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"p\n" +
 	"\n" +
@@ -1094,11 +1094,13 @@ var file_workflows_v1_core_proto_depIdxs = []int32{
 	6,  // 20: workflows.v1.TaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
 	14, // 21: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
 	14, // 22: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	9,  // 23: workflows.v1.IDInterval.start_id:type_name -> workflows.v1.UUID
+	9,  // 24: workflows.v1.IDInterval.end_id:type_name -> workflows.v1.UUID
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_core_proto_init() }

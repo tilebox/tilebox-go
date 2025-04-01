@@ -117,8 +117,8 @@ message TaskLease {
 
 // An ID interval
 message IDInterval {
-  string start_id = 1; // The id of the first data point in the interval.
-  string end_id = 2; // The id of the last data point in the interval.
+  UUID start_id = 1; // The id of the first data point in the interval.
+  UUID end_id = 2; // The id of the last data point in the interval.
 
   // We use exclusive for start and inclusive for end, because that way when both are false
   // we have a half-open interval [start, end) which is the default behaviour we want to achieve.

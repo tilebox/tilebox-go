@@ -102,8 +102,8 @@ func Test_jobClient_List(t *testing.T) {
 	client := NewReplayClient(t, "Jobs")
 
 	jobs, err := Collect(client.Jobs.List(ctx, &workflowsv1.IDInterval{
-		StartId: "00000000-0000-0000-0000-000000000000",
-		EndId:   "ffffffff-ffff-ffff-ffff-ffffffffffff",
+		StartId: uuidToProtobuf(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
+		EndId:   uuidToProtobuf(uuid.MustParse("ffffffff-ffff-ffff-ffff-ffffffffffff")),
 	}))
 	require.NoError(t, err)
 
