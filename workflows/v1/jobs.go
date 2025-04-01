@@ -83,7 +83,6 @@ type JobClient interface {
 	Retry(ctx context.Context, jobID uuid.UUID) (int64, error)
 	Cancel(ctx context.Context, jobID uuid.UUID) error
 	List(ctx context.Context, idInterval *workflowsv1.IDInterval) iter.Seq2[*Job, error]
-	ValidateJob(jobName string, clusterSlug string, maxRetries int, tasks ...Task) (*workflowsv1.SubmitJobRequest, error)
 }
 
 var _ JobClient = &jobClient{}
@@ -96,7 +95,7 @@ type jobClient struct {
 //
 // Documentation: https://docs.tilebox.com/workflows/concepts/jobs#submission
 func (c jobClient) Submit(ctx context.Context, jobName string, clusterSlug string, maxRetries int, tasks ...Task) (*Job, error) {
-	jobRequest, err := c.ValidateJob(jobName, clusterSlug, maxRetries, tasks...)
+	jobRequest, err := ValidateJob(jobName, clusterSlug, maxRetries, tasks...)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +182,7 @@ func (c jobClient) List(ctx context.Context, idInterval *workflowsv1.IDInterval)
 	}
 }
 
-func (c jobClient) ValidateJob(jobName string, clusterSlug string, maxRetries int, tasks ...Task) (*workflowsv1.SubmitJobRequest, error) {
+func ValidateJob(jobName string, clusterSlug string, maxRetries int, tasks ...Task) (*workflowsv1.SubmitJobRequest, error) {
 	if len(tasks) == 0 {
 		return nil, errors.New("no tasks to submit")
 	}
