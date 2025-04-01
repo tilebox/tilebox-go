@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tilebox/tilebox-go/interval"
 	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"google.golang.org/protobuf/proto"
@@ -71,11 +72,11 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 	client := NewDatapointClient(10)
 
 	collectionID := uuid.New()
-	interval := NewStandardTimeInterval(time.Now(), time.Now())
+	timeInterval := interval.NewStandardTimeInterval(time.Now(), time.Now())
 
 	type args struct {
 		collectionID uuid.UUID
-		interval     LoadInterval
+		interval     interval.LoadInterval
 		datapoints   any
 		options      []LoadOption
 	}
@@ -88,7 +89,7 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 			name: "LoadInto",
 			args: args{
 				collectionID: collectionID,
-				interval:     interval,
+				interval:     timeInterval,
 				datapoints:   &[]*testv1.Sentinel2Msi{},
 				options:      nil,
 			},
@@ -152,12 +153,12 @@ func Benchmark_LoadInto(b *testing.B) {
 	client := NewDatapointClient(1000)
 
 	collectionID := uuid.New()
-	interval := NewStandardTimeInterval(time.Now(), time.Now())
+	timeInterval := interval.NewStandardTimeInterval(time.Now(), time.Now())
 
 	var datapoints []*testv1.Sentinel2Msi
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
-			err := client.LoadInto(ctx, collectionID, interval, &datapoints)
+			err := client.LoadInto(ctx, collectionID, timeInterval, &datapoints)
 			require.NoError(b, err)
 		}
 	})
@@ -176,10 +177,10 @@ func Test_datapointClient_Load(t *testing.T) {
 	assert.Equal(t, "MCD12Q1", collection.Name)
 
 	jan2001 := time.Date(2001, time.January, 1, 0, 0, 0, 0, time.UTC)
-	interval := NewStandardTimeInterval(jan2001, jan2001.AddDate(0, 0, 7))
+	timeInterval := interval.NewStandardTimeInterval(jan2001, jan2001.AddDate(0, 0, 7))
 
 	t.Run("CollectAs", func(t *testing.T) {
-		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Load(ctx, collection.ID, interval))
+		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Load(ctx, collection.ID, timeInterval))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 315)
@@ -189,7 +190,7 @@ func Test_datapointClient_Load(t *testing.T) {
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
-		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Load(ctx, collection.ID, interval, WithSkipData()))
+		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Load(ctx, collection.ID, timeInterval, WithSkipData()))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 315)
@@ -228,7 +229,7 @@ func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	}
 }
 
-func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ LoadInterval, _ ...LoadOption) iter.Seq2[[]byte, error] {
+func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ interval.LoadInterval, _ ...LoadOption) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
 		for _, data := range s.data {
 			if !yield(data, nil) {
@@ -245,8 +246,8 @@ var result []*testv1.Sentinel2Msi
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
 func BenchmarkCollectAs(b *testing.B) {
 	ctx := context.Background()
-	collectionID := uuid.New()             // dummy collection ID
-	loadInterval := newEmptyTimeInterval() // dummy load interval
+	collectionID := uuid.New()                      // dummy collection ID
+	loadInterval := interval.NewEmptyTimeInterval() // dummy load interval
 
 	client := NewClient()
 	client.Datapoints = NewMockDatapointClient(b, 1000)

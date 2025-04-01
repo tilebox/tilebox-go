@@ -8,13 +8,14 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
+	"github.com/tilebox/tilebox-go/interval"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"google.golang.org/protobuf/proto"
 )
 
 type DatapointClient interface {
-	Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[[]byte, error]
-	LoadInto(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, datapoints any, options ...LoadOption) error
+	Load(ctx context.Context, collectionID uuid.UUID, interval interval.LoadInterval, options ...LoadOption) iter.Seq2[[]byte, error]
+	LoadInto(ctx context.Context, collectionID uuid.UUID, interval interval.LoadInterval, datapoints any, options ...LoadOption) error
 	Ingest(ctx context.Context, collectionID uuid.UUID, datapoints any, allowExisting bool) (*IngestResponse, error)
 	Delete(ctx context.Context, collectionID uuid.UUID, datapoints any) (*DeleteResponse, error)
 	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error)
@@ -67,7 +68,7 @@ func newLoadConfig(options []LoadOption) *loadConfig {
 // The output sequence can be transformed into a proto.Message using CollectAs or As functions.
 //
 // Documentation: https://docs.tilebox.com/datasets/loading-data
-func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, options ...LoadOption) iter.Seq2[[]byte, error] {
+func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, interval interval.LoadInterval, options ...LoadOption) iter.Seq2[[]byte, error] {
 	cfg := newLoadConfig(options)
 
 	collectionIDs := []uuid.UUID{collectionID}
@@ -117,7 +118,7 @@ func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, inter
 // Example usage:
 // var datapoints []*tileboxdatasets.TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
 // err := client.Datapoints.LoadInto(ctx, collection.ID, loadInterval, &datapoints)
-func (d datapointClient) LoadInto(ctx context.Context, collectionID uuid.UUID, interval LoadInterval, datapoints any, options ...LoadOption) error {
+func (d datapointClient) LoadInto(ctx context.Context, collectionID uuid.UUID, interval interval.LoadInterval, datapoints any, options ...LoadOption) error {
 	err := validateDatapoints(datapoints)
 	if err != nil {
 		return fmt.Errorf("failed to validate datapoints: %w", err)

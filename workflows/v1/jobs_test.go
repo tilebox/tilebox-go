@@ -3,10 +3,12 @@ package workflows
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tilebox/tilebox-go/interval"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 )
 
@@ -101,10 +103,10 @@ func Test_jobClient_List(t *testing.T) {
 	ctx := context.Background()
 	client := NewReplayClient(t, "Jobs")
 
-	jobs, err := Collect(client.Jobs.List(ctx, &workflowsv1.IDInterval{
-		StartId: uuidToProtobuf(uuid.MustParse("00000000-0000-0000-0000-000000000000")),
-		EndId:   uuidToProtobuf(uuid.MustParse("ffffffff-ffff-ffff-ffff-ffffffffffff")),
-	}))
+	startDate := time.Date(2024, time.February, 1, 0, 0, 0, 0, time.UTC)
+	endDate := time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC)
+	timeInterval := interval.NewStandardTimeInterval(startDate, endDate)
+	jobs, err := Collect(client.Jobs.List(ctx, timeInterval))
 	require.NoError(t, err)
 
 	job := jobs[0]

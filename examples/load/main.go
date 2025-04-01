@@ -8,6 +8,7 @@ import (
 	"time"
 
 	tileboxdatasets "github.com/tilebox/tilebox-go/datasets/v1"
+	"github.com/tilebox/tilebox-go/interval"
 	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
 )
 
@@ -33,7 +34,7 @@ func main() {
 
 	// Select a time interval
 	jan2001 := time.Date(2001, time.January, 1, 0, 0, 0, 0, time.UTC)
-	loadInterval := tileboxdatasets.NewStandardTimeInterval(jan2001, time.Now())
+	loadInterval := interval.NewStandardTimeInterval(jan2001, time.Now())
 
 	// Load one month of data
 	var datapoints []*testv1.Modis
