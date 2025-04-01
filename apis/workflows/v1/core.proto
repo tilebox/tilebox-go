@@ -19,7 +19,7 @@ message Job {
   UUID id = 1;
   string name = 2;
   string trace_parent = 3;
-  bool completed = 4; // deprecated: use state instead
+  reserved 4;
   bool canceled = 5; // Whether the job has been canceled.
   JobState state = 6; // The current state of the job.
   google.protobuf.Timestamp submitted_at = 7; // The time the job was submitted.
