@@ -1,4 +1,4 @@
-package grpc
+package grpc // import "github.com/tilebox/tilebox-go/grpc"
 
 import (
 	"context"

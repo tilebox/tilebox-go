@@ -1,4 +1,4 @@
-package observability
+package observability // import "github.com/tilebox/tilebox-go/observability"
 
 import (
 	"context"

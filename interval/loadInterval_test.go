@@ -1,4 +1,4 @@
-package datasets
+package interval
 
 import (
 	"testing"
@@ -10,7 +10,7 @@ import (
 )
 
 func TestNewEmptyTimeInterval(t *testing.T) {
-	got := newEmptyTimeInterval()
+	got := NewEmptyTimeInterval()
 
 	assert.Equal(t, time.Duration(0), got.Duration())
 }
@@ -182,7 +182,7 @@ func Test_protoToTimeIntervalRoundtrip(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		input := genTimeInterval.Draw(t, "time interval")
 
-		got := protoToTimeInterval(input.ToProtoTimeInterval())
+		got := ProtoToTimeInterval(input.ToProtoTimeInterval())
 
 		assert.Equal(t, input.Start, got.Start)
 		assert.Equal(t, input.End, got.End)

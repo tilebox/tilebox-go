@@ -1,9 +1,14 @@
-package datasets // import "github.com/tilebox/tilebox-go/datasets/v1"
+package interval // import "github.com/tilebox/tilebox-go/interval"
 
 import (
+	"crypto/rand"
+	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/oklog/ulid/v2"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -14,6 +19,7 @@ const smallestPossibleTimeDelta = time.Nanosecond
 type LoadInterval interface {
 	ToProtoTimeInterval() *datasetsv1.TimeInterval
 	ToProtoDatapointInterval() *datasetsv1.DatapointInterval
+	ToProtoIDInterval() *workflowsv1.IDInterval
 }
 
 var _ LoadInterval = &TimeInterval{}
@@ -48,7 +54,7 @@ func NewStandardTimeInterval(start, end time.Time) *TimeInterval {
 	return NewTimeInterval(start, end, false, false)
 }
 
-func newEmptyTimeInterval() *TimeInterval {
+func NewEmptyTimeInterval() *TimeInterval {
 	return &TimeInterval{
 		Start:          time.Unix(0, 0),
 		End:            time.Unix(0, 0),
@@ -57,9 +63,9 @@ func newEmptyTimeInterval() *TimeInterval {
 	}
 }
 
-func protoToTimeInterval(t *datasetsv1.TimeInterval) *TimeInterval {
+func ProtoToTimeInterval(t *datasetsv1.TimeInterval) *TimeInterval {
 	if t == nil {
-		return newEmptyTimeInterval()
+		return NewEmptyTimeInterval()
 	}
 
 	return &TimeInterval{
@@ -81,6 +87,34 @@ func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
 
 func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval {
 	return nil
+}
+
+func (t *TimeInterval) ToProtoIDInterval() *workflowsv1.IDInterval {
+	startID, err := newUUIDWithTime(t.Start)
+	if err != nil {
+		startID = uuid.Nil
+	}
+
+	endID, err := newUUIDWithTime(t.End)
+	if err != nil {
+		endID = uuid.Nil
+	}
+
+	return &workflowsv1.IDInterval{
+		StartId:        &workflowsv1.UUID{Uuid: startID[:]},
+		EndId:          &workflowsv1.UUID{Uuid: endID[:]},
+		StartExclusive: t.StartExclusive,
+		EndInclusive:   t.EndInclusive,
+	}
+}
+
+// newUUIDWithTime generates a new uuid.UUID for a given time and random entropy
+func newUUIDWithTime(t time.Time) (uuid.UUID, error) {
+	uu, err := ulid.New(ulid.Timestamp(t), rand.Reader)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to create new ulid: %w", err)
+	}
+	return uuid.UUID(uu), nil
 }
 
 // ToHalfOpen converts the TimeInterval to a half-open interval [Start, End).
