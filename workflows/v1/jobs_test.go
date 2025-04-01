@@ -2,7 +2,6 @@ package workflows
 
 import (
 	"context"
-	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -78,15 +77,9 @@ func TestJobService_Submit(t *testing.T) {
 			assert.Equal(t, tt.want.Name, got.Name)
 
 			// Verify the submitted request
-			if len(service.reqs) != 1 {
-				t.Fatalf("Submit() expected 1 request, got %d", len(service.reqs))
-			}
-			if !reflect.DeepEqual(service.reqs[0].GetTasks(), tt.wantReq.GetTasks()) {
-				t.Errorf("Submit() request = %v, want %v", service.reqs[0], tt.wantReq)
-			}
-			if !reflect.DeepEqual(service.reqs[0].GetJobName(), tt.wantReq.GetJobName()) {
-				t.Errorf("Submit() request = %v, want %v", service.reqs[0], tt.wantReq)
-			}
+			assert.Len(t, service.reqs, 1)
+			assert.Equal(t, tt.wantReq.GetTasks(), service.reqs[0].GetTasks())
+			assert.Equal(t, tt.wantReq.GetJobName(), service.reqs[0].GetJobName())
 			// We don't compare traceparent because it's generated randomly
 		})
 	}
@@ -94,10 +87,7 @@ func TestJobService_Submit(t *testing.T) {
 
 func Test_jobClient_Get(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayClient(t, "Job")
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
+	client := NewReplayClient(t, "Job")
 
 	job, err := client.Jobs.Get(ctx, uuid.MustParse("0194ad17-bdaf-ff8e-983b-d1299fd2d235"))
 	require.NoError(t, err)
@@ -109,10 +99,7 @@ func Test_jobClient_Get(t *testing.T) {
 
 func Test_jobClient_List(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayClient(t, "Jobs")
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
+	client := NewReplayClient(t, "Jobs")
 
 	jobs, err := Collect(client.Jobs.List(ctx, &workflowsv1.IDInterval{
 		StartId: "00000000-0000-0000-0000-000000000000",

@@ -166,10 +166,7 @@ func Benchmark_LoadInto(b *testing.B) {
 
 func Test_datapointClient_Load(t *testing.T) {
 	ctx := context.Background()
-	client, err := NewReplayClient(t, "load")
-	if err != nil {
-		t.Fatalf("Failed to create client: %v", err)
-	}
+	client := NewReplayClient(t, "load")
 
 	dataset, err := client.Datasets.Get(ctx, "tilebox.modis")
 	require.NoError(t, err)
