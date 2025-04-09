@@ -246,6 +246,7 @@ type QueryFilters struct {
 	//	*QueryFilters_TimeInterval
 	//	*QueryFilters_DatapointInterval
 	TemporalInterval isQueryFilters_TemporalInterval `protobuf_oneof:"temporal_interval"`
+	AreaOfInterest   *Geometry                       `protobuf:"bytes,3,opt,name=area_of_interest,json=areaOfInterest,proto3" json:"area_of_interest,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -301,6 +302,13 @@ func (x *QueryFilters) GetDatapointInterval() *DatapointInterval {
 		if x, ok := x.TemporalInterval.(*QueryFilters_DatapointInterval); ok {
 			return x.DatapointInterval
 		}
+	}
+	return nil
+}
+
+func (x *QueryFilters) GetAreaOfInterest() *Geometry {
+	if x != nil {
+		return x.AreaOfInterest
 	}
 	return nil
 }
@@ -447,7 +455,7 @@ var File_datasets_v1_data_access_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\n" +
-	"\x1ddatasets/v1/data_access.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\"\xcd\x02\n" +
+	"\x1ddatasets/v1/data_access.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\"datasets/v1/well_known_types.proto\"\xcd\x02\n" +
 	"\x1cGetDatasetForIntervalRequest\x12#\n" +
 	"\rcollection_id\x18\x01 \x01(\tR\fcollectionId\x12>\n" +
 	"\rtime_interval\x18\x02 \x01(\v2\x19.datasets.v1.TimeIntervalR\ftimeInterval\x12M\n" +
@@ -463,10 +471,11 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\x10QueryByIDRequest\x126\n" +
 	"\x0ecollection_ids\x18\x01 \x03(\v2\x0f.datasets.v1.IDR\rcollectionIds\x12\x1f\n" +
 	"\x02id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12\x1b\n" +
-	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\xb6\x01\n" +
+	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\xf7\x01\n" +
 	"\fQueryFilters\x12@\n" +
 	"\rtime_interval\x18\x01 \x01(\v2\x19.datasets.v1.TimeIntervalH\x00R\ftimeInterval\x12O\n" +
-	"\x12datapoint_interval\x18\x02 \x01(\v2\x1e.datasets.v1.DatapointIntervalH\x00R\x11datapointIntervalB\x13\n" +
+	"\x12datapoint_interval\x18\x02 \x01(\v2\x1e.datasets.v1.DatapointIntervalH\x00R\x11datapointInterval\x12?\n" +
+	"\x10area_of_interest\x18\x03 \x01(\v2\x15.datasets.v1.GeometryR\x0eareaOfInterestB\x13\n" +
 	"\x11temporal_interval\"\xd3\x01\n" +
 	"\fQueryRequest\x126\n" +
 	"\x0ecollection_ids\x18\x01 \x03(\v2\x0f.datasets.v1.IDR\rcollectionIds\x123\n" +
@@ -510,11 +519,12 @@ var file_datasets_v1_data_access_proto_goTypes = []any{
 	(*DatapointInterval)(nil),            // 7: datasets.v1.DatapointInterval
 	(*LegacyPagination)(nil),             // 8: datasets.v1.LegacyPagination
 	(*ID)(nil),                           // 9: datasets.v1.ID
-	(*Pagination)(nil),                   // 10: datasets.v1.Pagination
-	(*RepeatedAny)(nil),                  // 11: datasets.v1.RepeatedAny
-	(*DatapointPage)(nil),                // 12: datasets.v1.DatapointPage
-	(*Datapoint)(nil),                    // 13: datasets.v1.Datapoint
-	(*Any)(nil),                          // 14: datasets.v1.Any
+	(*Geometry)(nil),                     // 10: datasets.v1.Geometry
+	(*Pagination)(nil),                   // 11: datasets.v1.Pagination
+	(*RepeatedAny)(nil),                  // 12: datasets.v1.RepeatedAny
+	(*DatapointPage)(nil),                // 13: datasets.v1.DatapointPage
+	(*Datapoint)(nil),                    // 14: datasets.v1.Datapoint
+	(*Any)(nil),                          // 15: datasets.v1.Any
 }
 var file_datasets_v1_data_access_proto_depIdxs = []int32{
 	6,  // 0: datasets.v1.GetDatasetForIntervalRequest.time_interval:type_name -> datasets.v1.TimeInterval
@@ -524,24 +534,25 @@ var file_datasets_v1_data_access_proto_depIdxs = []int32{
 	9,  // 4: datasets.v1.QueryByIDRequest.id:type_name -> datasets.v1.ID
 	6,  // 5: datasets.v1.QueryFilters.time_interval:type_name -> datasets.v1.TimeInterval
 	7,  // 6: datasets.v1.QueryFilters.datapoint_interval:type_name -> datasets.v1.DatapointInterval
-	9,  // 7: datasets.v1.QueryRequest.collection_ids:type_name -> datasets.v1.ID
-	3,  // 8: datasets.v1.QueryRequest.filters:type_name -> datasets.v1.QueryFilters
-	10, // 9: datasets.v1.QueryRequest.page:type_name -> datasets.v1.Pagination
-	11, // 10: datasets.v1.QueryResultPage.data:type_name -> datasets.v1.RepeatedAny
-	10, // 11: datasets.v1.QueryResultPage.next_page:type_name -> datasets.v1.Pagination
-	0,  // 12: datasets.v1.DataAccessService.GetDatasetForInterval:input_type -> datasets.v1.GetDatasetForIntervalRequest
-	1,  // 13: datasets.v1.DataAccessService.GetDatapointByID:input_type -> datasets.v1.GetDatapointByIdRequest
-	2,  // 14: datasets.v1.DataAccessService.QueryByID:input_type -> datasets.v1.QueryByIDRequest
-	4,  // 15: datasets.v1.DataAccessService.Query:input_type -> datasets.v1.QueryRequest
-	12, // 16: datasets.v1.DataAccessService.GetDatasetForInterval:output_type -> datasets.v1.DatapointPage
-	13, // 17: datasets.v1.DataAccessService.GetDatapointByID:output_type -> datasets.v1.Datapoint
-	14, // 18: datasets.v1.DataAccessService.QueryByID:output_type -> datasets.v1.Any
-	5,  // 19: datasets.v1.DataAccessService.Query:output_type -> datasets.v1.QueryResultPage
-	16, // [16:20] is the sub-list for method output_type
-	12, // [12:16] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	10, // 7: datasets.v1.QueryFilters.area_of_interest:type_name -> datasets.v1.Geometry
+	9,  // 8: datasets.v1.QueryRequest.collection_ids:type_name -> datasets.v1.ID
+	3,  // 9: datasets.v1.QueryRequest.filters:type_name -> datasets.v1.QueryFilters
+	11, // 10: datasets.v1.QueryRequest.page:type_name -> datasets.v1.Pagination
+	12, // 11: datasets.v1.QueryResultPage.data:type_name -> datasets.v1.RepeatedAny
+	11, // 12: datasets.v1.QueryResultPage.next_page:type_name -> datasets.v1.Pagination
+	0,  // 13: datasets.v1.DataAccessService.GetDatasetForInterval:input_type -> datasets.v1.GetDatasetForIntervalRequest
+	1,  // 14: datasets.v1.DataAccessService.GetDatapointByID:input_type -> datasets.v1.GetDatapointByIdRequest
+	2,  // 15: datasets.v1.DataAccessService.QueryByID:input_type -> datasets.v1.QueryByIDRequest
+	4,  // 16: datasets.v1.DataAccessService.Query:input_type -> datasets.v1.QueryRequest
+	13, // 17: datasets.v1.DataAccessService.GetDatasetForInterval:output_type -> datasets.v1.DatapointPage
+	14, // 18: datasets.v1.DataAccessService.GetDatapointByID:output_type -> datasets.v1.Datapoint
+	15, // 19: datasets.v1.DataAccessService.QueryByID:output_type -> datasets.v1.Any
+	5,  // 20: datasets.v1.DataAccessService.Query:output_type -> datasets.v1.QueryResultPage
+	17, // [17:21] is the sub-list for method output_type
+	13, // [13:17] is the sub-list for method input_type
+	13, // [13:13] is the sub-list for extension type_name
+	13, // [13:13] is the sub-list for extension extendee
+	0,  // [0:13] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_data_access_proto_init() }
@@ -550,6 +561,7 @@ func file_datasets_v1_data_access_proto_init() {
 		return
 	}
 	file_datasets_v1_core_proto_init()
+	file_datasets_v1_well_known_types_proto_init()
 	file_datasets_v1_data_access_proto_msgTypes[0].OneofWrappers = []any{}
 	file_datasets_v1_data_access_proto_msgTypes[3].OneofWrappers = []any{
 		(*QueryFilters_TimeInterval)(nil),
