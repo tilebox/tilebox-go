@@ -5,6 +5,7 @@ syntax = "proto3";
 package datasets.v1;
 
 import "datasets/v1/core.proto";
+import "datasets/v1/well_known_types.proto";
 
 // Legacy message, to be removed in the future.
 // GetDatasetForIntervalRequest contains the request parameters for retrieving data for a time interval.
@@ -45,6 +46,8 @@ message QueryFilters {
     TimeInterval time_interval = 1;
     DatapointInterval datapoint_interval = 2;
   }
+
+  Geometry area_of_interest = 3;
 }
 
 // QueryRequest contains the request parameters for retrieving data from a Tilebox dataset.
