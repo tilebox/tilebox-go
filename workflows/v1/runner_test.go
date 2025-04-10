@@ -31,55 +31,6 @@ func (t *badIdentifierTask) Identifier() TaskIdentifier {
 	return NewTaskIdentifier("", "")
 }
 
-func TestTaskRunner_RegisterTask(t *testing.T) {
-	tracer := noop.NewTracerProvider().Tracer("")
-	service := mockTaskService{}
-
-	type args struct {
-		task ExecutableTask
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{
-			name: "Register Task",
-			args: args{
-				task: &testTask1{},
-			},
-		},
-		{
-			name: "Register Task bad identifier",
-			args: args{
-				task: &badIdentifierTask{},
-			},
-			wantErr: true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			runner, err := newTaskRunner(service, tracer, WithCluster("testing-4qgCk4qHH85qR7"))
-			require.NoError(t, err)
-
-			err = runner.RegisterTask(tt.args.task)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RegisterTask() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			identifier := identifierFromTask(tt.args.task)
-			_, ok := runner.GetRegisteredTask(identifier)
-
-			if ok && tt.wantErr {
-				t.Errorf("RegisterTask() task found in taskDefinitions")
-			}
-			if !ok && !tt.wantErr {
-				t.Errorf("RegisterTask() task not found in taskDefinitions")
-			}
-		})
-	}
-}
-
 func TestTaskRunner_RegisterTasks(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}

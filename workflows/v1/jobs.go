@@ -131,6 +131,8 @@ func (c jobClient) Get(ctx context.Context, jobID uuid.UUID) (*Job, error) {
 
 // Retry retries a job.
 //
+// Returns the number of rescheduled tasks.
+//
 // Documentation: https://docs.tilebox.com/workflows/concepts/jobs#retry-handling
 func (c jobClient) Retry(ctx context.Context, jobID uuid.UUID) (int64, error) {
 	response, err := c.service.RetryJob(ctx, jobID)

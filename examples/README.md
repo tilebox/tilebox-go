@@ -5,7 +5,7 @@ This repository contains examples for using the Tilebox Go library.
 ## Environment variables
 
 To run the examples, `TILEBOX_API_KEY` environment variable needs to be set to your Tilebox API key.
-Head over to [Tilebox Console](https://console.tilebox.com/settings/api-keys) if you don't have one already.
+Head over to [Tilebox Console](https://console.tilebox.com/account/api-keys) if you don't have one already.
 
 ### Running the examples
 
@@ -24,9 +24,9 @@ go run ./helloworld/submitter
 ## Workflows examples
 
 - [Hello world](helloworld): How to submit a task and run it.
-- [Sample workflow](sampleworkflow): A example of how to submit a task and run a workflow using protobuf messages and with OpenTelemetry setup.
+- [Sample workflow](sampleworkflow): How to submit a task and run a workflow using protobuf messages and with OpenTelemetry setup.
 
 ## Datasets examples
 
-- [Load data](load): How to load data from a collection.
+- [Load data](load): How to load datapoints from a collection.
 - [Ingest and delete data](ingest): How to create a collection, ingest datapoints, and then delete them.

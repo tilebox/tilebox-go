@@ -121,8 +121,8 @@ func newTaskRunner(service TaskService, tracer trace.Tracer, options ...TaskRunn
 	}, nil
 }
 
-// RegisterTask makes the task runner aware of a task.
-func (t *TaskRunner) RegisterTask(task ExecutableTask) error {
+// registerTask makes the task runner aware of a task.
+func (t *TaskRunner) registerTask(task ExecutableTask) error {
 	identifier := identifierFromTask(task)
 	err := ValidateIdentifier(identifier)
 	if err != nil {
@@ -141,7 +141,7 @@ func (t *TaskRunner) GetRegisteredTask(identifier TaskIdentifier) (ExecutableTas
 // RegisterTasks makes the task runner aware of multiple tasks.
 func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
 	for _, task := range tasks {
-		err := t.RegisterTask(task)
+		err := t.registerTask(task)
 		if err != nil {
 			return err
 		}
