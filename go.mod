@@ -9,6 +9,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/integrii/flaggy v1.5.2
+	github.com/oklog/ulid/v2 v2.1.0
+	github.com/paulmach/orb v0.11.1
 	github.com/remychantenay/slog-otel v1.3.2
 	github.com/samber/lo v1.47.0
 	github.com/samber/slog-multi v1.2.4
@@ -83,7 +85,6 @@ require (
 	github.com/moby/sys/userns v0.1.0 // indirect
 	github.com/moby/term v0.5.2 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/oklog/ulid/v2 v2.1.0 // indirect
 	github.com/onsi/ginkgo/v2 v2.22.2 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
