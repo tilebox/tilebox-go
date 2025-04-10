@@ -14,6 +14,7 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"github.com/tilebox/tilebox-go/observability"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"go.opentelemetry.io/otel"
@@ -203,7 +204,7 @@ func (t *TaskRunner) Run(ctx context.Context) {
 					SubTasks: nil,
 				}
 				if executionContext != nil && len(executionContext.Subtasks) > 0 {
-					computedTask.SubTasks = executionContext.Subtasks
+					computedTask.SubTasks = lo.Map(executionContext.Subtasks, func(ft *FutureTask, _ int) *workflowsv1.TaskSubmission { return ft.submission })
 				}
 				nextTaskToRun := &workflowsv1.NextTaskToRun{ClusterSlug: t.cluster, Identifiers: identifiers}
 				select {
@@ -406,17 +407,22 @@ func (t *TaskRunner) extendTaskLease(ctx context.Context, service TaskService, t
 	}
 }
 
+type FutureTask struct {
+	index      int64
+	submission *workflowsv1.TaskSubmission
+}
+
 type taskExecutionContext struct {
 	CurrentTask *workflowsv1.Task
 	runner      *TaskRunner
-	Subtasks    []*workflowsv1.TaskSubmission
+	Subtasks    []*FutureTask
 }
 
 func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflowsv1.Task) context.Context {
 	return context.WithValue(ctx, contextKeyTaskExecution, &taskExecutionContext{
 		CurrentTask: task,
 		runner:      t,
-		Subtasks:    make([]*workflowsv1.TaskSubmission, 0),
+		Subtasks:    make([]*FutureTask, 0),
 	})
 }
 
@@ -439,51 +445,120 @@ func GetCurrentCluster(ctx context.Context) (string, error) {
 	return executionContext.runner.cluster, nil
 }
 
-// SubmitSubtasks submits multiple subtasks to the task runner.
+// submitSubtaskConfig contains the configuration for a SubmitSubtask request.
+type submitSubtaskConfig struct {
+	dependencies []*FutureTask
+	clusterSlug  string
+	maxRetries   int64
+}
+
+// SubmitSubtaskOption is an interface for configuring a SubmitSubtask request.
+type SubmitSubtaskOption func(*submitSubtaskConfig)
+
+// WithSkipData skips the data when loading datapoints.
+// If set, only the required and auto-generated fields will be returned.
 //
-// This function is intended to be used in tasks to submit subtasks to the task runner.
-func SubmitSubtasks(ctx context.Context, tasks ...Task) error {
-	executionContext := getTaskExecutionContext(ctx)
-	if executionContext == nil {
-		return errors.New("cannot submit subtask without task execution context")
+// Defaults to false.
+func WithDependencies(dependencies ...*FutureTask) SubmitSubtaskOption {
+	return func(cfg *submitSubtaskConfig) {
+		cfg.dependencies = append(cfg.dependencies, dependencies...)
+	}
+}
+
+func WithClusterSlug(clusterSlug string) SubmitSubtaskOption {
+	return func(cfg *submitSubtaskConfig) {
+		cfg.clusterSlug = clusterSlug
+	}
+}
+
+func WithMaxRetries(maxRetries int64) SubmitSubtaskOption {
+	return func(cfg *submitSubtaskConfig) {
+		cfg.maxRetries = maxRetries
+	}
+}
+
+func newSubmitSubtaskConfig(options []SubmitSubtaskOption, executionContext *taskExecutionContext) *submitSubtaskConfig {
+	cfg := &submitSubtaskConfig{
+		dependencies: nil,
+		clusterSlug:  executionContext.runner.cluster,
+		maxRetries:   0,
+	}
+	for _, option := range options {
+		option(cfg)
 	}
 
-	for _, task := range tasks {
-		var subtaskInput []byte
-		var err error
+	return cfg
+}
 
-		taskProto, isProtobuf := task.(proto.Message)
-		if isProtobuf {
-			subtaskInput, err = proto.Marshal(taskProto)
-			if err != nil {
-				return fmt.Errorf("failed to marshal protobuf task: %w", err)
-			}
-		} else {
-			subtaskInput, err = json.Marshal(task)
-			if err != nil {
-				return fmt.Errorf("failed to marshal task: %w", err)
-			}
-		}
+// SubmitSubtask submits a task to the task runner as subtask of the current task.
+func SubmitSubtask(ctx context.Context, task Task, options ...SubmitSubtaskOption) (*FutureTask, error) {
+	executionContext := getTaskExecutionContext(ctx)
+	if executionContext == nil {
+		return nil, errors.New("cannot submit subtask without task execution context")
+	}
 
-		identifier := identifierFromTask(task)
-		err = ValidateIdentifier(identifier)
+	cfg := newSubmitSubtaskConfig(options, executionContext)
+
+	var subtaskInput []byte
+	var err error
+
+	if task == nil {
+		return nil, errors.New("cannot submit nil task")
+	}
+	taskProto, isProtobuf := task.(proto.Message)
+	if isProtobuf {
+		subtaskInput, err = proto.Marshal(taskProto)
 		if err != nil {
-			return fmt.Errorf("subtask has invalid task identifier: %w", err)
+			return nil, fmt.Errorf("failed to marshal protobuf task: %w", err)
 		}
+	} else {
+		subtaskInput, err = json.Marshal(task)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal task: %w", err)
+		}
+	}
 
-		executionContext.Subtasks = append(executionContext.Subtasks, &workflowsv1.TaskSubmission{
-			ClusterSlug: executionContext.runner.cluster,
+	identifier := identifierFromTask(task)
+	err = ValidateIdentifier(identifier)
+	if err != nil {
+		return nil, fmt.Errorf("subtask has invalid task identifier: %w", err)
+	}
+
+	var dependencies []int64 //nolint:prealloc // we want to keep it nil if there are no dependencies
+	for _, ft := range cfg.dependencies {
+		dependencies = append(dependencies, ft.index)
+	}
+
+	futureTask := &FutureTask{
+		index: int64(len(executionContext.Subtasks)),
+		submission: &workflowsv1.TaskSubmission{
+			ClusterSlug: cfg.clusterSlug,
 			Identifier: &workflowsv1.TaskIdentifier{
 				Name:    identifier.Name(),
 				Version: identifier.Version(),
 			},
 			Input:        subtaskInput,
-			Dependencies: nil,
+			Dependencies: dependencies,
+			MaxRetries:   cfg.maxRetries,
 			Display:      identifier.Display(),
-		})
+		},
 	}
+	executionContext.Subtasks = append(executionContext.Subtasks, futureTask)
+	return futureTask, nil
+}
 
-	return nil
+// SubmitSubtasks submits multiple tasks to the task runner as subtask of the current task.
+// It is similar to SubmitSubtask, but it takes a slice of tasks instead of a single task.
+func SubmitSubtasks(ctx context.Context, tasks []Task, options ...SubmitSubtaskOption) ([]*FutureTask, error) {
+	futureTasks := make([]*FutureTask, 0, len(tasks))
+	for _, task := range tasks {
+		futureTask, err := SubmitSubtask(ctx, task, options...)
+		if err != nil {
+			return futureTasks, err
+		}
+		futureTasks = append(futureTasks, futureTask)
+	}
+	return futureTasks, nil
 }
 
 // WithTaskSpanResult is a helper function that wraps a function with a tracing span.

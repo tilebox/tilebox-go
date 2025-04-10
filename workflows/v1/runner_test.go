@@ -173,6 +173,140 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 	}
 }
 
+func TestSubmitSubtask(t *testing.T) {
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+	cluster := "testing-4qgCk4qHH85qR7"
+	runner, err := newTaskRunner(service, tracer, WithCluster(cluster))
+	require.NoError(t, err)
+
+	currentTaskID := uuid.New()
+
+	type args struct {
+		task    Task
+		options []SubmitSubtaskOption
+	}
+	tests := []struct {
+		name        string
+		args        args
+		wantErr     string
+		wantSubtask *FutureTask
+	}{
+		{
+			name: "Submit nil task",
+			args: args{
+				task: nil,
+			},
+			wantErr: "cannot submit nil task",
+		},
+		{
+			name: "Submit subtask",
+			args: args{
+				task: &testTask1{},
+			},
+			wantSubtask: &FutureTask{
+				submission: &workflowsv1.TaskSubmission{
+					ClusterSlug:  cluster,
+					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+					Input:        []byte("{\"ExecutableTask\":null}"),
+					Display:      "testTask1",
+					Dependencies: nil,
+					MaxRetries:   0,
+				},
+			},
+		},
+		{
+			name: "Submit bad identifier Subtasks",
+			args: args{
+				task: &badIdentifierTask{},
+			},
+			wantErr: "task name is empty",
+		},
+		{
+			name: "Submit subtask WithClusterSlug",
+			args: args{
+				task: &testTask1{},
+				options: []SubmitSubtaskOption{
+					WithClusterSlug("my-production-cluster"),
+				},
+			},
+			wantSubtask: &FutureTask{
+				submission: &workflowsv1.TaskSubmission{
+					ClusterSlug:  "my-production-cluster",
+					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+					Input:        []byte("{\"ExecutableTask\":null}"),
+					Display:      "testTask1",
+					Dependencies: nil,
+					MaxRetries:   0,
+				},
+			},
+		},
+		{
+			name: "Submit subtask WithMaxRetries",
+			args: args{
+				task: &testTask1{},
+				options: []SubmitSubtaskOption{
+					WithMaxRetries(12),
+				},
+			},
+			wantSubtask: &FutureTask{
+				submission: &workflowsv1.TaskSubmission{
+					ClusterSlug:  cluster,
+					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+					Input:        []byte("{\"ExecutableTask\":null}"),
+					Display:      "testTask1",
+					Dependencies: nil,
+					MaxRetries:   12,
+				},
+			},
+		},
+		{
+			name: "Submit subtask WithDependencies",
+			args: args{
+				task: &testTask1{},
+				options: []SubmitSubtaskOption{
+					WithDependencies(
+						&FutureTask{index: 3},
+						&FutureTask{index: 1},
+					),
+				},
+			},
+			wantSubtask: &FutureTask{
+				submission: &workflowsv1.TaskSubmission{
+					ClusterSlug:  cluster,
+					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+					Input:        []byte("{\"ExecutableTask\":null}"),
+					Display:      "testTask1",
+					Dependencies: []int64{3, 1},
+					MaxRetries:   0,
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
+				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
+			})
+
+			futureTask, err := SubmitSubtask(ctx, tt.args.task, tt.args.options...)
+			if tt.wantErr != "" {
+				// we wanted an error, let's check if we got one
+				require.Error(t, err, "expected an error, got none")
+				assert.Contains(t, err.Error(), tt.wantErr, "error didn't contain expected message: '%s', got error '%s' instead.", tt.wantErr, err.Error())
+				return
+			}
+			// we didn't want an error:
+			require.NoError(t, err, "got an unexpected error")
+
+			te := getTaskExecutionContext(ctx)
+
+			assert.Equal(t, tt.wantSubtask, futureTask)
+			assert.Equal(t, tt.wantSubtask, te.Subtasks[0])
+		})
+	}
+}
+
 func TestSubmitSubtasks(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
@@ -189,14 +323,14 @@ func TestSubmitSubtasks(t *testing.T) {
 		name         string
 		args         args
 		wantErr      bool
-		wantSubtasks []*workflowsv1.TaskSubmission
+		wantSubtasks []*FutureTask
 	}{
 		{
 			name: "Submit no Subtasks",
 			args: args{
 				tasks: []Task{},
 			},
-			wantSubtasks: []*workflowsv1.TaskSubmission{},
+			wantSubtasks: []*FutureTask{},
 		},
 		{
 			name: "Submit one Subtasks",
@@ -205,14 +339,16 @@ func TestSubmitSubtasks(t *testing.T) {
 					&testTask1{},
 				},
 			},
-			wantSubtasks: []*workflowsv1.TaskSubmission{
+			wantSubtasks: []*FutureTask{
 				{
-					ClusterSlug:  cluster,
-					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
-					Input:        []byte("{\"ExecutableTask\":null}"),
-					Display:      "testTask1",
-					Dependencies: nil,
-					MaxRetries:   0,
+					submission: &workflowsv1.TaskSubmission{
+						ClusterSlug:  cluster,
+						Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+						Input:        []byte("{\"ExecutableTask\":null}"),
+						Display:      "testTask1",
+						Dependencies: nil,
+						MaxRetries:   0,
+					},
 				},
 			},
 		},
@@ -226,14 +362,16 @@ func TestSubmitSubtasks(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			wantSubtasks: []*workflowsv1.TaskSubmission{
+			wantSubtasks: []*FutureTask{
 				{
-					ClusterSlug:  cluster,
-					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
-					Input:        []byte("{\"ExecutableTask\":null}"),
-					Display:      "testTask1",
-					Dependencies: nil,
-					MaxRetries:   0,
+					submission: &workflowsv1.TaskSubmission{
+						ClusterSlug:  cluster,
+						Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+						Input:        []byte("{\"ExecutableTask\":null}"),
+						Display:      "testTask1",
+						Dependencies: nil,
+						MaxRetries:   0,
+					},
 				},
 			},
 		},
@@ -244,15 +382,17 @@ func TestSubmitSubtasks(t *testing.T) {
 				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
 			})
 
-			err := SubmitSubtasks(ctx, tt.args.tasks...)
+			futureTasks, err := SubmitSubtasks(ctx, tt.args.tasks)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SubmitSubtasks() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			te := getTaskExecutionContext(ctx)
+			assert.Len(t, futureTasks, len(tt.wantSubtasks))
 			assert.Len(t, te.Subtasks, len(tt.wantSubtasks))
 
 			for i, task := range tt.wantSubtasks {
+				assert.Equal(t, task, futureTasks[i])
 				assert.Equal(t, task, te.Subtasks[i])
 			}
 		})
