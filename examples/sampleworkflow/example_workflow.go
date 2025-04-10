@@ -21,7 +21,7 @@ func (t *SampleTask) Identifier() workflows.TaskIdentifier {
 func (t *SampleTask) Execute(ctx context.Context) error {
 	slog.InfoContext(ctx, "Spawning a Tree", slog.String("message", t.Message), slog.Int("depth", t.Depth))
 
-	err := workflows.SubmitSubtasks(ctx, &SpawnWorkflowTreeTask{
+	_, err := workflows.SubmitSubtask(ctx, &SpawnWorkflowTreeTask{
 		examplesv1.SpawnWorkflowTreeTask{
 			CurrentLevel: 0,
 			Depth:        int64(t.Depth),
@@ -59,5 +59,6 @@ func (n *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
 		}
 	}
 
-	return workflows.SubmitSubtasks(ctx, subtasks...)
+	_, err := workflows.SubmitSubtasks(ctx, subtasks)
+	return err
 }
