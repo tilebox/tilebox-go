@@ -1,4 +1,4 @@
-// Proto messages and service definition for the APIs related to loading and querying data.
+// Proto messages and service definition for the APIs related to querying data.
 
 syntax = "proto3";
 
@@ -41,13 +41,13 @@ message QueryByIDRequest {
 
 // QueryFilters contains the filters to apply to a query.
 message QueryFilters {
-  // Either time interval or datapoint interval must be set, but not both.
-  oneof temporal_interval {
+  // Either a time interval or datapoint interval must be set, but not both.
+  oneof temporal_extent {
     TimeInterval time_interval = 1;
     DatapointInterval datapoint_interval = 2;
   }
 
-  Geometry area_of_interest = 3;
+  Geometry spatial_extent = 3;
 }
 
 // QueryRequest contains the request parameters for retrieving data from a Tilebox dataset.

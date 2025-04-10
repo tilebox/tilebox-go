@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tilebox/tilebox-go/interval"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -83,7 +83,7 @@ type JobClient interface {
 	Get(ctx context.Context, jobID uuid.UUID) (*Job, error)
 	Retry(ctx context.Context, jobID uuid.UUID) (int64, error)
 	Cancel(ctx context.Context, jobID uuid.UUID) error
-	List(ctx context.Context, interval interval.LoadInterval) iter.Seq2[*Job, error]
+	List(ctx context.Context, interval query.TemporalExtent) iter.Seq2[*Job, error]
 }
 
 var _ JobClient = &jobClient{}
@@ -154,7 +154,7 @@ func (c jobClient) Cancel(ctx context.Context, jobID uuid.UUID) error {
 //
 // The jobs are loaded in a lazy manner, and returned as a sequence.
 // The output sequence can be transformed into a slice using Collect.
-func (c jobClient) List(ctx context.Context, interval interval.LoadInterval) iter.Seq2[*Job, error] {
+func (c jobClient) List(ctx context.Context, interval query.TemporalExtent) iter.Seq2[*Job, error] {
 	return func(yield func(*Job, error) bool) {
 		var page *workflowsv1.Pagination // nil for the first request
 

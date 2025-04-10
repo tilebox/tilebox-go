@@ -28,5 +28,5 @@ go run ./helloworld/submitter
 
 ## Datasets examples
 
-- [Load data](load): How to load datapoints from a collection.
+- [Querying data](query): How to query datapoints from dataset collections.
 - [Ingest and delete data](ingest): How to create a collection, ingest datapoints, and then delete them.

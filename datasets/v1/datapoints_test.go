@@ -9,9 +9,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tilebox/tilebox-go/interval"
 	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -67,18 +67,17 @@ func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datase
 	}, nil
 }
 
-func Test_datapointClient_LoadInto(t *testing.T) {
+func Test_datapointClient_QueryInto(t *testing.T) {
 	ctx := context.Background()
 	client := NewDatapointClient(10)
 
 	collectionID := uuid.New()
-	timeInterval := interval.NewStandardTimeInterval(time.Now(), time.Now())
+	timeInterval := query.NewTimeInterval(time.Now(), time.Now())
 
 	type args struct {
 		collectionID uuid.UUID
-		interval     interval.LoadInterval
+		interval     query.TemporalExtent
 		datapoints   any
-		options      []LoadOption
 	}
 	tests := []struct {
 		name    string
@@ -86,37 +85,36 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 		wantErr string
 	}{
 		{
-			name: "LoadInto",
+			name: "QueryInto",
 			args: args{
 				collectionID: collectionID,
 				interval:     timeInterval,
 				datapoints:   &[]*testv1.Sentinel2Msi{},
-				options:      nil,
 			},
 		},
 		{
-			name: "LoadInto nil",
+			name: "QueryInto nil",
 			args: args{
 				datapoints: nil,
 			},
 			wantErr: "datapoints must be a pointer, got <nil>",
 		},
 		{
-			name: "LoadInto not a pointer",
+			name: "QueryInto not a pointer",
 			args: args{
 				datapoints: collectionID,
 			},
 			wantErr: "datapoints must be a pointer, got uuid.UUID",
 		},
 		{
-			name: "LoadInto not a slice",
+			name: "QueryInto not a slice",
 			args: args{
 				datapoints: &collectionID,
 			},
 			wantErr: "datapoints must be a pointer to a slice, got *uuid.UUID",
 		},
 		{
-			name: "LoadInto slice wrong interface",
+			name: "QueryInto slice wrong interface",
 			args: args{
 				datapoints: &[]context.Context{},
 			},
@@ -126,7 +124,7 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := client.LoadInto(ctx, tt.args.collectionID, tt.args.interval, tt.args.datapoints, tt.args.options...)
+			err := client.QueryInto(ctx, []uuid.UUID{tt.args.collectionID}, tt.args.datapoints, WithTemporalExtent(tt.args.interval))
 			if tt.wantErr != "" {
 				// we wanted an error, let's check if we got one
 				require.Error(t, err, "expected an error, got none")
@@ -144,28 +142,28 @@ func Test_datapointClient_LoadInto(t *testing.T) {
 	}
 }
 
-// resultLoadInto is used to avoid the compiler optimizing away the benchmark output
-var resultLoadInto []*testv1.Sentinel2Msi
+// resultQueryInto is used to avoid the compiler optimizing away the benchmark output
+var resultQueryInto []*testv1.Sentinel2Msi
 
-// BenchmarkCollectAs benchmarks the LoadInto method
-func Benchmark_LoadInto(b *testing.B) {
+// BenchmarkCollectAs benchmarks the QueryInto method
+func Benchmark_QueryInto(b *testing.B) {
 	ctx := context.Background()
 	client := NewDatapointClient(1000)
 
 	collectionID := uuid.New()
-	timeInterval := interval.NewStandardTimeInterval(time.Now(), time.Now())
+	timeInterval := query.NewTimeInterval(time.Now(), time.Now())
 
 	var datapoints []*testv1.Sentinel2Msi
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
-			err := client.LoadInto(ctx, collectionID, timeInterval, &datapoints)
+			err := client.QueryInto(ctx, []uuid.UUID{collectionID}, &datapoints, WithTemporalExtent(timeInterval))
 			require.NoError(b, err)
 		}
 	})
-	resultLoadInto = datapoints
+	resultQueryInto = datapoints
 }
 
-func Test_datapointClient_Load(t *testing.T) {
+func Test_datapointClient_Query(t *testing.T) {
 	ctx := context.Background()
 	client := NewReplayClient(t, "load")
 
@@ -177,10 +175,10 @@ func Test_datapointClient_Load(t *testing.T) {
 	assert.Equal(t, "MCD12Q1", collection.Name)
 
 	jan2001 := time.Date(2001, time.January, 1, 0, 0, 0, 0, time.UTC)
-	timeInterval := interval.NewStandardTimeInterval(jan2001, jan2001.AddDate(0, 0, 7))
+	timeInterval := query.NewTimeInterval(jan2001, jan2001.AddDate(0, 0, 7))
 
 	t.Run("CollectAs", func(t *testing.T) {
-		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Load(ctx, collection.ID, timeInterval))
+		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval)))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 315)
@@ -190,7 +188,7 @@ func Test_datapointClient_Load(t *testing.T) {
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
-		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Load(ctx, collection.ID, timeInterval, WithSkipData()))
+		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval), WithSkipData()))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 315)
@@ -229,7 +227,7 @@ func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	}
 }
 
-func (s *mockService) Load(_ context.Context, _ uuid.UUID, _ interval.LoadInterval, _ ...LoadOption) iter.Seq2[[]byte, error] {
+func (s *mockService) Query(_ context.Context, _ []uuid.UUID, _ ...QueryOption) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
 		for _, data := range s.data {
 			if !yield(data, nil) {
@@ -246,8 +244,8 @@ var result []*testv1.Sentinel2Msi
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
 func BenchmarkCollectAs(b *testing.B) {
 	ctx := context.Background()
-	collectionID := uuid.New()                      // dummy collection ID
-	loadInterval := interval.NewEmptyTimeInterval() // dummy load interval
+	collectionID := uuid.New()                    // dummy collection ID
+	queryInterval := query.NewEmptyTimeInterval() // dummy time interval
 
 	client := NewClient()
 	client.Datapoints = NewMockDatapointClient(b, 1000)
@@ -255,7 +253,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	var r []*testv1.Sentinel2Msi // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
-			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
+			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
 			r, _ = CollectAs[*testv1.Sentinel2Msi](data)
 		}
 	})
@@ -263,7 +261,7 @@ func BenchmarkCollectAs(b *testing.B) {
 
 	b.Run("Marshal and no reflection", func(b *testing.B) {
 		for range b.N {
-			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
+			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
 			datapoints := make([]*testv1.Sentinel2Msi, 0)
 			for datapoint, err := range data {
 				if err != nil {
@@ -282,7 +280,7 @@ func BenchmarkCollectAs(b *testing.B) {
 
 	b.Run("No marshal and no reflection", func(b *testing.B) {
 		for range b.N {
-			data := client.Datapoints.Load(ctx, collectionID, loadInterval)
+			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
 			datapoints := make([][]byte, 0)
 			for datapoint, err := range data {
 				if err != nil {

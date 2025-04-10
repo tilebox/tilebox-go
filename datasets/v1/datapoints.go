@@ -8,14 +8,16 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/tilebox/tilebox-go/interval"
+	"github.com/paulmach/orb"
+	"github.com/paulmach/orb/encoding/ewkb"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
 )
 
 type DatapointClient interface {
-	Load(ctx context.Context, collectionID uuid.UUID, interval interval.LoadInterval, options ...LoadOption) iter.Seq2[[]byte, error]
-	LoadInto(ctx context.Context, collectionID uuid.UUID, interval interval.LoadInterval, datapoints any, options ...LoadOption) error
+	Query(ctx context.Context, collectionIDs []uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error]
+	QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error
 	Ingest(ctx context.Context, collectionID uuid.UUID, datapoints any, allowExisting bool) (*IngestResponse, error)
 	Delete(ctx context.Context, collectionID uuid.UUID, datapoints any) (*DeleteResponse, error)
 	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error)
@@ -28,66 +30,110 @@ type datapointClient struct {
 	dataAccessService    DataAccessService
 }
 
-// loadConfig contains the configuration for a Load request.
-type loadConfig struct {
-	skipData bool
+// queryOptions contains the configuration for a Query request.
+type queryOptions struct {
+	temporalExtent query.TemporalExtent
+	spatialExtent  orb.Geometry
+	skipData       bool
 }
 
-// LoadOption is an interface for configuring a Load request.
-type LoadOption func(*loadConfig)
+// QueryOption is an interface for configuring a Query request.
+type QueryOption func(*queryOptions)
 
-// WithSkipData skips the data when loading datapoints.
-// If set, only the required and auto-generated fields will be returned.
+// WithTemporalExtent specifies the time interval for which data should be queried.
+// Right now, a temporal extent is required for every query.
+func WithTemporalExtent(temporalExtent query.TemporalExtent) QueryOption {
+	return func(cfg *queryOptions) {
+		cfg.temporalExtent = temporalExtent
+	}
+}
+
+// WithSpatialExtent specifies the geographical extent in which to query data.
+// Optional, if not specified the query will return all results found globally.
+func WithSpatialExtent(spatialExtent orb.Geometry) QueryOption {
+	return func(cfg *queryOptions) {
+		cfg.spatialExtent = spatialExtent
+	}
+}
+
+// WithSkipData skips the data when querying datapoints.
+// It is an optional flag for omitting the actual datapoint data from the response.
+// If set, only datapoint IDs will be returned.
 //
 // Defaults to false.
-func WithSkipData() LoadOption {
-	return func(cfg *loadConfig) {
+func WithSkipData() QueryOption {
+	return func(cfg *queryOptions) {
 		cfg.skipData = true
 	}
 }
 
-func newLoadConfig(options []LoadOption) *loadConfig {
-	cfg := &loadConfig{
+// Query datapoints from one or more collections of the same dataset.
+//
+// Options:
+//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
+//   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
+//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning matching datapoint IDs. (Optional)
+//
+// The datapoints are loaded in a lazy manner, and returned as a sequence of bytes.
+// The output sequence can be transformed into a proto.Message using `CollectAs`/`As`.
+//
+// Example usage:
+//
+//	for datapointBytes, err := range client.Datapoints.Query(ctx, collectionIDs, WithTemporalExtent(timeInterval), WithSpatialExtent(geometry)) {
+//	  if err != nil {
+//	    // handle error
+//	  }
+//	  datapoint := &datasetsv1.CopernicusDataspaceGranule{}
+//	  err = proto.Unmarshal(datapointBytes, datapoint)
+//	  if err != nil {
+//	    // handle unmarshal error
+//	  }
+//	  // do something with the datapoint
+//	}
+//
+// Documentation: https://docs.tilebox.com/datasets/query
+func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error] {
+	cfg := &queryOptions{
 		skipData: false,
 	}
 	for _, option := range options {
 		option(cfg)
 	}
 
-	return cfg
-}
-
-// Load loads datapoints from a collection.
-//
-// interval specifies the time or data point interval for which data should be loaded.
-//
-// WithSkipData can be used to only load the required and auto-generated fields.
-//
-// The datapoints are loaded in a lazy manner, and returned as a sequence of bytes.
-// The output sequence can be transformed into a proto.Message using CollectAs or As functions.
-//
-// Documentation: https://docs.tilebox.com/datasets/loading-data
-func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, interval interval.LoadInterval, options ...LoadOption) iter.Seq2[[]byte, error] {
-	cfg := newLoadConfig(options)
-
-	collectionIDs := []uuid.UUID{collectionID}
+	if cfg.temporalExtent == nil {
+		return func(yield func([]byte, error) bool) {
+			// right now we return an error, in the future we might want to support queries without a temporal extent
+			yield(nil, errors.New("temporal extent is required"))
+		}
+	}
 
 	return func(yield func([]byte, error) bool) {
 		var page *datasetsv1.Pagination // nil for the first request
 
-		timeInterval := interval.ToProtoTimeInterval()
-		datapointInterval := interval.ToProtoDatapointInterval()
+		// we already validated that temporalExtent is not nil
+		timeInterval := cfg.temporalExtent.ToProtoTimeInterval()
+		datapointInterval := cfg.temporalExtent.ToProtoDatapointInterval()
 
 		if timeInterval == nil && datapointInterval == nil {
-			yield(nil, errors.New("time interval and datapoint interval cannot both be nil"))
+			yield(nil, errors.New("invalid temporal extent"))
 			return
 		}
 
 		filters := &datasetsv1.QueryFilters{}
 		if timeInterval != nil {
-			filters.TemporalInterval = &datasetsv1.QueryFilters_TimeInterval{TimeInterval: timeInterval}
+			filters.TemporalExtent = &datasetsv1.QueryFilters_TimeInterval{TimeInterval: timeInterval}
 		} else {
-			filters.TemporalInterval = &datasetsv1.QueryFilters_DatapointInterval{DatapointInterval: datapointInterval}
+			filters.TemporalExtent = &datasetsv1.QueryFilters_DatapointInterval{DatapointInterval: datapointInterval}
+		}
+
+		geometry := cfg.spatialExtent
+		if geometry != nil {
+			wkb, err := ewkb.Marshal(geometry, ewkb.DefaultSRID)
+			if err != nil {
+				yield(nil, fmt.Errorf("invalid geometry: failed to marshal geometry as wkb: %w", err))
+				return
+			}
+			filters.SpatialExtent = &datasetsv1.Geometry{Wkb: wkb}
 		}
 
 		for {
@@ -111,22 +157,24 @@ func (d datapointClient) Load(ctx context.Context, collectionID uuid.UUID, inter
 	}
 }
 
-// LoadInto loads datapoints from a collection into a slice of datapoints.
-// LoadInto is a convenience function for Load.
+// QueryInto queries datapoints from one or more collections of the same dataset into a slice of datapoints of a
+// compatible proto.Message type.
+//
+// QueryInto is a convenience function for Query, when no pagination or manual iteration is required.
 //
 // Example usage:
-// var datapoints []*tileboxdatasets.TypedDatapoint[*datasetsv1.CopernicusDataspaceGranule]
-// err := client.Datapoints.LoadInto(ctx, collection.ID, loadInterval, &datapoints)
-func (d datapointClient) LoadInto(ctx context.Context, collectionID uuid.UUID, interval interval.LoadInterval, datapoints any, options ...LoadOption) error {
+// var datapoints []*datasetsv1.CopernicusDataspaceGranule
+// err := client.Datapoints.QueryInto(ctx, collectionIDs, &datapoints, WithTemporalExtent(timeInterval))
+func (d datapointClient) QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error {
 	err := validateDatapoints(datapoints)
 	if err != nil {
-		return fmt.Errorf("failed to validate datapoints: %w", err)
+		return err // already a nice validation error
 	}
 
 	slice := reflect.Indirect(reflect.ValueOf(datapoints))
 	datapointType := slice.Type().Elem().Elem()
 
-	rawDatapoints, err := Collect(d.Load(ctx, collectionID, interval, options...))
+	rawDatapoints, err := Collect(d.Query(ctx, collectionIDs, options...))
 	if err != nil {
 		return err
 	}

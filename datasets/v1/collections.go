@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/tilebox/tilebox-go/interval"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	"github.com/tilebox/tilebox-go/query"
 )
 
 // Collection represents a Tilebox Dataset collection.
@@ -18,7 +18,7 @@ type Collection struct {
 	// Name is the name of the collection.
 	Name string
 	// Availability is the time interval for which data is available.
-	Availability interval.TimeInterval
+	Availability query.TimeInterval
 	// Count is the number of datapoints in the collection.
 	Count uint64
 }
@@ -94,7 +94,7 @@ func protoToCollection(c *datasetsv1.CollectionInfo) (*Collection, error) {
 	return &Collection{
 		ID:           id,
 		Name:         c.GetCollection().GetName(),
-		Availability: *interval.ProtoToTimeInterval(c.GetAvailability()),
+		Availability: *query.ProtoToTimeInterval(c.GetAvailability()),
 		Count:        c.GetCount(),
 	}, nil
 }

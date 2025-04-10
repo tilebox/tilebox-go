@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tilebox/tilebox-go/interval"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	"github.com/tilebox/tilebox-go/query"
 )
 
 type mockJobService struct {
@@ -105,7 +105,7 @@ func Test_jobClient_List(t *testing.T) {
 
 	startDate := time.Date(2024, time.February, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC)
-	timeInterval := interval.NewStandardTimeInterval(startDate, endDate)
+	timeInterval := query.NewTimeInterval(startDate, endDate)
 	jobs, err := Collect(client.Jobs.List(ctx, timeInterval))
 	require.NoError(t, err)
 
