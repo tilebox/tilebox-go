@@ -46,9 +46,11 @@ func (x *UUID) CheckValid() error {
 	return nil
 }
 
+const sridWorldGeodetic1984 = 4326 // https://epsg.io/4326
+
 // NewGeometry constructs a new Geometry from the provided orb.Geometry.
-func NewGeometry(geometry orb.Geometry, srid int) *Geometry {
-	wkb, err := ewkb.Marshal(geometry, srid)
+func NewGeometry(geometry orb.Geometry) *Geometry {
+	wkb, err := ewkb.Marshal(geometry, sridWorldGeodetic1984)
 	if err != nil {
 		return nil
 	}
@@ -84,8 +86,6 @@ func (x *Geometry) CheckValid() error {
 	}
 	return nil
 }
-
-const sridWorldGeodetic1984 = 4326 // https://epsg.io/4326
 
 // parseWKB parses a WKB geometry into an orb.Geometry. If the input is ewkb (extended wkb), additionally the SRID
 // (spatial reference system identifier) is also parsed and validated to be either unset (0) or 4326 (WGS84).
