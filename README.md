@@ -154,6 +154,6 @@ func main() {
 		return
 	}
 
-	runner.Run(context.Background())
+	runner.RunForever(context.Background())
 }
 ```

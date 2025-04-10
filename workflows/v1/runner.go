@@ -158,8 +158,17 @@ func isEmpty(id *workflowsv1.UUID) bool {
 	return taskID == uuid.Nil
 }
 
-// Run runs the task runner forever, looking for new tasks to run and polling for new tasks when idle.
-func (t *TaskRunner) Run(ctx context.Context) {
+// RunForever runs the task runner forever, looking for new tasks to run and polling for new tasks when idle.
+func (t *TaskRunner) RunForever(ctx context.Context) {
+	t.run(ctx, false)
+}
+
+// RunAll run the task runner and execute all tasks, until there are no more tasks available.
+func (t *TaskRunner) RunAll(ctx context.Context) {
+	t.run(ctx, true)
+}
+
+func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 	// Catch signals to gracefully shutdown
 	ctxSignal, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP, syscall.SIGQUIT)
 	defer stop()
@@ -267,6 +276,10 @@ func (t *TaskRunner) Run(ctx context.Context) {
 		} else {
 			// if we didn't get a task, let's wait for a bit and try work-stealing again
 			t.logger.DebugContext(ctx, "no task to run")
+
+			if stopWhenIdling {
+				return
+			}
 
 			// instead of time.Sleep we set a timer and select on it, so we still can catch signals like SIGINT
 			timer := time.NewTimer(pollingInterval + rand.N(jitterInterval))
