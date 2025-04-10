@@ -133,7 +133,9 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 				yield(nil, fmt.Errorf("invalid geometry: failed to marshal geometry as wkb: %w", err))
 				return
 			}
-			filters.SpatialExtent = &datasetsv1.Geometry{Wkb: wkb}
+			filters.SpatialExtent = &datasetsv1.SpatialFilter{
+				Geometry: &datasetsv1.Geometry{Wkb: wkb},
+			}
 		}
 
 		for {

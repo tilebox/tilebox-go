@@ -47,7 +47,29 @@ message QueryFilters {
     DatapointInterval datapoint_interval = 2;
   }
 
-  Geometry spatial_extent = 3;
+  SpatialFilter spatial_extent = 3;
+}
+
+// SpatialFilterMode specifies how geometries are compared to a given spatial filter.
+enum SpatialFilterMode {
+  SPATIAL_FILTER_MODE_UNSPECIFIED = 0;  // Unspecified spatial filter mode, will default to intersects.
+  SPATIAL_FILTER_MODE_INTERSECTS = 1;  // Any geometry that intersects the filter geometry is included.
+  SPATIAL_FILTER_MODE_CONTAINS = 2;  // Only geometries fully contained within the filter geometry are included.
+}
+
+// SpatialCoordinateSystem specifies the coordinate system in which to perform geometry calculations such as
+// intersections.
+enum SpatialCoordinateSystem {
+  SPATIAL_COORDINATE_SYSTEM_UNSPECIFIED = 0;  // Unspecified coordinate system, will default to cartesian.
+  SPATIAL_COORDINATE_SYSTEM_CARTESIAN = 1;  // Cartesian (lat/lon) coordinate system
+  SPATIAL_COORDINATE_SYSTEM_SPHERICAL = 2;  // Spherical (x/y/z) coordinate system
+}
+
+// SpatialFilter defines a spatial filter operation as part of a query.
+message SpatialFilter {
+  Geometry geometry = 1;  // The geometry to filter by.
+  SpatialFilterMode mode = 2;  // Whether to filter by intersection or containment.
+  SpatialCoordinateSystem coordinate_system = 3;  // Coordinate system in which to perform geometry calculations.
 }
 
 // QueryRequest contains the request parameters for retrieving data from a Tilebox dataset.
