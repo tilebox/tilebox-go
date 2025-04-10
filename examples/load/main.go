@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/paulmach/orb/encoding/wkt"
 	tileboxdatasets "github.com/tilebox/tilebox-go/datasets/v1"
 	"github.com/tilebox/tilebox-go/interval"
 	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
@@ -52,6 +53,7 @@ func main() {
 		slog.String("id", datapoints[0].GetId().AsUUID().String()),
 		slog.Time("event time", datapoints[0].GetTime().AsTime()),
 		slog.Time("ingestion time", datapoints[0].GetIngestionTime().AsTime()),
+		slog.String("geometry", wkt.MarshalString(datapoints[0].GetGeometry().AsGeometry())),
 		slog.String("granule name", datapoints[0].GetGranuleName()),
 		// slog.String("processing level", datapoints[0].GetProcessingLevel().String()),
 		// slog.String("product type", datapoints[0].GetProductType()),
