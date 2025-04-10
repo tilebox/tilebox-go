@@ -37,8 +37,7 @@ type loadConfig struct {
 type LoadOption func(*loadConfig)
 
 // WithSkipData skips the data when loading datapoints.
-// It is an optional flag for omitting the actual datapoint data from the response.
-// If set, only the datapoint metadata will be returned.
+// If set, only the required and auto-generated fields will be returned.
 //
 // Defaults to false.
 func WithSkipData() LoadOption {
@@ -62,7 +61,7 @@ func newLoadConfig(options []LoadOption) *loadConfig {
 //
 // interval specifies the time or data point interval for which data should be loaded.
 //
-// WithSkipData can be used to skip the data when loading datapoints.
+// WithSkipData can be used to only load the required and auto-generated fields.
 //
 // The datapoints are loaded in a lazy manner, and returned as a sequence of bytes.
 // The output sequence can be transformed into a proto.Message using CollectAs or As functions.

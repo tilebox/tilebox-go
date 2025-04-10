@@ -44,17 +44,17 @@ func (n *SpawnWorkflowTreeTask) Identifier() workflows.TaskIdentifier {
 }
 
 func (n *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
-	if n.CurrentLevel >= (n.Depth - 1) {
+	if n.GetCurrentLevel() >= (n.GetDepth() - 1) {
 		return nil
 	}
 
-	subtasks := make([]workflows.Task, n.BranchFactor)
-	for i := range n.BranchFactor {
+	subtasks := make([]workflows.Task, n.GetBranchFactor())
+	for i := range n.GetBranchFactor() {
 		subtasks[i] = &SpawnWorkflowTreeTask{
 			examplesv1.SpawnWorkflowTreeTask{
-				CurrentLevel: n.CurrentLevel + 1,
-				Depth:        n.Depth,
-				BranchFactor: n.BranchFactor,
+				CurrentLevel: n.GetCurrentLevel() + 1,
+				Depth:        n.GetDepth(),
+				BranchFactor: n.GetBranchFactor(),
 			},
 		}
 	}
