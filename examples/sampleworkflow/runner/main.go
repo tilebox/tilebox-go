@@ -79,7 +79,7 @@ func main() {
 		return // exit the program if we can't register one of the tasks
 	}
 
-	runner.Run(ctx)
+	runner.RunForever(ctx)
 }
 
 type Config struct {
