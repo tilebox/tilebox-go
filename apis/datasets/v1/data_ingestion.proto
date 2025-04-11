@@ -1,4 +1,4 @@
-// Proto messages and service definition for the APIs related to loading and quering data.
+// Proto messages and service definition for the APIs related to ingesting and deleting datapoints.
 
 syntax = "proto3";
 

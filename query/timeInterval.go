@@ -1,4 +1,4 @@
-package interval // import "github.com/tilebox/tilebox-go/interval"
+package query // import "github.com/tilebox/tilebox-go/interval"
 
 import (
 	"crypto/rand"
@@ -15,14 +15,14 @@ import (
 // smallestPossibleTimeDelta is the smallest possible time delta that can be represented by time.Duration.
 const smallestPossibleTimeDelta = time.Nanosecond
 
-// LoadInterval is an interface for loading data from a collection.
-type LoadInterval interface {
+// TemporalExtent is an interface for querying resources and filtering them by a time range.
+type TemporalExtent interface {
 	ToProtoTimeInterval() *datasetsv1.TimeInterval
 	ToProtoDatapointInterval() *datasetsv1.DatapointInterval
 	ToProtoIDInterval() *workflowsv1.IDInterval
 }
 
-var _ LoadInterval = &TimeInterval{}
+var _ TemporalExtent = &TimeInterval{}
 
 // TimeInterval represents a time interval.
 //
@@ -39,19 +39,16 @@ type TimeInterval struct {
 	EndInclusive   bool
 }
 
-// NewTimeInterval creates a new TimeInterval.
-func NewTimeInterval(start, end time.Time, startExclusive, endInclusive bool) *TimeInterval {
+// NewTimeInterval creates a new half-open TimeInterval which includes the start time but excludes the end time.
+// In case you want to control the inclusivity of the start and end time, consider instantiating a TimeInterval struct
+// directly.
+func NewTimeInterval(start, end time.Time) *TimeInterval {
 	return &TimeInterval{
 		Start:          start,
 		End:            end,
-		StartExclusive: startExclusive,
-		EndInclusive:   endInclusive,
+		StartExclusive: false,
+		EndInclusive:   false,
 	}
-}
-
-// NewStandardTimeInterval creates a new TimeInterval that represents a standard interval with inclusive start and exclusive end.
-func NewStandardTimeInterval(start, end time.Time) *TimeInterval {
-	return NewTimeInterval(start, end, false, false)
 }
 
 func NewEmptyTimeInterval() *TimeInterval {
@@ -136,7 +133,8 @@ func (t *TimeInterval) ToHalfOpen() *TimeInterval {
 	}
 }
 
-// Duration returns the duration between the start and end times of the TimeInterval.
-func (t *TimeInterval) Duration() time.Duration {
-	return t.End.Sub(t.Start)
+func (t *TimeInterval) Equal(other *TimeInterval) bool {
+	this := t.ToHalfOpen()
+	other = other.ToHalfOpen()
+	return this.Start.Equal(other.Start) && this.End.Equal(other.End)
 }
