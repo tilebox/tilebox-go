@@ -176,6 +176,92 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 	}
 }
 
+func TestGetCurrentCluster(t *testing.T) {
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+	cluster := &Cluster{Slug: "testing-4qgCk4qHH85qR7"}
+	runner, err := newTaskRunner(service, tracer, cluster)
+	require.NoError(t, err)
+
+	currentTaskID := uuid.New()
+
+	type args struct{}
+	tests := []struct {
+		name        string
+		args        args
+		wantErr     bool
+		wantCluster string
+	}{
+		{
+			name:        "GetCurrentCluster",
+			args:        args{},
+			wantCluster: cluster.Slug,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
+				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
+			})
+
+			gotCluster, err := GetCurrentCluster(ctx)
+			if tt.wantErr {
+				require.Error(t, err, "expected an error, got none")
+				return
+			}
+			require.NoError(t, err, "got an unexpected error")
+
+			assert.Equal(t, tt.wantCluster, gotCluster)
+		})
+	}
+}
+
+func TestSetTaskDisplay(t *testing.T) {
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+	cluster := &Cluster{Slug: "testing-4qgCk4qHH85qR7"}
+	runner, err := newTaskRunner(service, tracer, cluster)
+	require.NoError(t, err)
+
+	currentTaskID := uuid.New()
+
+	type args struct {
+		display string
+	}
+	tests := []struct {
+		name        string
+		args        args
+		wantErr     bool
+		wantDisplay string
+	}{
+		{
+			name: "SetTaskDisplay",
+			args: args{
+				display: "my task",
+			},
+			wantDisplay: "my task",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
+				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
+			})
+
+			err := SetTaskDisplay(ctx, tt.args.display)
+			if tt.wantErr {
+				require.Error(t, err, "expected an error, got none")
+				return
+			}
+			require.NoError(t, err, "got an unexpected error")
+
+			te := getTaskExecutionContext(ctx)
+
+			assert.Equal(t, tt.wantDisplay, te.CurrentTask.GetDisplay())
+		})
+	}
+}
+
 func TestSubmitSubtask(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}

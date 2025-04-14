@@ -9,6 +9,7 @@ import (
 	"math/rand/v2"
 	"os/signal"
 	"reflect"
+	"strings"
 	"syscall"
 	"time"
 
@@ -158,11 +159,12 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				task = nil
 				continue
 			}
-			executionContext, err := t.executeTask(ctx, task)
+			executionContext, errTask := t.executeTask(ctx, task)
 			stopExecution := false
-			if err == nil { // in case we got no error, let's mark the task as computed and get the next one
+			if errTask == nil { // in case we got no error, let's mark the task as computed and get the next one
 				computedTask := &workflowsv1.ComputedTask{
 					Id:       task.GetId(),
+					Display:  task.GetDisplay(),
 					SubTasks: nil,
 				}
 				if executionContext != nil && len(executionContext.Subtasks) > 0 {
@@ -181,6 +183,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				default:
 				}
 
+				var err error
 				task, err = retry.DoWithData(
 					func() (*workflowsv1.Task, error) {
 						taskResponse, err := t.service.NextTask(ctx, computedTask, nextTaskToRun)
@@ -197,7 +200,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 					}
 					return // we got a cancellation signal, so let's just stop here
 				}
-			} else { // err != nil
+			} else { // errTask != nil
 				taskID, err := protoToUUID(task.GetId())
 				if err != nil {
 					t.logger.ErrorContext(ctx, "failed to convert task id to uuid", slog.Any("error", err))
@@ -205,16 +208,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				}
 
 				// the error itself is already logged in executeTask, so we just need to report the task as failed
-				err = retry.Do(
-					func() error {
-						_, err := t.service.TaskFailed(ctx, taskID, "", true)
-						if err != nil {
-							t.logger.ErrorContext(ctx, "failed to report task failure", slog.Any("error", err))
-							return err
-						}
-						return nil
-					}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
-				)
+				err = t.taskFailed(ctx, ctxSignal, taskID, errTask, task.GetDisplay())
 				if err != nil {
 					if !errors.Is(err, context.Canceled) {
 						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", slog.Any("error", err))
@@ -247,6 +241,30 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 			}
 		}
 	}
+}
+
+func (t *TaskRunner) taskFailed(ctx, ctxSignal context.Context, taskID uuid.UUID, taskError error, taskDisplay string) error {
+	// job output is limited to 1KB, so truncate the error message if necessary
+	errorMessage := taskError.Error()
+	if len(errorMessage) > 1024 {
+		errorMessage = errorMessage[:1024]
+	}
+
+	display := taskDisplay
+	if errorMessage != "" {
+		display = strings.Join([]string{taskDisplay, errorMessage}, "\n")
+	}
+
+	return retry.Do(
+		func() error {
+			_, err := t.service.TaskFailed(ctx, taskID, display, true)
+			if err != nil {
+				t.logger.ErrorContext(ctx, "failed to report task failure", slog.Any("error", err))
+				return err
+			}
+			return nil
+		}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
+	)
 }
 
 func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*taskExecutionContext, error) {
@@ -404,6 +422,16 @@ func GetCurrentCluster(ctx context.Context) (string, error) {
 		return "", errors.New("cannot get current cluster without task execution context")
 	}
 	return executionContext.runner.cluster, nil
+}
+
+// SetTaskDisplay sets the display name of the current task.
+func SetTaskDisplay(ctx context.Context, display string) error {
+	executionContext := getTaskExecutionContext(ctx)
+	if executionContext == nil {
+		return errors.New("cannot set task display name without task execution context")
+	}
+	executionContext.CurrentTask.Display = &display
+	return nil
 }
 
 // SubmitSubtask submits a task to the task runner as subtask of the current task.
