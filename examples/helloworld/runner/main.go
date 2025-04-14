@@ -18,7 +18,7 @@ func main() {
 
 	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
 	if err != nil {
-		slog.Error("failed to get cluster", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
 		return
 	}
 

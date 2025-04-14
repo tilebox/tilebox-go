@@ -379,9 +379,9 @@ type taskExecutionContext struct {
 	Subtasks    []*workflowsv1.TaskSubmission
 }
 
-func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, tsk *workflowsv1.Task) context.Context {
+func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflowsv1.Task) context.Context {
 	return context.WithValue(ctx, contextKeyTaskExecution, &taskExecutionContext{
-		CurrentTask: tsk,
+		CurrentTask: task,
 		runner:      t,
 		Subtasks:    make([]*workflowsv1.TaskSubmission, 0),
 	})
