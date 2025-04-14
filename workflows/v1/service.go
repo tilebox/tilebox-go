@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type AutomationService interface {
+type _automationService interface {
 	CreateStorageLocation(ctx context.Context, location string, storageType workflowsv1.StorageType) (*workflowsv1.StorageLocation, error)
 	GetStorageLocation(ctx context.Context, storageLocationID uuid.UUID) (*workflowsv1.StorageLocation, error)
 	DeleteStorageLocation(ctx context.Context, storageLocationID uuid.UUID) error
@@ -28,18 +28,11 @@ type AutomationService interface {
 	ListAutomations(ctx context.Context) (*workflowsv1.Automations, error)
 }
 
-var _ AutomationService = &automationService{}
+var _ _automationService = &automationService{}
 
 type automationService struct {
 	automationClient workflowsv1connect.AutomationServiceClient
 	tracer           trace.Tracer
-}
-
-func newAutomationService(automationClient workflowsv1connect.AutomationServiceClient, tracer trace.Tracer) AutomationService {
-	return &automationService{
-		automationClient: automationClient,
-		tracer:           tracer,
-	}
 }
 
 func (s *automationService) CreateStorageLocation(ctx context.Context, location string, storageType workflowsv1.StorageType) (*workflowsv1.StorageLocation, error) {
