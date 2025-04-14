@@ -69,7 +69,7 @@ func (t *HelloTask) Identifier() workflows.TaskIdentifier {
 
 ### Submitting a Job
 
-Here we create a JobService and submit a job with a single task:
+Here we create a Workflows client and submit a job with a single task:
 
 ```go
 package main
@@ -79,7 +79,6 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
@@ -94,9 +93,17 @@ func main() {
 		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
 	)
 
-	job, err := client.Jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0,
-		&HelloTask{
-			Name: "Tilebox",
+	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
+		return
+	}
+
+	job, err := client.Jobs.Submit(ctx, "hello-world", cluster,
+		[]workflows.Task{
+			&HelloTask{
+				Name: "Tilebox",
+			},
 		},
 	)
 	if err != nil {
@@ -134,15 +141,21 @@ func (t *HelloTask) Execute(context.Context) error {
 }
 
 func main() {
+	ctx := context.Background()
+
 	client := workflows.NewClient(
 		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
 	)
 
-	runner, err := client.NewTaskRunner(
-		workflows.WithCluster("testing-4qgCk4qHH85qR7"),
-	)
+	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
 	if err != nil {
-		slog.Error("failed to create task runner", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
+		return
+	}
+
+	runner, err := client.NewTaskRunner(cluster)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create task runner", slog.Any("error", err))
 		return
 	}
 
@@ -150,7 +163,7 @@ func main() {
 		&HelloTask{},
 	)
 	if err != nil {
-		slog.Error("failed to register task", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to register task", slog.Any("error", err))
 		return
 	}
 

@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/tilebox/tilebox-go/grpc"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
+	"github.com/tilebox/tilebox-go/workflows/v1/runner"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
@@ -58,8 +59,8 @@ func NewClient(options ...ClientOption) *Client {
 	}
 }
 
-func (c *Client) NewTaskRunner(options ...TaskRunnerOption) (*TaskRunner, error) {
-	return newTaskRunner(c.taskService, c.tracer, options...)
+func (c *Client) NewTaskRunner(cluster *Cluster, options ...runner.Option) (*TaskRunner, error) {
+	return newTaskRunner(c.taskService, c.tracer, cluster, options...)
 }
 
 // clientConfig contains the configuration for Tilebox Workflows client.

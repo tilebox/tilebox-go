@@ -61,11 +61,19 @@ func main() {
 		workflows.WithAPIKey(config.authToken),
 	)
 
-	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree", "testing-4qgCk4qHH85qR7", 0,
-		&sampleworkflow.SampleTask{
-			Message:      "hello go runner!",
-			Depth:        8,
-			BranchFactor: 4,
+	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
+		return
+	}
+
+	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree", cluster,
+		[]workflows.Task{
+			&sampleworkflow.SampleTask{
+				Message:      "hello go runner!",
+				Depth:        8,
+				BranchFactor: 4,
+			},
 		},
 	)
 	if err != nil {

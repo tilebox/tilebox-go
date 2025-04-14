@@ -14,12 +14,12 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 	"github.com/tilebox/tilebox-go/observability"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	"github.com/tilebox/tilebox-go/workflows/v1/runner"
+	"github.com/tilebox/tilebox-go/workflows/v1/subtask"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
-	"go.opentelemetry.io/otel/metric/noop"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
 )
@@ -33,56 +33,6 @@ const (
 	jitterInterval  = 5 * time.Second
 )
 
-// taskRunnerConfig contains the configuration for Tilebox Workflows Task Runner.
-type taskRunnerConfig struct {
-	clusterSlug   string
-	logger        *slog.Logger
-	meterProvider metric.MeterProvider
-}
-
-type TaskRunnerOption func(*taskRunnerConfig)
-
-// WithCluster sets the cluster slug to use for the task runner.
-//
-// Defaults to empty string.
-func WithCluster(clusterSlug string) TaskRunnerOption {
-	return func(cfg *taskRunnerConfig) {
-		cfg.clusterSlug = clusterSlug
-	}
-}
-
-// WithRunnerLogger sets the logger to use for the task runner.
-//
-// Defaults to slog.Default().
-func WithRunnerLogger(logger *slog.Logger) TaskRunnerOption {
-	return func(cfg *taskRunnerConfig) {
-		cfg.logger = logger
-	}
-}
-
-// WithDisableMetrics disables OpenTelemetry metrics for the task runner.
-func WithDisableMetrics() TaskRunnerOption {
-	return func(cfg *taskRunnerConfig) {
-		cfg.meterProvider = noop.NewMeterProvider()
-	}
-}
-
-func newTaskRunnerConfig(options []TaskRunnerOption) (*taskRunnerConfig, error) {
-	cfg := &taskRunnerConfig{
-		logger:        slog.Default(),
-		meterProvider: otel.GetMeterProvider(),
-	}
-	for _, option := range options {
-		option(cfg)
-	}
-
-	if cfg.clusterSlug == "" {
-		return nil, errors.New("cluster slug is required")
-	}
-
-	return cfg, nil
-}
-
 // TaskRunner executes tasks.
 type TaskRunner struct {
 	service         TaskService
@@ -94,13 +44,16 @@ type TaskRunner struct {
 	taskDurationMetric metric.Float64Histogram
 }
 
-func newTaskRunner(service TaskService, tracer trace.Tracer, options ...TaskRunnerOption) (*TaskRunner, error) {
-	cfg, err := newTaskRunnerConfig(options)
-	if err != nil {
-		return nil, err
+func newTaskRunner(service TaskService, tracer trace.Tracer, cluster *Cluster, options ...runner.Option) (*TaskRunner, error) {
+	opts := &runner.Options{
+		Logger:        slog.Default(),
+		MeterProvider: otel.GetMeterProvider(),
+	}
+	for _, option := range options {
+		option(opts)
 	}
 
-	meter := cfg.meterProvider.Meter(otelMeterName)
+	meter := opts.MeterProvider.Meter(otelMeterName)
 
 	taskDurationMetric, err := meter.Float64Histogram(
 		"task.execution.duration",
@@ -115,9 +68,9 @@ func newTaskRunner(service TaskService, tracer trace.Tracer, options ...TaskRunn
 		service:         service,
 		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 
-		cluster:            cfg.clusterSlug,
+		cluster:            cluster.Slug,
 		tracer:             tracer,
-		logger:             cfg.logger,
+		logger:             opts.Logger,
 		taskDurationMetric: taskDurationMetric,
 	}, nil
 }
@@ -213,7 +166,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 					SubTasks: nil,
 				}
 				if executionContext != nil && len(executionContext.Subtasks) > 0 {
-					computedTask.SubTasks = lo.Map(executionContext.Subtasks, func(ft *FutureTask, _ int) *workflowsv1.TaskSubmission { return ft.submission })
+					computedTask.SubTasks = executionContext.Subtasks
 				}
 				nextTaskToRun := &workflowsv1.NextTaskToRun{ClusterSlug: t.cluster, Identifiers: identifiers}
 				select {
@@ -420,22 +373,17 @@ func (t *TaskRunner) extendTaskLease(ctx context.Context, service TaskService, t
 	}
 }
 
-type FutureTask struct {
-	index      int64
-	submission *workflowsv1.TaskSubmission
-}
-
 type taskExecutionContext struct {
 	CurrentTask *workflowsv1.Task
 	runner      *TaskRunner
-	Subtasks    []*FutureTask
+	Subtasks    []*workflowsv1.TaskSubmission
 }
 
 func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflowsv1.Task) context.Context {
 	return context.WithValue(ctx, contextKeyTaskExecution, &taskExecutionContext{
 		CurrentTask: task,
 		runner:      t,
-		Subtasks:    make([]*FutureTask, 0),
+		Subtasks:    make([]*workflowsv1.TaskSubmission, 0),
 	})
 }
 
@@ -458,112 +406,77 @@ func GetCurrentCluster(ctx context.Context) (string, error) {
 	return executionContext.runner.cluster, nil
 }
 
-// submitSubtaskConfig contains the configuration for a SubmitSubtask request.
-type submitSubtaskConfig struct {
-	dependencies []*FutureTask
-	clusterSlug  string
-	maxRetries   int64
-}
-
-// SubmitSubtaskOption is an interface for configuring a SubmitSubtask request.
-type SubmitSubtaskOption func(*submitSubtaskConfig)
-
-// WithSkipData skips the data when loading datapoints.
-// If set, only the required and auto-generated fields will be returned.
-//
-// Defaults to false.
-func WithDependencies(dependencies ...*FutureTask) SubmitSubtaskOption {
-	return func(cfg *submitSubtaskConfig) {
-		cfg.dependencies = append(cfg.dependencies, dependencies...)
-	}
-}
-
-func WithClusterSlug(clusterSlug string) SubmitSubtaskOption {
-	return func(cfg *submitSubtaskConfig) {
-		cfg.clusterSlug = clusterSlug
-	}
-}
-
-func WithMaxRetries(maxRetries int64) SubmitSubtaskOption {
-	return func(cfg *submitSubtaskConfig) {
-		cfg.maxRetries = maxRetries
-	}
-}
-
-func newSubmitSubtaskConfig(options []SubmitSubtaskOption, executionContext *taskExecutionContext) *submitSubtaskConfig {
-	cfg := &submitSubtaskConfig{
-		dependencies: nil,
-		clusterSlug:  executionContext.runner.cluster,
-		maxRetries:   0,
-	}
-	for _, option := range options {
-		option(cfg)
-	}
-
-	return cfg
-}
-
 // SubmitSubtask submits a task to the task runner as subtask of the current task.
-func SubmitSubtask(ctx context.Context, task Task, options ...SubmitSubtaskOption) (*FutureTask, error) {
+func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOption) (subtask.FutureTask, error) {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil {
-		return nil, errors.New("cannot submit subtask without task execution context")
+		return 0, errors.New("cannot submit subtask without task execution context")
 	}
 
-	cfg := newSubmitSubtaskConfig(options, executionContext)
+	opts := &subtask.SubmitOptions{
+		Dependencies: nil,
+		ClusterSlug:  executionContext.runner.cluster,
+		MaxRetries:   0,
+	}
+	for _, option := range options {
+		option(opts)
+	}
 
 	var subtaskInput []byte
 	var err error
 
 	if task == nil {
-		return nil, errors.New("cannot submit nil task")
+		return 0, errors.New("cannot submit nil task")
 	}
 	taskProto, isProtobuf := task.(proto.Message)
 	if isProtobuf {
 		subtaskInput, err = proto.Marshal(taskProto)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal protobuf task: %w", err)
+			return 0, fmt.Errorf("failed to marshal protobuf task: %w", err)
 		}
 	} else {
 		subtaskInput, err = json.Marshal(task)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal task: %w", err)
+			return 0, fmt.Errorf("failed to marshal task: %w", err)
 		}
 	}
 
 	identifier := identifierFromTask(task)
 	err = ValidateIdentifier(identifier)
 	if err != nil {
-		return nil, fmt.Errorf("subtask has invalid task identifier: %w", err)
+		return 0, fmt.Errorf("subtask has invalid task identifier: %w", err)
 	}
 
 	var dependencies []int64 //nolint:prealloc // we want to keep it nil if there are no dependencies
-	for _, ft := range cfg.dependencies {
-		dependencies = append(dependencies, ft.index)
+	taskIndex := int64(len(executionContext.Subtasks))
+
+	for _, ft := range opts.Dependencies {
+		if ft < 0 || int64(ft) >= taskIndex {
+			return 0, fmt.Errorf("invalid dependency: future task %d doesn't exist", ft)
+		}
+		dependencies = append(dependencies, int64(ft))
 	}
 
-	futureTask := &FutureTask{
-		index: int64(len(executionContext.Subtasks)),
-		submission: &workflowsv1.TaskSubmission{
-			ClusterSlug: cfg.clusterSlug,
-			Identifier: &workflowsv1.TaskIdentifier{
-				Name:    identifier.Name(),
-				Version: identifier.Version(),
-			},
-			Input:        subtaskInput,
-			Dependencies: dependencies,
-			MaxRetries:   cfg.maxRetries,
-			Display:      identifier.Display(),
+	subtaskSubmission := &workflowsv1.TaskSubmission{
+		ClusterSlug: opts.ClusterSlug,
+		Identifier: &workflowsv1.TaskIdentifier{
+			Name:    identifier.Name(),
+			Version: identifier.Version(),
 		},
+		Input:        subtaskInput,
+		Dependencies: dependencies,
+		MaxRetries:   opts.MaxRetries,
+		Display:      identifier.Display(),
 	}
-	executionContext.Subtasks = append(executionContext.Subtasks, futureTask)
-	return futureTask, nil
+
+	executionContext.Subtasks = append(executionContext.Subtasks, subtaskSubmission)
+	return subtask.FutureTask(taskIndex), nil
 }
 
 // SubmitSubtasks submits multiple tasks to the task runner as subtask of the current task.
 // It is similar to SubmitSubtask, but it takes a slice of tasks instead of a single task.
-func SubmitSubtasks(ctx context.Context, tasks []Task, options ...SubmitSubtaskOption) ([]*FutureTask, error) {
-	futureTasks := make([]*FutureTask, 0, len(tasks))
+func SubmitSubtasks(ctx context.Context, tasks []Task, options ...subtask.SubmitOption) ([]subtask.FutureTask, error) {
+	futureTasks := make([]subtask.FutureTask, 0, len(tasks))
 	for _, task := range tasks {
 		futureTask, err := SubmitSubtask(ctx, task, options...)
 		if err != nil {

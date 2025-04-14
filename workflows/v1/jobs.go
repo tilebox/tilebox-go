@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/query"
+	"github.com/tilebox/tilebox-go/workflows/v1/job"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -79,7 +80,7 @@ const (
 )
 
 type JobClient interface {
-	Submit(ctx context.Context, jobName string, clusterSlug string, maxRetries int, tasks ...Task) (*Job, error)
+	Submit(ctx context.Context, jobName string, cluster *Cluster, tasks []Task, options ...job.SubmitOption) (*Job, error)
 	Get(ctx context.Context, jobID uuid.UUID) (*Job, error)
 	Retry(ctx context.Context, jobID uuid.UUID) (int64, error)
 	Cancel(ctx context.Context, jobID uuid.UUID) error
@@ -95,8 +96,13 @@ type jobClient struct {
 // Submit submits a job to the specified cluster.
 //
 // Documentation: https://docs.tilebox.com/workflows/concepts/jobs#submission
-func (c jobClient) Submit(ctx context.Context, jobName string, clusterSlug string, maxRetries int, tasks ...Task) (*Job, error) {
-	jobRequest, err := ValidateJob(jobName, clusterSlug, maxRetries, tasks...)
+func (c jobClient) Submit(ctx context.Context, jobName string, cluster *Cluster, tasks []Task, options ...job.SubmitOption) (*Job, error) {
+	opts := &job.SubmitJobOptions{}
+	for _, option := range options {
+		option(opts)
+	}
+
+	jobRequest, err := validateJob(jobName, cluster.Slug, opts.MaxRetries, tasks...)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +197,7 @@ func (c jobClient) List(ctx context.Context, interval query.TemporalExtent) iter
 	}
 }
 
-func ValidateJob(jobName string, clusterSlug string, maxRetries int, tasks ...Task) (*workflowsv1.SubmitJobRequest, error) {
+func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...Task) (*workflowsv1.SubmitJobRequest, error) {
 	if len(tasks) == 0 {
 		return nil, errors.New("no tasks to submit")
 	}
@@ -229,7 +235,7 @@ func ValidateJob(jobName string, clusterSlug string, maxRetries int, tasks ...Ta
 			},
 			Input:      subtaskInput,
 			Display:    identifier.Display(),
-			MaxRetries: int64(maxRetries),
+			MaxRetries: maxRetries,
 		})
 	}
 
