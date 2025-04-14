@@ -16,9 +16,17 @@ func main() {
 		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
 	)
 
-	job, err := client.Jobs.Submit(ctx, "hello-world", "testing-4qgCk4qHH85qR7", 0,
-		&helloworld.HelloTask{
-			Name: "Tilebox",
+	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
+		return
+	}
+
+	job, err := client.Jobs.Submit(ctx, "hello-world", cluster,
+		[]workflows.Task{
+			&helloworld.HelloTask{
+				Name: "Tilebox",
+			},
 		},
 	)
 	if err != nil {

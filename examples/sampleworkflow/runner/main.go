@@ -61,16 +61,19 @@ func main() {
 		workflows.WithAPIKey(config.authToken),
 	)
 
-	runner, err := client.NewTaskRunner(
-		workflows.WithCluster("testing-4qgCk4qHH85qR7"),
-		workflows.WithRunnerLogger(log),
-	)
+	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
+		return
+	}
+
+	taskRunner, err := client.NewTaskRunner(cluster)
 	if err != nil {
 		log.Error("failed to create task runner", slog.Any("error", err))
 		return
 	}
 
-	err = runner.RegisterTasks(
+	err = taskRunner.RegisterTasks(
 		&sampleworkflow.SampleTask{},
 		&sampleworkflow.SpawnWorkflowTreeTask{},
 	)
@@ -79,7 +82,7 @@ func main() {
 		return // exit the program if we can't register one of the tasks
 	}
 
-	runner.RunForever(ctx)
+	taskRunner.RunForever(ctx)
 }
 
 type Config struct {

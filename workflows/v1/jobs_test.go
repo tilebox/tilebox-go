@@ -70,7 +70,8 @@ func TestJobService_Submit(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			service := &mockJobService{}
 			js := jobClient{service: service}
-			got, err := js.Submit(ctx, tt.args.jobName, tt.args.clusterSlug, 0, tt.args.tasks...)
+			cluster := &Cluster{Slug: tt.args.clusterSlug}
+			got, err := js.Submit(ctx, tt.args.jobName, cluster, tt.args.tasks)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Submit() error = %v, wantErr %v", err, tt.wantErr)
 				return
