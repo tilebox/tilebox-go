@@ -15,18 +15,19 @@ Each example can be run using the following command:
 go run ./<example-folder>
 ```
 
-For example, to run the `helloworld/submitter` example:
-
+For example, to run the `workflows/helloworld/submitter` example:
+x
 ```bash
-go run ./helloworld/submitter
+go run ./workflows/helloworld/submitter
 ```
 
 ## Workflows examples
 
-- [Hello world](helloworld): How to submit a task and run it.
-- [Sample workflow](sampleworkflow): How to submit a task and run a workflow using protobuf messages and with OpenTelemetry setup.
+- [Hello world](workflows/helloworld): How to submit a task and run it.
+- [Protobuf tasks](workflows/protobuf-task): How to use Protobuf tasks.
+- [Axiom Observability](workflows/axiom): How to set up tracing and logging for workflows using [Axiom](https://axiom.co/) observability platform.
 
 ## Datasets examples
 
-- [Querying data](query): How to query datapoints from dataset collections.
-- [Ingest and delete data](ingest): How to create a collection, ingest datapoints, and then delete them.
+- [Querying data](datasets/query): How to query datapoints from dataset collections.
+- [Ingest and delete data](datasets/ingest): How to create a collection, ingest datapoints, and then delete them.

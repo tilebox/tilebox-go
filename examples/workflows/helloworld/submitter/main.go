@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/tilebox/tilebox-go/examples/helloworld"
+	"github.com/tilebox/tilebox-go/examples/workflows/helloworld"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 

@@ -517,8 +517,6 @@ func SubmitSubtasks(ctx context.Context, tasks []Task, options ...subtask.Submit
 
 // WithTaskSpanResult is a helper function that wraps a function with a tracing span.
 // It returns the result of the function and an error if any.
-//
-// This function is intended to be used in tasks to wrap a function with a tracing span.
 func WithTaskSpanResult[Result any](ctx context.Context, name string, f func(ctx context.Context) (Result, error)) (Result, error) {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil || executionContext.runner.tracer == nil {
@@ -529,8 +527,6 @@ func WithTaskSpanResult[Result any](ctx context.Context, name string, f func(ctx
 }
 
 // WithTaskSpan is a helper function that wraps a function with a tracing span.
-//
-// This function is intended to be used in tasks to wrap a function with a tracing span.
 func WithTaskSpan(ctx context.Context, name string, f func(ctx context.Context) error) error {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil || executionContext.runner.tracer == nil {
