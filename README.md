@@ -159,11 +159,9 @@ func main() {
 		return
 	}
 
-	err = runner.RegisterTasks(
-		&HelloTask{},
-	)
+	err = runner.RegisterTasks(&HelloTask{})
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to register task", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to register tasks", slog.Any("error", err))
 		return
 	}
 

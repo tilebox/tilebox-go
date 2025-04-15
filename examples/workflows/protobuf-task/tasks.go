@@ -1,4 +1,4 @@
-package sampleworkflow
+package protobuftask
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
+// SampleTask is a regular struct task that submits a protobuf task.
 type SampleTask struct {
 	Message      string
 	Depth        int
@@ -35,26 +36,27 @@ func (t *SampleTask) Execute(ctx context.Context) error {
 	return nil
 }
 
+// SpawnWorkflowTreeTask embeds a protobuf message
 type SpawnWorkflowTreeTask struct {
 	examplesv1.SpawnWorkflowTreeTask
 }
 
-func (n *SpawnWorkflowTreeTask) Identifier() workflows.TaskIdentifier {
+func (t *SpawnWorkflowTreeTask) Identifier() workflows.TaskIdentifier {
 	return workflows.NewTaskIdentifier("tilebox.com/task-runner/SpawnWorkflowTreeTask", "v1.0")
 }
 
-func (n *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
-	if n.GetCurrentLevel() >= (n.GetDepth() - 1) {
+func (t *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
+	if t.GetCurrentLevel() >= (t.GetDepth() - 1) {
 		return nil
 	}
 
-	subtasks := make([]workflows.Task, n.GetBranchFactor())
-	for i := range n.GetBranchFactor() {
+	subtasks := make([]workflows.Task, t.GetBranchFactor())
+	for i := range t.GetBranchFactor() {
 		subtasks[i] = &SpawnWorkflowTreeTask{
 			examplesv1.SpawnWorkflowTreeTask{
-				CurrentLevel: n.GetCurrentLevel() + 1,
-				Depth:        n.GetDepth(),
-				BranchFactor: n.GetBranchFactor(),
+				CurrentLevel: t.GetCurrentLevel() + 1,
+				Depth:        t.GetDepth(),
+				BranchFactor: t.GetBranchFactor(),
 			},
 		}
 	}

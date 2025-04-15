@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/tilebox/tilebox-go/examples/helloworld"
+	"github.com/tilebox/tilebox-go/examples/workflows/helloworld"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
@@ -28,11 +28,9 @@ func main() {
 		return
 	}
 
-	err = runner.RegisterTasks(
-		&helloworld.HelloTask{},
-	)
+	err = runner.RegisterTasks(&helloworld.HelloTask{})
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to register task", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to register tasks", slog.Any("error", err))
 		return
 	}
 
