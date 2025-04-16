@@ -8,12 +8,10 @@ require (
 	github.com/axiomhq/axiom-go v0.22.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/integrii/flaggy v1.5.2
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/paulmach/orb v0.11.1
 	github.com/remychantenay/slog-otel v1.3.2
 	github.com/samber/lo v1.47.0
-	github.com/samber/slog-multi v1.2.4
 	github.com/stretchr/testify v1.10.0
 	go.opentelemetry.io/otel v1.34.0
 	go.opentelemetry.io/otel/metric v1.34.0
@@ -120,7 +118,7 @@ require (
 	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.37.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
