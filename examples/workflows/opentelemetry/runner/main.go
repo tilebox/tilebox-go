@@ -19,9 +19,9 @@ func main() {
 	ctx := context.Background()
 
 	tileboxAPIKey := os.Getenv("TILEBOX_API_KEY")
-	endpoint := "https://api.axiom.co/v1/logs"
+	endpoint := "" // FIXME: defaults to localhost:4318
 	headers := map[string]string{
-		"Authorization": "Bearer <apikey>",
+		"Authorization": "Bearer <apikey>", // FIXME: if required
 	}
 
 	// Setup OpenTelemetry logging and slog

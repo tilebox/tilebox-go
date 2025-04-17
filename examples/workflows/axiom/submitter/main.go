@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	serviceName = "task-runner"
+	serviceName = "submitter"
 	version     = "dev"
 )
 

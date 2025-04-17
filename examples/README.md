@@ -26,6 +26,7 @@ go run ./workflows/helloworld/submitter
 - [Hello world](workflows/helloworld): How to submit a task and run it.
 - [Protobuf tasks](workflows/protobuf-task): How to use Protobuf tasks.
 - [Axiom Observability](workflows/axiom): How to set up tracing and logging for workflows using [Axiom](https://axiom.co/) observability platform.
+- [OpenTelemetry Observability](workflows/opentelemetry): How to set up tracing and logging for workflows using [OpenTelemetry](https://opentelemetry.io/).
 
 ## Datasets examples
 

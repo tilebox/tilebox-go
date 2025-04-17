@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	serviceName    = "task-runner"
+	serviceName    = "submitter"
 	serviceVersion = "dev"
 )
 
@@ -19,9 +19,9 @@ func main() {
 	ctx := context.Background()
 
 	tileboxAPIKey := os.Getenv("TILEBOX_API_KEY")
-	endpoint := "https://api.axiom.co/v1/logs"
+	endpoint := "" // FIXME: defaults to localhost:4318
 	headers := map[string]string{
-		"Authorization": "Bearer <apikey>",
+		"Authorization": "Bearer <apikey>", // FIXME: if required
 	}
 
 	// Setup OpenTelemetry logging and slog
@@ -42,43 +42,6 @@ func main() {
 	}
 	shutdownTracer := observability.InitializeTracing(otelService, axiomProcessor)
 	defer shutdownTracer(ctx)
-
-	///////////
-	/*axiomDataset := "my-dataset"
-	apiKey := "key"
-	endpoint := "https://api.axiom.co/v1/traces"
-	headers := map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %s", apiKey),
-	}
-
-	otelService := &observability.Service{Name: serviceName, Version: serviceVersion}
-
-	processor, err := observability.NewOtelSpanProcessor(ctx, endpoint, observability.WithHeaders(headers))
-	axiomProcessor, err := observability.NewAxiomSpanProcessor(ctx, axiomDataset, apiKey)
-
-	shutdown := observability.InitializeTracing(otelService, processor, axiomProcessor)
-	defer shutdown(ctx)
-
-	tracerProvider := observability.NewTracerProvider(otelService, processor, axiomProcessor)
-	otel.SetTracerProvider(tracerProvider)
-	defer tracerProvider.Shutdown(ctx)
-
-	////////
-
-	otelHandler, shutdownLogger, err := observability.NewOtelHandler(ctx, otelService, endpoint, observability.WithHeaders(headers), observability.WithLevel(slog.LevelWarn))
-	axiomHandler, shutdownAxiomLogger, err := observability.NewAxiomHandler(ctx, otelService, axiomDataset, apiKey, observability.WithLevel(slog.LevelWarn))
-	defer shutdownAxiomLogger(ctx)
-	consoleHandler := observability.NewConsoleHandler(observability.WithLevel(slog.LevelInfo))
-	observability.InitializeLogging(otelHandler, axiomHandler, consoleHandler)
-
-	otelLogProcessor, err := observability.NewOtelLogProcessor(ctx, endpoint)
-	loggerProvider := observability.NewLoggingProvider(otelService, otelLogProcessor)
-	global.SetLoggerProvider(loggerProvider)
-	defer loggerProvider.Shutdown(ctx)
-
-	observability.InitializeLogging(observability.NewConsoleHandler())*/
-
-	///////////
 
 	client := workflows.NewClient(workflows.WithAPIKey(tileboxAPIKey))
 
