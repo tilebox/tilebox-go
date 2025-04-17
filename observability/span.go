@@ -12,6 +12,12 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
+// Service represents the service being monitored.
+type Service struct {
+	Name    string // Name represents the logical name of the service.
+	Version string // Version represents the version of the service, e.g. "2.0.0".
+}
+
 var propagator = propagation.TraceContext{}
 
 // generateTraceParent generates a random traceparent.

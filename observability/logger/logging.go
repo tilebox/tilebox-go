@@ -1,4 +1,4 @@
-package observability // import "github.com/tilebox/tilebox-go/observability"
+package logger // import "github.com/tilebox/tilebox-go/observability/logger"
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/lmittmann/tint"
 	slogmulti "github.com/samber/slog-multi"
+	"github.com/tilebox/tilebox-go/observability"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
@@ -52,8 +53,8 @@ func NewOtelLogProcessor(ctx context.Context, options ...Option) (log.Processor,
 	return log.NewSimpleProcessor(exporter), nil
 }
 
-// NewLoggingProvider creates a new OpenTelemetry logger provider with the given processors.
-func NewLoggingProvider(otelService *Service, processors ...log.Processor) *log.LoggerProvider {
+// NewLoggingProviderWithProcessors creates a new OpenTelemetry logger provider with the given processors.
+func NewLoggingProviderWithProcessors(otelService *observability.Service, processors ...log.Processor) *log.LoggerProvider {
 	rs := resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String(otelService.Name),
@@ -125,7 +126,7 @@ func (h *tracingAndlevelFilterHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 func noShutdown(context.Context) {}
 
 // NewOtelHandler creates a new OpenTelemetry log handler.
-func NewOtelHandler(ctx context.Context, otelService *Service, options ...Option) (slog.Handler, func(context.Context), error) {
+func NewOtelHandler(ctx context.Context, otelService *observability.Service, options ...Option) (slog.Handler, func(context.Context), error) {
 	opts := &Options{}
 	for _, option := range options {
 		option(opts)
@@ -136,7 +137,7 @@ func NewOtelHandler(ctx context.Context, otelService *Service, options ...Option
 		return nil, noShutdown, err
 	}
 
-	loggerProvider := NewLoggingProvider(otelService, processor)
+	loggerProvider := NewLoggingProviderWithProcessors(otelService, processor)
 
 	return &tracingAndlevelFilterHandler{
 			level: opts.Level,
@@ -148,7 +149,7 @@ func NewOtelHandler(ctx context.Context, otelService *Service, options ...Option
 }
 
 // NewAxiomHandler creates a new Axiom log handler.
-func NewAxiomHandler(ctx context.Context, otelService *Service, dataset string, apiKey string, options ...Option) (slog.Handler, func(context.Context), error) {
+func NewAxiomHandler(ctx context.Context, otelService *observability.Service, dataset string, apiKey string, options ...Option) (slog.Handler, func(context.Context), error) {
 	headers := map[string]string{
 		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
 		"X-Axiom-Dataset": dataset,
@@ -170,7 +171,7 @@ func NewConsoleHandler(options ...Option) slog.Handler {
 	return tint.NewHandler(os.Stdout, &tint.Options{Level: opts.Level})
 }
 
-// InitializeLogging sets the default slog logger to use the given handlers.
-func InitializeLogging(handlers ...slog.Handler) {
-	slog.SetDefault(slog.New(slogmulti.Fanout(handlers...)))
+// New creates a new slog.Logger with the given handlers.
+func New(handlers ...slog.Handler) *slog.Logger {
+	return slog.New(slogmulti.Fanout(handlers...))
 }

@@ -1,4 +1,4 @@
-package axiom
+package opentelemetry
 
 import (
 	"context"
@@ -8,9 +8,9 @@ import (
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
-type MyAxiomTask struct{}
+type MyOpenTelemetryTask struct{}
 
-func (t *MyAxiomTask) Execute(ctx context.Context) error {
+func (t *MyOpenTelemetryTask) Execute(ctx context.Context) error {
 	// Start an openTelemetry tracing span that will be exported to the OpenTelemetry endpoint
 	result, err := workflows.WithTaskSpanResult(ctx, "Expensive Compute", func(ctx context.Context) (int, error) {
 		return 6 * 7, nil

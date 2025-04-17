@@ -7,13 +7,14 @@ import (
 
 	"github.com/tilebox/tilebox-go/examples/workflows/axiom"
 	"github.com/tilebox/tilebox-go/observability"
+	"github.com/tilebox/tilebox-go/observability/logger"
+	"github.com/tilebox/tilebox-go/observability/tracer"
 	"github.com/tilebox/tilebox-go/workflows/v1"
+	"go.opentelemetry.io/otel"
 )
 
-var (
-	serviceName = "submitter"
-	version     = "dev"
-)
+// specify a service name and version to identify the instrumenting application in traces and logs
+var service = &observability.Service{Name: "submitter", Version: "dev"}
 
 func main() {
 	ctx := context.Background()
@@ -24,23 +25,28 @@ func main() {
 	axiomLogsDataset := os.Getenv("AXIOM_LOGS_DATASET")
 
 	// Setup OpenTelemetry logging and slog
-	otelService := &observability.Service{Name: serviceName, Version: version}
-	axiomHandler, shutdownLogger, err := observability.NewAxiomHandler(ctx, otelService, axiomLogsDataset, axiomAPIKey)
+	axiomHandler, shutdownLogger, err := logger.NewAxiomHandler(ctx, service, axiomLogsDataset, axiomAPIKey,
+		logger.WithLevel(slog.LevelInfo), // export logs at info level and above as OTEL logs
+	)
+	defer shutdownLogger(ctx)
 	if err != nil {
 		slog.Error("failed to set up axiom log handler", slog.Any("error", err))
 		return
 	}
-	observability.InitializeLogging(axiomHandler, observability.NewConsoleHandler())
-	defer shutdownLogger(ctx)
+	tileboxLogger := logger.New( // initialize a slog.Logger
+		axiomHandler, // export logs to Axiom
+		logger.NewConsoleHandler(logger.WithLevel(slog.LevelWarn)), // and additionally, export WARN and ERROR logs to stdout
+	)
+	slog.SetDefault(tileboxLogger) // all future slog calls will be forwarded to the tilebox logger
 
-	// Setup OpenTelemetry tracing
-	axiomProcessor, err := observability.NewAxiomSpanProcessor(ctx, axiomTracesDataset, axiomAPIKey)
+	// Setup an OpenTelemetry trace span processor, exporting traces and spans to Axiom
+	tileboxTracerProvider, shutdown, err := tracer.NewAxiomProvider(ctx, service, axiomTracesDataset, axiomAPIKey)
+	defer shutdown(ctx)
 	if err != nil {
-		slog.Error("failed to set up axiom span processor", slog.Any("error", err))
+		slog.Error("failed to set up axiom tracer provider", slog.Any("error", err))
 		return
 	}
-	shutdownTracer := observability.InitializeTracing(otelService, axiomProcessor)
-	defer shutdownTracer(ctx)
+	otel.SetTracerProvider(tileboxTracerProvider) // set the tilebox tracer provider as the global OTEL tracer provider
 
 	client := workflows.NewClient(workflows.WithAPIKey(tileboxAPIKey))
 

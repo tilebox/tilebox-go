@@ -1,7 +1,6 @@
-package observability
+package tracer
 
 import (
-	"log/slog"
 	"testing"
 	"time"
 
@@ -14,15 +13,6 @@ func Test_Options(t *testing.T) {
 		options []Option
 		want    Options
 	}{
-		{
-			name: "with level",
-			options: []Option{
-				WithLevel(slog.LevelDebug),
-			},
-			want: Options{
-				Level: slog.LevelDebug,
-			},
-		},
 		{
 			name: "with endpoint URL",
 			options: []Option{
