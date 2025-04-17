@@ -19,13 +19,14 @@ func main() {
 	ctx := context.Background()
 
 	tileboxAPIKey := os.Getenv("TILEBOX_API_KEY")
-	axiomAPIKey := os.Getenv("AXIOM_API_KEY")
-	axiomTracesDataset := os.Getenv("AXIOM_TRACES_DATASET")
-	axiomLogsDataset := os.Getenv("AXIOM_LOGS_DATASET")
+	endpoint := "https://api.axiom.co/v1/logs"
+	headers := map[string]string{
+		"Authorization": "Bearer <apikey>",
+	}
 
 	// Setup OpenTelemetry logging and slog
 	otelService := &observability.Service{Name: serviceName, Version: version}
-	axiomHandler, shutdownLogger, err := observability.NewAxiomHandler(ctx, otelService, axiomLogsDataset, axiomAPIKey, observability.WithLevel(slog.LevelDebug))
+	axiomHandler, shutdownLogger, err := observability.NewOtelHandler(ctx, otelService, observability.WithEndpointURL(endpoint), observability.WithHeaders(headers))
 	if err != nil {
 		slog.Error("failed to set up axiom log handler", slog.Any("error", err))
 		return
@@ -34,7 +35,7 @@ func main() {
 	defer shutdownLogger(ctx)
 
 	// Setup OpenTelemetry tracing
-	axiomProcessor, err := observability.NewAxiomSpanProcessor(ctx, axiomTracesDataset, axiomAPIKey)
+	axiomProcessor, err := observability.NewOtelSpanProcessor(ctx, observability.WithEndpointURL(endpoint), observability.WithHeaders(headers))
 	if err != nil {
 		slog.Error("failed to set up axiom span processor", slog.Any("error", err))
 		return

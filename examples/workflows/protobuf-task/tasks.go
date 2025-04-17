@@ -29,11 +29,7 @@ func (t *SampleTask) Execute(ctx context.Context) error {
 			BranchFactor: int64(t.BranchFactor),
 		},
 	})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // SpawnWorkflowTreeTask embeds a protobuf message

@@ -8,7 +8,6 @@ import (
 	"github.com/tilebox/tilebox-go/examples/workflows/axiom"
 	"github.com/tilebox/tilebox-go/observability"
 	"github.com/tilebox/tilebox-go/workflows/v1"
-	"go.opentelemetry.io/otel"
 )
 
 var (
@@ -24,23 +23,24 @@ func main() {
 	axiomTracesDataset := os.Getenv("AXIOM_TRACES_DATASET")
 	axiomLogsDataset := os.Getenv("AXIOM_LOGS_DATASET")
 
-	// Setup slog
-	axiomLogHandler, shutdownLogger, err := observability.NewAxiomLogger(axiomLogsDataset, axiomAPIKey, slog.LevelDebug, true)
-	defer shutdownLogger()
+	// Setup OpenTelemetry logging and slog
+	otelService := &observability.Service{Name: serviceName, Version: version}
+	axiomHandler, shutdownLogger, err := observability.NewAxiomHandler(ctx, otelService, axiomLogsDataset, axiomAPIKey, observability.WithLevel(slog.LevelDebug))
 	if err != nil {
 		slog.Error("failed to set up axiom log handler", slog.Any("error", err))
 		return
 	}
-	slog.SetDefault(slog.New(axiomLogHandler)) // set the global slog logger to our axiom logger
+	observability.InitializeLogging(axiomHandler)
+	defer shutdownLogger(ctx)
 
-	// Setup OpenTelemetry tracer provider
-	axiomTracerProvider, shutdownTracer, err := observability.NewAxiomTracerProvider(ctx, axiomTracesDataset, axiomAPIKey, serviceName, version)
-	defer shutdownTracer()
+	// Setup OpenTelemetry tracing
+	axiomProcessor, err := observability.NewAxiomSpanProcessor(ctx, axiomTracesDataset, axiomAPIKey)
 	if err != nil {
-		slog.Error("failed to set up axiom tracer provider", slog.Any("error", err))
+		slog.Error("failed to set up axiom span processor", slog.Any("error", err))
 		return
 	}
-	otel.SetTracerProvider(axiomTracerProvider) // set the global tracer provider to our axiom tracer provider
+	shutdownTracer := observability.InitializeTracing(otelService, axiomProcessor)
+	defer shutdownTracer(ctx)
 
 	client := workflows.NewClient(workflows.WithAPIKey(tileboxAPIKey))
 
@@ -50,7 +50,7 @@ func main() {
 		return
 	}
 
-	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree", cluster,
+	job, err := client.Jobs.Submit(ctx, "Axiom Observability", cluster,
 		[]workflows.Task{&axiom.MyAxiomTask{}},
 	)
 	if err != nil {

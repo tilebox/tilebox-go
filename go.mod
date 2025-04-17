@@ -5,21 +5,23 @@ go 1.23.1
 require (
 	connectrpc.com/connect v1.18.1
 	github.com/avast/retry-go/v4 v4.6.0
-	github.com/axiomhq/axiom-go v0.22.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/integrii/flaggy v1.5.2
+	github.com/lmittmann/tint v1.0.7
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/paulmach/orb v0.11.1
-	github.com/remychantenay/slog-otel v1.3.2
 	github.com/samber/lo v1.47.0
 	github.com/samber/slog-multi v1.2.4
 	github.com/stretchr/testify v1.10.0
-	go.opentelemetry.io/otel v1.34.0
-	go.opentelemetry.io/otel/metric v1.34.0
-	go.opentelemetry.io/otel/sdk v1.34.0
-	go.opentelemetry.io/otel/trace v1.34.0
-	google.golang.org/grpc v1.70.0
+	go.opentelemetry.io/contrib/bridges/otelslog v0.10.0
+	go.opentelemetry.io/otel v1.35.0
+	go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp v0.11.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.34.0
+	go.opentelemetry.io/otel/metric v1.35.0
+	go.opentelemetry.io/otel/sdk v1.35.0
+	go.opentelemetry.io/otel/sdk/log v0.11.0
+	go.opentelemetry.io/otel/trace v1.35.0
+	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.5
 	pgregory.net/rapid v1.1.0
 )
@@ -54,6 +56,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.8.2 // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/fatih/color v1.18.0 // indirect
 	github.com/felixge/fgprof v0.9.5 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-chi/chi/v5 v5.2.1 // indirect
@@ -64,14 +67,14 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/cel-go v0.24.1 // indirect
 	github.com/google/go-containerregistry v0.20.3 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/pprof v0.0.0-20250302191652-9094ed2288e7 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.1 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jdx/go-netrc v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
@@ -111,7 +114,8 @@ require (
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.59.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.34.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.34.0 // indirect
+	go.opentelemetry.io/otel/log v0.11.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	go.uber.org/mock v0.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
