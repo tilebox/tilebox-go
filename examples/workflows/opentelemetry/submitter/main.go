@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	serviceName    = "submitter"
-	serviceVersion = "dev"
+	serviceName = "submitter"
+	version     = "dev"
 )
 
 func main() {
@@ -25,22 +25,22 @@ func main() {
 	}
 
 	// Setup OpenTelemetry logging and slog
-	otelService := &observability.Service{Name: serviceName, Version: serviceVersion}
-	axiomHandler, shutdownLogger, err := observability.NewOtelHandler(ctx, otelService, observability.WithEndpointURL(endpoint), observability.WithHeaders(headers))
+	otelService := &observability.Service{Name: serviceName, Version: version}
+	otelHandler, shutdownLogger, err := observability.NewOtelHandler(ctx, otelService, observability.WithEndpointURL(endpoint), observability.WithHeaders(headers))
 	if err != nil {
-		slog.Error("failed to set up axiom log handler", slog.Any("error", err))
+		slog.Error("failed to set up otel log handler", slog.Any("error", err))
 		return
 	}
-	observability.InitializeLogging(axiomHandler)
+	observability.InitializeLogging(otelHandler, observability.NewConsoleHandler())
 	defer shutdownLogger(ctx)
 
 	// Setup OpenTelemetry tracing
-	axiomProcessor, err := observability.NewOtelSpanProcessor(ctx, observability.WithEndpointURL(endpoint), observability.WithHeaders(headers))
+	otelProcessor, err := observability.NewOtelSpanProcessor(ctx, observability.WithEndpointURL(endpoint), observability.WithHeaders(headers))
 	if err != nil {
-		slog.Error("failed to set up axiom span processor", slog.Any("error", err))
+		slog.Error("failed to set up otel span processor", slog.Any("error", err))
 		return
 	}
-	shutdownTracer := observability.InitializeTracing(otelService, axiomProcessor)
+	shutdownTracer := observability.InitializeTracing(otelService, otelProcessor)
 	defer shutdownTracer(ctx)
 
 	client := workflows.NewClient(workflows.WithAPIKey(tileboxAPIKey))

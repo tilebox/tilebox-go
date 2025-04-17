@@ -25,12 +25,12 @@ func main() {
 
 	// Setup OpenTelemetry logging and slog
 	otelService := &observability.Service{Name: serviceName, Version: version}
-	axiomHandler, shutdownLogger, err := observability.NewAxiomHandler(ctx, otelService, axiomLogsDataset, axiomAPIKey, observability.WithLevel(slog.LevelDebug))
+	axiomHandler, shutdownLogger, err := observability.NewAxiomHandler(ctx, otelService, axiomLogsDataset, axiomAPIKey)
 	if err != nil {
 		slog.Error("failed to set up axiom log handler", slog.Any("error", err))
 		return
 	}
-	observability.InitializeLogging(axiomHandler)
+	observability.InitializeLogging(axiomHandler, observability.NewConsoleHandler())
 	defer shutdownLogger(ctx)
 
 	// Setup OpenTelemetry tracing
