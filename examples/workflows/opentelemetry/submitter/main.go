@@ -19,27 +19,28 @@ func main() {
 	ctx := context.Background()
 
 	tileboxAPIKey := os.Getenv("TILEBOX_API_KEY")
-	axiomAPIKey := os.Getenv("AXIOM_API_KEY")
-	axiomTracesDataset := os.Getenv("AXIOM_TRACES_DATASET")
-	axiomLogsDataset := os.Getenv("AXIOM_LOGS_DATASET")
+	endpoint := "" // FIXME: defaults to localhost:4318
+	headers := map[string]string{
+		"Authorization": "Bearer <apikey>", // FIXME: if required
+	}
 
 	// Setup OpenTelemetry logging and slog
 	otelService := &observability.Service{Name: serviceName, Version: version}
-	axiomHandler, shutdownLogger, err := observability.NewAxiomHandler(ctx, otelService, axiomLogsDataset, axiomAPIKey)
+	otelHandler, shutdownLogger, err := observability.NewOtelHandler(ctx, otelService, observability.WithEndpointURL(endpoint), observability.WithHeaders(headers))
 	if err != nil {
-		slog.Error("failed to set up axiom log handler", slog.Any("error", err))
+		slog.Error("failed to set up otel log handler", slog.Any("error", err))
 		return
 	}
-	observability.InitializeLogging(axiomHandler, observability.NewConsoleHandler())
+	observability.InitializeLogging(otelHandler, observability.NewConsoleHandler())
 	defer shutdownLogger(ctx)
 
 	// Setup OpenTelemetry tracing
-	axiomProcessor, err := observability.NewAxiomSpanProcessor(ctx, axiomTracesDataset, axiomAPIKey)
+	otelProcessor, err := observability.NewOtelSpanProcessor(ctx, observability.WithEndpointURL(endpoint), observability.WithHeaders(headers))
 	if err != nil {
-		slog.Error("failed to set up axiom span processor", slog.Any("error", err))
+		slog.Error("failed to set up otel span processor", slog.Any("error", err))
 		return
 	}
-	shutdownTracer := observability.InitializeTracing(otelService, axiomProcessor)
+	shutdownTracer := observability.InitializeTracing(otelService, otelProcessor)
 	defer shutdownTracer(ctx)
 
 	client := workflows.NewClient(workflows.WithAPIKey(tileboxAPIKey))

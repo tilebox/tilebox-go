@@ -12,9 +12,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	client := workflows.NewClient(
-		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-	)
+	client := workflows.NewClient(workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")))
 
 	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
 	if err != nil {

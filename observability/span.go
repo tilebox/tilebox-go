@@ -6,69 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 
-	adapter "github.com/axiomhq/axiom-go/adapters/slog"
-	"github.com/axiomhq/axiom-go/axiom"
-	axiotel "github.com/axiomhq/axiom-go/axiom/otel"
-	slogotel "github.com/remychantenay/slog-otel"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 var propagator = propagation.TraceContext{}
-
-// NewAxiomLogger returns a slog.Logger that logs to Axiom.
-// It also returns a shutdown function that should be called when the logger is no longer needed, to ensure
-// all logs are flushed.
-func NewAxiomLogger(dataset, token string, level slog.Level, addTracing bool) (slog.Handler, func(), error) {
-	noShutdown := func() {}
-	client, err := axiom.NewClient(axiom.SetToken(token))
-	if err != nil {
-		return nil, noShutdown, err
-	}
-
-	axiomHandler, err := adapter.New(
-		adapter.SetDataset(dataset),
-		adapter.SetClient(client),
-		adapter.SetLevel(level),
-	)
-	if err != nil {
-		return nil, noShutdown, err
-	}
-
-	if !addTracing {
-		return axiomHandler, axiomHandler.Close, nil
-	}
-
-	return slogotel.OtelHandler{Next: axiomHandler}, axiomHandler.Close, nil
-}
-
-func NewAxiomTracerProvider(ctx context.Context, dataset, token, serviceName, serviceVersion string) (oteltrace.TracerProvider, func(), error) {
-	noShutdown := func() {}
-	exporter, err := axiotel.TraceExporter(ctx, dataset, axiotel.SetToken(token))
-	if err != nil {
-		return nil, noShutdown, err
-	}
-
-	traceResource := resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceNameKey.String(serviceName),
-		semconv.ServiceVersionKey.String(serviceVersion),
-	)
-
-	provider := trace.NewTracerProvider(
-		trace.WithResource(traceResource),
-		trace.WithBatcher(exporter, trace.WithMaxQueueSize(10*1024)),
-	)
-	shutdown := func() {
-		_ = provider.Shutdown(ctx)
-	}
-	return provider, shutdown, nil
-}
 
 // generateTraceParent generates a random traceparent.
 // ex: 00-51651128eabd3c6f7695b9e6ee0e337d-03e60705fdf5efe0-01
