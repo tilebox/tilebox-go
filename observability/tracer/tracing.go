@@ -1,12 +1,10 @@
-package observability // import "github.com/tilebox/tilebox-go/observability"
+package tracer // import "github.com/tilebox/tilebox-go/observability/tracer"
 
 import (
 	"context"
 	"fmt"
 
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
@@ -52,18 +50,8 @@ func NewOtelSpanProcessor(ctx context.Context, options ...Option) (trace.SpanPro
 	return trace.NewSimpleSpanProcessor(exporter), nil
 }
 
-// NewAxiomSpanProcessor creates a new span processor that sends traces to Axiom.
-func NewAxiomSpanProcessor(ctx context.Context, dataset string, apiKey string) (trace.SpanProcessor, error) {
-	headers := map[string]string{
-		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
-		"X-Axiom-Dataset": dataset,
-	}
-
-	return NewOtelSpanProcessor(ctx, WithEndpointURL(axiomTracesEndpoint), WithHeaders(headers))
-}
-
-// NewTracerProvider creates a new OpenTelemetry tracer provider with the given processors.
-func NewTracerProvider(otelService *Service, processors ...trace.SpanProcessor) *trace.TracerProvider {
+// NewOtelProviderWithProcessors creates a new OpenTelemetry tracer provider with the given processors.
+func NewOtelProviderWithProcessors(otelService *Service, processors ...trace.SpanProcessor) *trace.TracerProvider {
 	rs := resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String(otelService.Name),
@@ -84,23 +72,28 @@ func NewTracerProvider(otelService *Service, processors ...trace.SpanProcessor) 
 	return trace.NewTracerProvider(opts...)
 }
 
-// InitializeTracing initializes the OpenTelemetry tracer with the given processors.
-// It sets the global tracer provider and returns a shutdown function.
-func InitializeTracing(otelService *Service, processors ...trace.SpanProcessor) func(ctx context.Context) {
-	tracerProvider := NewTracerProvider(otelService, processors...)
-	otel.SetTracerProvider(tracerProvider)
+func noShutdown(context.Context) {}
 
-	return func(ctx context.Context) {
-		_ = tracerProvider.Shutdown(ctx)
+// NewOtelProvider creates a new OpenTelemetry tracer provider.
+func NewOtelProvider(ctx context.Context, otelService *Service, options ...Option) (*trace.TracerProvider, func(ctx context.Context), error) {
+	processor, err := NewOtelSpanProcessor(ctx, options...)
+	if err != nil {
+		return nil, noShutdown, err
 	}
+
+	tracerProvider := NewOtelProviderWithProcessors(otelService, processor)
+
+	return tracerProvider, func(ctx context.Context) {
+		_ = tracerProvider.Shutdown(ctx)
+	}, nil
 }
 
-// InitializePropagator configures the global OpenTelemetry propagator to support W3C Trace Context and Baggage.
-func InitializePropagator() {
-	prop := propagation.NewCompositeTextMapPropagator(
-		propagation.TraceContext{},
-		propagation.Baggage{},
-	)
+// NewAxiomProvider creates a new OpenTelemetry tracer provider that sends traces to Axiom.
+func NewAxiomProvider(ctx context.Context, otelService *Service, dataset string, apiKey string) (*trace.TracerProvider, func(ctx context.Context), error) {
+	headers := map[string]string{
+		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
+		"X-Axiom-Dataset": dataset,
+	}
 
-	otel.SetTextMapPropagator(prop)
+	return NewOtelProvider(ctx, otelService, WithEndpointURL(axiomTracesEndpoint), WithHeaders(headers))
 }

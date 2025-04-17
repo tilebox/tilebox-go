@@ -1,11 +1,11 @@
-package observability // import "github.com/tilebox/tilebox-go/observability"
+package logger // import "github.com/tilebox/tilebox-go/observability/logger"
 
 import (
 	"log/slog"
 	"time"
 )
 
-// Options contain the configuration for observability.
+// Options contain the configuration for logging.
 type Options struct {
 	Level          slog.Level
 	Endpoint       string
@@ -39,9 +39,9 @@ func WithHeaders(headers map[string]string) Option {
 }
 
 // WithExportInterval sets the maximum duration between batched exports.
-// If set to 0, records will not be batched.
+// If set to 0, logs will not be batched.
 //
-// Defaults to 5s for tracing and 1s for logs.
+// Defaults to 1s.
 func WithExportInterval(exportInterval time.Duration) Option {
 	return func(cfg *Options) {
 		cfg.ExportInterval = exportInterval
