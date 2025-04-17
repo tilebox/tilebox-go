@@ -9,7 +9,7 @@ import (
 
 	"github.com/lmittmann/tint"
 	slogmulti "github.com/samber/slog-multi"
-	"github.com/tilebox/tilebox-go/observability/tracer"
+	"github.com/tilebox/tilebox-go/observability"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
@@ -54,7 +54,7 @@ func NewOtelLogProcessor(ctx context.Context, options ...Option) (log.Processor,
 }
 
 // NewLoggingProviderWithProcessors creates a new OpenTelemetry logger provider with the given processors.
-func NewLoggingProviderWithProcessors(otelService *tracer.Service, processors ...log.Processor) *log.LoggerProvider {
+func NewLoggingProviderWithProcessors(otelService *observability.Service, processors ...log.Processor) *log.LoggerProvider {
 	rs := resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String(otelService.Name),
@@ -126,7 +126,7 @@ func (h *tracingAndlevelFilterHandler) WithAttrs(attrs []slog.Attr) slog.Handler
 func noShutdown(context.Context) {}
 
 // NewOtelHandler creates a new OpenTelemetry log handler.
-func NewOtelHandler(ctx context.Context, otelService *tracer.Service, options ...Option) (slog.Handler, func(context.Context), error) {
+func NewOtelHandler(ctx context.Context, otelService *observability.Service, options ...Option) (slog.Handler, func(context.Context), error) {
 	opts := &Options{}
 	for _, option := range options {
 		option(opts)
@@ -149,7 +149,7 @@ func NewOtelHandler(ctx context.Context, otelService *tracer.Service, options ..
 }
 
 // NewAxiomHandler creates a new Axiom log handler.
-func NewAxiomHandler(ctx context.Context, otelService *tracer.Service, dataset string, apiKey string, options ...Option) (slog.Handler, func(context.Context), error) {
+func NewAxiomHandler(ctx context.Context, otelService *observability.Service, dataset string, apiKey string, options ...Option) (slog.Handler, func(context.Context), error) {
 	headers := map[string]string{
 		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
 		"X-Axiom-Dataset": dataset,

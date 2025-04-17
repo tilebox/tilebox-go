@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/tilebox/tilebox-go/examples/workflows/opentelemetry"
+	"github.com/tilebox/tilebox-go/observability"
 	"github.com/tilebox/tilebox-go/observability/logger"
 	"github.com/tilebox/tilebox-go/observability/tracer"
 	"github.com/tilebox/tilebox-go/workflows/v1"
@@ -13,7 +14,7 @@ import (
 )
 
 // specify a service name and version to identify the instrumenting application in traces and logs
-var service = &tracer.Service{Name: "task-runner", Version: "dev"}
+var service = &observability.Service{Name: "task-runner", Version: "dev"}
 
 func main() {
 	ctx := context.Background()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/tilebox/tilebox-go/observability"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -11,12 +12,6 @@ import (
 )
 
 const axiomTracesEndpoint = "https://api.axiom.co/v1/traces"
-
-// Service represents the service being monitored.
-type Service struct {
-	Name    string // Name represents the logical name of the service.
-	Version string // Version represents the version of the service, e.g. "2.0.0".
-}
 
 // NewOtelSpanProcessor creates a new OpenTelemetry HTTP span processor.
 func NewOtelSpanProcessor(ctx context.Context, options ...Option) (trace.SpanProcessor, error) {
@@ -51,7 +46,7 @@ func NewOtelSpanProcessor(ctx context.Context, options ...Option) (trace.SpanPro
 }
 
 // NewOtelProviderWithProcessors creates a new OpenTelemetry tracer provider with the given processors.
-func NewOtelProviderWithProcessors(otelService *Service, processors ...trace.SpanProcessor) *trace.TracerProvider {
+func NewOtelProviderWithProcessors(otelService *observability.Service, processors ...trace.SpanProcessor) *trace.TracerProvider {
 	rs := resource.NewWithAttributes(
 		semconv.SchemaURL,
 		semconv.ServiceNameKey.String(otelService.Name),
@@ -75,7 +70,7 @@ func NewOtelProviderWithProcessors(otelService *Service, processors ...trace.Spa
 func noShutdown(context.Context) {}
 
 // NewOtelProvider creates a new OpenTelemetry tracer provider.
-func NewOtelProvider(ctx context.Context, otelService *Service, options ...Option) (*trace.TracerProvider, func(ctx context.Context), error) {
+func NewOtelProvider(ctx context.Context, otelService *observability.Service, options ...Option) (*trace.TracerProvider, func(ctx context.Context), error) {
 	processor, err := NewOtelSpanProcessor(ctx, options...)
 	if err != nil {
 		return nil, noShutdown, err
@@ -89,7 +84,7 @@ func NewOtelProvider(ctx context.Context, otelService *Service, options ...Optio
 }
 
 // NewAxiomProvider creates a new OpenTelemetry tracer provider that sends traces to Axiom.
-func NewAxiomProvider(ctx context.Context, otelService *Service, dataset string, apiKey string) (*trace.TracerProvider, func(ctx context.Context), error) {
+func NewAxiomProvider(ctx context.Context, otelService *observability.Service, dataset string, apiKey string) (*trace.TracerProvider, func(ctx context.Context), error) {
 	headers := map[string]string{
 		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
 		"X-Axiom-Dataset": dataset,
