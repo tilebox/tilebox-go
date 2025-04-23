@@ -117,7 +117,7 @@ func (t *TaskRunner) RunForever(ctx context.Context) {
 	t.run(ctx, false)
 }
 
-// RunAll run the task runner and execute all tasks, until there are no more tasks available.
+// RunAll run the task runner and execute all tasks until there are no more tasks available.
 func (t *TaskRunner) RunAll(ctx context.Context) {
 	t.run(ctx, true)
 }

@@ -2,7 +2,9 @@ package workflows
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -10,6 +12,8 @@ import (
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/subtask"
 	"go.opentelemetry.io/otel/trace/noop"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type mockTaskService struct {
@@ -137,6 +141,141 @@ func Test_isEmpty(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
+}
+
+// mockMinimalTaskService is a mock task service that returns a single next task response. after that it returns an empty response every time
+type mockMinimalTaskService struct {
+	computedTasks []*workflowsv1.ComputedTask
+	nextTask      *workflowsv1.Task
+	failed        bool
+}
+
+var _ TaskService = &mockMinimalTaskService{}
+
+func (m *mockMinimalTaskService) NextTask(_ context.Context, computedTask *workflowsv1.ComputedTask, _ *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, error) {
+	if computedTask != nil {
+		m.computedTasks = append(m.computedTasks, computedTask)
+	}
+
+	if m.nextTask != nil {
+		resp := &workflowsv1.NextTaskResponse{NextTask: proto.CloneOf(m.nextTask)}
+		m.nextTask = nil
+		return resp, nil
+	}
+	// subsequent calls => no next task
+	return &workflowsv1.NextTaskResponse{
+		NextTask: nil,
+	}, nil
+}
+
+func (m *mockMinimalTaskService) TaskFailed(context.Context, uuid.UUID, string, bool) (*workflowsv1.TaskStateResponse, error) {
+	m.failed = true
+	return &workflowsv1.TaskStateResponse{
+		State: workflowsv1.TaskState_TASK_STATE_FAILED,
+	}, nil
+}
+
+func (m *mockMinimalTaskService) ExtendTaskLease(context.Context, uuid.UUID, time.Duration) (*workflowsv1.TaskLease, error) {
+	return &workflowsv1.TaskLease{
+		Lease:                             durationpb.New(5 * time.Minute),
+		RecommendedWaitUntilNextExtension: durationpb.New(5 * time.Minute),
+	}, nil
+}
+
+type testTaskExecute struct{}
+
+func (testTaskExecute) Execute(context.Context) error {
+	return nil
+}
+
+func (testTaskExecute) Identifier() TaskIdentifier {
+	return NewTaskIdentifier("testTaskExecute", "v0.1")
+}
+
+// simulate an actual runner with one task that it should receive
+func TestTaskRunner_RunForever(t *testing.T) {
+	task := &testTaskExecute{}
+
+	taskInput, err := json.Marshal(task)
+	require.NoError(t, err)
+
+	// we simulate a response from NextTask to let our runner start our task instead of calling Execute() ourselves
+	mockNextTask := &workflowsv1.Task{
+		Id: uuidToProtobuf(uuid.New()),
+		Identifier: &workflowsv1.TaskIdentifier{
+			Name:    task.Identifier().Name(),
+			Version: task.Identifier().Version(),
+		},
+		State: workflowsv1.TaskState_TASK_STATE_RUNNING,
+		Input: taskInput,
+		Job: &workflowsv1.Job{
+			Id:          uuidToProtobuf(uuid.New()),
+			Name:        "tilebox-test-job",
+			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
+		},
+	}
+	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
+
+	cluster := &Cluster{Slug: "testing-cluster"}
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+	runner, err := newTaskRunner(service, tracer, cluster)
+	require.NoError(t, err, "failed to create task runner")
+	runner.service = mockTaskClient
+
+	err = runner.RegisterTasks(task)
+	require.NoError(t, err, "failed to register task")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond) // run our one task, then stop
+	defer cancel()
+	runner.RunForever(ctx)
+
+	assert.False(t, mockTaskClient.failed, "task should not have failed")
+	require.Len(t, mockTaskClient.computedTasks, 1)
+	computedTask := mockTaskClient.computedTasks[0]
+	assert.Equal(t, mockNextTask.GetId(), computedTask.GetId())
+}
+
+func TestTaskRunner_RunAll(t *testing.T) {
+	task := &testTaskExecute{}
+
+	taskInput, err := json.Marshal(task)
+	require.NoError(t, err)
+
+	// we simulate a response from NextTask to let our runner start our task instead of calling Execute() ourselves
+	mockNextTask := &workflowsv1.Task{
+		Id: uuidToProtobuf(uuid.New()),
+		Identifier: &workflowsv1.TaskIdentifier{
+			Name:    task.Identifier().Name(),
+			Version: task.Identifier().Version(),
+		},
+		State: workflowsv1.TaskState_TASK_STATE_RUNNING,
+		Input: taskInput,
+		Job: &workflowsv1.Job{
+			Id:          uuidToProtobuf(uuid.New()),
+			Name:        "tilebox-test-job",
+			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
+		},
+	}
+	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
+
+	cluster := &Cluster{Slug: "testing-cluster"}
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+	runner, err := newTaskRunner(service, tracer, cluster)
+	require.NoError(t, err, "failed to create task runner")
+	runner.service = mockTaskClient
+
+	err = runner.RegisterTasks(task)
+	require.NoError(t, err, "failed to register task")
+
+	// run our one task, then stop
+	runner.RunAll(context.Background())
+
+	assert.False(t, mockTaskClient.failed, "task should not have failed")
+	require.Len(t, mockTaskClient.computedTasks, 1)
+	computedTask := mockTaskClient.computedTasks[0]
+	assert.Equal(t, mockNextTask.GetId(), computedTask.GetId())
 }
 
 func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
