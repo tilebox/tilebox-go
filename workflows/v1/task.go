@@ -116,7 +116,7 @@ func parseVersion(version string) (int64, int64, error) {
 // This function is used to generate a default identifier name for a task if it doesn't provide an explicit identifier.
 func getStructName(task interface{}) string {
 	t := reflect.TypeOf(task)
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		return t.Elem().Name()
 	}
 	return t.Name()
