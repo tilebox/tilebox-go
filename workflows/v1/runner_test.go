@@ -143,16 +143,16 @@ func Test_isEmpty(t *testing.T) {
 	}
 }
 
-// mockTaskClient is a mock task client that returns a single next task response. after that it returns an empty response every time
-type mockTaskClient struct {
+// mockMinimalTaskService is a mock task service that returns a single next task response. after that it returns an empty response every time
+type mockMinimalTaskService struct {
 	computedTasks []*workflowsv1.ComputedTask
 	nextTask      *workflowsv1.Task
 	failed        bool
 }
 
-var _ TaskService = &mockTaskClient{}
+var _ TaskService = &mockMinimalTaskService{}
 
-func (m *mockTaskClient) NextTask(_ context.Context, computedTask *workflowsv1.ComputedTask, _ *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, error) {
+func (m *mockMinimalTaskService) NextTask(_ context.Context, computedTask *workflowsv1.ComputedTask, _ *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, error) {
 	if computedTask != nil {
 		m.computedTasks = append(m.computedTasks, computedTask)
 	}
@@ -168,14 +168,14 @@ func (m *mockTaskClient) NextTask(_ context.Context, computedTask *workflowsv1.C
 	}, nil
 }
 
-func (m *mockTaskClient) TaskFailed(context.Context, uuid.UUID, string, bool) (*workflowsv1.TaskStateResponse, error) {
+func (m *mockMinimalTaskService) TaskFailed(context.Context, uuid.UUID, string, bool) (*workflowsv1.TaskStateResponse, error) {
 	m.failed = true
 	return &workflowsv1.TaskStateResponse{
 		State: workflowsv1.TaskState_TASK_STATE_FAILED,
 	}, nil
 }
 
-func (m *mockTaskClient) ExtendTaskLease(context.Context, uuid.UUID, time.Duration) (*workflowsv1.TaskLease, error) {
+func (m *mockMinimalTaskService) ExtendTaskLease(context.Context, uuid.UUID, time.Duration) (*workflowsv1.TaskLease, error) {
 	return &workflowsv1.TaskLease{
 		Lease:                             durationpb.New(5 * time.Minute),
 		RecommendedWaitUntilNextExtension: durationpb.New(5 * time.Minute),
@@ -184,7 +184,7 @@ func (m *mockTaskClient) ExtendTaskLease(context.Context, uuid.UUID, time.Durati
 
 type testTaskExecute struct{}
 
-func (t testTaskExecute) Execute(context.Context) error {
+func (testTaskExecute) Execute(context.Context) error {
 	return nil
 }
 
@@ -214,7 +214,7 @@ func TestTaskRunner_RunForever(t *testing.T) {
 			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
 		},
 	}
-	mockTaskClient := &mockTaskClient{nextTask: mockNextTask}
+	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
 
 	cluster := &Cluster{Slug: "testing-cluster"}
 	tracer := noop.NewTracerProvider().Tracer("")
@@ -257,7 +257,7 @@ func TestTaskRunner_RunAll(t *testing.T) {
 			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
 		},
 	}
-	mockTaskClient := &mockTaskClient{nextTask: mockNextTask}
+	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
 
 	cluster := &Cluster{Slug: "testing-cluster"}
 	tracer := noop.NewTracerProvider().Tracer("")
