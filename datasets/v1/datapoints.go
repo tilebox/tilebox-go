@@ -196,6 +196,11 @@ func (d datapointClient) QueryInto(ctx context.Context, collectionIDs []uuid.UUI
 	return nil
 }
 
+const (
+	ingestChunkSize = 8192
+	deleteChunkSize = 8192
+)
+
 // IngestResponse contains the response from the Ingest method.
 type IngestResponse struct {
 	// NumCreated is the number of datapoints that were created.
@@ -233,23 +238,30 @@ func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, dat
 		marshaledDatapoints[i] = marshal
 	}
 
-	response, err := d.dataIngestionService.Ingest(ctx, collectionID, marshaledDatapoints, allowExisting)
-	if err != nil {
-		return nil, err
-	}
+	numCreated := int64(0)
+	numExisting := int64(0)
+	datapointIDs := make([]uuid.UUID, 0, len(marshaledDatapoints))
 
-	datapointIDs := make([]uuid.UUID, len(response.GetDatapointIds()))
-	for i, id := range response.GetDatapointIds() {
-		datapointID, err := protoToUUID(id)
+	for i := 0; i < len(datapointIDs); i += ingestChunkSize {
+		chunk := marshaledDatapoints[i:min(i+ingestChunkSize, len(marshaledDatapoints))]
+		response, err := d.dataIngestionService.Ingest(ctx, collectionID, chunk, allowExisting)
 		if err != nil {
-			return nil, fmt.Errorf("failed to convert datapoint id from response: %w", err)
+			return nil, err
 		}
-		datapointIDs[i] = datapointID
+		numCreated += response.GetNumCreated()
+		numExisting += response.GetNumExisting()
+		for _, id := range response.GetDatapointIds() {
+			datapointID, err := protoToUUID(id)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert datapoint id from response: %w", err)
+			}
+			datapointIDs = append(datapointIDs, datapointID)
+		}
 	}
 
 	return &IngestResponse{
-		NumCreated:   response.GetNumCreated(),
-		NumExisting:  response.GetNumExisting(),
+		NumCreated:   numCreated,
+		NumExisting:  numExisting,
 		DatapointIDs: datapointIDs,
 	}, nil
 }
@@ -311,6 +323,17 @@ func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, dat
 
 // DeleteIDs deletes datapoints from a collection by their IDs.
 func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
+	numDeleted := int64(0)
+
+	for i := 0; i < len(datapointIDs); i += deleteChunkSize {
+		chunk := datapointIDs[i:min(i+deleteChunkSize, len(datapointIDs))]
+		response, err := d.DeleteIDs(ctx, collectionID, chunk)
+		if err != nil {
+			return nil, err
+		}
+		numDeleted += response.NumDeleted
+	}
+
 	response, err := d.dataIngestionService.Delete(ctx, collectionID, datapointIDs)
 	if err != nil {
 		return nil, err
