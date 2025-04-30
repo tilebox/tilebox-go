@@ -24,66 +24,46 @@ func main() {
 	)
 
 	// Select a dataset
-	dataset, err := client.Datasets.Get(ctx, "tilebox.modis")
+	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
 	if err != nil {
 		log.Fatalf("Failed to get dataset: %v", err)
 	}
 
 	// Select a collection
-	collection, err := client.Collections.Get(ctx, dataset.ID, "MCD12Q1")
+	collection, err := client.Collections.Get(ctx, dataset.ID, "S2A_S2MSI1C")
 	if err != nil {
 		log.Fatalf("Failed to get collection: %v", err)
 	}
 
 	// Select a time interval
-	jan2001 := time.Date(2001, time.January, 1, 0, 0, 0, 0, time.UTC)
-	sinceJan2001 := query.NewTimeInterval(jan2001, time.Now())
+	startDate := time.Date(2025, time.March, 1, 0, 0, 0, 0, time.UTC)
+	endDate := time.Date(2025, time.April, 1, 0, 0, 0, 0, time.UTC)
+	march2025 := query.NewTimeInterval(startDate, endDate)
 
-	// Query one month of data
-	var datapoints []*testv1.Modis
-	err = client.Datapoints.QueryInto(ctx, []uuid.UUID{collection.ID}, &datapoints, tileboxdatasets.WithTemporalExtent(sinceJan2001))
-	if err != nil {
-		log.Fatalf("Failed to query datapoints: %v", err)
-	}
-
-	slog.Info("Found datapoints", slog.Int("count", len(datapoints)))
-	if len(datapoints) > 0 {
-		slog.Info("First datapoint",
-			slog.String("id", datapoints[0].GetId().AsUUID().String()),
-			slog.Time("event time", datapoints[0].GetTime().AsTime()),
-			slog.Time("ingestion time", datapoints[0].GetIngestionTime().AsTime()),
-			slog.String("geometry", wkt.MarshalString(datapoints[0].GetGeometry().AsGeometry())),
-			slog.String("granule name", datapoints[0].GetGranuleName()),
-			// slog.String("processing level", datapoints[0].GetProcessingLevel().String()),
-			// slog.String("product type", datapoints[0].GetProductType()),
-			// and so on...
-		)
-	}
-
-	// Perform a spatial query
+	// Perform a spatial-temporal query
 	colorado := orb.Polygon{
 		{{-109.05, 37.09}, {-102.06, 37.09}, {-102.06, 41.59}, {-109.05, 41.59}, {-109.05, 37.09}},
 	}
-	var datapointsOverColorado []*testv1.Modis
+	var datapointsOverColorado []*testv1.Sentinel2Msi
 	err = client.Datapoints.QueryInto(ctx,
 		[]uuid.UUID{collection.ID}, &datapointsOverColorado,
-		tileboxdatasets.WithTemporalExtent(sinceJan2001),
+		tileboxdatasets.WithTemporalExtent(march2025),
 		tileboxdatasets.WithSpatialExtent(colorado),
 	)
 	if err != nil {
 		log.Fatalf("Failed to query datapoints: %v", err)
 	}
 
-	slog.Info("Found datapoints over Colorado", slog.Int("count", len(datapoints)))
+	slog.Info("Found datapoints over Colorado in March 2025", slog.Int("count", len(datapointsOverColorado)))
 	if len(datapointsOverColorado) > 0 {
 		slog.Info("First datapoint over Colorado",
-			slog.String("id", datapoints[0].GetId().AsUUID().String()),
-			slog.Time("event time", datapoints[0].GetTime().AsTime()),
-			slog.Time("ingestion time", datapoints[0].GetIngestionTime().AsTime()),
-			slog.String("geometry", wkt.MarshalString(datapoints[0].GetGeometry().AsGeometry())),
-			slog.String("granule name", datapoints[0].GetGranuleName()),
-			// slog.String("processing level", datapoints[0].GetProcessingLevel().String()),
-			// slog.String("product type", datapoints[0].GetProductType()),
+			slog.String("id", datapointsOverColorado[0].GetId().AsUUID().String()),
+			slog.Time("event time", datapointsOverColorado[0].GetTime().AsTime()),
+			slog.Time("ingestion time", datapointsOverColorado[0].GetIngestionTime().AsTime()),
+			slog.String("geometry", wkt.MarshalString(datapointsOverColorado[0].GetGeometry().AsGeometry())),
+			slog.String("granule name", datapointsOverColorado[0].GetGranuleName()),
+			slog.String("processing level", datapointsOverColorado[0].GetProcessingLevel().String()),
+			slog.String("product type", datapointsOverColorado[0].GetProductType()),
 			// and so on...
 		)
 	}
