@@ -9,6 +9,7 @@ import (
 
 	tileboxdatasets "github.com/tilebox/tilebox-go/datasets/v1"
 	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -21,7 +22,7 @@ func main() {
 	)
 
 	// Select a dataset
-	dataset, err := client.Datasets.Get(ctx, "tilebox.modis")
+	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
 	if err != nil {
 		log.Fatalf("Failed to get dataset: %v", err)
 	}
@@ -33,14 +34,14 @@ func main() {
 	}
 
 	// Create datapoints
-	datapoints := []*testv1.Modis{
-		testv1.Modis_builder{
+	datapoints := []*testv1.Sentinel2Msi{
+		testv1.Sentinel2Msi_builder{
 			Time:        timestamppb.New(time.Now()),
-			GranuleName: p("Granule 1"),
+			GranuleName: proto.String("Granule 1"),
 		}.Build(),
-		testv1.Modis_builder{
+		testv1.Sentinel2Msi_builder{
 			Time:        timestamppb.New(time.Now().Add(-5 * time.Hour)),
-			GranuleName: p("Past Granule 2"),
+			GranuleName: proto.String("Past Granule 2"),
 		}.Build(),
 	}
 
@@ -57,8 +58,4 @@ func main() {
 		log.Fatalf("Failed to delete datapoints: %v", err)
 	}
 	slog.Info("Deleted datapoints", slog.Int64("deleted", deleteResponse.NumDeleted))
-}
-
-func p[T any](x T) *T {
-	return &x
 }

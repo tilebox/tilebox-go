@@ -47,7 +47,7 @@ func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datase
 		datapoint := testv1.Sentinel2Msi_builder{
 			GranuleName:     pointer(uuid.New().String()),
 			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
-			Satellite:       pointer("Sentinel-2"),
+			Platform:        pointer("S2B"),
 			FlightDirection: pointer(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
 		}.Build()
 
@@ -167,32 +167,32 @@ func Test_datapointClient_Query(t *testing.T) {
 	ctx := context.Background()
 	client := NewReplayClient(t, "load")
 
-	dataset, err := client.Datasets.Get(ctx, "tilebox.modis")
+	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
 	require.NoError(t, err)
 
-	collection, err := client.Collections.Get(ctx, dataset.ID, "MCD12Q1")
+	collection, err := client.Collections.Get(ctx, dataset.ID, "S2B_S2MSI1C")
 	require.NoError(t, err)
-	assert.Equal(t, "MCD12Q1", collection.Name)
+	assert.Equal(t, "S2B_S2MSI1C", collection.Name)
 
-	jan2001 := time.Date(2001, time.January, 1, 0, 0, 0, 0, time.UTC)
-	timeInterval := query.NewTimeInterval(jan2001, jan2001.AddDate(0, 0, 7))
+	jan2025 := time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC)
+	timeInterval := query.NewTimeInterval(jan2025, jan2025.Add(1*time.Hour))
 
 	t.Run("CollectAs", func(t *testing.T) {
-		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval)))
+		datapoints, err := CollectAs[*testv1.Sentinel2Msi](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval)))
 		require.NoError(t, err)
 
-		assert.Len(t, datapoints, 315)
-		assert.Equal(t, "00e3c7a7-3400-00ad-770d-e7789458d06d", uuid.Must(uuid.FromBytes(datapoints[0].GetId().GetUuid())).String())
-		assert.Equal(t, "2001-01-01 00:00:00 +0000 UTC", datapoints[0].GetTime().AsTime().String())
-		assert.Equal(t, "MCD12Q1.A2001001.h13v12.061.2022146061358.hdf", datapoints[0].GetGranuleName())
+		assert.Len(t, datapoints, 437)
+		assert.Equal(t, "01941f29-c650-202f-6495-c71dd2118fb1", uuid.Must(uuid.FromBytes(datapoints[0].GetId().GetUuid())).String())
+		assert.Equal(t, "2025-01-01 00:00:19.024 +0000 UTC", datapoints[0].GetTime().AsTime().String())
+		assert.Equal(t, "S2B_MSIL1C_20250101T000019_N0511_R073_T57QWV_20250101T010340.SAFE", datapoints[0].GetGranuleName())
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
-		datapoints, err := CollectAs[*testv1.Modis](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval), WithSkipData()))
+		datapoints, err := CollectAs[*testv1.Sentinel2Msi](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval), WithSkipData()))
 		require.NoError(t, err)
 
-		assert.Len(t, datapoints, 315)
-		assert.Equal(t, "00e3c7a7-3400-00ad-770d-e7789458d06d", uuid.Must(uuid.FromBytes(datapoints[0].GetId().GetUuid())).String())
+		assert.Len(t, datapoints, 437)
+		assert.Equal(t, "01941f29-c650-202f-6495-c71dd2118fb1", uuid.Must(uuid.FromBytes(datapoints[0].GetId().GetUuid())).String())
 		assert.Empty(t, datapoints[0].GetGranuleName())
 	})
 }
@@ -210,7 +210,7 @@ func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 		datapoint := testv1.Sentinel2Msi_builder{
 			GranuleName:     pointer(uuid.New().String()),
 			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
-			Satellite:       pointer("Sentinel-2"),
+			Platform:        pointer("S2B"),
 			FlightDirection: pointer(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
 		}.Build()
 
