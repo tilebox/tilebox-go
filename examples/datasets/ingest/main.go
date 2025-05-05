@@ -53,9 +53,9 @@ func main() {
 	slog.Info("Ingested datapoints", slog.Int64("created", ingestResponse.NumCreated))
 
 	// Delete datapoints again
-	deleteResponse, err := client.Datapoints.DeleteIDs(ctx, collection.ID, ingestResponse.DatapointIDs)
+	numDeleted, err := client.Datapoints.DeleteIDs(ctx, collection.ID, ingestResponse.DatapointIDs)
 	if err != nil {
 		log.Fatalf("Failed to delete datapoints: %v", err)
 	}
-	slog.Info("Deleted datapoints", slog.Int64("deleted", deleteResponse.NumDeleted))
+	slog.Info("Deleted datapoints", slog.Int64("deleted", numDeleted))
 }

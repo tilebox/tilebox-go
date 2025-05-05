@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-// RetryOnStatusUnavailable provides a retry policy for retrying requests if the server is unavailable.
-func RetryOnStatusUnavailable(ctx context.Context, resp *http.Response, err error) (bool, error) {
+// retryOnStatusUnavailable provides a retry policy for retrying requests if the server is unavailable.
+func retryOnStatusUnavailable(ctx context.Context, resp *http.Response, err error) (bool, error) {
 	// do not retry on context.Canceled or context.DeadlineExceeded
 	if ctx.Err() != nil {
 		return false, ctx.Err()
@@ -51,7 +51,7 @@ func RetryHTTPClient() connect.HTTPClient {
 	retryClient.RetryWaitMax = 10 * time.Second
 	retryClient.RetryMax = 5
 	retryClient.Backoff = retryablehttp.LinearJitterBackoff
-	retryClient.CheckRetry = RetryOnStatusUnavailable
+	retryClient.CheckRetry = retryOnStatusUnavailable
 
 	return retryClient.StandardClient()
 }
