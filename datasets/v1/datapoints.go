@@ -19,8 +19,8 @@ type DatapointClient interface {
 	Query(ctx context.Context, collectionIDs []uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error]
 	QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error
 	Ingest(ctx context.Context, collectionID uuid.UUID, datapoints any, allowExisting bool) (*IngestResponse, error)
-	Delete(ctx context.Context, collectionID uuid.UUID, datapoints any) (*DeleteResponse, error)
-	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error)
+	Delete(ctx context.Context, collectionID uuid.UUID, datapoints any) (int64, error)
+	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (int64, error)
 }
 
 var _ DatapointClient = &datapointClient{}
@@ -285,19 +285,15 @@ func validateDatapoints(datapoints any) error {
 	return nil
 }
 
-// DeleteResponse contains the response from the Delete method.
-type DeleteResponse struct {
-	// NumDeleted is the number of datapoints that were deleted.
-	NumDeleted int64
-}
-
 // Delete datapoints from a collection.
 //
 // The datapoints are identified by their IDs.
-func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, datapoints any) (*DeleteResponse, error) {
+//
+// Returns the number of deleted datapoints.
+func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, datapoints any) (int64, error) {
 	err := validateDatapoints(datapoints)
 	if err != nil {
-		return nil, fmt.Errorf("failed to validate datapoints: %w", err)
+		return 0, fmt.Errorf("failed to validate datapoints: %w", err)
 	}
 
 	slice := reflect.Indirect(reflect.ValueOf(datapoints))
@@ -307,13 +303,13 @@ func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, dat
 		datapoint := slice.Index(i).Interface().(proto.Message)
 		idFieldDescriptor := datapoint.ProtoReflect().Descriptor().Fields().ByName("id")
 		if idFieldDescriptor == nil {
-			return nil, errors.New("failed to find id field in datapoint")
+			return 0, errors.New("failed to find id field in datapoint")
 		}
 
 		idField := datapoint.ProtoReflect().Get(idFieldDescriptor).Message().Interface().(*datasetsv1.UUID)
 		id, err := uuid.FromBytes(idField.GetUuid())
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse datapoint id: %w", err)
+			return 0, fmt.Errorf("failed to parse datapoint id: %w", err)
 		}
 		datapointIDs[i] = id
 	}
@@ -322,26 +318,26 @@ func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, dat
 }
 
 // DeleteIDs deletes datapoints from a collection by their IDs.
-func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*DeleteResponse, error) {
+//
+// Returns the number of deleted datapoints.
+func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (int64, error) {
 	numDeleted := int64(0)
 
 	for i := 0; i < len(datapointIDs); i += deleteChunkSize {
 		chunk := datapointIDs[i:min(i+deleteChunkSize, len(datapointIDs))]
-		response, err := d.DeleteIDs(ctx, collectionID, chunk)
+		chunkNumDeleted, err := d.DeleteIDs(ctx, collectionID, chunk)
 		if err != nil {
-			return nil, err
+			return 0, err
 		}
-		numDeleted += response.NumDeleted
+		numDeleted += chunkNumDeleted
 	}
 
 	response, err := d.dataIngestionService.Delete(ctx, collectionID, datapointIDs)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	return &DeleteResponse{
-		NumDeleted: response.GetNumDeleted(),
-	}, nil
+	return response.GetNumDeleted(), nil
 }
 
 // CollectAs converts a sequence of bytes into a slice of proto.Message.
