@@ -39,6 +39,24 @@ type TimeInterval struct {
 	EndInclusive   bool
 }
 
+func (t *TimeInterval) String() string {
+	if t.Equal(NewEmptyTimeInterval()) {
+		return "<empty>"
+	}
+
+	startCh := "["
+	if t.StartExclusive {
+		startCh = "("
+	}
+
+	endCh := ")"
+	if t.EndInclusive {
+		endCh = "]"
+	}
+
+	return fmt.Sprintf("%s%s, %s%s", startCh, t.Start, t.End, endCh)
+}
+
 // NewTimeInterval creates a new half-open TimeInterval which includes the start time but excludes the end time.
 // In case you want to control the inclusivity of the start and end time, consider instantiating a TimeInterval struct
 // directly.
@@ -53,8 +71,8 @@ func NewTimeInterval(start, end time.Time) *TimeInterval {
 
 func NewEmptyTimeInterval() *TimeInterval {
 	return &TimeInterval{
-		Start:          time.Unix(0, 0),
-		End:            time.Unix(0, 0),
+		Start:          time.Unix(0, 0).UTC(),
+		End:            time.Unix(0, 0).UTC(),
 		StartExclusive: true,
 		EndInclusive:   false,
 	}

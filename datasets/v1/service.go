@@ -105,12 +105,12 @@ func newCollectionService(collectionClient datasetsv1connect.CollectionServiceCl
 	}
 }
 
-func (s *collectionService) CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error) {
+func (s *collectionService) CreateCollection(ctx context.Context, datasetID uuid.UUID, name string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/create", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
 		res, err := s.collectionClient.CreateCollection(ctx, connect.NewRequest(
 			&datasetsv1.CreateCollectionRequest{
 				DatasetId: uuidToProtobuf(datasetID),
-				Name:      collectionName,
+				Name:      name,
 			},
 		))
 		if err != nil {
@@ -121,11 +121,11 @@ func (s *collectionService) CreateCollection(ctx context.Context, datasetID uuid
 	})
 }
 
-func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error) {
+func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, name string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/get", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
 		res, err := s.collectionClient.GetCollectionByName(ctx, connect.NewRequest(
 			&datasetsv1.GetCollectionByNameRequest{
-				CollectionName:   collectionName,
+				CollectionName:   name,
 				WithAvailability: true,
 				WithCount:        true,
 				DatasetId:        uuidToProtobuf(datasetID),
