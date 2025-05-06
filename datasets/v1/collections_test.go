@@ -68,7 +68,24 @@ func Test_collectionClient_Get(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "ERS-2", collection.Name)
-	assert.Equal(t, "c408f2b8-0488-4528-9fb7-a18361df639f", collection.ID.String())
+	assert.Equal(t, "18b986bf-de32-4a76-ad20-39b3df056803", collection.ID.String())
+	assert.Equal(t, "1995-10-01 03:13:03 +0000 UTC", collection.Availability.Start.String())
+	assert.NotZero(t, collection.Count)
+}
+
+// testing only the Get part
+func Test_collectionClient_GetOrCreate(t *testing.T) {
+	ctx := context.Background()
+	client := NewReplayClient(t, "collection_get_or_create")
+
+	dataset, err := client.Datasets.Get(ctx, "open_data.asf.ers_sar")
+	require.NoError(t, err)
+
+	collection, err := client.Collections.GetOrCreate(ctx, dataset.ID, "ERS-2")
+	require.NoError(t, err)
+
+	assert.Equal(t, "ERS-2", collection.Name)
+	assert.Equal(t, "18b986bf-de32-4a76-ad20-39b3df056803", collection.ID.String())
 	assert.Equal(t, "1995-10-01 03:13:03 +0000 UTC", collection.Availability.Start.String())
 	assert.NotZero(t, collection.Count)
 }
