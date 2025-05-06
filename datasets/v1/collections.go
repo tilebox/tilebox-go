@@ -18,13 +18,27 @@ type Collection struct {
 	// Name is the name of the collection.
 	Name string
 	// Availability is the time interval for which data is available.
-	Availability query.TimeInterval
+	Availability *query.TimeInterval
 	// Count is the number of datapoints in the collection.
 	Count uint64
 }
 
+func (c Collection) String() string {
+	availability := "<availability unknown>"
+	if c.Availability != nil {
+		availability = c.Availability.String()
+	}
+
+	count := ""
+	if c.Count > 0 {
+		count = fmt.Sprintf(" (%d data points)", c.Count)
+	}
+
+	return fmt.Sprintf("Collection %s: %s%s", c.Name, availability, count)
+}
+
 type CollectionClient interface {
-	Create(ctx context.Context, datasetID uuid.UUID, collectionName string) (*Collection, error)
+	Create(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
 	Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
 	List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error)
 }
@@ -36,8 +50,8 @@ type collectionClient struct {
 }
 
 // Create creates a new collection in the dataset with the given name.
-func (c collectionClient) Create(ctx context.Context, datasetID uuid.UUID, collectionName string) (*Collection, error) {
-	response, err := c.service.CreateCollection(ctx, datasetID, collectionName)
+func (c collectionClient) Create(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
+	response, err := c.service.CreateCollection(ctx, datasetID, name)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +108,7 @@ func protoToCollection(c *datasetsv1.CollectionInfo) (*Collection, error) {
 	return &Collection{
 		ID:           id,
 		Name:         c.GetCollection().GetName(),
-		Availability: *query.ProtoToTimeInterval(c.GetAvailability()),
+		Availability: query.ProtoToTimeInterval(c.GetAvailability()),
 		Count:        c.GetCount(),
 	}, nil
 }

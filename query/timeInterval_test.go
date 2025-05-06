@@ -1,6 +1,7 @@
 package query
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -8,6 +9,45 @@ import (
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"pgregory.net/rapid"
 )
+
+func TestTimeInterval_String(t *testing.T) {
+	genTimeInterval := rapid.OneOf(
+		rapid.Just(NewEmptyTimeInterval()),
+		rapid.Custom(func(t *rapid.T) *TimeInterval {
+			return &TimeInterval{
+				Start:          time.Unix(rapid.Int64().Draw(t, "Start"), 0).UTC(),
+				End:            time.Unix(rapid.Int64().Draw(t, "End"), 0).UTC(),
+				StartExclusive: rapid.Bool().Draw(t, "StartExclusive"),
+				EndInclusive:   rapid.Bool().Draw(t, "EndInclusive"),
+			}
+		}),
+	)
+
+	rapid.Check(t, func(t *rapid.T) {
+		input := genTimeInterval.Draw(t, "time interval")
+		got := input.String()
+
+		if input.Equal(NewEmptyTimeInterval()) {
+			assert.Contains(t, got, "empty")
+			return
+		}
+
+		if input.StartExclusive {
+			assert.True(t, strings.HasPrefix(got, "("))
+		} else {
+			assert.True(t, strings.HasPrefix(got, "["))
+		}
+
+		if input.EndInclusive {
+			assert.True(t, strings.HasSuffix(got, "]"))
+		} else {
+			assert.True(t, strings.HasSuffix(got, ")"))
+		}
+
+		assert.Contains(t, got, input.Start.String())
+		assert.Contains(t, got, input.End.String())
+	})
+}
 
 func TestTimeInterval_Equals(t *testing.T) {
 	now := time.Now()
