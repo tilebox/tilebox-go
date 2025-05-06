@@ -7,9 +7,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tilebox/tilebox-go/grpc"
+	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	"pgregory.net/rapid"
 )
 
 const recordingDirectory = "testdata/recordings"
@@ -62,6 +65,37 @@ func NewReplayClient(tb testing.TB, filename string) *Client {
 		WithAPIKey("key"),
 		WithHTTPClient(httpClient),
 	)
+}
+
+func TestDataset_String(t *testing.T) {
+	genDataset := rapid.Custom(func(t *rapid.T) *Dataset {
+		return &Dataset{
+			ID: uuid.New(),
+			Type: &datasetsv1.AnnotatedType{
+				Kind: rapid.OneOf(
+					rapid.Just(datasetsv1.DatasetKind_DATASET_KIND_TEMPORAL),
+					rapid.Just(datasetsv1.DatasetKind_DATASET_KIND_SPATIOTEMPORAL),
+				).Draw(t, "Kind"),
+			},
+			Name:        rapid.String().Draw(t, "Name"),
+			Description: rapid.String().Draw(t, "Description"),
+		}
+	})
+
+	rapid.Check(t, func(t *rapid.T) {
+		input := genDataset.Draw(t, "dataset")
+		got := input.String()
+
+		assert.Contains(t, got, input.Name)
+		assert.NotContains(t, got, input.ID.String())
+		assert.Contains(t, got, input.Description)
+
+		if input.Type.GetKind() == datasetsv1.DatasetKind_DATASET_KIND_TEMPORAL {
+			assert.Contains(t, got, "Temporal")
+		} else {
+			assert.Contains(t, got, "SpatioTemporal")
+		}
+	})
 }
 
 func TestClient_Datasets_List(t *testing.T) {

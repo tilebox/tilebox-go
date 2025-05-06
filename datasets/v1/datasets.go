@@ -21,8 +21,21 @@ type Dataset struct {
 	Type *datasetsv1.AnnotatedType
 	// Name is the name of the dataset.
 	Name string
-	// Summary is a summary of the purpose of the dataset.
-	Summary string
+	// Description is a short description of the dataset.
+	Description string
+}
+
+func (d Dataset) String() string {
+	kind := ""
+	switch d.Type.GetKind() {
+	case datasetsv1.DatasetKind_DATASET_KIND_TEMPORAL:
+		kind = "Temporal"
+	case datasetsv1.DatasetKind_DATASET_KIND_SPATIOTEMPORAL:
+		kind = "SpatioTemporal"
+	case datasetsv1.DatasetKind_DATASET_KIND_UNSPECIFIED:
+	}
+
+	return fmt.Sprintf("%s [%s Dataset]: %s", d.Name, kind, d.Description)
 }
 
 type DatasetClient interface {
@@ -78,10 +91,10 @@ func protoToDataset(d *datasetsv1.Dataset) (*Dataset, error) {
 	}
 
 	return &Dataset{
-		ID:      id,
-		Type:    d.GetType(),
-		Name:    d.GetName(),
-		Summary: d.GetSummary(),
+		ID:          id,
+		Type:        d.GetType(),
+		Name:        d.GetName(),
+		Description: d.GetSummary(),
 	}, nil
 }
 
