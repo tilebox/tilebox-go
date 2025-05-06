@@ -2,8 +2,10 @@ package datasets // import "github.com/tilebox/tilebox-go/datasets/v1"
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"github.com/tilebox/tilebox-go/query"
@@ -40,6 +42,7 @@ func (c Collection) String() string {
 type CollectionClient interface {
 	Create(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
 	Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
+	GetOrCreate(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
 	List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error)
 }
 
@@ -77,6 +80,19 @@ func (c collectionClient) Get(ctx context.Context, datasetID uuid.UUID, name str
 	}
 
 	return collection, nil
+}
+
+// GetOrCreate returns a collection by its name, creating it if it does not exist.
+func (c collectionClient) GetOrCreate(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
+	collection, err := c.Get(ctx, datasetID, name)
+	if err != nil {
+		var connectErr *connect.Error
+		if errors.As(err, &connectErr) && connectErr.Code() == connect.CodeNotFound {
+			return c.Create(ctx, datasetID, name)
+		}
+	}
+
+	return collection, err
 }
 
 // List returns a list of all available collections in the dataset.
