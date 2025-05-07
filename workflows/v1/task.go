@@ -73,7 +73,7 @@ func identifierFromTask(task Task) TaskIdentifier {
 	}
 	return &taskIdentifier{
 		name:    getStructName(task),
-		version: "v0.0", // default version if not otherwise specified
+		version: "v0.0", // default version
 	}
 }
 
@@ -112,7 +112,7 @@ func parseVersion(version string) (int64, int64, error) {
 	return int64(major), int64(minor), nil
 }
 
-// getStructName returns the name of the struct type of a task. If the task is a pointer, the name of the pointed-to type is returned.
+// getStructName returns the struct name of a task. If the task is a pointer, the name of the pointed-to type is returned.
 // This function is used to generate a default identifier name for a task if it doesn't provide an explicit identifier.
 func getStructName(task interface{}) string {
 	t := reflect.TypeOf(task)

@@ -13,7 +13,7 @@ import (
 
 // Collection represents a Tilebox Dataset collection.
 //
-// Documentation: https://docs.tilebox.com/datasets/collections
+// Documentation: https://docs.tilebox.com/datasets/concepts/collections
 type Collection struct {
 	// ID is the unique identifier of the collection.
 	ID uuid.UUID

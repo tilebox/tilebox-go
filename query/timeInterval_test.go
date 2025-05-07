@@ -83,6 +83,12 @@ func TestTimeInterval_Equals(t *testing.T) {
 			timeIntervalB: NewTimeInterval(now, oneHourLater),
 			wantEqual:     true,
 		},
+		{
+			name:          "NewPointInTime",
+			timeIntervalA: &TimeInterval{Start: now, End: now, StartExclusive: false, EndInclusive: true},
+			timeIntervalB: NewPointInTime(now),
+			wantEqual:     true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
