@@ -58,7 +58,7 @@ type TaskSummary struct {
 	State TaskState
 	// ParentID is the ID of the parent task.
 	ParentID uuid.UUID
-	// DependsOn is the list of IDs of the tasks that this task depends on.
+	// DependsOn is the list of task IDs that this task depends on.
 	DependsOn []uuid.UUID
 	// StartedAt is the time the task started.
 	StartedAt time.Time
@@ -158,7 +158,7 @@ func (c jobClient) Cancel(ctx context.Context, jobID uuid.UUID) error {
 
 // List returns a list of all jobs within the given interval.
 //
-// The jobs are loaded in a lazy manner, and returned as a sequence.
+// The jobs are lazily loaded and returned as a sequence.
 // The output sequence can be transformed into a slice using Collect.
 func (c jobClient) List(ctx context.Context, interval query.TemporalExtent) iter.Seq2[*Job, error] {
 	return func(yield func(*Job, error) bool) {

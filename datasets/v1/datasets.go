@@ -11,9 +11,9 @@ import (
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 )
 
-// Dataset represents a Tilebox Time Series Dataset.
+// Dataset represents a Tilebox Dataset.
 //
-// Documentation: https://docs.tilebox.com/datasets/timeseries
+// Documentation: https://docs.tilebox.com/datasets/concepts/datasets
 type Dataset struct {
 	// ID is the unique identifier of the dataset.
 	ID uuid.UUID

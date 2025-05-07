@@ -35,6 +35,8 @@ const (
 )
 
 // TaskRunner executes tasks.
+//
+// Documentation: https://docs.tilebox.com/workflows/concepts/task-runners
 type TaskRunner struct {
 	service         TaskService
 	taskDefinitions map[taskIdentifier]ExecutableTask
