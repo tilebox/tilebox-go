@@ -33,8 +33,8 @@ type TimeInterval struct {
 	// End is the end time of the interval.
 	End time.Time
 
-	// We use exclusive for Start and inclusive for End, because that way when both are false
-	// we have a half-open interval [Start, End) which is the default behaviour we want to achieve.
+	// We use exclusive for Start and inclusive for End, because that way when both are false,
+	// we have a half-open interval [Start, End) which is the default behavior we want to achieve.
 	StartExclusive bool
 	EndInclusive   bool
 }
@@ -66,6 +66,16 @@ func NewTimeInterval(start, end time.Time) *TimeInterval {
 		End:            end,
 		StartExclusive: false,
 		EndInclusive:   false,
+	}
+}
+
+// NewPointInTime creates a new TimeInterval that represents a single point in time.
+func NewPointInTime(t time.Time) *TimeInterval {
+	return &TimeInterval{
+		Start:          t,
+		End:            t,
+		StartExclusive: false,
+		EndInclusive:   true,
 	}
 }
 
