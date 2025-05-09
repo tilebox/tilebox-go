@@ -436,7 +436,12 @@ func SetTaskDisplay(ctx context.Context, display string) error {
 	return nil
 }
 
-// SubmitSubtask submits a task to the task runner as subtask of the current task.
+// SubmitSubtask submits a task to the task runner as a subtask of the current task.
+//
+// Options:
+//   - subtask.WithDependencies: sets the dependencies of the task.
+//   - subtask.WithClusterSlug: sets the cluster slug of the cluster where the task will be executed. Defaults to the cluster of the task runner.
+//   - subtask.WithMaxRetries: sets the maximum number of times a task can be automatically retried. Defaults to 0.
 func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOption) (subtask.FutureTask, error) {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil {

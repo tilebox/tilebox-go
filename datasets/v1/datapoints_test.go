@@ -67,6 +67,38 @@ func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datase
 	}, nil
 }
 
+func Test_datapointClient_GetInto(t *testing.T) {
+	ctx := context.Background()
+	client := NewReplayClient(t, "datapoint_getinto")
+
+	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
+	require.NoError(t, err)
+
+	collection, err := client.Collections.Get(ctx, dataset.ID, "S2B_S2MSI1C")
+	require.NoError(t, err)
+
+	datapointID := uuid.MustParse("01941f29-c650-202f-6495-c71dd2118fb1")
+
+	t.Run("GetInto", func(t *testing.T) {
+		var datapoint testv1.Sentinel2Msi
+		err := client.Datapoints.GetInto(ctx, []uuid.UUID{collection.ID}, datapointID, &datapoint)
+		require.NoError(t, err)
+
+		assert.Equal(t, "01941f29-c650-202f-6495-c71dd2118fb1", uuid.Must(uuid.FromBytes(datapoint.GetId().GetUuid())).String())
+		assert.Equal(t, "2025-01-01 00:00:19.024 +0000 UTC", datapoint.GetTime().AsTime().String())
+		assert.Equal(t, "S2B_MSIL1C_20250101T000019_N0511_R073_T57QWV_20250101T010340.SAFE", datapoint.GetGranuleName())
+	})
+
+	t.Run("GetInto WithSkipData", func(t *testing.T) {
+		var datapoint testv1.Sentinel2Msi
+		err := client.Datapoints.GetInto(ctx, []uuid.UUID{collection.ID}, datapointID, &datapoint, WithSkipData())
+		require.NoError(t, err)
+
+		assert.Equal(t, "01941f29-c650-202f-6495-c71dd2118fb1", uuid.Must(uuid.FromBytes(datapoint.GetId().GetUuid())).String())
+		assert.Empty(t, datapoint.GetGranuleName())
+	})
+}
+
 func Test_datapointClient_QueryInto(t *testing.T) {
 	ctx := context.Background()
 	client := NewDatapointClient(10)
