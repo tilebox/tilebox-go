@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	protobuftask "github.com/tilebox/tilebox-go/examples/workflows/protobuf-task"
+	"github.com/tilebox/tilebox-go/examples/workflows/protobuf-task"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
@@ -22,7 +22,7 @@ func main() {
 
 	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree", cluster,
 		[]workflows.Task{
-			&protobuftask.SampleTask{ // protobuf task
+			&pbtask.SampleTask{ // protobuf task
 				Message:      "hello go runner!",
 				Depth:        8,
 				BranchFactor: 4,

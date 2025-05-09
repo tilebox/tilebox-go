@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	protobuftask "github.com/tilebox/tilebox-go/examples/workflows/protobuf-task"
+	"github.com/tilebox/tilebox-go/examples/workflows/protobuf-task"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
@@ -27,8 +27,8 @@ func main() {
 	}
 
 	err = taskRunner.RegisterTasks(
-		&protobuftask.SampleTask{},            // regular struct task
-		&protobuftask.SpawnWorkflowTreeTask{}, // protobuf task
+		&pbtask.SampleTask{},            // regular struct task
+		&pbtask.SpawnWorkflowTreeTask{}, // protobuf task
 	)
 	if err != nil {
 		slog.Error("failed to register tasks", slog.Any("error", err))
