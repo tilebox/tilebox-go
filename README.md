@@ -31,6 +31,8 @@ Run the following command to add the library to your project:
 go get github.com/tilebox/tilebox-go
 ```
 
+For Tilebox datasets type generation, you will need to install [tilebox-generate](https://github.com/tilebox/tilebox-generate) command-line tool.
+
 ## Examples
 
 For examples on how to use the library, see the [examples](examples) directory.
