@@ -16,6 +16,7 @@ import (
 )
 
 type DatapointClient interface {
+	GetInto(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, datapoint proto.Message, options ...QueryOption) error
 	Query(ctx context.Context, collectionIDs []uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error]
 	QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error
 	Ingest(ctx context.Context, collectionID uuid.UUID, datapoints any, allowExisting bool) (*IngestResponse, error)
@@ -58,7 +59,7 @@ func WithSpatialExtent(spatialExtent orb.Geometry) QueryOption {
 
 // WithSkipData skips the data when querying datapoints.
 // It is an optional flag for omitting the actual datapoint data from the response.
-// If set, only datapoint IDs will be returned.
+// If set, only the required datapoint fields will be returned.
 //
 // Defaults to false.
 func WithSkipData() QueryOption {
@@ -67,15 +68,45 @@ func WithSkipData() QueryOption {
 	}
 }
 
+// GetInto get a single datapoint by its ID from one or more collections of the same dataset into a proto.Message.
+//
+// Options:
+//   - WithSkipData: can be used to skip the actual data, only returning required datapoint fields. (Optional)
+//
+// Example usage:
+//
+//	var datapoint v1.Sentinel1Sar
+//	err = client.Datapoints.GetInto(ctx, collectionIDs, datapointID, &datapoint)
+func (d datapointClient) GetInto(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, datapoint proto.Message, options ...QueryOption) error {
+	cfg := &queryOptions{
+		skipData: false,
+	}
+	for _, option := range options {
+		option(cfg)
+	}
+
+	rawDatapoint, err := d.dataAccessService.QueryByID(ctx, collectionIDs, datapointID, cfg.skipData)
+	if err != nil {
+		return err
+	}
+
+	err = proto.Unmarshal(rawDatapoint.GetValue(), datapoint)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal datapoint: %w", err)
+	}
+
+	return nil
+}
+
 // Query datapoints from one or more collections of the same dataset.
 //
 // Options:
 //   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
 //   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
-//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning matching datapoint IDs. (Optional)
+//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning required datapoint fields. (Optional)
 //
-// The datapoints are loaded in a lazy manner, and returned as a sequence of bytes.
-// The output sequence can be transformed into a proto.Message using `CollectAs`/`As`.
+// The datapoints are lazily loaded and returned as a sequence of bytes.
+// The output sequence can be transformed into a proto.Message using CollectAs / As.
 //
 // Example usage:
 //
@@ -83,7 +114,7 @@ func WithSkipData() QueryOption {
 //	  if err != nil {
 //	    // handle error
 //	  }
-//	  datapoint := &datasetsv1.CopernicusDataspaceGranule{}
+//	  datapoint := &v1.Sentinel1Sar{}
 //	  err = proto.Unmarshal(datapointBytes, datapoint)
 //	  if err != nil {
 //	    // handle unmarshal error
@@ -165,8 +196,9 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 // QueryInto is a convenience function for Query, when no pagination or manual iteration is required.
 //
 // Example usage:
-// var datapoints []*datasetsv1.CopernicusDataspaceGranule
-// err := client.Datapoints.QueryInto(ctx, collectionIDs, &datapoints, WithTemporalExtent(timeInterval))
+//
+//	var datapoints []*v1.Sentinel1Sar
+//	err := client.Datapoints.QueryInto(ctx, collectionIDs, &datapoints, WithTemporalExtent(timeInterval))
 func (d datapointClient) QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error {
 	err := validateDatapoints(datapoints)
 	if err != nil {

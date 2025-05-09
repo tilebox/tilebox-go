@@ -56,6 +56,11 @@ func NewClient(options ...ClientOption) *Client {
 	}
 }
 
+// NewTaskRunner creates a new TaskRunner for the specified cluster.
+//
+// Options:
+//   - runner.WithRunnerLogger: sets the logger to use for the task runner. Defaults to slog.Default().
+//   - runner.WithDisableMetrics: disables OpenTelemetry metrics for the task runner.
 func (c *Client) NewTaskRunner(cluster *Cluster, options ...runner.Option) (*TaskRunner, error) {
 	return newTaskRunner(c.taskService, c.tracer, cluster, options...)
 }

@@ -95,6 +95,9 @@ type jobClient struct {
 
 // Submit submits a job to the specified cluster.
 //
+// Options:
+//   - job.WithMaxRetries: sets the maximum number of times a job can be automatically retried. Defaults to 0.
+//
 // Documentation: https://docs.tilebox.com/workflows/concepts/jobs#submission
 func (c jobClient) Submit(ctx context.Context, jobName string, cluster *Cluster, tasks []Task, options ...job.SubmitOption) (*Job, error) {
 	opts := &job.SubmitJobOptions{}
