@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/wkt"
-	tileboxdatasets "github.com/tilebox/tilebox-go/datasets/v1"
+	"github.com/tilebox/tilebox-go/datasets/v1"
 	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
 	"github.com/tilebox/tilebox-go/query"
 )
@@ -18,7 +18,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create a Tilebox Datasets client
-	client := tileboxdatasets.NewClient()
+	client := datasets.NewClient()
 
 	// Select a dataset
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
@@ -44,8 +44,8 @@ func main() {
 	var datapointsOverColorado []*testv1.Sentinel2Msi
 	err = client.Datapoints.QueryInto(ctx,
 		[]uuid.UUID{collection.ID}, &datapointsOverColorado,
-		tileboxdatasets.WithTemporalExtent(march2025),
-		tileboxdatasets.WithSpatialExtent(colorado),
+		datasets.WithTemporalExtent(march2025),
+		datasets.WithSpatialExtent(colorado),
 	)
 	if err != nil {
 		log.Fatalf("Failed to query datapoints: %v", err)

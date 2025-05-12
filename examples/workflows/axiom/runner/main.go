@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"os"
 
 	"github.com/tilebox/tilebox-go/examples/workflows/axiom"
 	"github.com/tilebox/tilebox-go/observability"
@@ -19,12 +18,8 @@ var service = &observability.Service{Name: "task-runner", Version: "dev"}
 func main() {
 	ctx := context.Background()
 
-	axiomAPIKey := os.Getenv("AXIOM_API_KEY")
-	axiomTracesDataset := os.Getenv("AXIOM_TRACES_DATASET")
-	axiomLogsDataset := os.Getenv("AXIOM_LOGS_DATASET")
-
 	// Setup OpenTelemetry logging and slog
-	axiomHandler, shutdownLogger, err := logger.NewAxiomHandler(ctx, service, axiomLogsDataset, axiomAPIKey,
+	axiomHandler, shutdownLogger, err := logger.NewAxiomHandler(ctx, service,
 		logger.WithLevel(slog.LevelInfo), // export logs at info level and above as OTEL logs
 	)
 	defer shutdownLogger(ctx)
@@ -39,7 +34,7 @@ func main() {
 	slog.SetDefault(tileboxLogger) // all future slog calls will be forwarded to the tilebox logger
 
 	// Setup an OpenTelemetry trace span processor, exporting traces and spans to Axiom
-	tileboxTracerProvider, shutdown, err := tracer.NewAxiomProvider(ctx, service, axiomTracesDataset, axiomAPIKey)
+	tileboxTracerProvider, shutdown, err := tracer.NewAxiomProvider(ctx, service)
 	defer shutdown(ctx)
 	if err != nil {
 		slog.Error("failed to set up axiom tracer provider", slog.Any("error", err))

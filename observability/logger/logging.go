@@ -2,6 +2,7 @@ package logger // import "github.com/tilebox/tilebox-go/observability/logger"
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -148,8 +149,21 @@ func NewOtelHandler(ctx context.Context, otelService *observability.Service, opt
 		}, nil
 }
 
-// NewAxiomHandler creates a new Axiom log handler.
-func NewAxiomHandler(ctx context.Context, otelService *observability.Service, dataset string, apiKey string, options ...Option) (slog.Handler, func(context.Context), error) {
+// NewAxiomHandler creates a new Axiom log handler. It reads the following environment variables:
+//
+//   - AXIOM_API_KEY: The Axiom API key.
+//   - AXIOM_LOGS_DATASET: The dataset where logs should be stored.
+func NewAxiomHandler(ctx context.Context, otelService *observability.Service, options ...Option) (slog.Handler, func(context.Context), error) {
+	apiKey := os.Getenv("AXIOM_API_KEY")
+	if apiKey == "" {
+		return nil, noShutdown, errors.New("AXIOM_API_KEY environment variable is not set")
+	}
+
+	dataset := os.Getenv("AXIOM_LOGS_DATASET")
+	if dataset == "" {
+		return nil, noShutdown, errors.New("AXIOM_LOGS_DATASET environment variable is not set")
+	}
+
 	headers := map[string]string{
 		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
 		"X-Axiom-Dataset": dataset,
