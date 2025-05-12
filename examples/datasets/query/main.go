@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"log/slog"
-	"os"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,9 +18,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create a Tilebox Datasets client
-	client := tileboxdatasets.NewClient(
-		tileboxdatasets.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-	)
+	client := tileboxdatasets.NewClient()
 
 	// Select a dataset
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")

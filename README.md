@@ -91,9 +91,7 @@ type HelloTask struct {
 func main() {
 	ctx := context.Background()
 
-	client := workflows.NewClient(
-		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-	)
+	client := workflows.NewClient()
 
 	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
 	if err != nil {
@@ -145,9 +143,7 @@ func (t *HelloTask) Execute(context.Context) error {
 func main() {
 	ctx := context.Background()
 
-	client := workflows.NewClient(
-		workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-	)
+	client := workflows.NewClient()
 
 	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
 	if err != nil {
