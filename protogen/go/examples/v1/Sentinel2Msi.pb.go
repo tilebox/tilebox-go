@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: tilebox/v1/Sentinel2Msi.proto
 
-package v1
+package examplesv1
 
 import (
 	v1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
