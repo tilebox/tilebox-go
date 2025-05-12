@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	examplesv1 "github.com/tilebox/tilebox-go/protogen/go/examples/v1"
 	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
 )
@@ -44,7 +44,7 @@ type mockDataAccessService struct {
 func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *datasetsv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
 	data := make([][]byte, m.n)
 	for i := range m.n {
-		datapoint := testv1.Sentinel2Msi_builder{
+		datapoint := examplesv1.Sentinel2Msi_builder{
 			GranuleName:     pointer(uuid.New().String()),
 			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
 			Platform:        pointer("S2B"),
@@ -80,7 +80,7 @@ func Test_datapointClient_GetInto(t *testing.T) {
 	datapointID := uuid.MustParse("01941f29-c650-202f-6495-c71dd2118fb1")
 
 	t.Run("GetInto", func(t *testing.T) {
-		var datapoint testv1.Sentinel2Msi
+		var datapoint examplesv1.Sentinel2Msi
 		err := client.Datapoints.GetInto(ctx, []uuid.UUID{collection.ID}, datapointID, &datapoint)
 		require.NoError(t, err)
 
@@ -90,7 +90,7 @@ func Test_datapointClient_GetInto(t *testing.T) {
 	})
 
 	t.Run("GetInto WithSkipData", func(t *testing.T) {
-		var datapoint testv1.Sentinel2Msi
+		var datapoint examplesv1.Sentinel2Msi
 		err := client.Datapoints.GetInto(ctx, []uuid.UUID{collection.ID}, datapointID, &datapoint, WithSkipData())
 		require.NoError(t, err)
 
@@ -121,7 +121,7 @@ func Test_datapointClient_QueryInto(t *testing.T) {
 			args: args{
 				collectionID: collectionID,
 				interval:     timeInterval,
-				datapoints:   &[]*testv1.Sentinel2Msi{},
+				datapoints:   &[]*examplesv1.Sentinel2Msi{},
 			},
 		},
 		{
@@ -166,7 +166,7 @@ func Test_datapointClient_QueryInto(t *testing.T) {
 			// we didn't want an error:
 			require.NoError(t, err, "got an unexpected error")
 
-			datapoints := *tt.args.datapoints.(*[]*testv1.Sentinel2Msi)
+			datapoints := *tt.args.datapoints.(*[]*examplesv1.Sentinel2Msi)
 
 			assert.Len(t, datapoints, 10)
 			assert.NotNil(t, datapoints[0])
@@ -175,7 +175,7 @@ func Test_datapointClient_QueryInto(t *testing.T) {
 }
 
 // resultQueryInto is used to avoid the compiler optimizing away the benchmark output
-var resultQueryInto []*testv1.Sentinel2Msi
+var resultQueryInto []*examplesv1.Sentinel2Msi
 
 // BenchmarkCollectAs benchmarks the QueryInto method
 func Benchmark_QueryInto(b *testing.B) {
@@ -185,7 +185,7 @@ func Benchmark_QueryInto(b *testing.B) {
 	collectionID := uuid.New()
 	timeInterval := query.NewTimeInterval(time.Now(), time.Now())
 
-	var datapoints []*testv1.Sentinel2Msi
+	var datapoints []*examplesv1.Sentinel2Msi
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
 			err := client.QueryInto(ctx, []uuid.UUID{collectionID}, &datapoints, WithTemporalExtent(timeInterval))
@@ -210,7 +210,7 @@ func Test_datapointClient_Query(t *testing.T) {
 	timeInterval := query.NewTimeInterval(jan2025, jan2025.Add(1*time.Hour))
 
 	t.Run("CollectAs", func(t *testing.T) {
-		datapoints, err := CollectAs[*testv1.Sentinel2Msi](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval)))
+		datapoints, err := CollectAs[*examplesv1.Sentinel2Msi](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval)))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 437)
@@ -220,7 +220,7 @@ func Test_datapointClient_Query(t *testing.T) {
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
-		datapoints, err := CollectAs[*testv1.Sentinel2Msi](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval), WithSkipData()))
+		datapoints, err := CollectAs[*examplesv1.Sentinel2Msi](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval), WithSkipData()))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 437)
@@ -239,7 +239,7 @@ func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	// generate some mock data
 	data := make([][]byte, n)
 	for i := range n {
-		datapoint := testv1.Sentinel2Msi_builder{
+		datapoint := examplesv1.Sentinel2Msi_builder{
 			GranuleName:     pointer(uuid.New().String()),
 			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
 			Platform:        pointer("S2B"),
@@ -270,7 +270,7 @@ func (s *mockService) Query(_ context.Context, _ []uuid.UUID, _ ...QueryOption) 
 }
 
 // result is used to avoid the compiler optimizing away the benchmark output
-var result []*testv1.Sentinel2Msi
+var result []*examplesv1.Sentinel2Msi
 
 // BenchmarkCollectAs benchmarks the CollectAs function
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
@@ -282,11 +282,11 @@ func BenchmarkCollectAs(b *testing.B) {
 	client := NewClient()
 	client.Datapoints = NewMockDatapointClient(b, 1000)
 
-	var r []*testv1.Sentinel2Msi // used to avoid the compiler optimizing the output
+	var r []*examplesv1.Sentinel2Msi // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
-			r, _ = CollectAs[*testv1.Sentinel2Msi](data)
+			r, _ = CollectAs[*examplesv1.Sentinel2Msi](data)
 		}
 	})
 	result = r
@@ -294,12 +294,12 @@ func BenchmarkCollectAs(b *testing.B) {
 	b.Run("Marshal and no reflection", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
-			datapoints := make([]*testv1.Sentinel2Msi, 0)
+			datapoints := make([]*examplesv1.Sentinel2Msi, 0)
 			for datapoint, err := range data {
 				if err != nil {
 					b.Fatalf("failed to load datapoint: %v", err)
 				}
-				r := &testv1.Sentinel2Msi{}
+				r := &examplesv1.Sentinel2Msi{}
 
 				err = proto.Unmarshal(datapoint, r)
 				if err != nil {
@@ -345,7 +345,7 @@ func Test_datapointClient_Ingest(t *testing.T) {
 			name: "Ingest",
 			args: args{
 				collectionID:  collectionID,
-				datapoints:    &[]*testv1.Sentinel2Msi{},
+				datapoints:    &[]*examplesv1.Sentinel2Msi{},
 				allowExisting: false,
 			},
 		},

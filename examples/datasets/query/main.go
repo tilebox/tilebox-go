@@ -10,7 +10,7 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/wkt"
 	"github.com/tilebox/tilebox-go/datasets/v1"
-	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
+	examplesv1 "github.com/tilebox/tilebox-go/protogen/go/examples/v1"
 	"github.com/tilebox/tilebox-go/query"
 )
 
@@ -32,16 +32,19 @@ func main() {
 		log.Fatalf("Failed to get collection: %v", err)
 	}
 
-	// Select a time interval
+	// Select a temporal extent
 	startDate := time.Date(2025, time.March, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(2025, time.April, 1, 0, 0, 0, 0, time.UTC)
 	march2025 := query.NewTimeInterval(startDate, endDate)
 
-	// Perform a spatial-temporal query
+	// Select a spatial extent
 	colorado := orb.Polygon{
 		{{-109.05, 37.09}, {-102.06, 37.09}, {-102.06, 41.59}, {-109.05, 41.59}, {-109.05, 37.09}},
 	}
-	var datapointsOverColorado []*testv1.Sentinel2Msi
+
+	// Perform a spatial-temporal query
+	// Sentinel2Msi type is generated using tilebox-generate
+	var datapointsOverColorado []*examplesv1.Sentinel2Msi
 	err = client.Datapoints.QueryInto(ctx,
 		[]uuid.UUID{collection.ID}, &datapointsOverColorado,
 		datasets.WithTemporalExtent(march2025),
