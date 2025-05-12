@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 
 	"connectrpc.com/connect"
@@ -27,7 +28,7 @@ type Client struct {
 //
 // By default, the returned Client is configured with:
 //   - "https://api.tilebox.com" as the URL
-//   - no API key
+//   - environment variable TILEBOX_API_KEY as the API key
 //   - a grpc.RetryHTTPClient HTTP client
 //   - the global tracer provider
 //
@@ -115,6 +116,7 @@ func WithDisableTracing() ClientOption {
 func newClientConfig(options []ClientOption) *clientConfig {
 	cfg := &clientConfig{
 		url:            "https://api.tilebox.com",
+		apiKey:         os.Getenv("TILEBOX_API_KEY"),
 		tracerProvider: otel.GetTracerProvider(), // use the global tracer provider by default
 	}
 	for _, option := range options {

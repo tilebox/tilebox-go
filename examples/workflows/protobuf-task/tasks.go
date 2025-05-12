@@ -1,4 +1,4 @@
-package protobuftask
+package pbtask
 
 import (
 	"context"

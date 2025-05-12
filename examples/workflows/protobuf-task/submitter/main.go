@@ -3,16 +3,14 @@ package main
 import (
 	"context"
 	"log/slog"
-	"os"
 
-	protobuftask "github.com/tilebox/tilebox-go/examples/workflows/protobuf-task"
+	pbtask "github.com/tilebox/tilebox-go/examples/workflows/protobuf-task"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
 func main() {
 	ctx := context.Background()
-
-	client := workflows.NewClient(workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")))
+	client := workflows.NewClient()
 
 	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
 	if err != nil {
@@ -22,7 +20,7 @@ func main() {
 
 	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree", cluster,
 		[]workflows.Task{
-			&protobuftask.SampleTask{ // protobuf task
+			&pbtask.SampleTask{ // protobuf task
 				Message:      "hello go runner!",
 				Depth:        8,
 				BranchFactor: 4,

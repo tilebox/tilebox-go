@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"os"
 
 	"github.com/tilebox/tilebox-go/examples/workflows/opentelemetry"
 	"github.com/tilebox/tilebox-go/observability"
@@ -19,7 +18,6 @@ var service = &observability.Service{Name: "task-runner", Version: "dev"}
 func main() {
 	ctx := context.Background()
 
-	tileboxAPIKey := os.Getenv("TILEBOX_API_KEY")
 	endpoint := "http://localhost:4318"
 	headers := map[string]string{
 		"Authorization": "Bearer <ENDPOINT_AUTH>",
@@ -54,7 +52,7 @@ func main() {
 	}
 	otel.SetTracerProvider(tileboxTracerProvider) // set the tilebox tracer provider as the global OTEL tracer provider
 
-	client := workflows.NewClient(workflows.WithAPIKey(tileboxAPIKey))
+	client := workflows.NewClient()
 
 	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
 	if err != nil {

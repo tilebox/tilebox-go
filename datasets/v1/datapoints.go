@@ -193,7 +193,7 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 // QueryInto queries datapoints from one or more collections of the same dataset into a slice of datapoints of a
 // compatible proto.Message type.
 //
-// QueryInto is a convenience function for Query, when no pagination or manual iteration is required.
+// QueryInto is a convenience function for Query, when no manual pagination or custom iteration is required.
 //
 // Example usage:
 //

@@ -12,9 +12,7 @@
 //
 // To construct a client:
 //
-//	client := datasets.NewClient(
-//		datasets.WithAPIKey(os.Getenv("TILEBOX_API_KEY")),
-//	)
+//	client := datasets.NewClient()
 //
 // List all datasets:
 //

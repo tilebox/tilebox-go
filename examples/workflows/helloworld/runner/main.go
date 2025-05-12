@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"os"
 
 	"github.com/tilebox/tilebox-go/examples/workflows/helloworld"
 	"github.com/tilebox/tilebox-go/workflows/v1"
@@ -11,8 +10,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-
-	client := workflows.NewClient(workflows.WithAPIKey(os.Getenv("TILEBOX_API_KEY")))
+	client := workflows.NewClient()
 
 	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
 	if err != nil {
