@@ -2,7 +2,9 @@ package tracer // import "github.com/tilebox/tilebox-go/observability/tracer"
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 
 	"github.com/tilebox/tilebox-go/observability"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -84,11 +86,28 @@ func NewOtelProvider(ctx context.Context, otelService *observability.Service, op
 }
 
 // NewAxiomProvider creates a new OpenTelemetry tracer provider that sends traces to Axiom.
-func NewAxiomProvider(ctx context.Context, otelService *observability.Service, dataset string, apiKey string) (*trace.TracerProvider, func(ctx context.Context), error) {
+// It reads the following environment variables:
+//
+//   - AXIOM_API_KEY: The Axiom API key.
+//   - AXIOM_TRACES_DATASET: The dataset where traces should be stored.
+func NewAxiomProvider(ctx context.Context, otelService *observability.Service, options ...Option) (*trace.TracerProvider, func(ctx context.Context), error) {
+	apiKey := os.Getenv("AXIOM_API_KEY")
+	if apiKey == "" {
+		return nil, noShutdown, errors.New("AXIOM_API_KEY environment variable is not set")
+	}
+
+	dataset := os.Getenv("AXIOM_TRACES_DATASET")
+	if dataset == "" {
+		return nil, noShutdown, errors.New("AXIOM_TRACES_DATASET environment variable is not set")
+	}
+
 	headers := map[string]string{
 		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
 		"X-Axiom-Dataset": dataset,
 	}
 
-	return NewOtelProvider(ctx, otelService, WithEndpointURL(axiomTracesEndpoint), WithHeaders(headers))
+	opts := []Option{WithEndpointURL(axiomTracesEndpoint), WithHeaders(headers)}
+	opts = append(opts, options...)
+
+	return NewOtelProvider(ctx, otelService, opts...)
 }

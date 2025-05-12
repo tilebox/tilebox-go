@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"time"
 
-	tileboxdatasets "github.com/tilebox/tilebox-go/datasets/v1"
-	testv1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
+	"github.com/tilebox/tilebox-go/datasets/v1"
+	examplev1 "github.com/tilebox/tilebox-go/protogen-test/tilebox/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -16,7 +16,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create a Tilebox Datasets client
-	client := tileboxdatasets.NewClient()
+	client := datasets.NewClient()
 
 	// Select a dataset
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
@@ -31,12 +31,12 @@ func main() {
 	}
 
 	// Create datapoints
-	datapoints := []*testv1.Sentinel2Msi{
-		testv1.Sentinel2Msi_builder{
+	datapoints := []*examplev1.Sentinel2Msi{
+		examplev1.Sentinel2Msi_builder{
 			Time:        timestamppb.New(time.Now()),
 			GranuleName: proto.String("Granule 1"),
 		}.Build(),
-		testv1.Sentinel2Msi_builder{
+		examplev1.Sentinel2Msi_builder{
 			Time:        timestamppb.New(time.Now().Add(-5 * time.Hour)),
 			GranuleName: proto.String("Past Granule 2"),
 		}.Build(),
