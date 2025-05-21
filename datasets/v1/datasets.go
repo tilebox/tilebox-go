@@ -23,6 +23,8 @@ type Dataset struct {
 	Name string
 	// Description is a short description of the dataset.
 	Description string
+	// Slug is the unique slug of the dataset.
+	Slug string
 }
 
 func (d Dataset) String() string {
@@ -95,6 +97,7 @@ func protoToDataset(d *datasetsv1.Dataset) (*Dataset, error) {
 		Type:        d.GetType(),
 		Name:        d.GetName(),
 		Description: d.GetSummary(),
+		Slug:        d.GetSlug(),
 	}, nil
 }
 

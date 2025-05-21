@@ -162,6 +162,8 @@ message Dataset {
   repeated DatasetPermission permissions = 10;
   // visibility of the requesting user on the dataset
   Visibility visibility = 11;
+  // complete slug of the dataset
+  string slug = 12;
 }
 
 // DatasetPermission is a permission a user (as part of an org) can have on a dataset
