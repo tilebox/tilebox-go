@@ -274,7 +274,7 @@ func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, dat
 	numExisting := int64(0)
 	datapointIDs := make([]uuid.UUID, 0, len(marshaledDatapoints))
 
-	for i := 0; i < len(datapointIDs); i += ingestChunkSize {
+	for i := 0; i < len(marshaledDatapoints); i += ingestChunkSize {
 		chunk := marshaledDatapoints[i:min(i+ingestChunkSize, len(marshaledDatapoints))]
 		response, err := d.dataIngestionService.Ingest(ctx, collectionID, chunk, allowExisting)
 		if err != nil {

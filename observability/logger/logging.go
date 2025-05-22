@@ -149,11 +149,11 @@ func NewOtelHandler(ctx context.Context, otelService *observability.Service, opt
 		}, nil
 }
 
-// NewAxiomHandler creates a new Axiom log handler. It reads the following environment variables:
+// NewAxiomHandlerFromEnv creates a new Axiom log handler. It reads the following environment variables:
 //
 //   - AXIOM_API_KEY: The Axiom API key.
 //   - AXIOM_LOGS_DATASET: The dataset where logs should be stored.
-func NewAxiomHandler(ctx context.Context, otelService *observability.Service, options ...Option) (slog.Handler, func(context.Context), error) {
+func NewAxiomHandlerFromEnv(ctx context.Context, otelService *observability.Service, options ...Option) (slog.Handler, func(context.Context), error) {
 	apiKey := os.Getenv("AXIOM_API_KEY")
 	if apiKey == "" {
 		return nil, noShutdown, errors.New("AXIOM_API_KEY environment variable is not set")
@@ -164,6 +164,11 @@ func NewAxiomHandler(ctx context.Context, otelService *observability.Service, op
 		return nil, noShutdown, errors.New("AXIOM_LOGS_DATASET environment variable is not set")
 	}
 
+	return NewAxiomHandler(ctx, otelService, dataset, apiKey, options...)
+}
+
+// NewAxiomHandler creates a new Axiom log handler, emitting logs to the given dataset and authenticating with the given API key.
+func NewAxiomHandler(ctx context.Context, otelService *observability.Service, dataset string, apiKey string, options ...Option) (slog.Handler, func(context.Context), error) {
 	headers := map[string]string{
 		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
 		"X-Axiom-Dataset": dataset,

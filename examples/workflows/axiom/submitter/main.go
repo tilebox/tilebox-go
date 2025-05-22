@@ -19,7 +19,7 @@ func main() {
 	ctx := context.Background()
 
 	// Setup OpenTelemetry logging and slog
-	axiomHandler, shutdownLogger, err := logger.NewAxiomHandler(ctx, service,
+	axiomHandler, shutdownLogger, err := logger.NewAxiomHandlerFromEnv(ctx, service,
 		logger.WithLevel(slog.LevelInfo), // export logs at info level and above as OTEL logs
 	)
 	defer shutdownLogger(ctx)
@@ -34,7 +34,7 @@ func main() {
 	slog.SetDefault(tileboxLogger) // all future slog calls will be forwarded to the tilebox logger
 
 	// Setup an OpenTelemetry trace span processor, exporting traces and spans to Axiom
-	tileboxTracerProvider, shutdown, err := tracer.NewAxiomProvider(ctx, service)
+	tileboxTracerProvider, shutdown, err := tracer.NewAxiomProviderFromEnv(ctx, service)
 	defer shutdown(ctx)
 	if err != nil {
 		slog.Error("failed to set up axiom tracer provider", slog.Any("error", err))
