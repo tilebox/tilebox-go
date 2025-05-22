@@ -974,7 +974,9 @@ type Dataset struct {
 	// permissions of the requesting user on the dataset
 	Permissions []DatasetPermission `protobuf:"varint,10,rep,packed,name=permissions,proto3,enum=datasets.v1.DatasetPermission" json:"permissions,omitempty"`
 	// visibility of the requesting user on the dataset
-	Visibility    Visibility `protobuf:"varint,11,opt,name=visibility,proto3,enum=datasets.v1.Visibility" json:"visibility,omitempty"`
+	Visibility Visibility `protobuf:"varint,11,opt,name=visibility,proto3,enum=datasets.v1.Visibility" json:"visibility,omitempty"`
+	// complete slug of the dataset
+	Slug          string `protobuf:"bytes,12,opt,name=slug,proto3" json:"slug,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1077,6 +1079,13 @@ func (x *Dataset) GetVisibility() Visibility {
 		return x.Visibility
 	}
 	return Visibility_VISIBILITY_UNSPECIFIED
+}
+
+func (x *Dataset) GetSlug() string {
+	if x != nil {
+		return x.Slug
+	}
+	return ""
 }
 
 // DatasetGroup represent a dataset group
@@ -1229,7 +1238,7 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\r_availabilityB\b\n" +
 	"\x06_count\"B\n" +
 	"\x0fCollectionInfos\x12/\n" +
-	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\"\x82\x03\n" +
+	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\"\x96\x03\n" +
 	"\aDataset\x12\x1f\n" +
 	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12*\n" +
 	"\bgroup_id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\agroupId\x12.\n" +
@@ -1243,7 +1252,8 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	" \x03(\x0e2\x1e.datasets.v1.DatasetPermissionR\vpermissions\x127\n" +
 	"\n" +
 	"visibility\x18\v \x01(\x0e2\x17.datasets.v1.VisibilityR\n" +
-	"visibility\"\xa2\x01\n" +
+	"visibility\x12\x12\n" +
+	"\x04slug\x18\f \x01(\tR\x04slug\"\xa2\x01\n" +
 	"\fDatasetGroup\x12\x1f\n" +
 	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12,\n" +
 	"\tparent_id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\bparentId\x12\x1b\n" +
