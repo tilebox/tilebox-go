@@ -85,12 +85,12 @@ func NewOtelProvider(ctx context.Context, otelService *observability.Service, op
 	}, nil
 }
 
-// NewAxiomProvider creates a new OpenTelemetry tracer provider that sends traces to Axiom.
+// NewAxiomProviderFromEnv creates a new OpenTelemetry tracer provider that sends traces to Axiom.
 // It reads the following environment variables:
 //
 //   - AXIOM_API_KEY: The Axiom API key.
 //   - AXIOM_TRACES_DATASET: The dataset where traces should be stored.
-func NewAxiomProvider(ctx context.Context, otelService *observability.Service, options ...Option) (*trace.TracerProvider, func(ctx context.Context), error) {
+func NewAxiomProviderFromEnv(ctx context.Context, otelService *observability.Service, options ...Option) (*trace.TracerProvider, func(ctx context.Context), error) {
 	apiKey := os.Getenv("AXIOM_API_KEY")
 	if apiKey == "" {
 		return nil, noShutdown, errors.New("AXIOM_API_KEY environment variable is not set")
@@ -101,6 +101,11 @@ func NewAxiomProvider(ctx context.Context, otelService *observability.Service, o
 		return nil, noShutdown, errors.New("AXIOM_TRACES_DATASET environment variable is not set")
 	}
 
+	return NewAxiomProvider(ctx, otelService, dataset, apiKey, options...)
+}
+
+// NewAxiomProvider creates a new OpenTelemetry tracer provider that sends traces to Axiom to the given dataset and authenticating with the given API key.
+func NewAxiomProvider(ctx context.Context, otelService *observability.Service, dataset, apiKey string, options ...Option) (*trace.TracerProvider, func(ctx context.Context), error) {
 	headers := map[string]string{
 		"Authorization":   fmt.Sprintf("Bearer %s", apiKey),
 		"X-Axiom-Dataset": dataset,
