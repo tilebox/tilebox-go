@@ -136,5 +136,5 @@ message Pagination {
   optional int64 limit = 1;
   // Return entries starting after this entry.
   // This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
-  optional string starting_after = 2;
+  optional UUID starting_after = 2;
 }
