@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# Documentation at https://goreleaser.com
+version: 2
+
+builds:
+  - skip: true
+
+changelog:
+  use: github-native
