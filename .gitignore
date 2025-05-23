@@ -11,3 +11,6 @@ scratch
 # Ignore non-Go generated files
 **/protogen/python/
 **/protogen/web/
+
+# Added by goreleaser init:
+dist/
