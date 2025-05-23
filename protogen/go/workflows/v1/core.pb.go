@@ -885,7 +885,7 @@ type Pagination struct {
 	Limit *int64 `protobuf:"varint,1,opt,name=limit,proto3,oneof" json:"limit,omitempty"`
 	// Return entries starting after this entry.
 	// This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
-	StartingAfter *string `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter,proto3,oneof" json:"starting_after,omitempty"`
+	StartingAfter *UUID `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter,proto3,oneof" json:"starting_after,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -927,11 +927,11 @@ func (x *Pagination) GetLimit() int64 {
 	return 0
 }
 
-func (x *Pagination) GetStartingAfter() string {
-	if x != nil && x.StartingAfter != nil {
-		return *x.StartingAfter
+func (x *Pagination) GetStartingAfter() *UUID {
+	if x != nil {
+		return x.StartingAfter
 	}
-	return ""
+	return nil
 }
 
 var File_workflows_v1_core_proto protoreflect.FileDescriptor
@@ -1009,11 +1009,11 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\bstart_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\astartId\x12)\n" +
 	"\x06end_id\x18\x02 \x01(\v2\x12.workflows.v1.UUIDR\x05endId\x12'\n" +
 	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
-	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"p\n" +
+	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"\x84\x01\n" +
 	"\n" +
 	"Pagination\x12\x19\n" +
-	"\x05limit\x18\x01 \x01(\x03H\x00R\x05limit\x88\x01\x01\x12*\n" +
-	"\x0estarting_after\x18\x02 \x01(\tH\x01R\rstartingAfter\x88\x01\x01B\b\n" +
+	"\x05limit\x18\x01 \x01(\x03H\x00R\x05limit\x88\x01\x01\x12>\n" +
+	"\x0estarting_after\x18\x02 \x01(\v2\x12.workflows.v1.UUIDH\x01R\rstartingAfter\x88\x01\x01B\b\n" +
 	"\x06_limitB\x11\n" +
 	"\x0f_starting_after*k\n" +
 	"\bJobState\x12\x19\n" +
@@ -1087,11 +1087,12 @@ var file_workflows_v1_core_proto_depIdxs = []int32{
 	14, // 22: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
 	9,  // 23: workflows.v1.IDInterval.start_id:type_name -> workflows.v1.UUID
 	9,  // 24: workflows.v1.IDInterval.end_id:type_name -> workflows.v1.UUID
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	9,  // 25: workflows.v1.Pagination.starting_after:type_name -> workflows.v1.UUID
+	26, // [26:26] is the sub-list for method output_type
+	26, // [26:26] is the sub-list for method input_type
+	26, // [26:26] is the sub-list for extension type_name
+	26, // [26:26] is the sub-list for extension extendee
+	0,  // [0:26] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_core_proto_init() }
