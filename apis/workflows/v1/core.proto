@@ -115,6 +115,19 @@ message TaskLease {
   google.protobuf.Duration recommended_wait_until_next_extension = 2;
 }
 
+// A time interval
+message TimeInterval {
+  google.protobuf.Timestamp start_time = 1; // Start time of the interval.
+  google.protobuf.Timestamp end_time = 2; // End time of the interval.
+
+  // We use exclusive for start and inclusive for end, because that way when both are false
+  // we have a half-open interval [start, end) which is the default behaviour we want to achieve.
+  // Flag indicating whether the start time is exclusive. If true, the start time is not included in the interval.
+  bool start_exclusive = 3;
+  // Flag indicating whether the end time is inclusive. If true, the end time is included in the interval.
+  bool end_inclusive = 4;
+}
+
 // An ID interval
 message IDInterval {
   UUID start_id = 1; // The id of the first data point in the interval.

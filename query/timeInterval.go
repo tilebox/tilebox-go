@@ -19,6 +19,7 @@ const smallestPossibleTimeDelta = time.Nanosecond
 type TemporalExtent interface {
 	ToProtoTimeInterval() *datasetsv1.TimeInterval
 	ToProtoDatapointInterval() *datasetsv1.DatapointInterval
+	ToProtoWorkflowTimeInterval() *workflowsv1.TimeInterval
 	ToProtoIDInterval() *workflowsv1.IDInterval
 }
 
@@ -112,6 +113,15 @@ func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
 
 func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval {
 	return nil
+}
+
+func (t *TimeInterval) ToProtoWorkflowTimeInterval() *workflowsv1.TimeInterval {
+	return &workflowsv1.TimeInterval{
+		StartTime:      timestamppb.New(t.Start),
+		EndTime:        timestamppb.New(t.End),
+		StartExclusive: t.StartExclusive,
+		EndInclusive:   t.EndInclusive,
+	}
 }
 
 func (t *TimeInterval) ToProtoIDInterval() *workflowsv1.IDInterval {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
@@ -65,6 +66,62 @@ func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datase
 		},
 		NextPage: nil,
 	}, nil
+}
+
+func Test_QueryOptions(t *testing.T) {
+	now := time.Now()
+	colorado := orb.Polygon{
+		{{-109.05, 37.09}, {-102.06, 37.09}, {-102.06, 41.59}, {-109.05, 41.59}, {-109.05, 37.09}},
+	}
+
+	tests := []struct {
+		name    string
+		options []QueryOption
+		want    queryOptions
+	}{
+		{
+			name: "with temporal extent",
+			options: []QueryOption{
+				WithTemporalExtent(query.NewTimeInterval(
+					now,
+					now.Add(time.Hour),
+				)),
+			},
+			want: queryOptions{
+				temporalExtent: query.NewTimeInterval(
+					now,
+					now.Add(time.Hour),
+				),
+			},
+		},
+		{
+			name: "with spatial extent",
+			options: []QueryOption{
+				WithSpatialExtent(colorado),
+			},
+			want: queryOptions{
+				spatialExtent: colorado,
+			},
+		},
+		{
+			name: "with skip data",
+			options: []QueryOption{
+				WithSkipData(),
+			},
+			want: queryOptions{
+				skipData: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var options queryOptions
+			for _, option := range tt.options {
+				option(&options)
+			}
+			assert.Equal(t, tt.want, options)
+		})
+	}
 }
 
 func Test_datapointClient_GetInto(t *testing.T) {
