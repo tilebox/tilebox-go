@@ -176,7 +176,7 @@ func newDataAccessService(dataAccessClient datasetsv1connect.DataAccessServiceCl
 }
 
 func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *datasetsv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/load", func(ctx context.Context) (*datasetsv1.QueryResultPage, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/query", func(ctx context.Context) (*datasetsv1.QueryResultPage, error) {
 		res, err := s.dataAccessClient.Query(ctx, connect.NewRequest(
 			&datasetsv1.QueryRequest{
 				CollectionIds: uuidsToProtobuf(collectionIDs),

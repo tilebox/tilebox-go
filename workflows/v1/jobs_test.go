@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/query"
+	"github.com/tilebox/tilebox-go/workflows/v1/job"
 )
 
 type mockJobService struct {
@@ -100,14 +101,14 @@ func Test_jobClient_Get(t *testing.T) {
 	assert.Equal(t, JobCompleted, job.State)
 }
 
-func Test_jobClient_List(t *testing.T) {
+func Test_jobClient_Query(t *testing.T) {
 	ctx := context.Background()
 	client := NewReplayClient(t, "Jobs")
 
 	startDate := time.Date(2024, time.February, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC)
 	timeInterval := query.NewTimeInterval(startDate, endDate)
-	jobs, err := Collect(client.Jobs.List(ctx, timeInterval))
+	jobs, err := Collect(client.Jobs.Query(ctx, job.WithTemporalExtent(timeInterval)))
 	require.NoError(t, err)
 
 	job := jobs[0]

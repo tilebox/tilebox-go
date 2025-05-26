@@ -803,6 +803,79 @@ func (x *TaskLease) GetRecommendedWaitUntilNextExtension() *durationpb.Duration 
 	return nil
 }
 
+// A time interval
+type TimeInterval struct {
+	state     protoimpl.MessageState `protogen:"open.v1"`
+	StartTime *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"` // Start time of the interval.
+	EndTime   *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`       // End time of the interval.
+	// We use exclusive for start and inclusive for end, because that way when both are false
+	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
+	// Flag indicating whether the start time is exclusive. If true, the start time is not included in the interval.
+	StartExclusive bool `protobuf:"varint,3,opt,name=start_exclusive,json=startExclusive,proto3" json:"start_exclusive,omitempty"`
+	// Flag indicating whether the end time is inclusive. If true, the end time is included in the interval.
+	EndInclusive  bool `protobuf:"varint,4,opt,name=end_inclusive,json=endInclusive,proto3" json:"end_inclusive,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TimeInterval) Reset() {
+	*x = TimeInterval{}
+	mi := &file_workflows_v1_core_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TimeInterval) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TimeInterval) ProtoMessage() {}
+
+func (x *TimeInterval) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_core_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TimeInterval.ProtoReflect.Descriptor instead.
+func (*TimeInterval) Descriptor() ([]byte, []int) {
+	return file_workflows_v1_core_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *TimeInterval) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.StartTime
+	}
+	return nil
+}
+
+func (x *TimeInterval) GetEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.EndTime
+	}
+	return nil
+}
+
+func (x *TimeInterval) GetStartExclusive() bool {
+	if x != nil {
+		return x.StartExclusive
+	}
+	return false
+}
+
+func (x *TimeInterval) GetEndInclusive() bool {
+	if x != nil {
+		return x.EndInclusive
+	}
+	return false
+}
+
 // An ID interval
 type IDInterval struct {
 	state   protoimpl.MessageState `protogen:"open.v1"`
@@ -822,7 +895,7 @@ type IDInterval struct {
 
 func (x *IDInterval) Reset() {
 	*x = IDInterval{}
-	mi := &file_workflows_v1_core_proto_msgTypes[9]
+	mi := &file_workflows_v1_core_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -834,7 +907,7 @@ func (x *IDInterval) String() string {
 func (*IDInterval) ProtoMessage() {}
 
 func (x *IDInterval) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[9]
+	mi := &file_workflows_v1_core_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -847,7 +920,7 @@ func (x *IDInterval) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IDInterval.ProtoReflect.Descriptor instead.
 func (*IDInterval) Descriptor() ([]byte, []int) {
-	return file_workflows_v1_core_proto_rawDescGZIP(), []int{9}
+	return file_workflows_v1_core_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *IDInterval) GetStartId() *UUID {
@@ -892,7 +965,7 @@ type Pagination struct {
 
 func (x *Pagination) Reset() {
 	*x = Pagination{}
-	mi := &file_workflows_v1_core_proto_msgTypes[10]
+	mi := &file_workflows_v1_core_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -904,7 +977,7 @@ func (x *Pagination) String() string {
 func (*Pagination) ProtoMessage() {}
 
 func (x *Pagination) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[10]
+	mi := &file_workflows_v1_core_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -917,7 +990,7 @@ func (x *Pagination) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Pagination.ProtoReflect.Descriptor instead.
 func (*Pagination) Descriptor() ([]byte, []int) {
-	return file_workflows_v1_core_proto_rawDescGZIP(), []int{10}
+	return file_workflows_v1_core_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Pagination) GetLimit() int64 {
@@ -1003,7 +1076,13 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x04uuid\x18\x01 \x01(\fR\x04uuid\"\xa9\x01\n" +
 	"\tTaskLease\x12/\n" +
 	"\x05lease\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x05lease\x12k\n" +
-	"%recommended_wait_until_next_extension\x18\x02 \x01(\v2\x19.google.protobuf.DurationR!recommendedWaitUntilNextExtension\"\xb4\x01\n" +
+	"%recommended_wait_until_next_extension\x18\x02 \x01(\v2\x19.google.protobuf.DurationR!recommendedWaitUntilNextExtension\"\xce\x01\n" +
+	"\fTimeInterval\x129\n" +
+	"\n" +
+	"start_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
+	"\bend_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12'\n" +
+	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
+	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"\xb4\x01\n" +
 	"\n" +
 	"IDInterval\x12-\n" +
 	"\bstart_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\astartId\x12)\n" +
@@ -1043,7 +1122,7 @@ func file_workflows_v1_core_proto_rawDescGZIP() []byte {
 }
 
 var file_workflows_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_workflows_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_workflows_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_workflows_v1_core_proto_goTypes = []any{
 	(JobState)(0),                 // 0: workflows.v1.JobState
 	(TaskState)(0),                // 1: workflows.v1.TaskState
@@ -1056,24 +1135,25 @@ var file_workflows_v1_core_proto_goTypes = []any{
 	(*TaskSubmission)(nil),        // 8: workflows.v1.TaskSubmission
 	(*UUID)(nil),                  // 9: workflows.v1.UUID
 	(*TaskLease)(nil),             // 10: workflows.v1.TaskLease
-	(*IDInterval)(nil),            // 11: workflows.v1.IDInterval
-	(*Pagination)(nil),            // 12: workflows.v1.Pagination
-	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 14: google.protobuf.Duration
+	(*TimeInterval)(nil),          // 11: workflows.v1.TimeInterval
+	(*IDInterval)(nil),            // 12: workflows.v1.IDInterval
+	(*Pagination)(nil),            // 13: workflows.v1.Pagination
+	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 15: google.protobuf.Duration
 }
 var file_workflows_v1_core_proto_depIdxs = []int32{
 	9,  // 0: workflows.v1.Job.id:type_name -> workflows.v1.UUID
 	0,  // 1: workflows.v1.Job.state:type_name -> workflows.v1.JobState
-	13, // 2: workflows.v1.Job.submitted_at:type_name -> google.protobuf.Timestamp
-	13, // 3: workflows.v1.Job.started_at:type_name -> google.protobuf.Timestamp
+	14, // 2: workflows.v1.Job.submitted_at:type_name -> google.protobuf.Timestamp
+	14, // 3: workflows.v1.Job.started_at:type_name -> google.protobuf.Timestamp
 	4,  // 4: workflows.v1.Job.task_summaries:type_name -> workflows.v1.TaskSummary
 	9,  // 5: workflows.v1.Job.automation_id:type_name -> workflows.v1.UUID
 	9,  // 6: workflows.v1.TaskSummary.id:type_name -> workflows.v1.UUID
 	1,  // 7: workflows.v1.TaskSummary.state:type_name -> workflows.v1.TaskState
 	9,  // 8: workflows.v1.TaskSummary.parent_id:type_name -> workflows.v1.UUID
 	9,  // 9: workflows.v1.TaskSummary.depends_on:type_name -> workflows.v1.UUID
-	13, // 10: workflows.v1.TaskSummary.started_at:type_name -> google.protobuf.Timestamp
-	13, // 11: workflows.v1.TaskSummary.stopped_at:type_name -> google.protobuf.Timestamp
+	14, // 10: workflows.v1.TaskSummary.started_at:type_name -> google.protobuf.Timestamp
+	14, // 11: workflows.v1.TaskSummary.stopped_at:type_name -> google.protobuf.Timestamp
 	9,  // 12: workflows.v1.Task.id:type_name -> workflows.v1.UUID
 	6,  // 13: workflows.v1.Task.identifier:type_name -> workflows.v1.TaskIdentifier
 	1,  // 14: workflows.v1.Task.state:type_name -> workflows.v1.TaskState
@@ -1083,16 +1163,18 @@ var file_workflows_v1_core_proto_depIdxs = []int32{
 	10, // 18: workflows.v1.Task.lease:type_name -> workflows.v1.TaskLease
 	5,  // 19: workflows.v1.Tasks.tasks:type_name -> workflows.v1.Task
 	6,  // 20: workflows.v1.TaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
-	14, // 21: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
-	14, // 22: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
-	9,  // 23: workflows.v1.IDInterval.start_id:type_name -> workflows.v1.UUID
-	9,  // 24: workflows.v1.IDInterval.end_id:type_name -> workflows.v1.UUID
-	9,  // 25: workflows.v1.Pagination.starting_after:type_name -> workflows.v1.UUID
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	15, // 21: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
+	15, // 22: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
+	14, // 23: workflows.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
+	14, // 24: workflows.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
+	9,  // 25: workflows.v1.IDInterval.start_id:type_name -> workflows.v1.UUID
+	9,  // 26: workflows.v1.IDInterval.end_id:type_name -> workflows.v1.UUID
+	9,  // 27: workflows.v1.Pagination.starting_after:type_name -> workflows.v1.UUID
+	28, // [28:28] is the sub-list for method output_type
+	28, // [28:28] is the sub-list for method input_type
+	28, // [28:28] is the sub-list for extension type_name
+	28, // [28:28] is the sub-list for extension extendee
+	0,  // [0:28] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_core_proto_init() }
@@ -1101,14 +1183,14 @@ func file_workflows_v1_core_proto_init() {
 		return
 	}
 	file_workflows_v1_core_proto_msgTypes[3].OneofWrappers = []any{}
-	file_workflows_v1_core_proto_msgTypes[10].OneofWrappers = []any{}
+	file_workflows_v1_core_proto_msgTypes[11].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_core_proto_rawDesc), len(file_workflows_v1_core_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

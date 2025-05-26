@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
-	"github.com/tilebox/tilebox-go/query"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
 	"google.golang.org/protobuf/proto"
 )
@@ -84,7 +83,7 @@ type JobClient interface {
 	Get(ctx context.Context, jobID uuid.UUID) (*Job, error)
 	Retry(ctx context.Context, jobID uuid.UUID) (int64, error)
 	Cancel(ctx context.Context, jobID uuid.UUID) error
-	List(ctx context.Context, interval query.TemporalExtent) iter.Seq2[*Job, error]
+	Query(ctx context.Context, options ...job.QueryOption) iter.Seq2[*Job, error]
 }
 
 var _ JobClient = &jobClient{}
@@ -100,7 +99,7 @@ type jobClient struct {
 //
 // Documentation: https://docs.tilebox.com/workflows/concepts/jobs#submission
 func (c jobClient) Submit(ctx context.Context, jobName string, cluster *Cluster, tasks []Task, options ...job.SubmitOption) (*Job, error) {
-	opts := &job.SubmitJobOptions{}
+	opts := &job.SubmitOptions{}
 	for _, option := range options {
 		option(opts)
 	}
@@ -159,22 +158,48 @@ func (c jobClient) Cancel(ctx context.Context, jobID uuid.UUID) error {
 	return c.service.CancelJob(ctx, jobID)
 }
 
-// List returns a list of all jobs within the given interval.
+// Query returns a list of all jobs within the given interval.
+//
+// Options:
+//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried (Required)
+//   - job.WithAutomationID: specifies the automation ID to filter jobs by. (Optional)
 //
 // The jobs are lazily loaded and returned as a sequence.
 // The output sequence can be transformed into a slice using Collect.
-func (c jobClient) List(ctx context.Context, interval query.TemporalExtent) iter.Seq2[*Job, error] {
+func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.Seq2[*Job, error] {
+	opts := &job.QueryOptions{}
+	for _, option := range options {
+		option(opts)
+	}
+
+	if opts.TemporalExtent == nil {
+		return func(yield func(*Job, error) bool) {
+			// right now we return an error, in the future we might want to support queries without a temporal extent
+			yield(nil, errors.New("temporal extent is required"))
+		}
+	}
+
 	return func(yield func(*Job, error) bool) {
 		var page *workflowsv1.Pagination // nil for the first request
 
-		idInterval := interval.ToProtoIDInterval()
-		if idInterval == nil {
-			yield(nil, errors.New("interval is not supported"))
+		// we already validated that TemporalExtent is not nil
+		timeInterval := opts.TemporalExtent.ToProtoWorkflowTimeInterval()
+		idInterval := opts.TemporalExtent.ToProtoIDInterval()
+
+		if timeInterval == nil && idInterval == nil {
+			yield(nil, errors.New("invalid temporal extent"))
 			return
 		}
 
+		filters := &workflowsv1.QueryFilters{}
+		if timeInterval != nil {
+			filters.TemporalExtent = &workflowsv1.QueryFilters_TimeInterval{TimeInterval: timeInterval}
+		} else {
+			filters.TemporalExtent = &workflowsv1.QueryFilters_IdInterval{IdInterval: idInterval}
+		}
+
 		for {
-			jobsMessage, err := c.service.ListJobs(ctx, idInterval, page)
+			jobsMessage, err := c.service.QueryJobs(ctx, filters, page)
 			if err != nil {
 				yield(nil, err)
 				return

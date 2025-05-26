@@ -151,7 +151,7 @@ type JobService interface {
 	GetJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.Job, error)
 	RetryJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.RetryJobResponse, error)
 	CancelJob(ctx context.Context, jobID uuid.UUID) error
-	ListJobs(ctx context.Context, idInterval *workflowsv1.IDInterval, page *workflowsv1.Pagination) (*workflowsv1.ListJobsResponse, error)
+	QueryJobs(ctx context.Context, filters *workflowsv1.QueryFilters, page *workflowsv1.Pagination) (*workflowsv1.QueryJobsResponse, error)
 }
 
 var _ JobService = &jobService{}
@@ -221,14 +221,14 @@ func (s *jobService) CancelJob(ctx context.Context, jobID uuid.UUID) error {
 	})
 }
 
-func (s *jobService) ListJobs(ctx context.Context, idInterval *workflowsv1.IDInterval, page *workflowsv1.Pagination) (*workflowsv1.ListJobsResponse, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/list", func(ctx context.Context) (*workflowsv1.ListJobsResponse, error) {
-		res, err := s.jobClient.ListJobs(ctx, connect.NewRequest(&workflowsv1.ListJobsRequest{
-			IdInterval: idInterval,
-			Page:       page,
+func (s *jobService) QueryJobs(ctx context.Context, filters *workflowsv1.QueryFilters, page *workflowsv1.Pagination) (*workflowsv1.QueryJobsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/query", func(ctx context.Context) (*workflowsv1.QueryJobsResponse, error) {
+		res, err := s.jobClient.QueryJobs(ctx, connect.NewRequest(&workflowsv1.QueryJobsRequest{
+			Filters: filters,
+			Page:    page,
 		}))
 		if err != nil {
-			return nil, fmt.Errorf("failed to list jobs: %w", err)
+			return nil, fmt.Errorf("failed to query jobs: %w", err)
 		}
 
 		return res.Msg, nil

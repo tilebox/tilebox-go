@@ -446,88 +446,125 @@ func (x *VisualizeJobRequest) GetIncludeJobName() bool {
 	return false
 }
 
-// ListJobsRequest requests a list of jobs.
-type ListJobsRequest struct {
+// QueryFilters contains the filters to apply to a query.
+type QueryFilters struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// The ID interval for which jobs are requested.
-	IdInterval *IDInterval `protobuf:"bytes,1,opt,name=id_interval,json=idInterval,proto3" json:"id_interval,omitempty"`
-	// The pagination parameters for this request.
-	Page          *Pagination `protobuf:"bytes,2,opt,name=page,proto3,oneof" json:"page,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ListJobsRequest) Reset() {
-	*x = ListJobsRequest{}
-	mi := &file_workflows_v1_job_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ListJobsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ListJobsRequest) ProtoMessage() {}
-
-func (x *ListJobsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_job_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ListJobsRequest.ProtoReflect.Descriptor instead.
-func (*ListJobsRequest) Descriptor() ([]byte, []int) {
-	return file_workflows_v1_job_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *ListJobsRequest) GetIdInterval() *IDInterval {
-	if x != nil {
-		return x.IdInterval
-	}
-	return nil
-}
-
-func (x *ListJobsRequest) GetPage() *Pagination {
-	if x != nil {
-		return x.Page
-	}
-	return nil
-}
-
-// FilterJobsRequest requests a list of filtered jobs.
-type FilterJobsRequest struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// The ID interval for which jobs are requested.
-	IdInterval *IDInterval `protobuf:"bytes,1,opt,name=id_interval,json=idInterval,proto3" json:"id_interval,omitempty"`
-	// The pagination parameters for this request.
-	Page *Pagination `protobuf:"bytes,2,opt,name=page,proto3,oneof" json:"page,omitempty"`
+	// Either a time interval or ID interval must be set, but not both.
+	//
+	// Types that are valid to be assigned to TemporalExtent:
+	//
+	//	*QueryFilters_TimeInterval
+	//	*QueryFilters_IdInterval
+	TemporalExtent isQueryFilters_TemporalExtent `protobuf_oneof:"temporal_extent"`
 	// Filter jobs by automation id.
 	AutomationId  *UUID `protobuf:"bytes,3,opt,name=automation_id,json=automationId,proto3,oneof" json:"automation_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *FilterJobsRequest) Reset() {
-	*x = FilterJobsRequest{}
+func (x *QueryFilters) Reset() {
+	*x = QueryFilters{}
+	mi := &file_workflows_v1_job_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *QueryFilters) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryFilters) ProtoMessage() {}
+
+func (x *QueryFilters) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_job_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use QueryFilters.ProtoReflect.Descriptor instead.
+func (*QueryFilters) Descriptor() ([]byte, []int) {
+	return file_workflows_v1_job_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *QueryFilters) GetTemporalExtent() isQueryFilters_TemporalExtent {
+	if x != nil {
+		return x.TemporalExtent
+	}
+	return nil
+}
+
+func (x *QueryFilters) GetTimeInterval() *TimeInterval {
+	if x != nil {
+		if x, ok := x.TemporalExtent.(*QueryFilters_TimeInterval); ok {
+			return x.TimeInterval
+		}
+	}
+	return nil
+}
+
+func (x *QueryFilters) GetIdInterval() *IDInterval {
+	if x != nil {
+		if x, ok := x.TemporalExtent.(*QueryFilters_IdInterval); ok {
+			return x.IdInterval
+		}
+	}
+	return nil
+}
+
+func (x *QueryFilters) GetAutomationId() *UUID {
+	if x != nil {
+		return x.AutomationId
+	}
+	return nil
+}
+
+type isQueryFilters_TemporalExtent interface {
+	isQueryFilters_TemporalExtent()
+}
+
+type QueryFilters_TimeInterval struct {
+	TimeInterval *TimeInterval `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval,proto3,oneof"`
+}
+
+type QueryFilters_IdInterval struct {
+	IdInterval *IDInterval `protobuf:"bytes,2,opt,name=id_interval,json=idInterval,proto3,oneof"`
+}
+
+func (*QueryFilters_TimeInterval) isQueryFilters_TemporalExtent() {}
+
+func (*QueryFilters_IdInterval) isQueryFilters_TemporalExtent() {}
+
+// QueryJobsRequest requests a list of jobs.
+type QueryJobsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Filters to apply to the query.
+	Filters *QueryFilters `protobuf:"bytes,1,opt,name=filters,proto3" json:"filters,omitempty"`
+	// The pagination parameters for this request.
+	Page          *Pagination `protobuf:"bytes,2,opt,name=page,proto3,oneof" json:"page,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *QueryJobsRequest) Reset() {
+	*x = QueryJobsRequest{}
 	mi := &file_workflows_v1_job_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *FilterJobsRequest) String() string {
+func (x *QueryJobsRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FilterJobsRequest) ProtoMessage() {}
+func (*QueryJobsRequest) ProtoMessage() {}
 
-func (x *FilterJobsRequest) ProtoReflect() protoreflect.Message {
+func (x *QueryJobsRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_workflows_v1_job_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -539,34 +576,27 @@ func (x *FilterJobsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use FilterJobsRequest.ProtoReflect.Descriptor instead.
-func (*FilterJobsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use QueryJobsRequest.ProtoReflect.Descriptor instead.
+func (*QueryJobsRequest) Descriptor() ([]byte, []int) {
 	return file_workflows_v1_job_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *FilterJobsRequest) GetIdInterval() *IDInterval {
+func (x *QueryJobsRequest) GetFilters() *QueryFilters {
 	if x != nil {
-		return x.IdInterval
+		return x.Filters
 	}
 	return nil
 }
 
-func (x *FilterJobsRequest) GetPage() *Pagination {
+func (x *QueryJobsRequest) GetPage() *Pagination {
 	if x != nil {
 		return x.Page
 	}
 	return nil
 }
 
-func (x *FilterJobsRequest) GetAutomationId() *UUID {
-	if x != nil {
-		return x.AutomationId
-	}
-	return nil
-}
-
 // A list of jobs.
-type ListJobsResponse struct {
+type QueryJobsResponse struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The jobs.
 	Jobs []*Job `protobuf:"bytes,1,rep,name=jobs,proto3" json:"jobs,omitempty"`
@@ -576,20 +606,20 @@ type ListJobsResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListJobsResponse) Reset() {
-	*x = ListJobsResponse{}
+func (x *QueryJobsResponse) Reset() {
+	*x = QueryJobsResponse{}
 	mi := &file_workflows_v1_job_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListJobsResponse) String() string {
+func (x *QueryJobsResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListJobsResponse) ProtoMessage() {}
+func (*QueryJobsResponse) ProtoMessage() {}
 
-func (x *ListJobsResponse) ProtoReflect() protoreflect.Message {
+func (x *QueryJobsResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_workflows_v1_job_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -601,19 +631,19 @@ func (x *ListJobsResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListJobsResponse.ProtoReflect.Descriptor instead.
-func (*ListJobsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use QueryJobsResponse.ProtoReflect.Descriptor instead.
+func (*QueryJobsResponse) Descriptor() ([]byte, []int) {
 	return file_workflows_v1_job_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *ListJobsResponse) GetJobs() []*Job {
+func (x *QueryJobsResponse) GetJobs() []*Job {
 	if x != nil {
 		return x.Jobs
 	}
 	return nil
 }
 
-func (x *ListJobsResponse) GetNextPage() *Pagination {
+func (x *QueryJobsResponse) GetNextPage() *Pagination {
 	if x != nil {
 		return x.NextPage
 	}
@@ -808,20 +838,19 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\x06job_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x05jobId\x12B\n" +
 	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\x128\n" +
 	"\x05theme\x18\x03 \x01(\x0e2\".workflows.v1.WorkflowDiagramThemeR\x05theme\x12(\n" +
-	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\x88\x01\n" +
-	"\x0fListJobsRequest\x129\n" +
-	"\vid_interval\x18\x01 \x01(\v2\x18.workflows.v1.IDIntervalR\n" +
-	"idInterval\x121\n" +
+	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xf1\x01\n" +
+	"\fQueryFilters\x12A\n" +
+	"\rtime_interval\x18\x01 \x01(\v2\x1a.workflows.v1.TimeIntervalH\x00R\ftimeInterval\x12;\n" +
+	"\vid_interval\x18\x02 \x01(\v2\x18.workflows.v1.IDIntervalH\x00R\n" +
+	"idInterval\x12<\n" +
+	"\rautomation_id\x18\x03 \x01(\v2\x12.workflows.v1.UUIDH\x01R\fautomationId\x88\x01\x01B\x11\n" +
+	"\x0ftemporal_extentB\x10\n" +
+	"\x0e_automation_id\"\x84\x01\n" +
+	"\x10QueryJobsRequest\x124\n" +
+	"\afilters\x18\x01 \x01(\v2\x1a.workflows.v1.QueryFiltersR\afilters\x121\n" +
 	"\x04page\x18\x02 \x01(\v2\x18.workflows.v1.PaginationH\x00R\x04page\x88\x01\x01B\a\n" +
-	"\x05_page\"\xda\x01\n" +
-	"\x11FilterJobsRequest\x129\n" +
-	"\vid_interval\x18\x01 \x01(\v2\x18.workflows.v1.IDIntervalR\n" +
-	"idInterval\x121\n" +
-	"\x04page\x18\x02 \x01(\v2\x18.workflows.v1.PaginationH\x00R\x04page\x88\x01\x01\x12<\n" +
-	"\rautomation_id\x18\x03 \x01(\v2\x12.workflows.v1.UUIDH\x01R\fautomationId\x88\x01\x01B\a\n" +
-	"\x05_pageB\x10\n" +
-	"\x0e_automation_id\"\x83\x01\n" +
-	"\x10ListJobsResponse\x12%\n" +
+	"\x05_page\"\x84\x01\n" +
+	"\x11QueryJobsResponse\x12%\n" +
 	"\x04jobs\x18\x01 \x03(\v2\x11.workflows.v1.JobR\x04jobs\x12:\n" +
 	"\tnext_page\x18\x03 \x01(\v2\x18.workflows.v1.PaginationH\x00R\bnextPage\x88\x01\x01B\f\n" +
 	"\n" +
@@ -841,17 +870,15 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\x1cWORKFLOW_DIAGRAM_THEME_LIGHT\x10\x01\x12\x1f\n" +
 	"\x1bWORKFLOW_DIAGRAM_THEME_DARK\x10\x02\x12(\n" +
 	"$WORKFLOW_DIAGRAM_THEME_CONSOLE_LIGHT\x10\x03\x12'\n" +
-	"#WORKFLOW_DIAGRAM_THEME_CONSOLE_DARK\x10\x042\xa1\x05\n" +
+	"#WORKFLOW_DIAGRAM_THEME_CONSOLE_DARK\x10\x042\xd5\x04\n" +
 	"\n" +
 	"JobService\x12>\n" +
 	"\tSubmitJob\x12\x1e.workflows.v1.SubmitJobRequest\x1a\x11.workflows.v1.Job\x128\n" +
 	"\x06GetJob\x12\x1b.workflows.v1.GetJobRequest\x1a\x11.workflows.v1.Job\x12I\n" +
 	"\bRetryJob\x12\x1d.workflows.v1.RetryJobRequest\x1a\x1e.workflows.v1.RetryJobResponse\x12L\n" +
 	"\tCancelJob\x12\x1e.workflows.v1.CancelJobRequest\x1a\x1f.workflows.v1.CancelJobResponse\x12H\n" +
-	"\fVisualizeJob\x12!.workflows.v1.VisualizeJobRequest\x1a\x15.workflows.v1.Diagram\x12I\n" +
-	"\bListJobs\x12\x1d.workflows.v1.ListJobsRequest\x1a\x1e.workflows.v1.ListJobsResponse\x12M\n" +
-	"\n" +
-	"FilterJobs\x12\x1f.workflows.v1.FilterJobsRequest\x1a\x1e.workflows.v1.ListJobsResponse\x12^\n" +
+	"\fVisualizeJob\x12!.workflows.v1.VisualizeJobRequest\x1a\x15.workflows.v1.Diagram\x12L\n" +
+	"\tQueryJobs\x12\x1e.workflows.v1.QueryJobsRequest\x1a\x1f.workflows.v1.QueryJobsResponse\x12^\n" +
 	"\x0fGetJobPrototype\x12$.workflows.v1.GetJobPrototypeRequest\x1a%.workflows.v1.GetJobPrototypeResponse\x12<\n" +
 	"\bCloneJob\x12\x1d.workflows.v1.CloneJobRequest\x1a\x11.workflows.v1.JobB\xb1\x01\n" +
 	"\x10com.workflows.v1B\bJobProtoP\x01ZBgithub.com/tilebox/tilebox-go/protogen/go/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1b\x06proto3"
@@ -879,19 +906,20 @@ var file_workflows_v1_job_proto_goTypes = []any{
 	(*CancelJobRequest)(nil),        // 5: workflows.v1.CancelJobRequest
 	(*CancelJobResponse)(nil),       // 6: workflows.v1.CancelJobResponse
 	(*VisualizeJobRequest)(nil),     // 7: workflows.v1.VisualizeJobRequest
-	(*ListJobsRequest)(nil),         // 8: workflows.v1.ListJobsRequest
-	(*FilterJobsRequest)(nil),       // 9: workflows.v1.FilterJobsRequest
-	(*ListJobsResponse)(nil),        // 10: workflows.v1.ListJobsResponse
+	(*QueryFilters)(nil),            // 8: workflows.v1.QueryFilters
+	(*QueryJobsRequest)(nil),        // 9: workflows.v1.QueryJobsRequest
+	(*QueryJobsResponse)(nil),       // 10: workflows.v1.QueryJobsResponse
 	(*GetJobPrototypeRequest)(nil),  // 11: workflows.v1.GetJobPrototypeRequest
 	(*GetJobPrototypeResponse)(nil), // 12: workflows.v1.GetJobPrototypeResponse
 	(*CloneJobRequest)(nil),         // 13: workflows.v1.CloneJobRequest
 	(*TaskSubmission)(nil),          // 14: workflows.v1.TaskSubmission
 	(*UUID)(nil),                    // 15: workflows.v1.UUID
 	(*RenderOptions)(nil),           // 16: workflows.v1.RenderOptions
-	(*IDInterval)(nil),              // 17: workflows.v1.IDInterval
-	(*Pagination)(nil),              // 18: workflows.v1.Pagination
-	(*Job)(nil),                     // 19: workflows.v1.Job
-	(*Diagram)(nil),                 // 20: workflows.v1.Diagram
+	(*TimeInterval)(nil),            // 17: workflows.v1.TimeInterval
+	(*IDInterval)(nil),              // 18: workflows.v1.IDInterval
+	(*Pagination)(nil),              // 19: workflows.v1.Pagination
+	(*Job)(nil),                     // 20: workflows.v1.Job
+	(*Diagram)(nil),                 // 21: workflows.v1.Diagram
 }
 var file_workflows_v1_job_proto_depIdxs = []int32{
 	14, // 0: workflows.v1.SubmitJobRequest.tasks:type_name -> workflows.v1.TaskSubmission
@@ -902,13 +930,13 @@ var file_workflows_v1_job_proto_depIdxs = []int32{
 	15, // 5: workflows.v1.VisualizeJobRequest.job_id:type_name -> workflows.v1.UUID
 	16, // 6: workflows.v1.VisualizeJobRequest.render_options:type_name -> workflows.v1.RenderOptions
 	0,  // 7: workflows.v1.VisualizeJobRequest.theme:type_name -> workflows.v1.WorkflowDiagramTheme
-	17, // 8: workflows.v1.ListJobsRequest.id_interval:type_name -> workflows.v1.IDInterval
-	18, // 9: workflows.v1.ListJobsRequest.page:type_name -> workflows.v1.Pagination
-	17, // 10: workflows.v1.FilterJobsRequest.id_interval:type_name -> workflows.v1.IDInterval
-	18, // 11: workflows.v1.FilterJobsRequest.page:type_name -> workflows.v1.Pagination
-	15, // 12: workflows.v1.FilterJobsRequest.automation_id:type_name -> workflows.v1.UUID
-	19, // 13: workflows.v1.ListJobsResponse.jobs:type_name -> workflows.v1.Job
-	18, // 14: workflows.v1.ListJobsResponse.next_page:type_name -> workflows.v1.Pagination
+	17, // 8: workflows.v1.QueryFilters.time_interval:type_name -> workflows.v1.TimeInterval
+	18, // 9: workflows.v1.QueryFilters.id_interval:type_name -> workflows.v1.IDInterval
+	15, // 10: workflows.v1.QueryFilters.automation_id:type_name -> workflows.v1.UUID
+	8,  // 11: workflows.v1.QueryJobsRequest.filters:type_name -> workflows.v1.QueryFilters
+	19, // 12: workflows.v1.QueryJobsRequest.page:type_name -> workflows.v1.Pagination
+	20, // 13: workflows.v1.QueryJobsResponse.jobs:type_name -> workflows.v1.Job
+	19, // 14: workflows.v1.QueryJobsResponse.next_page:type_name -> workflows.v1.Pagination
 	15, // 15: workflows.v1.GetJobPrototypeRequest.job_id:type_name -> workflows.v1.UUID
 	14, // 16: workflows.v1.GetJobPrototypeResponse.root_tasks:type_name -> workflows.v1.TaskSubmission
 	15, // 17: workflows.v1.CloneJobRequest.job_id:type_name -> workflows.v1.UUID
@@ -918,21 +946,19 @@ var file_workflows_v1_job_proto_depIdxs = []int32{
 	3,  // 21: workflows.v1.JobService.RetryJob:input_type -> workflows.v1.RetryJobRequest
 	5,  // 22: workflows.v1.JobService.CancelJob:input_type -> workflows.v1.CancelJobRequest
 	7,  // 23: workflows.v1.JobService.VisualizeJob:input_type -> workflows.v1.VisualizeJobRequest
-	8,  // 24: workflows.v1.JobService.ListJobs:input_type -> workflows.v1.ListJobsRequest
-	9,  // 25: workflows.v1.JobService.FilterJobs:input_type -> workflows.v1.FilterJobsRequest
-	11, // 26: workflows.v1.JobService.GetJobPrototype:input_type -> workflows.v1.GetJobPrototypeRequest
-	13, // 27: workflows.v1.JobService.CloneJob:input_type -> workflows.v1.CloneJobRequest
-	19, // 28: workflows.v1.JobService.SubmitJob:output_type -> workflows.v1.Job
-	19, // 29: workflows.v1.JobService.GetJob:output_type -> workflows.v1.Job
-	4,  // 30: workflows.v1.JobService.RetryJob:output_type -> workflows.v1.RetryJobResponse
-	6,  // 31: workflows.v1.JobService.CancelJob:output_type -> workflows.v1.CancelJobResponse
-	20, // 32: workflows.v1.JobService.VisualizeJob:output_type -> workflows.v1.Diagram
-	10, // 33: workflows.v1.JobService.ListJobs:output_type -> workflows.v1.ListJobsResponse
-	10, // 34: workflows.v1.JobService.FilterJobs:output_type -> workflows.v1.ListJobsResponse
-	12, // 35: workflows.v1.JobService.GetJobPrototype:output_type -> workflows.v1.GetJobPrototypeResponse
-	19, // 36: workflows.v1.JobService.CloneJob:output_type -> workflows.v1.Job
-	28, // [28:37] is the sub-list for method output_type
-	19, // [19:28] is the sub-list for method input_type
+	9,  // 24: workflows.v1.JobService.QueryJobs:input_type -> workflows.v1.QueryJobsRequest
+	11, // 25: workflows.v1.JobService.GetJobPrototype:input_type -> workflows.v1.GetJobPrototypeRequest
+	13, // 26: workflows.v1.JobService.CloneJob:input_type -> workflows.v1.CloneJobRequest
+	20, // 27: workflows.v1.JobService.SubmitJob:output_type -> workflows.v1.Job
+	20, // 28: workflows.v1.JobService.GetJob:output_type -> workflows.v1.Job
+	4,  // 29: workflows.v1.JobService.RetryJob:output_type -> workflows.v1.RetryJobResponse
+	6,  // 30: workflows.v1.JobService.CancelJob:output_type -> workflows.v1.CancelJobResponse
+	21, // 31: workflows.v1.JobService.VisualizeJob:output_type -> workflows.v1.Diagram
+	10, // 32: workflows.v1.JobService.QueryJobs:output_type -> workflows.v1.QueryJobsResponse
+	12, // 33: workflows.v1.JobService.GetJobPrototype:output_type -> workflows.v1.GetJobPrototypeResponse
+	20, // 34: workflows.v1.JobService.CloneJob:output_type -> workflows.v1.Job
+	27, // [27:35] is the sub-list for method output_type
+	19, // [19:27] is the sub-list for method input_type
 	19, // [19:19] is the sub-list for extension type_name
 	19, // [19:19] is the sub-list for extension extendee
 	0,  // [0:19] is the sub-list for field type_name
@@ -945,7 +971,10 @@ func file_workflows_v1_job_proto_init() {
 	}
 	file_workflows_v1_core_proto_init()
 	file_workflows_v1_diagram_proto_init()
-	file_workflows_v1_job_proto_msgTypes[7].OneofWrappers = []any{}
+	file_workflows_v1_job_proto_msgTypes[7].OneofWrappers = []any{
+		(*QueryFilters_TimeInterval)(nil),
+		(*QueryFilters_IdInterval)(nil),
+	}
 	file_workflows_v1_job_proto_msgTypes[8].OneofWrappers = []any{}
 	file_workflows_v1_job_proto_msgTypes[9].OneofWrappers = []any{}
 	type x struct{}
