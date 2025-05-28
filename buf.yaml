@@ -18,5 +18,5 @@ lint: # https://buf.build/docs/lint/rules/
     - COMMENT_RPC
 breaking: # https://buf.build/docs/breaking/rules/
   use:
-    # We can use WIRE_JSON since we control the clients
+    # we can use WIRE_JSON since we control the clients
     - WIRE_JSON

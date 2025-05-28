@@ -25,12 +25,10 @@ message DeleteClusterRequest {
 }
 
 // DeleteClusterResponse is the response to DeleteClusterRequest.
-message DeleteClusterResponse {
-}
+message DeleteClusterResponse {}
 
 // ListClustersRequest lists all clusters.
-message ListClustersRequest {
-}
+message ListClustersRequest {}
 
 // ListClustersResponse is the response to ListClustersRequest.
 message ListClustersResponse {

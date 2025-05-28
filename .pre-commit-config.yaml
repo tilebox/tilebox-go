@@ -5,4 +5,4 @@ repos:
     - id: buf-lint
     - id: buf-format
     - id: buf-breaking
-      entry: buf breaking --against ".git#branch=main"
+      args: [--against, ".git#branch=main"]

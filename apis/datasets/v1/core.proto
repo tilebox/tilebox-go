@@ -1,25 +1,24 @@
 /*
- Core message type definitions for the Tilebox datasets API.
+   Core message type definitions for the Tilebox datasets API.
 
- Conventions:
- - A dataset is a set of data points of the same type.
- - A single data point (entry) is referred to in all messages as datapoint.
- - Data points for a single dataset are grouped into collections.
+   Conventions:
+   - A dataset is a set of data points of the same type.
+   - A single data point (entry) is referred to in all messages as datapoint.
+   - Data points for a single dataset are grouped into collections.
 
- - All time fields use the google.protobuf.Timestamp message type.
+   - All time fields use the google.protobuf.Timestamp message type.
 
- - When a wrapper message is needed to return a list of a given message type, use the pluralized message name
-   - e.g. message Collections contains a list of Collection messages.
+   - When a wrapper message is needed to return a list of a given message type, use the pluralized message name
+     - e.g. message Collections contains a list of Collection messages.
 */
 
 syntax = "proto3";
 
 package datasets.v1;
 
+import "datasets/v1/dataset_type.proto";
 // https://protobuf.dev/reference/protobuf/google.protobuf/#timestamp
 import "google/protobuf/timestamp.proto";
-
-import "datasets/v1/dataset_type.proto";
 
 /*
  * General, multi purpose messages

@@ -9,7 +9,7 @@ import "datasets/v1/core.proto";
 // Legacy ingest request
 // IngestDatapointsRequest is used to ingest one or multiple datapoints into a collection.
 message IngestDatapointsRequest {
-  ID collection_id = 1;  // The collection to insert the datapoints into.
+  ID collection_id = 1; // The collection to insert the datapoints into.
 
   Datapoints datapoints = 2;
 
@@ -22,7 +22,7 @@ message IngestDatapointsRequest {
 
 // IngestRequest is used to ingest one or multiple datapoints into a collection.
 message IngestRequest {
-  ID collection_id = 1;  // The collection to insert the datapoints into.
+  ID collection_id = 1; // The collection to insert the datapoints into.
 
   // The datapoints to insert. The values here are encoded protobuf messages. The type of the message is determined
   // by the type of the dataset that the specified collection belongs to.
@@ -53,7 +53,6 @@ message DeleteRequest {
 message DeleteResponse {
   int64 num_deleted = 1; // The number of datapoints that were deleted.
 }
-
 
 // DataIngestionService provides data ingestion and deletion capabilities for Tilebox datasets.
 service DataIngestionService {

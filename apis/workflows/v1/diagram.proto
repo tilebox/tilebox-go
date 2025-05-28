@@ -6,8 +6,8 @@ package workflows.v1;
 
 // Request to render a diagram
 message RenderDiagramRequest {
-  string diagram = 1;  // The diagram graph in the D2 syntax
-  RenderOptions render_options = 2;  // The options for rendering the diagram
+  string diagram = 1; // The diagram graph in the D2 syntax
+  RenderOptions render_options = 2; // The options for rendering the diagram
 }
 
 // Options for rendering the diagram
