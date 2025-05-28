@@ -1,0 +1,25 @@
+---
+name: Lint Protobuf
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  merge_group:
+    branches: ["**"]
+
+jobs:
+  buf:
+    name: Buf
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Buf build/lint/format/breaking
+        uses: bufbuild/buf-action@v1

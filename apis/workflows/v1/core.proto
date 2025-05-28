@@ -52,16 +52,16 @@ message TaskSummary {
 
 // A task is a single unit of work.
 message Task {
-  UUID id = 1;  // The id of the task instance. Contains the submission timestamp as the time part of the ULID.
+  UUID id = 1; // The id of the task instance. Contains the submission timestamp as the time part of the ULID.
   // Unique identifier for the task. Used by runners to match tasks to specific functions.
   TaskIdentifier identifier = 2;
-  TaskState state = 3;  // The current state of the task.
+  TaskState state = 3; // The current state of the task.
   optional bytes input = 4; // The serialized input parameters for the task in the format that this task expects.
   // Display is a human readable representation of the Task used for printing or visualizations
   optional string display = 5;
-  Job job = 6;  // The job that this task belongs to.
-  UUID parent_id = 7;  // The id of the parent task.
-  repeated UUID depends_on = 8;  // The ids of the tasks that this task depends on.
+  Job job = 6; // The job that this task belongs to.
+  UUID parent_id = 7; // The id of the parent task.
+  repeated UUID depends_on = 8; // The ids of the tasks that this task depends on.
   TaskLease lease = 9; // The lease of the task.
   int64 retry_count = 10; // The number of times this task has been retried.
 }
@@ -84,8 +84,8 @@ enum TaskState {
 
 // An identifier for a task.
 message TaskIdentifier {
-  string name = 1;  // A unique name of a task (unique within a namespace).
-  string version = 2;  // Version of the task.
+  string name = 1; // A unique name of a task (unique within a namespace).
+  string version = 2; // Version of the task.
 }
 
 // A list of tasks.

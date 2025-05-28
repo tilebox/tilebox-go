@@ -4,24 +4,23 @@ syntax = "proto3";
 
 package workflows.v1;
 
-import "workflows/v1/core.proto";
-
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "workflows/v1/core.proto";
 
 // StorageType specifies a kind of storage bucket that we support.
 enum StorageType {
   STORAGE_TYPE_UNSPECIFIED = 0;
-  STORAGE_TYPE_GCS = 1;  // Google Cloud Storage
-  STORAGE_TYPE_S3 = 2;  // Amazon Web Services S3
-  STORAGE_TYPE_FS = 3;  // Local filesystem
+  STORAGE_TYPE_GCS = 1; // Google Cloud Storage
+  STORAGE_TYPE_S3 = 2; // Amazon Web Services S3
+  STORAGE_TYPE_FS = 3; // Local filesystem
 }
 
 // Storage location is some kind of storage that can contain data files or objects and be used as a trigger source.
 message StorageLocation {
-  UUID id = 1;  // Unique identifier for the storage location
+  UUID id = 1; // Unique identifier for the storage location
   string location = 2; // A unique identifier for the storage location in the storage system
-  StorageType type = 3;  // The type of the storage location, e.g. GCS, S3, FS
+  StorageType type = 3; // The type of the storage location, e.g. GCS, S3, FS
 }
 
 // Buckets is a list of storage buckets
@@ -32,12 +31,12 @@ message StorageLocations {
 // AutomationPrototype is a task prototype that can result in many submitted tasks. Task submissions are triggered by
 // NRT triggers, such as bucket triggers or cron triggers.
 message AutomationPrototype {
-  UUID id = 1;  // Unique identifier for the trigger
-  string name = 2;  // A human-readable name for the trigger
-  TaskSubmission prototype = 3;  // The task submission to trigger
+  UUID id = 1; // Unique identifier for the trigger
+  string name = 2; // A human-readable name for the trigger
+  TaskSubmission prototype = 3; // The task submission to trigger
 
-  repeated StorageEventTrigger storage_event_triggers = 4;  // The storage event triggers that will trigger the task
-  repeated CronTrigger cron_triggers = 5;  // The cron triggers that will trigger the task
+  repeated StorageEventTrigger storage_event_triggers = 4; // The storage event triggers that will trigger the task
+  repeated CronTrigger cron_triggers = 5; // The cron triggers that will trigger the task
 }
 
 // Automations is a list of automations
@@ -48,17 +47,16 @@ message Automations {
 // StorageEventTrigger is a trigger that will trigger a task submission when an object matching the glob pattern is
 // created in a storage location.
 message StorageEventTrigger {
-  UUID id = 1;  // Unique identifier for the trigger
-  StorageLocation storage_location = 2;  // The storage location to watch for events
-  string glob_pattern = 3;  // A glob pattern to match objects/files in the storage location
+  UUID id = 1; // Unique identifier for the trigger
+  StorageLocation storage_location = 2; // The storage location to watch for events
+  string glob_pattern = 3; // A glob pattern to match objects/files in the storage location
 }
 
 // CronTrigger is a trigger that will trigger a task submission on a schedule.
 message CronTrigger {
-  UUID id = 1;  // Unique identifier for the trigger
-  string schedule = 2;  // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
+  UUID id = 1; // Unique identifier for the trigger
+  string schedule = 2; // A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
 }
-
 
 // Automation is an actual submitted task that was triggered by a automation prototype.
 // It contains the trigger arguments of the event that triggered the task, and the custom, user-defined task arguments.
@@ -66,7 +64,7 @@ message Automation {
   // Details of the event that triggered the task. This is a serialized protobuf message. The type of the message
   // depends on the type of the trigger, either StorageEventTriggerEvent or CronTriggerEvent.
   bytes trigger_event = 1;
-  bytes args = 2;  // Additional, user-defined arguments for the task, to be deserialized by the task itself
+  bytes args = 2; // Additional, user-defined arguments for the task, to be deserialized by the task itself
 }
 
 // StorageEventType specifies the type of event that triggered the task.
@@ -77,15 +75,15 @@ enum StorageEventType {
 
 // TriggeredStorageEvent contains the details of the concrete event that triggered a storage event trigger.
 message TriggeredStorageEvent {
-  UUID storage_location_id = 1;  // The storage location that triggered the task
-  StorageEventType type = 2;  // The type of the storage event, e.g. created
+  UUID storage_location_id = 1; // The storage location that triggered the task
+  StorageEventType type = 2; // The type of the storage event, e.g. created
   // The object that triggered the task, e.g. a file name in a directory or object name in a bucket
   string location = 3;
 }
 
 // TriggeredCronEvent contains the details of a concrete event that triggered a cron trigger.
 message TriggeredCronEvent {
-  google.protobuf.Timestamp trigger_time = 1;  // The time the cron trigger fired
+  google.protobuf.Timestamp trigger_time = 1; // The time the cron trigger fired
 }
 
 // DeleteAutomationRequest requests the deletion of an automation.

@@ -5,8 +5,9 @@ syntax = "proto3";
 package datasets.v1;
 
 // in addition to the well-known types defined here, we also include Timestamp and Duration
-
+// buf:lint:ignore IMPORT_USED
 import "google/protobuf/duration.proto";
+// buf:lint:ignore IMPORT_USED
 import "google/protobuf/timestamp.proto";
 
 // Bytes field (in message)
@@ -61,14 +62,14 @@ enum ObservationDirection {
 enum OpendataProvider {
   OPENDATA_PROVIDER_UNSPECIFIED = 0;
   OPENDATA_PROVIDER_ASF = 1; // Alaska Satellite Facility
-  OPENDATA_PROVIDER_COPERNICUS_DATASPACE = 2;  // Copernicus Dataspace
+  OPENDATA_PROVIDER_COPERNICUS_DATASPACE = 2; // Copernicus Dataspace
   OPENDATA_PROVIDER_UMBRA = 3; // Umbra Space
 }
 
 // https://www.earthdata.nasa.gov/engage/open-data-services-and-software/data-information-policy/data-levels
 enum ProcessingLevel {
   PROCESSING_LEVEL_UNSPECIFIED = 0;
-  PROCESSING_LEVEL_L0 = 12;  // Raw data
+  PROCESSING_LEVEL_L0 = 12; // Raw data
   PROCESSING_LEVEL_L1 = 10;
   PROCESSING_LEVEL_L1A = 1;
   PROCESSING_LEVEL_L1B = 2;
@@ -91,28 +92,28 @@ enum Polarization {
   // Horizontal transmit, Horizontal receive
   POLARIZATION_UNSPECIFIED = 0;
   POLARIZATION_HH = 1;
-  POLARIZATION_HV = 2;  // Horizontal transmit, Vertical receive
-  POLARIZATION_VH = 3;  // Vertical transmit, Horizontal receive
-  POLARIZATION_VV = 4;  // Vertical transmit, Vertical receive
-  POLARIZATION_DUAL_HH = 5;  // HH+HH
-  POLARIZATION_DUAL_HV = 6;  // HV+HV
-  POLARIZATION_DUAL_VH = 7;  // VH+VH
-  POLARIZATION_DUAL_VV = 8;  // VV+VV
-  POLARIZATION_HH_HV = 9;  // HH+HV
-  POLARIZATION_VV_VH = 10;  // VV+VH
+  POLARIZATION_HV = 2; // Horizontal transmit, Vertical receive
+  POLARIZATION_VH = 3; // Vertical transmit, Horizontal receive
+  POLARIZATION_VV = 4; // Vertical transmit, Vertical receive
+  POLARIZATION_DUAL_HH = 5; // HH+HH
+  POLARIZATION_DUAL_HV = 6; // HV+HV
+  POLARIZATION_DUAL_VH = 7; // VH+VH
+  POLARIZATION_DUAL_VV = 8; // VV+VV
+  POLARIZATION_HH_HV = 9; // HH+HV
+  POLARIZATION_VV_VH = 10; // VV+VH
 }
 
 // Sentinel-1 SAR (beam mode):
 // https://sentinels.copernicus.eu/web/sentinel/technical-guides/sentinel-1-sar/sar-instrument/acquisition-modes
 enum AcquisitionMode {
-  ACQUISITION_MODE_UNSPECIFIED = 0;  // In case it is not set for a dataset
+  ACQUISITION_MODE_UNSPECIFIED = 0; // In case it is not set for a dataset
   // used by Sentinel-1 SAR:
-  ACQUISITION_MODE_SM = 1;  // Strip Map
-  ACQUISITION_MODE_EW = 2;  // Extra Wide Swath
-  ACQUISITION_MODE_IW = 3;  // Interferometric Wide Swath
-  ACQUISITION_MODE_WV = 4;  // Wave
+  ACQUISITION_MODE_SM = 1; // Strip Map
+  ACQUISITION_MODE_EW = 2; // Extra Wide Swath
+  ACQUISITION_MODE_IW = 3; // Interferometric Wide Swath
+  ACQUISITION_MODE_WV = 4; // Wave
   // used by Umbra SAR:
-  ACQUISITION_MODE_SPOTLIGHT = 10;  // Spotlight
+  ACQUISITION_MODE_SPOTLIGHT = 10; // Spotlight
   // used by Sentinel 2 MSI:
   ACQUISITION_MODE_NOBS = 20; // Nominal Observation
   ACQUISITION_MODE_EOBS = 21; // Extended Observation
@@ -125,9 +126,8 @@ enum AcquisitionMode {
 
 // Geometry is of a particular type, e.g. POINT, POLYGON, MULTIPOLYGON, encoded in a binary format
 message Geometry {
-  bytes wkb = 1;  // well-known binary representation of a geometry
+  bytes wkb = 1; // well-known binary representation of a geometry
 }
-
 
 // GeobufData is a protobuf schema for encoding GeoJSON-like data in a more compact binary format.
 // It's a super type for one of FeatureCollection, Feature, or Geometry.
@@ -138,6 +138,7 @@ message GeobufData {
   uint32 dimensions = 2; // max coordinate dimensions, default 2
   uint32 precision = 3; // number of digits after decimal point for coordinates, default 6
 
+  // buf:lint:ignore COMMENT_ONEOF
   oneof data_type {
     FeatureCollection feature_collection = 4;
     Feature feature = 5;
@@ -148,6 +149,7 @@ message GeobufData {
   message Feature {
     Geometry geometry = 1;
 
+    // buf:lint:ignore COMMENT_ONEOF
     oneof id_type {
       string id = 11;
       sint64 int_id = 12;
@@ -171,7 +173,8 @@ message GeobufData {
 
     // Type of geometry
     enum Type {
-      TYPE_EMPTY = 0;  // protolint:disable:this ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+      // buf:lint:ignore ENUM_ZERO_VALUE_SUFFIX
+      TYPE_EMPTY = 0;
       TYPE_POINT = 1;
       TYPE_MULTIPOINT = 2;
       TYPE_LINESTRING = 3;
@@ -192,6 +195,7 @@ message GeobufData {
 
   // The value of a key
   message Value {
+    // buf:lint:ignore COMMENT_ONEOF
     oneof value_type {
       string string_value = 1;
       double double_value = 2;
