@@ -4,8 +4,6 @@ syntax = "proto3";
 
 package workflows.v1;
 
-import "workflows/v1/core.proto";
-
 // Request to render a diagram
 message RenderDiagramRequest {
   string diagram = 1;  // The diagram graph in the D2 syntax
