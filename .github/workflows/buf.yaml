@@ -23,3 +23,5 @@ jobs:
 
       - name: Buf build/lint/format/breaking
         uses: bufbuild/buf-action@v1
+        with:
+          push: false # we don't use buf push
