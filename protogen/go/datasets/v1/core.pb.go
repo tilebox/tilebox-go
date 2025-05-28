@@ -1174,7 +1174,7 @@ var File_datasets_v1_core_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1edatasets/v1/dataset_type.proto\"\x18\n" +
+	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x18\n" +
 	"\x02ID\x12\x12\n" +
 	"\x04uuid\x18\x01 \x01(\fR\x04uuid\"\xce\x01\n" +
 	"\fTimeInterval\x129\n" +
