@@ -209,7 +209,7 @@ var File_workflows_v1_diagram_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_diagram_proto_rawDesc = "" +
 	"\n" +
-	"\x1aworkflows/v1/diagram.proto\x12\fworkflows.v1\x1a\x17workflows/v1/core.proto\"t\n" +
+	"\x1aworkflows/v1/diagram.proto\x12\fworkflows.v1\"t\n" +
 	"\x14RenderDiagramRequest\x12\x18\n" +
 	"\adiagram\x18\x01 \x01(\tR\adiagram\x12B\n" +
 	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\"\xa6\x01\n" +
@@ -260,7 +260,6 @@ func file_workflows_v1_diagram_proto_init() {
 	if File_workflows_v1_diagram_proto != nil {
 		return
 	}
-	file_workflows_v1_core_proto_init()
 	file_workflows_v1_diagram_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

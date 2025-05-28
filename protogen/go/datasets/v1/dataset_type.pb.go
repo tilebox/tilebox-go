@@ -461,7 +461,7 @@ var File_datasets_v1_dataset_type_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"\n" +
-	"\x1edatasets/v1/dataset_type.proto\x12\vdatasets.v1\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\"datasets/v1/well_known_types.proto\"\xaa\x01\n" +
+	"\x1edatasets/v1/dataset_type.proto\x12\vdatasets.v1\x1a\"datasets/v1/well_known_types.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xaa\x01\n" +
 	"\x05Field\x12E\n" +
 	"\n" +
 	"descriptor\x18\x01 \x01(\v2%.google.protobuf.FieldDescriptorProtoR\n" +

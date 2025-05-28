@@ -691,7 +691,7 @@ var File_workflows_v1_automation_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\n" +
-	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x17workflows/v1/core.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x80\x01\n" +
+	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17workflows/v1/core.proto\"\x80\x01\n" +
 	"\x0fStorageLocation\x12\"\n" +
 	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x1a\n" +
 	"\blocation\x18\x02 \x01(\tR\blocation\x12-\n" +

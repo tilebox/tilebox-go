@@ -422,7 +422,8 @@ func (AcquisitionMode) EnumDescriptor() ([]byte, []int) {
 type GeobufData_Geometry_Type int32
 
 const (
-	GeobufData_Geometry_TYPE_EMPTY              GeobufData_Geometry_Type = 0 // protolint:disable:this ENUM_FIELD_NAMES_ZERO_VALUE_END_WITH
+	// buf:lint:ignore ENUM_ZERO_VALUE_SUFFIX
+	GeobufData_Geometry_TYPE_EMPTY              GeobufData_Geometry_Type = 0
 	GeobufData_Geometry_TYPE_POINT              GeobufData_Geometry_Type = 1
 	GeobufData_Geometry_TYPE_MULTIPOINT         GeobufData_Geometry_Type = 2
 	GeobufData_Geometry_TYPE_LINESTRING         GeobufData_Geometry_Type = 3
@@ -826,6 +827,8 @@ type GeobufData struct {
 	Keys       []string               `protobuf:"bytes,1,rep,name=keys,proto3" json:"keys,omitempty"`              // global arrays of unique keys
 	Dimensions uint32                 `protobuf:"varint,2,opt,name=dimensions,proto3" json:"dimensions,omitempty"` // max coordinate dimensions, default 2
 	Precision  uint32                 `protobuf:"varint,3,opt,name=precision,proto3" json:"precision,omitempty"`   // number of digits after decimal point for coordinates, default 6
+	// buf:lint:ignore COMMENT_ONEOF
+	//
 	// Types that are valid to be assigned to DataType:
 	//
 	//	*GeobufData_FeatureCollection_
@@ -947,6 +950,8 @@ func (*GeobufData_Geometry_) isGeobufData_DataType() {}
 type GeobufData_Feature struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Geometry *GeobufData_Geometry   `protobuf:"bytes,1,opt,name=geometry,proto3" json:"geometry,omitempty"`
+	// buf:lint:ignore COMMENT_ONEOF
+	//
 	// Types that are valid to be assigned to IdType:
 	//
 	//	*GeobufData_Feature_Id
@@ -1207,6 +1212,8 @@ func (x *GeobufData_FeatureCollection) GetCustomProperties() []uint32 {
 // The value of a key
 type GeobufData_Value struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
+	// buf:lint:ignore COMMENT_ONEOF
+	//
 	// Types that are valid to be assigned to ValueType:
 	//
 	//	*GeobufData_Value_StringValue
