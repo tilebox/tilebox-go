@@ -20,9 +20,16 @@ type Cluster struct {
 }
 
 type ClusterClient interface {
+	// Create creates a new cluster with the given name.
 	Create(ctx context.Context, name string) (*Cluster, error)
+
+	// Get returns a cluster by its slug.
 	Get(ctx context.Context, slug string) (*Cluster, error)
+
+	// Delete deletes a cluster by its slug.
 	Delete(ctx context.Context, slug string) error
+
+	// List returns a list of all available clusters.
 	List(ctx context.Context) ([]*Cluster, error)
 }
 
@@ -32,7 +39,6 @@ type clusterClient struct {
 	service WorkflowService
 }
 
-// Create creates a new cluster with the given name.
 func (c clusterClient) Create(ctx context.Context, name string) (*Cluster, error) {
 	response, err := c.service.CreateCluster(ctx, name)
 	if err != nil {
@@ -42,7 +48,6 @@ func (c clusterClient) Create(ctx context.Context, name string) (*Cluster, error
 	return protoToCluster(response), nil
 }
 
-// Get returns a cluster by its slug.
 func (c clusterClient) Get(ctx context.Context, slug string) (*Cluster, error) {
 	response, err := c.service.GetCluster(ctx, slug)
 	if err != nil {
@@ -52,12 +57,10 @@ func (c clusterClient) Get(ctx context.Context, slug string) (*Cluster, error) {
 	return protoToCluster(response), nil
 }
 
-// Delete deletes a cluster by its slug.
 func (c clusterClient) Delete(ctx context.Context, slug string) error {
 	return c.service.DeleteCluster(ctx, slug)
 }
 
-// List returns a list of all available clusters.
 func (c clusterClient) List(ctx context.Context) ([]*Cluster, error) {
 	response, err := c.service.ListClusters(ctx)
 	if err != nil {

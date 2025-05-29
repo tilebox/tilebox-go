@@ -16,11 +16,75 @@ import (
 )
 
 type DatapointClient interface {
+	// GetInto get a single datapoint by its ID from one or more collections of the same dataset into a proto.Message.
+	//
+	// Options:
+	//   - WithSkipData: can be used to skip the actual data, only returning required datapoint fields. (Optional)
+	//
+	// Example usage:
+	//
+	//	var datapoint v1.Sentinel1Sar
+	//	err = client.Datapoints.GetInto(ctx, collectionIDs, datapointID, &datapoint)
 	GetInto(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, datapoint proto.Message, options ...QueryOption) error
+
+	// Query datapoints from one or more collections of the same dataset.
+	//
+	// Options:
+	//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
+	//   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
+	//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning required datapoint fields. (Optional)
+	//
+	// The datapoints are lazily loaded and returned as a sequence of bytes.
+	// The output sequence can be transformed into a proto.Message using CollectAs / As.
+	//
+	// Example usage:
+	//
+	//	for datapointBytes, err := range client.Datapoints.Query(ctx, collectionIDs, WithTemporalExtent(timeInterval), WithSpatialExtent(geometry)) {
+	//	  if err != nil {
+	//	    // handle error
+	//	  }
+	//	  datapoint := &v1.Sentinel1Sar{}
+	//	  err = proto.Unmarshal(datapointBytes, datapoint)
+	//	  if err != nil {
+	//	    // handle unmarshal error
+	//	  }
+	//	  // do something with the datapoint
+	//	}
+	//
+	// Documentation: https://docs.tilebox.com/datasets/query
 	Query(ctx context.Context, collectionIDs []uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error]
+
+	// QueryInto queries datapoints from one or more collections of the same dataset into a slice of datapoints of a
+	// compatible proto.Message type.
+	//
+	// QueryInto is a convenience function for Query, when no manual pagination or custom iteration is required.
+	//
+	// Example usage:
+	//
+	//	var datapoints []*v1.Sentinel1Sar
+	//	err := client.Datapoints.QueryInto(ctx, collectionIDs, &datapoints, WithTemporalExtent(timeInterval))
 	QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error
+
+	// Ingest datapoints into a collection.
+	//
+	// data is a list of datapoints to ingest that should be created using Datapoints.
+	//
+	// allowExisting specifies whether to allow existing datapoints as part of the request. If true, datapoints that already
+	// exist will be ignored, and the number of such existing datapoints will be returned in the response. If false, any
+	// datapoints that already exist will result in an error. Setting this to true is useful for achieving idempotency (e.g.
+	// allowing re-ingestion of datapoints that have already been ingested in the past).
 	Ingest(ctx context.Context, collectionID uuid.UUID, datapoints any, allowExisting bool) (*IngestResponse, error)
+
+	// Delete datapoints from a collection.
+	//
+	// The datapoints are identified by their IDs.
+	//
+	// Returns the number of deleted datapoints.
 	Delete(ctx context.Context, collectionID uuid.UUID, datapoints any) (int64, error)
+
+	// DeleteIDs deletes datapoints from a collection by their IDs.
+	//
+	// Returns the number of deleted datapoints.
 	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (int64, error)
 }
 
@@ -68,15 +132,6 @@ func WithSkipData() QueryOption {
 	}
 }
 
-// GetInto get a single datapoint by its ID from one or more collections of the same dataset into a proto.Message.
-//
-// Options:
-//   - WithSkipData: can be used to skip the actual data, only returning required datapoint fields. (Optional)
-//
-// Example usage:
-//
-//	var datapoint v1.Sentinel1Sar
-//	err = client.Datapoints.GetInto(ctx, collectionIDs, datapointID, &datapoint)
 func (d datapointClient) GetInto(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, datapoint proto.Message, options ...QueryOption) error {
 	cfg := &queryOptions{
 		skipData: false,
@@ -98,31 +153,6 @@ func (d datapointClient) GetInto(ctx context.Context, collectionIDs []uuid.UUID,
 	return nil
 }
 
-// Query datapoints from one or more collections of the same dataset.
-//
-// Options:
-//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
-//   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
-//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning required datapoint fields. (Optional)
-//
-// The datapoints are lazily loaded and returned as a sequence of bytes.
-// The output sequence can be transformed into a proto.Message using CollectAs / As.
-//
-// Example usage:
-//
-//	for datapointBytes, err := range client.Datapoints.Query(ctx, collectionIDs, WithTemporalExtent(timeInterval), WithSpatialExtent(geometry)) {
-//	  if err != nil {
-//	    // handle error
-//	  }
-//	  datapoint := &v1.Sentinel1Sar{}
-//	  err = proto.Unmarshal(datapointBytes, datapoint)
-//	  if err != nil {
-//	    // handle unmarshal error
-//	  }
-//	  // do something with the datapoint
-//	}
-//
-// Documentation: https://docs.tilebox.com/datasets/query
 func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error] {
 	cfg := &queryOptions{
 		skipData: false,
@@ -190,15 +220,6 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 	}
 }
 
-// QueryInto queries datapoints from one or more collections of the same dataset into a slice of datapoints of a
-// compatible proto.Message type.
-//
-// QueryInto is a convenience function for Query, when no manual pagination or custom iteration is required.
-//
-// Example usage:
-//
-//	var datapoints []*v1.Sentinel1Sar
-//	err := client.Datapoints.QueryInto(ctx, collectionIDs, &datapoints, WithTemporalExtent(timeInterval))
 func (d datapointClient) QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error {
 	err := validateDatapoints(datapoints)
 	if err != nil {
@@ -243,14 +264,6 @@ type IngestResponse struct {
 	DatapointIDs []uuid.UUID
 }
 
-// Ingest datapoints into a collection.
-//
-// data is a list of datapoints to ingest that should be created using Datapoints.
-//
-// allowExisting specifies whether to allow existing datapoints as part of the request. If true, datapoints that already
-// exist will be ignored, and the number of such existing datapoints will be returned in the response. If false, any
-// datapoints that already exist will result in an error. Setting this to true is useful for achieving idempotency (e.g.
-// allowing re-ingestion of datapoints that have already been ingested in the past).
 func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, datapoints any, allowExisting bool) (*IngestResponse, error) {
 	err := validateDatapoints(datapoints)
 	if err != nil {
@@ -317,11 +330,6 @@ func validateDatapoints(datapoints any) error {
 	return nil
 }
 
-// Delete datapoints from a collection.
-//
-// The datapoints are identified by their IDs.
-//
-// Returns the number of deleted datapoints.
 func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, datapoints any) (int64, error) {
 	err := validateDatapoints(datapoints)
 	if err != nil {
@@ -349,9 +357,6 @@ func (d datapointClient) Delete(ctx context.Context, collectionID uuid.UUID, dat
 	return d.DeleteIDs(ctx, collectionID, datapointIDs)
 }
 
-// DeleteIDs deletes datapoints from a collection by their IDs.
-//
-// Returns the number of deleted datapoints.
 func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (int64, error) {
 	numDeleted := int64(0)
 

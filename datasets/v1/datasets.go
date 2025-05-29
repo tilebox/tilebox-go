@@ -41,7 +41,10 @@ func (d Dataset) String() string {
 }
 
 type DatasetClient interface {
+	// Get returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
 	Get(ctx context.Context, slug string) (*Dataset, error)
+
+	// List returns a list of all available datasets.
 	List(ctx context.Context) ([]*Dataset, error)
 }
 
@@ -51,7 +54,6 @@ type datasetClient struct {
 	service DatasetService
 }
 
-// Get returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
 func (d datasetClient) Get(ctx context.Context, slug string) (*Dataset, error) {
 	response, err := d.service.GetDataset(ctx, slug)
 	if err != nil {
@@ -66,7 +68,6 @@ func (d datasetClient) Get(ctx context.Context, slug string) (*Dataset, error) {
 	return dataset, nil
 }
 
-// List returns a list of all available datasets.
 func (d datasetClient) List(ctx context.Context) ([]*Dataset, error) {
 	response, err := d.service.ListDatasets(ctx)
 	if err != nil {

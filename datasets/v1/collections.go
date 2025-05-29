@@ -40,9 +40,16 @@ func (c Collection) String() string {
 }
 
 type CollectionClient interface {
+	// Create creates a new collection in the dataset with the given name.
 	Create(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
+
+	// Get returns a collection by its name.
 	Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
+
+	// GetOrCreate returns a collection by its name, creating it if it does not exist.
 	GetOrCreate(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
+
+	// List returns a list of all available collections in the dataset.
 	List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error)
 }
 
@@ -52,7 +59,6 @@ type collectionClient struct {
 	service CollectionService
 }
 
-// Create creates a new collection in the dataset with the given name.
 func (c collectionClient) Create(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
 	response, err := c.service.CreateCollection(ctx, datasetID, name)
 	if err != nil {
@@ -67,7 +73,6 @@ func (c collectionClient) Create(ctx context.Context, datasetID uuid.UUID, name 
 	return collection, nil
 }
 
-// Get returns a collection by its name.
 func (c collectionClient) Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
 	response, err := c.service.GetCollectionByName(ctx, datasetID, name)
 	if err != nil {
@@ -82,7 +87,6 @@ func (c collectionClient) Get(ctx context.Context, datasetID uuid.UUID, name str
 	return collection, nil
 }
 
-// GetOrCreate returns a collection by its name, creating it if it does not exist.
 func (c collectionClient) GetOrCreate(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
 	collection, err := c.Get(ctx, datasetID, name)
 	if err != nil {
@@ -95,7 +99,6 @@ func (c collectionClient) GetOrCreate(ctx context.Context, datasetID uuid.UUID, 
 	return collection, err
 }
 
-// List returns a list of all available collections in the dataset.
 func (c collectionClient) List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error) {
 	response, err := c.service.ListCollections(ctx, datasetID)
 	if err != nil {
