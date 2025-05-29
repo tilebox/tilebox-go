@@ -79,10 +79,38 @@ const (
 )
 
 type JobClient interface {
+	// Submit submits a job to the specified cluster.
+	//
+	// Options:
+	//   - job.WithMaxRetries: sets the maximum number of times a job can be automatically retried. Defaults to 0.
+	//
+	// Documentation: https://docs.tilebox.com/workflows/concepts/jobs#submission
 	Submit(ctx context.Context, jobName string, cluster *Cluster, tasks []Task, options ...job.SubmitOption) (*Job, error)
+
+	// Get returns a job by its ID.
 	Get(ctx context.Context, jobID uuid.UUID) (*Job, error)
+
+	// Retry retries a job.
+	//
+	// Returns the number of rescheduled tasks.
+	//
+	// Documentation: https://docs.tilebox.com/workflows/concepts/jobs#retry-handling
 	Retry(ctx context.Context, jobID uuid.UUID) (int64, error)
+
+	// Cancel cancels a job.
+	//
+	// Documentation: https://docs.tilebox.com/workflows/concepts/jobs#cancellation
 	Cancel(ctx context.Context, jobID uuid.UUID) error
+
+	// Query returns a list of all jobs within the given interval.
+	//
+	// Options:
+	//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried (Required)
+	//   - job.WithAutomationID: specifies the automation ID to filter jobs by. Only jobs submitted by the specified
+	//  automation will be returned. (Optional)
+	//
+	// The jobs are lazily loaded and returned as a sequence.
+	// The output sequence can be transformed into a slice using Collect.
 	Query(ctx context.Context, options ...job.QueryOption) iter.Seq2[*Job, error]
 }
 
@@ -92,12 +120,6 @@ type jobClient struct {
 	service JobService
 }
 
-// Submit submits a job to the specified cluster.
-//
-// Options:
-//   - job.WithMaxRetries: sets the maximum number of times a job can be automatically retried. Defaults to 0.
-//
-// Documentation: https://docs.tilebox.com/workflows/concepts/jobs#submission
 func (c jobClient) Submit(ctx context.Context, jobName string, cluster *Cluster, tasks []Task, options ...job.SubmitOption) (*Job, error) {
 	opts := &job.SubmitOptions{}
 	for _, option := range options {
@@ -122,7 +144,6 @@ func (c jobClient) Submit(ctx context.Context, jobName string, cluster *Cluster,
 	return job, nil
 }
 
-// Get returns a job by its ID.
 func (c jobClient) Get(ctx context.Context, jobID uuid.UUID) (*Job, error) {
 	response, err := c.service.GetJob(ctx, jobID)
 	if err != nil {
@@ -137,11 +158,6 @@ func (c jobClient) Get(ctx context.Context, jobID uuid.UUID) (*Job, error) {
 	return job, nil
 }
 
-// Retry retries a job.
-//
-// Returns the number of rescheduled tasks.
-//
-// Documentation: https://docs.tilebox.com/workflows/concepts/jobs#retry-handling
 func (c jobClient) Retry(ctx context.Context, jobID uuid.UUID) (int64, error) {
 	response, err := c.service.RetryJob(ctx, jobID)
 	if err != nil {
@@ -151,21 +167,10 @@ func (c jobClient) Retry(ctx context.Context, jobID uuid.UUID) (int64, error) {
 	return response.GetNumTasksRescheduled(), nil
 }
 
-// Cancel cancels a job.
-//
-// Documentation: https://docs.tilebox.com/workflows/concepts/jobs#cancellation
 func (c jobClient) Cancel(ctx context.Context, jobID uuid.UUID) error {
 	return c.service.CancelJob(ctx, jobID)
 }
 
-// Query returns a list of all jobs within the given interval.
-//
-// Options:
-//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried (Required)
-//   - job.WithAutomationID: specifies the automation ID to filter jobs by. (Optional)
-//
-// The jobs are lazily loaded and returned as a sequence.
-// The output sequence can be transformed into a slice using Collect.
 func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.Seq2[*Job, error] {
 	opts := &job.QueryOptions{}
 	for _, option := range options {
