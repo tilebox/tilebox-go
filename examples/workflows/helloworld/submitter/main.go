@@ -12,13 +12,7 @@ func main() {
 	ctx := context.Background()
 	client := workflows.NewClient()
 
-	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
-		return
-	}
-
-	job, err := client.Jobs.Submit(ctx, "hello-world", cluster,
+	job, err := client.Jobs.Submit(ctx, "hello-world",
 		[]workflows.Task{
 			&helloworld.HelloTask{
 				Name: "Tilebox",
@@ -26,9 +20,9 @@ func main() {
 		},
 	)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to submit job", slog.Any("error", err))
+		slog.Error("Failed to submit job", slog.Any("error", err))
 		return
 	}
 
-	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
+	slog.Info("Job submitted", slog.String("job_id", job.ID.String()))
 }

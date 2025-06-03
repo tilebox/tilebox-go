@@ -57,13 +57,14 @@ func NewClient(options ...ClientOption) *Client {
 	}
 }
 
-// NewTaskRunner creates a new TaskRunner for the specified cluster.
+// NewTaskRunner creates a new TaskRunner.
 //
 // Options:
+//   - runner.WithClusterSlug: sets the cluster for which to listen tasks to. Default to the default cluster.
 //   - runner.WithRunnerLogger: sets the logger to use for the task runner. Defaults to slog.Default().
 //   - runner.WithDisableMetrics: disables OpenTelemetry metrics for the task runner.
-func (c *Client) NewTaskRunner(cluster *Cluster, options ...runner.Option) (*TaskRunner, error) {
-	return newTaskRunner(c.taskService, c.tracer, cluster, options...)
+func (c *Client) NewTaskRunner(ctx context.Context, options ...runner.Option) (*TaskRunner, error) {
+	return newTaskRunner(ctx, c.taskService, c.Clusters, c.tracer, options...)
 }
 
 // clientConfig contains the configuration for Tilebox Workflows client.

@@ -12,13 +12,7 @@ func main() {
 	ctx := context.Background()
 	client := workflows.NewClient()
 
-	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
-		return
-	}
-
-	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree", cluster,
+	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree",
 		[]workflows.Task{
 			&pbtask.SampleTask{ // protobuf task
 				Message:      "hello go runner!",

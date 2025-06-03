@@ -12,13 +12,7 @@ func main() {
 	ctx := context.Background()
 	client := workflows.NewClient()
 
-	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
-		return
-	}
-
-	taskRunner, err := client.NewTaskRunner(cluster)
+	taskRunner, err := client.NewTaskRunner(ctx)
 	if err != nil {
 		slog.Error("failed to create task runner", slog.Any("error", err))
 		return

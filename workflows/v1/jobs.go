@@ -79,13 +79,14 @@ const (
 )
 
 type JobClient interface {
-	// Submit submits a job to the specified cluster.
+	// Submit submits a job to a cluster.
 	//
 	// Options:
 	//   - job.WithMaxRetries: sets the maximum number of times a job can be automatically retried. Defaults to 0.
+	//   - job.WithClusterSlug: sets the cluster slug of the cluster where the job will be executed. Defaults to the default cluster.
 	//
 	// Documentation: https://docs.tilebox.com/workflows/concepts/jobs#submission
-	Submit(ctx context.Context, jobName string, cluster *Cluster, tasks []Task, options ...job.SubmitOption) (*Job, error)
+	Submit(ctx context.Context, jobName string, tasks []Task, options ...job.SubmitOption) (*Job, error)
 
 	// Get returns a job by its ID.
 	Get(ctx context.Context, jobID uuid.UUID) (*Job, error)
@@ -120,13 +121,13 @@ type jobClient struct {
 	service JobService
 }
 
-func (c jobClient) Submit(ctx context.Context, jobName string, cluster *Cluster, tasks []Task, options ...job.SubmitOption) (*Job, error) {
+func (c jobClient) Submit(ctx context.Context, jobName string, tasks []Task, options ...job.SubmitOption) (*Job, error) {
 	opts := &job.SubmitOptions{}
 	for _, option := range options {
 		option(opts)
 	}
 
-	jobRequest, err := validateJob(jobName, cluster.Slug, opts.MaxRetries, tasks...)
+	jobRequest, err := validateJob(jobName, opts.ClusterSlug, opts.MaxRetries, tasks...)
 	if err != nil {
 		return nil, err
 	}
