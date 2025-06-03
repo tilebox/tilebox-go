@@ -21,9 +21,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DataIngestionService_IngestDatapoints_FullMethodName = "/datasets.v1.DataIngestionService/IngestDatapoints"
-	DataIngestionService_Ingest_FullMethodName           = "/datasets.v1.DataIngestionService/Ingest"
-	DataIngestionService_Delete_FullMethodName           = "/datasets.v1.DataIngestionService/Delete"
+	DataIngestionService_Ingest_FullMethodName = "/datasets.v1.DataIngestionService/Ingest"
+	DataIngestionService_Delete_FullMethodName = "/datasets.v1.DataIngestionService/Delete"
 )
 
 // DataIngestionServiceClient is the client API for DataIngestionService service.
@@ -32,8 +31,6 @@ const (
 //
 // DataIngestionService provides data ingestion and deletion capabilities for Tilebox datasets.
 type DataIngestionServiceClient interface {
-	// legacy ingest endpoint, that separates datapoints into meta and data. Will be removed in the future.
-	IngestDatapoints(ctx context.Context, in *IngestDatapointsRequest, opts ...grpc.CallOption) (*IngestResponse, error)
 	Ingest(ctx context.Context, in *IngestRequest, opts ...grpc.CallOption) (*IngestResponse, error)
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
 }
@@ -44,16 +41,6 @@ type dataIngestionServiceClient struct {
 
 func NewDataIngestionServiceClient(cc grpc.ClientConnInterface) DataIngestionServiceClient {
 	return &dataIngestionServiceClient{cc}
-}
-
-func (c *dataIngestionServiceClient) IngestDatapoints(ctx context.Context, in *IngestDatapointsRequest, opts ...grpc.CallOption) (*IngestResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(IngestResponse)
-	err := c.cc.Invoke(ctx, DataIngestionService_IngestDatapoints_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *dataIngestionServiceClient) Ingest(ctx context.Context, in *IngestRequest, opts ...grpc.CallOption) (*IngestResponse, error) {
@@ -82,8 +69,6 @@ func (c *dataIngestionServiceClient) Delete(ctx context.Context, in *DeleteReque
 //
 // DataIngestionService provides data ingestion and deletion capabilities for Tilebox datasets.
 type DataIngestionServiceServer interface {
-	// legacy ingest endpoint, that separates datapoints into meta and data. Will be removed in the future.
-	IngestDatapoints(context.Context, *IngestDatapointsRequest) (*IngestResponse, error)
 	Ingest(context.Context, *IngestRequest) (*IngestResponse, error)
 	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
 	mustEmbedUnimplementedDataIngestionServiceServer()
@@ -96,9 +81,6 @@ type DataIngestionServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedDataIngestionServiceServer struct{}
 
-func (UnimplementedDataIngestionServiceServer) IngestDatapoints(context.Context, *IngestDatapointsRequest) (*IngestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IngestDatapoints not implemented")
-}
 func (UnimplementedDataIngestionServiceServer) Ingest(context.Context, *IngestRequest) (*IngestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ingest not implemented")
 }
@@ -124,24 +106,6 @@ func RegisterDataIngestionServiceServer(s grpc.ServiceRegistrar, srv DataIngesti
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&DataIngestionService_ServiceDesc, srv)
-}
-
-func _DataIngestionService_IngestDatapoints_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(IngestDatapointsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataIngestionServiceServer).IngestDatapoints(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataIngestionService_IngestDatapoints_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataIngestionServiceServer).IngestDatapoints(ctx, req.(*IngestDatapointsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _DataIngestionService_Ingest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -187,10 +151,6 @@ var DataIngestionService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "datasets.v1.DataIngestionService",
 	HandlerType: (*DataIngestionServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "IngestDatapoints",
-			Handler:    _DataIngestionService_IngestDatapoints_Handler,
-		},
 		{
 			MethodName: "Ingest",
 			Handler:    _DataIngestionService_Ingest_Handler,

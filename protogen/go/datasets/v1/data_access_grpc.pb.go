@@ -33,9 +33,9 @@ const (
 //
 // DataAccessService provides data access and querying capabilities for Tilebox datasets.
 type DataAccessServiceClient interface {
-	// GetDatasetForInterval returns a list of data points for a given time interval and collection.
+	// legacy endpoint, kept around for backwards compatibility with older python clients for now
 	GetDatasetForInterval(ctx context.Context, in *GetDatasetForIntervalRequest, opts ...grpc.CallOption) (*DatapointPage, error)
-	// GetDatapointByID returns a single datapoint by its ID.
+	// legacy endpoint, kept around for backwards compatibility with older python clients for now
 	GetDatapointByID(ctx context.Context, in *GetDatapointByIdRequest, opts ...grpc.CallOption) (*Datapoint, error)
 	// QueryByID returns a single data point by its ID.
 	QueryByID(ctx context.Context, in *QueryByIDRequest, opts ...grpc.CallOption) (*Any, error)
@@ -97,9 +97,9 @@ func (c *dataAccessServiceClient) Query(ctx context.Context, in *QueryRequest, o
 //
 // DataAccessService provides data access and querying capabilities for Tilebox datasets.
 type DataAccessServiceServer interface {
-	// GetDatasetForInterval returns a list of data points for a given time interval and collection.
+	// legacy endpoint, kept around for backwards compatibility with older python clients for now
 	GetDatasetForInterval(context.Context, *GetDatasetForIntervalRequest) (*DatapointPage, error)
-	// GetDatapointByID returns a single datapoint by its ID.
+	// legacy endpoint, kept around for backwards compatibility with older python clients for now
 	GetDatapointByID(context.Context, *GetDatapointByIdRequest) (*Datapoint, error)
 	// QueryByID returns a single data point by its ID.
 	QueryByID(context.Context, *QueryByIDRequest) (*Any, error)

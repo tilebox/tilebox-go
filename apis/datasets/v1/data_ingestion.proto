@@ -56,9 +56,6 @@ message DeleteResponse {
 
 // DataIngestionService provides data ingestion and deletion capabilities for Tilebox datasets.
 service DataIngestionService {
-  // legacy ingest endpoint, that separates datapoints into meta and data. Will be removed in the future.
-  rpc IngestDatapoints(IngestDatapointsRequest) returns (IngestResponse) {}
-
   rpc Ingest(IngestRequest) returns (IngestResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
 }

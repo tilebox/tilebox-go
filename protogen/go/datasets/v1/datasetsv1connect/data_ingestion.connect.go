@@ -35,9 +35,6 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// DataIngestionServiceIngestDatapointsProcedure is the fully-qualified name of the
-	// DataIngestionService's IngestDatapoints RPC.
-	DataIngestionServiceIngestDatapointsProcedure = "/datasets.v1.DataIngestionService/IngestDatapoints"
 	// DataIngestionServiceIngestProcedure is the fully-qualified name of the DataIngestionService's
 	// Ingest RPC.
 	DataIngestionServiceIngestProcedure = "/datasets.v1.DataIngestionService/Ingest"
@@ -48,8 +45,6 @@ const (
 
 // DataIngestionServiceClient is a client for the datasets.v1.DataIngestionService service.
 type DataIngestionServiceClient interface {
-	// legacy ingest endpoint, that separates datapoints into meta and data. Will be removed in the future.
-	IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestResponse], error)
 	Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error)
 	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
 }
@@ -65,12 +60,6 @@ func NewDataIngestionServiceClient(httpClient connect.HTTPClient, baseURL string
 	baseURL = strings.TrimRight(baseURL, "/")
 	dataIngestionServiceMethods := v1.File_datasets_v1_data_ingestion_proto.Services().ByName("DataIngestionService").Methods()
 	return &dataIngestionServiceClient{
-		ingestDatapoints: connect.NewClient[v1.IngestDatapointsRequest, v1.IngestResponse](
-			httpClient,
-			baseURL+DataIngestionServiceIngestDatapointsProcedure,
-			connect.WithSchema(dataIngestionServiceMethods.ByName("IngestDatapoints")),
-			connect.WithClientOptions(opts...),
-		),
 		ingest: connect.NewClient[v1.IngestRequest, v1.IngestResponse](
 			httpClient,
 			baseURL+DataIngestionServiceIngestProcedure,
@@ -88,14 +77,8 @@ func NewDataIngestionServiceClient(httpClient connect.HTTPClient, baseURL string
 
 // dataIngestionServiceClient implements DataIngestionServiceClient.
 type dataIngestionServiceClient struct {
-	ingestDatapoints *connect.Client[v1.IngestDatapointsRequest, v1.IngestResponse]
-	ingest           *connect.Client[v1.IngestRequest, v1.IngestResponse]
-	delete           *connect.Client[v1.DeleteRequest, v1.DeleteResponse]
-}
-
-// IngestDatapoints calls datasets.v1.DataIngestionService.IngestDatapoints.
-func (c *dataIngestionServiceClient) IngestDatapoints(ctx context.Context, req *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestResponse], error) {
-	return c.ingestDatapoints.CallUnary(ctx, req)
+	ingest *connect.Client[v1.IngestRequest, v1.IngestResponse]
+	delete *connect.Client[v1.DeleteRequest, v1.DeleteResponse]
 }
 
 // Ingest calls datasets.v1.DataIngestionService.Ingest.
@@ -110,8 +93,6 @@ func (c *dataIngestionServiceClient) Delete(ctx context.Context, req *connect.Re
 
 // DataIngestionServiceHandler is an implementation of the datasets.v1.DataIngestionService service.
 type DataIngestionServiceHandler interface {
-	// legacy ingest endpoint, that separates datapoints into meta and data. Will be removed in the future.
-	IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestResponse], error)
 	Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error)
 	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
 }
@@ -123,12 +104,6 @@ type DataIngestionServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewDataIngestionServiceHandler(svc DataIngestionServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	dataIngestionServiceMethods := v1.File_datasets_v1_data_ingestion_proto.Services().ByName("DataIngestionService").Methods()
-	dataIngestionServiceIngestDatapointsHandler := connect.NewUnaryHandler(
-		DataIngestionServiceIngestDatapointsProcedure,
-		svc.IngestDatapoints,
-		connect.WithSchema(dataIngestionServiceMethods.ByName("IngestDatapoints")),
-		connect.WithHandlerOptions(opts...),
-	)
 	dataIngestionServiceIngestHandler := connect.NewUnaryHandler(
 		DataIngestionServiceIngestProcedure,
 		svc.Ingest,
@@ -143,8 +118,6 @@ func NewDataIngestionServiceHandler(svc DataIngestionServiceHandler, opts ...con
 	)
 	return "/datasets.v1.DataIngestionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case DataIngestionServiceIngestDatapointsProcedure:
-			dataIngestionServiceIngestDatapointsHandler.ServeHTTP(w, r)
 		case DataIngestionServiceIngestProcedure:
 			dataIngestionServiceIngestHandler.ServeHTTP(w, r)
 		case DataIngestionServiceDeleteProcedure:
@@ -157,10 +130,6 @@ func NewDataIngestionServiceHandler(svc DataIngestionServiceHandler, opts ...con
 
 // UnimplementedDataIngestionServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedDataIngestionServiceHandler struct{}
-
-func (UnimplementedDataIngestionServiceHandler) IngestDatapoints(context.Context, *connect.Request[v1.IngestDatapointsRequest]) (*connect.Response[v1.IngestResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.IngestDatapoints is not implemented"))
-}
 
 func (UnimplementedDataIngestionServiceHandler) Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.Ingest is not implemented"))

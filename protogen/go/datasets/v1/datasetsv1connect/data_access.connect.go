@@ -50,9 +50,9 @@ const (
 
 // DataAccessServiceClient is a client for the datasets.v1.DataAccessService service.
 type DataAccessServiceClient interface {
-	// GetDatasetForInterval returns a list of data points for a given time interval and collection.
+	// legacy endpoint, kept around for backwards compatibility with older python clients for now
 	GetDatasetForInterval(context.Context, *connect.Request[v1.GetDatasetForIntervalRequest]) (*connect.Response[v1.DatapointPage], error)
-	// GetDatapointByID returns a single datapoint by its ID.
+	// legacy endpoint, kept around for backwards compatibility with older python clients for now
 	GetDatapointByID(context.Context, *connect.Request[v1.GetDatapointByIdRequest]) (*connect.Response[v1.Datapoint], error)
 	// QueryByID returns a single data point by its ID.
 	QueryByID(context.Context, *connect.Request[v1.QueryByIDRequest]) (*connect.Response[v1.Any], error)
@@ -128,9 +128,9 @@ func (c *dataAccessServiceClient) Query(ctx context.Context, req *connect.Reques
 
 // DataAccessServiceHandler is an implementation of the datasets.v1.DataAccessService service.
 type DataAccessServiceHandler interface {
-	// GetDatasetForInterval returns a list of data points for a given time interval and collection.
+	// legacy endpoint, kept around for backwards compatibility with older python clients for now
 	GetDatasetForInterval(context.Context, *connect.Request[v1.GetDatasetForIntervalRequest]) (*connect.Response[v1.DatapointPage], error)
-	// GetDatapointByID returns a single datapoint by its ID.
+	// legacy endpoint, kept around for backwards compatibility with older python clients for now
 	GetDatapointByID(context.Context, *connect.Request[v1.GetDatapointByIdRequest]) (*connect.Response[v1.Datapoint], error)
 	// QueryByID returns a single data point by its ID.
 	QueryByID(context.Context, *connect.Request[v1.QueryByIDRequest]) (*connect.Response[v1.Any], error)
