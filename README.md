@@ -79,7 +79,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"os"
 
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
@@ -90,16 +89,9 @@ type HelloTask struct {
 
 func main() {
 	ctx := context.Background()
-
 	client := workflows.NewClient()
 
-	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
-		return
-	}
-
-	job, err := client.Jobs.Submit(ctx, "hello-world", cluster,
+	job, err := client.Jobs.Submit(ctx, "hello-world",
 		[]workflows.Task{
 			&HelloTask{
 				Name: "Tilebox",
@@ -107,11 +99,11 @@ func main() {
 		},
 	)
 	if err != nil {
-		slog.ErrorContext(ctx, "Failed to submit job", slog.Any("error", err))
+		slog.Error("Failed to submit job", slog.Any("error", err))
 		return
 	}
 
-	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
+	slog.Info("Job submitted", slog.String("job_id", job.ID.String()))
 }
 ```
 
@@ -125,7 +117,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"os"
 
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
@@ -142,27 +133,20 @@ func (t *HelloTask) Execute(context.Context) error {
 
 func main() {
 	ctx := context.Background()
-
 	client := workflows.NewClient()
-
-	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
+	
+	runner, err := client.NewTaskRunner(ctx)
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to get cluster", slog.Any("error", err))
-		return
-	}
-
-	runner, err := client.NewTaskRunner(cluster)
-	if err != nil {
-		slog.ErrorContext(ctx, "failed to create task runner", slog.Any("error", err))
+		slog.Error("failed to create task runner", slog.Any("error", err))
 		return
 	}
 
 	err = runner.RegisterTasks(&HelloTask{})
 	if err != nil {
-		slog.ErrorContext(ctx, "failed to register tasks", slog.Any("error", err))
+		slog.Error("failed to register tasks", slog.Any("error", err))
 		return
 	}
 
-	runner.RunForever(context.Background())
+	runner.RunForever(ctx)
 }
 ```

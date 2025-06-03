@@ -17,6 +17,8 @@ type Cluster struct {
 	Slug string
 	// Name is the display name of the cluster.
 	Name string
+	// Deletable is true when the cluster can be deleted.
+	Deletable bool
 }
 
 type ClusterClient interface {
@@ -77,7 +79,8 @@ func (c clusterClient) List(ctx context.Context) ([]*Cluster, error) {
 
 func protoToCluster(c *workflowsv1.Cluster) *Cluster {
 	return &Cluster{
-		Slug: c.GetSlug(),
-		Name: c.GetDisplayName(),
+		Slug:      c.GetSlug(),
+		Name:      c.GetDisplayName(),
+		Deletable: c.GetDeletable(),
 	}
 }

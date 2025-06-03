@@ -16,6 +16,22 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
+type mockClusterService struct {
+	WorkflowService
+}
+
+func (m *mockClusterService) GetCluster(ctx context.Context, slug string) (*workflowsv1.Cluster, error) {
+	if slug != "" {
+		panic("mock only support empty slug")
+	}
+
+	return &workflowsv1.Cluster{
+		Slug:        "default-5GGzdzBZEA3oeD",
+		DisplayName: "Default",
+		Deletable:   false,
+	}, nil
+}
+
 type mockTaskService struct {
 	TaskService
 }
@@ -39,6 +55,7 @@ func (t *badIdentifierTask) Identifier() TaskIdentifier {
 func TestTaskRunner_RegisterTasks(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
 
 	type args struct {
 		tasks []ExecutableTask
@@ -85,8 +102,7 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cluster := &Cluster{Slug: "testing-4qgCk4qHH85qR7"}
-			runner, err := newTaskRunner(service, tracer, cluster)
+			runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
 			require.NoError(t, err)
 
 			err = runner.RegisterTasks(tt.args.tasks...)
@@ -216,10 +232,10 @@ func TestTaskRunner_RunForever(t *testing.T) {
 	}
 	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
 
-	cluster := &Cluster{Slug: "testing-cluster"}
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
-	runner, err := newTaskRunner(service, tracer, cluster)
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
 	require.NoError(t, err, "failed to create task runner")
 	runner.service = mockTaskClient
 
@@ -259,10 +275,10 @@ func TestTaskRunner_RunAll(t *testing.T) {
 	}
 	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
 
-	cluster := &Cluster{Slug: "testing-cluster"}
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
-	runner, err := newTaskRunner(service, tracer, cluster)
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
 	require.NoError(t, err, "failed to create task runner")
 	runner.service = mockTaskClient
 
@@ -281,8 +297,8 @@ func TestTaskRunner_RunAll(t *testing.T) {
 func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
-	cluster := &Cluster{Slug: "testing-4qgCk4qHH85qR7"}
-	runner, err := newTaskRunner(service, tracer, cluster)
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
 	require.NoError(t, err)
 
 	taskID := uuid.New()
@@ -318,8 +334,8 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 func TestGetCurrentCluster(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
-	cluster := &Cluster{Slug: "testing-4qgCk4qHH85qR7"}
-	runner, err := newTaskRunner(service, tracer, cluster)
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
 	require.NoError(t, err)
 
 	currentTaskID := uuid.New()
@@ -334,7 +350,7 @@ func TestGetCurrentCluster(t *testing.T) {
 		{
 			name:        "GetCurrentCluster",
 			args:        args{},
-			wantCluster: cluster.Slug,
+			wantCluster: "default-5GGzdzBZEA3oeD",
 		},
 	}
 	for _, tt := range tests {
@@ -358,8 +374,8 @@ func TestGetCurrentCluster(t *testing.T) {
 func TestSetTaskDisplay(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
-	cluster := &Cluster{Slug: "testing-4qgCk4qHH85qR7"}
-	runner, err := newTaskRunner(service, tracer, cluster)
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
 	require.NoError(t, err)
 
 	currentTaskID := uuid.New()
@@ -404,8 +420,8 @@ func TestSetTaskDisplay(t *testing.T) {
 func TestSubmitSubtask(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
-	cluster := &Cluster{Slug: "testing-4qgCk4qHH85qR7"}
-	runner, err := newTaskRunner(service, tracer, cluster)
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
 	require.NoError(t, err)
 
 	currentTaskID := uuid.New()
@@ -435,7 +451,7 @@ func TestSubmitSubtask(t *testing.T) {
 				task: &testTask1{},
 			},
 			wantSubmission: &workflowsv1.TaskSubmission{
-				ClusterSlug:  cluster.Slug,
+				ClusterSlug:  "default-5GGzdzBZEA3oeD",
 				Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
 				Input:        []byte("{\"ExecutableTask\":null}"),
 				Display:      "testTask1",
@@ -478,7 +494,7 @@ func TestSubmitSubtask(t *testing.T) {
 				},
 			},
 			wantSubmission: &workflowsv1.TaskSubmission{
-				ClusterSlug:  cluster.Slug,
+				ClusterSlug:  "default-5GGzdzBZEA3oeD",
 				Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
 				Input:        []byte("{\"ExecutableTask\":null}"),
 				Display:      "testTask1",
@@ -514,7 +530,7 @@ func TestSubmitSubtask(t *testing.T) {
 				},
 			},
 			wantSubmission: &workflowsv1.TaskSubmission{
-				ClusterSlug:  cluster.Slug,
+				ClusterSlug:  "default-5GGzdzBZEA3oeD",
 				Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
 				Input:        []byte("{\"ExecutableTask\":null}"),
 				Display:      "testTask1",
@@ -556,8 +572,8 @@ func TestSubmitSubtask(t *testing.T) {
 func TestSubmitSubtasks(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
-	cluster := &Cluster{Slug: "testing-4qgCk4qHH85qR7"}
-	runner, err := newTaskRunner(service, tracer, cluster)
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
 	require.NoError(t, err)
 
 	currentTaskID := uuid.New()
@@ -589,7 +605,7 @@ func TestSubmitSubtasks(t *testing.T) {
 			},
 			wantSubmissions: []*workflowsv1.TaskSubmission{
 				{
-					ClusterSlug:  cluster.Slug,
+					ClusterSlug:  "default-5GGzdzBZEA3oeD",
 					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
 					Input:        []byte("{\"ExecutableTask\":null}"),
 					Display:      "testTask1",
@@ -611,7 +627,7 @@ func TestSubmitSubtasks(t *testing.T) {
 			wantErr: true,
 			wantSubmissions: []*workflowsv1.TaskSubmission{
 				{
-					ClusterSlug:  cluster.Slug,
+					ClusterSlug:  "default-5GGzdzBZEA3oeD",
 					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
 					Input:        []byte("{\"ExecutableTask\":null}"),
 					Display:      "testTask1",

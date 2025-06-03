@@ -47,13 +47,19 @@ type TaskRunner struct {
 	taskDurationMetric metric.Float64Histogram
 }
 
-func newTaskRunner(service TaskService, tracer trace.Tracer, cluster *Cluster, options ...runner.Option) (*TaskRunner, error) {
+func newTaskRunner(ctx context.Context, service TaskService, clusterClient ClusterClient, tracer trace.Tracer, options ...runner.Option) (*TaskRunner, error) { // FIXME
 	opts := &runner.Options{
+		ClusterSlug:   "",
 		Logger:        slog.Default(),
 		MeterProvider: otel.GetMeterProvider(),
 	}
 	for _, option := range options {
 		option(opts)
+	}
+
+	cluster, err := clusterClient.Get(ctx, opts.ClusterSlug)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cluster: %w", err)
 	}
 
 	meter := opts.MeterProvider.Meter(otelMeterName)

@@ -7,7 +7,8 @@ import (
 
 // SubmitOptions contains the configuration for a Submit request.
 type SubmitOptions struct {
-	MaxRetries int64
+	MaxRetries  int64
+	ClusterSlug string
 }
 
 type SubmitOption func(*SubmitOptions)
@@ -18,6 +19,15 @@ type SubmitOption func(*SubmitOptions)
 func WithMaxRetries(maxRetries int64) SubmitOption {
 	return func(cfg *SubmitOptions) {
 		cfg.MaxRetries = maxRetries
+	}
+}
+
+// WithClusterSlug sets the cluster slug of the cluster where the job will be executed.
+//
+// Defaults to the default cluster.
+func WithClusterSlug(clusterSlug string) SubmitOption {
+	return func(cfg *SubmitOptions) {
+		cfg.ClusterSlug = clusterSlug
 	}
 }
 

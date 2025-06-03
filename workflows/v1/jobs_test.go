@@ -27,12 +27,9 @@ func (m *mockJobService) SubmitJob(_ context.Context, req *workflowsv1.SubmitJob
 }
 
 func TestJobService_Submit(t *testing.T) {
-	ctx := context.Background()
-
 	type args struct {
-		jobName     string
-		clusterSlug string
-		tasks       []Task
+		jobName string
+		tasks   []Task
 	}
 	tests := []struct {
 		name    string
@@ -44,9 +41,8 @@ func TestJobService_Submit(t *testing.T) {
 		{
 			name: "Submit Job",
 			args: args{
-				jobName:     "test-job",
-				clusterSlug: "test-cluster",
-				tasks:       []Task{&testTask1{}},
+				jobName: "test-job",
+				tasks:   []Task{&testTask1{}},
 			},
 			want: &Job{
 				Name: "test-job",
@@ -54,7 +50,7 @@ func TestJobService_Submit(t *testing.T) {
 			wantReq: &workflowsv1.SubmitJobRequest{
 				Tasks: []*workflowsv1.TaskSubmission{
 					{
-						ClusterSlug: "test-cluster",
+						ClusterSlug: "",
 						Identifier: &workflowsv1.TaskIdentifier{
 							Name:    "testTask1",
 							Version: "v0.0",
@@ -71,8 +67,7 @@ func TestJobService_Submit(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			service := &mockJobService{}
 			js := jobClient{service: service}
-			cluster := &Cluster{Slug: tt.args.clusterSlug}
-			got, err := js.Submit(ctx, tt.args.jobName, cluster, tt.args.tasks)
+			got, err := js.Submit(context.Background(), tt.args.jobName, tt.args.tasks)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Submit() error = %v, wantErr %v", err, tt.wantErr)
 				return

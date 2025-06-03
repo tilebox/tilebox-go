@@ -152,6 +152,7 @@ type Cluster struct {
 	// 1 is reserved for a potential id field in the future.
 	Slug          string `protobuf:"bytes,2,opt,name=slug,proto3" json:"slug,omitempty"`                                  // The unique slug of the cluster within the namespace.
 	DisplayName   string `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"` // The display name of the cluster.
+	Deletable     bool   `protobuf:"varint,4,opt,name=deletable,proto3" json:"deletable,omitempty"`                       // Where the cluster is deletable
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -198,6 +199,13 @@ func (x *Cluster) GetDisplayName() string {
 		return x.DisplayName
 	}
 	return ""
+}
+
+func (x *Cluster) GetDeletable() bool {
+	if x != nil {
+		return x.Deletable
+	}
+	return false
 }
 
 // A job is a logical grouping of tasks that are related.
@@ -1011,10 +1019,11 @@ var File_workflows_v1_core_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"@\n" +
+	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"^\n" +
 	"\aCluster\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12!\n" +
-	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"\xa5\x03\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12\x1c\n" +
+	"\tdeletable\x18\x04 \x01(\bR\tdeletable\"\xa5\x03\n" +
 	"\x03Job\x12\"\n" +
 	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +

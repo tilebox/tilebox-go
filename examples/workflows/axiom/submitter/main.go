@@ -43,14 +43,7 @@ func main() {
 	otel.SetTracerProvider(tileboxTracerProvider) // set the tilebox tracer provider as the global OTEL tracer provider
 
 	client := workflows.NewClient()
-
-	cluster, err := client.Clusters.Get(ctx, "testing-4qgCk4qHH85qR7")
-	if err != nil {
-		slog.Error("failed to get cluster", slog.Any("error", err))
-		return
-	}
-
-	job, err := client.Jobs.Submit(ctx, "Axiom Observability", cluster,
+	job, err := client.Jobs.Submit(ctx, "Axiom Observability",
 		[]workflows.Task{&axiom.MyAxiomTask{}},
 	)
 	if err != nil {

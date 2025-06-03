@@ -12,6 +12,7 @@ message Cluster {
   // 1 is reserved for a potential id field in the future.
   string slug = 2; // The unique slug of the cluster within the namespace.
   string display_name = 3; // The display name of the cluster.
+  bool deletable = 4; // Where the cluster is deletable
 }
 
 // A job is a logical grouping of tasks that are related.

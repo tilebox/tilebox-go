@@ -9,11 +9,21 @@ import (
 
 // Options contains the configuration for Tilebox Workflows Task Runner.
 type Options struct {
+	ClusterSlug   string
 	Logger        *slog.Logger
 	MeterProvider metric.MeterProvider
 }
 
 type Option func(*Options)
+
+// WithClusterSlug sets the cluster to listen tasks to.
+//
+// Defaults to the default cluster.
+func WithClusterSlug(clusterSlug string) Option {
+	return func(cfg *Options) {
+		cfg.ClusterSlug = clusterSlug
+	}
+}
 
 // WithRunnerLogger sets the logger to use for the task runner.
 //
