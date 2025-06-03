@@ -89,9 +89,9 @@ message QueryResultPage {
 
 // DataAccessService provides data access and querying capabilities for Tilebox datasets.
 service DataAccessService {
-  // GetDatasetForInterval returns a list of data points for a given time interval and collection.
+  // legacy endpoint, kept around for backwards compatibility with older python clients for now
   rpc GetDatasetForInterval(GetDatasetForIntervalRequest) returns (DatapointPage) {}
-  // GetDatapointByID returns a single datapoint by its ID.
+  // legacy endpoint, kept around for backwards compatibility with older python clients for now
   rpc GetDatapointByID(GetDatapointByIdRequest) returns (Datapoint) {}
 
   // QueryByID returns a single data point by its ID.

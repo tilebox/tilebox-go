@@ -341,9 +341,8 @@ const file_datasets_v1_data_ingestion_proto_rawDesc = "" +
 	"\rdatapoint_ids\x18\x02 \x03(\v2\x0f.datasets.v1.IDR\fdatapointIds\"1\n" +
 	"\x0eDeleteResponse\x12\x1f\n" +
 	"\vnum_deleted\x18\x01 \x01(\x03R\n" +
-	"numDeleted2\xf9\x01\n" +
-	"\x14DataIngestionService\x12W\n" +
-	"\x10IngestDatapoints\x12$.datasets.v1.IngestDatapointsRequest\x1a\x1b.datasets.v1.IngestResponse\"\x00\x12C\n" +
+	"numDeleted2\xa0\x01\n" +
+	"\x14DataIngestionService\x12C\n" +
 	"\x06Ingest\x12\x1a.datasets.v1.IngestRequest\x1a\x1b.datasets.v1.IngestResponse\"\x00\x12C\n" +
 	"\x06Delete\x12\x1a.datasets.v1.DeleteRequest\x1a\x1b.datasets.v1.DeleteResponse\"\x00B\xb4\x01\n" +
 	"\x0fcom.datasets.v1B\x12DataIngestionProtoP\x01Z@github.com/tilebox/tilebox-go/protogen/go/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1b\x06proto3"
@@ -377,14 +376,12 @@ var file_datasets_v1_data_ingestion_proto_depIdxs = []int32{
 	5, // 3: datasets.v1.IngestResponse.datapoint_ids:type_name -> datasets.v1.ID
 	5, // 4: datasets.v1.DeleteRequest.collection_id:type_name -> datasets.v1.ID
 	5, // 5: datasets.v1.DeleteRequest.datapoint_ids:type_name -> datasets.v1.ID
-	0, // 6: datasets.v1.DataIngestionService.IngestDatapoints:input_type -> datasets.v1.IngestDatapointsRequest
-	1, // 7: datasets.v1.DataIngestionService.Ingest:input_type -> datasets.v1.IngestRequest
-	3, // 8: datasets.v1.DataIngestionService.Delete:input_type -> datasets.v1.DeleteRequest
-	2, // 9: datasets.v1.DataIngestionService.IngestDatapoints:output_type -> datasets.v1.IngestResponse
-	2, // 10: datasets.v1.DataIngestionService.Ingest:output_type -> datasets.v1.IngestResponse
-	4, // 11: datasets.v1.DataIngestionService.Delete:output_type -> datasets.v1.DeleteResponse
-	9, // [9:12] is the sub-list for method output_type
-	6, // [6:9] is the sub-list for method input_type
+	1, // 6: datasets.v1.DataIngestionService.Ingest:input_type -> datasets.v1.IngestRequest
+	3, // 7: datasets.v1.DataIngestionService.Delete:input_type -> datasets.v1.DeleteRequest
+	2, // 8: datasets.v1.DataIngestionService.Ingest:output_type -> datasets.v1.IngestResponse
+	4, // 9: datasets.v1.DataIngestionService.Delete:output_type -> datasets.v1.DeleteResponse
+	8, // [8:10] is the sub-list for method output_type
+	6, // [6:8] is the sub-list for method input_type
 	6, // [6:6] is the sub-list for extension type_name
 	6, // [6:6] is the sub-list for extension extendee
 	0, // [0:6] is the sub-list for field type_name
