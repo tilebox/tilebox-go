@@ -88,6 +88,7 @@ func clientInfo() *datasetsv1.ClientInfo {
 type CollectionService interface {
 	CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
 	GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
+	DeleteCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) error
 	ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.CollectionInfos, error)
 }
 
@@ -136,6 +137,22 @@ func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID u
 		}
 
 		return res.Msg, nil
+	})
+}
+
+func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid.UUID, name string) error {
+	return observability.WithSpan(ctx, s.tracer, "datasets/collections/delete", func(ctx context.Context) error {
+		_, err := s.collectionClient.DeleteCollectionByName(ctx, connect.NewRequest(
+			&datasetsv1.DeleteCollectionByNameRequest{
+				CollectionName: name,
+				DatasetId:      uuidToProtobuf(datasetID),
+			},
+		))
+		if err != nil {
+			return fmt.Errorf("failed to delete collections: %w", err)
+		}
+
+		return nil
 	})
 }
 
