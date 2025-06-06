@@ -5,7 +5,16 @@
 
 <div align="center">
   <a href="https://pkg.go.dev/github.com/tilebox/tilebox-go">
-    <img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=for-the-badge&color=f43f5e" alt="PyPi Latest Release badge"/>
+    <img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square&color=f43f5e" alt="PyPi Latest Release badge"/>
+  </a>
+  <a href="https://github.com/tilebox/tilebox-python/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/tilebox/tilebox-go.svg?style=flat-square&color=f43f5e" alt="MIT License"/>
+  </a>
+  <a href="https://github.com/tilebox/tilebox-python/actions">
+    <img src="https://img.shields.io/github/actions/workflow/status/tilebox/tilebox-go/main.yml?style=flat-square&color=f43f5e" alt="Build Status"/>
+  </a>
+  <a href="https://tilebox.com/discord">
+    <img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=flat-square&logo=discord&logoColor=white" alt="Join us on Discord"/>
   </a>
 </div>
 
@@ -14,16 +23,14 @@
   |
   <a href="https://console.tilebox.com/"><b>Console</b></a>
   |
-  <a href="https://tilebox.com/discord"><b>Discord</b></a>
+  <a href="https://examples.tilebox.com/"><b>Example Gallery</b></a>
 </p>
 
-# Tilebox Go Library
+# Tilebox Go
 
-This repository contains the Go library for Tilebox.
+Go library for [Tilebox](https://tilebox.com) - a framework for space data management and workflow orchestration.
 
-## Getting Started
-
-### Installation
+## Installation
 
 Run the following command to add the library to your project:
 
@@ -150,3 +157,8 @@ func main() {
 	runner.RunForever(ctx)
 }
 ```
+
+
+## License
+
+Distributed under the MIT License (`The MIT License`).
