@@ -163,6 +163,8 @@ message Dataset {
   Visibility visibility = 11;
   // complete slug of the dataset
   string slug = 12;
+  // true if the dataset type is editable
+  bool type_editable = 13;
 }
 
 // DatasetPermission is a permission a user (as part of an org) can have on a dataset

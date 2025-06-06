@@ -976,7 +976,9 @@ type Dataset struct {
 	// visibility of the requesting user on the dataset
 	Visibility Visibility `protobuf:"varint,11,opt,name=visibility,proto3,enum=datasets.v1.Visibility" json:"visibility,omitempty"`
 	// complete slug of the dataset
-	Slug          string `protobuf:"bytes,12,opt,name=slug,proto3" json:"slug,omitempty"`
+	Slug string `protobuf:"bytes,12,opt,name=slug,proto3" json:"slug,omitempty"`
+	// true if the dataset type is editable
+	TypeEditable  bool `protobuf:"varint,13,opt,name=type_editable,json=typeEditable,proto3" json:"type_editable,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1086,6 +1088,13 @@ func (x *Dataset) GetSlug() string {
 		return x.Slug
 	}
 	return ""
+}
+
+func (x *Dataset) GetTypeEditable() bool {
+	if x != nil {
+		return x.TypeEditable
+	}
+	return false
 }
 
 // DatasetGroup represent a dataset group
@@ -1238,7 +1247,7 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\r_availabilityB\b\n" +
 	"\x06_count\"B\n" +
 	"\x0fCollectionInfos\x12/\n" +
-	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\"\x96\x03\n" +
+	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\"\xbb\x03\n" +
 	"\aDataset\x12\x1f\n" +
 	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12*\n" +
 	"\bgroup_id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\agroupId\x12.\n" +
@@ -1253,7 +1262,8 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\n" +
 	"visibility\x18\v \x01(\x0e2\x17.datasets.v1.VisibilityR\n" +
 	"visibility\x12\x12\n" +
-	"\x04slug\x18\f \x01(\tR\x04slug\"\xa2\x01\n" +
+	"\x04slug\x18\f \x01(\tR\x04slug\x12#\n" +
+	"\rtype_editable\x18\r \x01(\bR\ftypeEditable\"\xa2\x01\n" +
 	"\fDatasetGroup\x12\x1f\n" +
 	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12,\n" +
 	"\tparent_id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\bparentId\x12\x1b\n" +
