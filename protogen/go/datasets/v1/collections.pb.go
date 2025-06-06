@@ -79,7 +79,7 @@ func (x *CreateCollectionRequest) GetName() string {
 // GetCollectionByNameRequest contains the request parameters for retrieving a single collection by its name.
 type GetCollectionByNameRequest struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	CollectionName   string                 `protobuf:"bytes,1,opt,name=collection_name,json=collectionName,proto3" json:"collection_name,omitempty"`        // The name of the collection retrieve.
+	CollectionName   string                 `protobuf:"bytes,1,opt,name=collection_name,json=collectionName,proto3" json:"collection_name,omitempty"`        // The name of the collection to retrieve.
 	WithAvailability bool                   `protobuf:"varint,2,opt,name=with_availability,json=withAvailability,proto3" json:"with_availability,omitempty"` // If true, the response will include the availability interval.
 	WithCount        bool                   `protobuf:"varint,3,opt,name=with_count,json=withCount,proto3" json:"with_count,omitempty"`                      // If true, the response will include the number of entries.
 	DatasetId        *ID                    `protobuf:"bytes,4,opt,name=dataset_id,json=datasetId,proto3" json:"dataset_id,omitempty"`                       // The dataset id.
@@ -145,6 +145,96 @@ func (x *GetCollectionByNameRequest) GetDatasetId() *ID {
 	return nil
 }
 
+// DeleteCollectionByNameRequest contains the request parameters for deleting a single collection by its name.
+type DeleteCollectionByNameRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	CollectionName string                 `protobuf:"bytes,1,opt,name=collection_name,json=collectionName,proto3" json:"collection_name,omitempty"` // The name of the collection to delete.
+	DatasetId      *ID                    `protobuf:"bytes,2,opt,name=dataset_id,json=datasetId,proto3" json:"dataset_id,omitempty"`                // The dataset id.
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *DeleteCollectionByNameRequest) Reset() {
+	*x = DeleteCollectionByNameRequest{}
+	mi := &file_datasets_v1_collections_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCollectionByNameRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCollectionByNameRequest) ProtoMessage() {}
+
+func (x *DeleteCollectionByNameRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_datasets_v1_collections_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCollectionByNameRequest.ProtoReflect.Descriptor instead.
+func (*DeleteCollectionByNameRequest) Descriptor() ([]byte, []int) {
+	return file_datasets_v1_collections_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *DeleteCollectionByNameRequest) GetCollectionName() string {
+	if x != nil {
+		return x.CollectionName
+	}
+	return ""
+}
+
+func (x *DeleteCollectionByNameRequest) GetDatasetId() *ID {
+	if x != nil {
+		return x.DatasetId
+	}
+	return nil
+}
+
+// DeleteCollectionByNameResponse is the response to DeleteCollectionByNameRequest.
+type DeleteCollectionByNameResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteCollectionByNameResponse) Reset() {
+	*x = DeleteCollectionByNameResponse{}
+	mi := &file_datasets_v1_collections_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteCollectionByNameResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteCollectionByNameResponse) ProtoMessage() {}
+
+func (x *DeleteCollectionByNameResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_datasets_v1_collections_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteCollectionByNameResponse.ProtoReflect.Descriptor instead.
+func (*DeleteCollectionByNameResponse) Descriptor() ([]byte, []int) {
+	return file_datasets_v1_collections_proto_rawDescGZIP(), []int{3}
+}
+
 // ListCollectionsRequest contains the request parameters
 // for retrieving a list of all available collections for a given dataset.
 type ListCollectionsRequest struct {
@@ -158,7 +248,7 @@ type ListCollectionsRequest struct {
 
 func (x *ListCollectionsRequest) Reset() {
 	*x = ListCollectionsRequest{}
-	mi := &file_datasets_v1_collections_proto_msgTypes[2]
+	mi := &file_datasets_v1_collections_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -170,7 +260,7 @@ func (x *ListCollectionsRequest) String() string {
 func (*ListCollectionsRequest) ProtoMessage() {}
 
 func (x *ListCollectionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_collections_proto_msgTypes[2]
+	mi := &file_datasets_v1_collections_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -183,7 +273,7 @@ func (x *ListCollectionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListCollectionsRequest.ProtoReflect.Descriptor instead.
 func (*ListCollectionsRequest) Descriptor() ([]byte, []int) {
-	return file_datasets_v1_collections_proto_rawDescGZIP(), []int{2}
+	return file_datasets_v1_collections_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListCollectionsRequest) GetDatasetId() *ID {
@@ -222,16 +312,22 @@ const file_datasets_v1_collections_proto_rawDesc = "" +
 	"\n" +
 	"with_count\x18\x03 \x01(\bR\twithCount\x12.\n" +
 	"\n" +
-	"dataset_id\x18\x04 \x01(\v2\x0f.datasets.v1.IDR\tdatasetId\"\x94\x01\n" +
+	"dataset_id\x18\x04 \x01(\v2\x0f.datasets.v1.IDR\tdatasetId\"x\n" +
+	"\x1dDeleteCollectionByNameRequest\x12'\n" +
+	"\x0fcollection_name\x18\x01 \x01(\tR\x0ecollectionName\x12.\n" +
+	"\n" +
+	"dataset_id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\tdatasetId\" \n" +
+	"\x1eDeleteCollectionByNameResponse\"\x94\x01\n" +
 	"\x16ListCollectionsRequest\x12.\n" +
 	"\n" +
 	"dataset_id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\tdatasetId\x12+\n" +
 	"\x11with_availability\x18\x02 \x01(\bR\x10withAvailability\x12\x1d\n" +
 	"\n" +
-	"with_count\x18\x03 \x01(\bR\twithCount2\xa3\x02\n" +
+	"with_count\x18\x03 \x01(\bR\twithCount2\x98\x03\n" +
 	"\x11CollectionService\x12W\n" +
 	"\x10CreateCollection\x12$.datasets.v1.CreateCollectionRequest\x1a\x1b.datasets.v1.CollectionInfo\"\x00\x12]\n" +
-	"\x13GetCollectionByName\x12'.datasets.v1.GetCollectionByNameRequest\x1a\x1b.datasets.v1.CollectionInfo\"\x00\x12V\n" +
+	"\x13GetCollectionByName\x12'.datasets.v1.GetCollectionByNameRequest\x1a\x1b.datasets.v1.CollectionInfo\"\x00\x12s\n" +
+	"\x16DeleteCollectionByName\x12*.datasets.v1.DeleteCollectionByNameRequest\x1a+.datasets.v1.DeleteCollectionByNameResponse\"\x00\x12V\n" +
 	"\x0fListCollections\x12#.datasets.v1.ListCollectionsRequest\x1a\x1c.datasets.v1.CollectionInfos\"\x00B\xb2\x01\n" +
 	"\x0fcom.datasets.v1B\x10CollectionsProtoP\x01Z@github.com/tilebox/tilebox-go/protogen/go/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1b\x06proto3"
 
@@ -247,30 +343,35 @@ func file_datasets_v1_collections_proto_rawDescGZIP() []byte {
 	return file_datasets_v1_collections_proto_rawDescData
 }
 
-var file_datasets_v1_collections_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_datasets_v1_collections_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_datasets_v1_collections_proto_goTypes = []any{
-	(*CreateCollectionRequest)(nil),    // 0: datasets.v1.CreateCollectionRequest
-	(*GetCollectionByNameRequest)(nil), // 1: datasets.v1.GetCollectionByNameRequest
-	(*ListCollectionsRequest)(nil),     // 2: datasets.v1.ListCollectionsRequest
-	(*ID)(nil),                         // 3: datasets.v1.ID
-	(*CollectionInfo)(nil),             // 4: datasets.v1.CollectionInfo
-	(*CollectionInfos)(nil),            // 5: datasets.v1.CollectionInfos
+	(*CreateCollectionRequest)(nil),        // 0: datasets.v1.CreateCollectionRequest
+	(*GetCollectionByNameRequest)(nil),     // 1: datasets.v1.GetCollectionByNameRequest
+	(*DeleteCollectionByNameRequest)(nil),  // 2: datasets.v1.DeleteCollectionByNameRequest
+	(*DeleteCollectionByNameResponse)(nil), // 3: datasets.v1.DeleteCollectionByNameResponse
+	(*ListCollectionsRequest)(nil),         // 4: datasets.v1.ListCollectionsRequest
+	(*ID)(nil),                             // 5: datasets.v1.ID
+	(*CollectionInfo)(nil),                 // 6: datasets.v1.CollectionInfo
+	(*CollectionInfos)(nil),                // 7: datasets.v1.CollectionInfos
 }
 var file_datasets_v1_collections_proto_depIdxs = []int32{
-	3, // 0: datasets.v1.CreateCollectionRequest.dataset_id:type_name -> datasets.v1.ID
-	3, // 1: datasets.v1.GetCollectionByNameRequest.dataset_id:type_name -> datasets.v1.ID
-	3, // 2: datasets.v1.ListCollectionsRequest.dataset_id:type_name -> datasets.v1.ID
-	0, // 3: datasets.v1.CollectionService.CreateCollection:input_type -> datasets.v1.CreateCollectionRequest
-	1, // 4: datasets.v1.CollectionService.GetCollectionByName:input_type -> datasets.v1.GetCollectionByNameRequest
-	2, // 5: datasets.v1.CollectionService.ListCollections:input_type -> datasets.v1.ListCollectionsRequest
-	4, // 6: datasets.v1.CollectionService.CreateCollection:output_type -> datasets.v1.CollectionInfo
-	4, // 7: datasets.v1.CollectionService.GetCollectionByName:output_type -> datasets.v1.CollectionInfo
-	5, // 8: datasets.v1.CollectionService.ListCollections:output_type -> datasets.v1.CollectionInfos
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	5, // 0: datasets.v1.CreateCollectionRequest.dataset_id:type_name -> datasets.v1.ID
+	5, // 1: datasets.v1.GetCollectionByNameRequest.dataset_id:type_name -> datasets.v1.ID
+	5, // 2: datasets.v1.DeleteCollectionByNameRequest.dataset_id:type_name -> datasets.v1.ID
+	5, // 3: datasets.v1.ListCollectionsRequest.dataset_id:type_name -> datasets.v1.ID
+	0, // 4: datasets.v1.CollectionService.CreateCollection:input_type -> datasets.v1.CreateCollectionRequest
+	1, // 5: datasets.v1.CollectionService.GetCollectionByName:input_type -> datasets.v1.GetCollectionByNameRequest
+	2, // 6: datasets.v1.CollectionService.DeleteCollectionByName:input_type -> datasets.v1.DeleteCollectionByNameRequest
+	4, // 7: datasets.v1.CollectionService.ListCollections:input_type -> datasets.v1.ListCollectionsRequest
+	6, // 8: datasets.v1.CollectionService.CreateCollection:output_type -> datasets.v1.CollectionInfo
+	6, // 9: datasets.v1.CollectionService.GetCollectionByName:output_type -> datasets.v1.CollectionInfo
+	3, // 10: datasets.v1.CollectionService.DeleteCollectionByName:output_type -> datasets.v1.DeleteCollectionByNameResponse
+	7, // 11: datasets.v1.CollectionService.ListCollections:output_type -> datasets.v1.CollectionInfos
+	8, // [8:12] is the sub-list for method output_type
+	4, // [4:8] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_collections_proto_init() }
@@ -285,7 +386,7 @@ func file_datasets_v1_collections_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_collections_proto_rawDesc), len(file_datasets_v1_collections_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
