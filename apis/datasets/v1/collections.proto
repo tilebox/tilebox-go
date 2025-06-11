@@ -14,11 +14,20 @@ message CreateCollectionRequest {
 
 // GetCollectionByNameRequest contains the request parameters for retrieving a single collection by its name.
 message GetCollectionByNameRequest {
-  string collection_name = 1; // The name of the collection retrieve.
+  string collection_name = 1; // The name of the collection to retrieve.
   bool with_availability = 2; // If true, the response will include the availability interval.
   bool with_count = 3; // If true, the response will include the number of entries.
   ID dataset_id = 4; // The dataset id.
 }
+
+// DeleteCollectionByNameRequest contains the request parameters for deleting a single collection by its name.
+message DeleteCollectionByNameRequest {
+  string collection_name = 1; // The name of the collection to delete.
+  ID dataset_id = 2; // The dataset id.
+}
+
+// DeleteCollectionByNameResponse is the response to DeleteCollectionByNameRequest.
+message DeleteCollectionByNameResponse {}
 
 // ListCollectionsRequest contains the request parameters
 // for retrieving a list of all available collections for a given dataset.
@@ -32,5 +41,6 @@ message ListCollectionsRequest {
 service CollectionService {
   rpc CreateCollection(CreateCollectionRequest) returns (CollectionInfo) {}
   rpc GetCollectionByName(GetCollectionByNameRequest) returns (CollectionInfo) {}
+  rpc DeleteCollectionByName(DeleteCollectionByNameRequest) returns (DeleteCollectionByNameResponse) {}
   rpc ListCollections(ListCollectionsRequest) returns (CollectionInfos) {}
 }

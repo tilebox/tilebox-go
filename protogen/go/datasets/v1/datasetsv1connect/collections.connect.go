@@ -41,6 +41,9 @@ const (
 	// CollectionServiceGetCollectionByNameProcedure is the fully-qualified name of the
 	// CollectionService's GetCollectionByName RPC.
 	CollectionServiceGetCollectionByNameProcedure = "/datasets.v1.CollectionService/GetCollectionByName"
+	// CollectionServiceDeleteCollectionByNameProcedure is the fully-qualified name of the
+	// CollectionService's DeleteCollectionByName RPC.
+	CollectionServiceDeleteCollectionByNameProcedure = "/datasets.v1.CollectionService/DeleteCollectionByName"
 	// CollectionServiceListCollectionsProcedure is the fully-qualified name of the CollectionService's
 	// ListCollections RPC.
 	CollectionServiceListCollectionsProcedure = "/datasets.v1.CollectionService/ListCollections"
@@ -50,6 +53,7 @@ const (
 type CollectionServiceClient interface {
 	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
 	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
+	DeleteCollectionByName(context.Context, *connect.Request[v1.DeleteCollectionByNameRequest]) (*connect.Response[v1.DeleteCollectionByNameResponse], error)
 	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error)
 }
 
@@ -76,6 +80,12 @@ func NewCollectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(collectionServiceMethods.ByName("GetCollectionByName")),
 			connect.WithClientOptions(opts...),
 		),
+		deleteCollectionByName: connect.NewClient[v1.DeleteCollectionByNameRequest, v1.DeleteCollectionByNameResponse](
+			httpClient,
+			baseURL+CollectionServiceDeleteCollectionByNameProcedure,
+			connect.WithSchema(collectionServiceMethods.ByName("DeleteCollectionByName")),
+			connect.WithClientOptions(opts...),
+		),
 		listCollections: connect.NewClient[v1.ListCollectionsRequest, v1.CollectionInfos](
 			httpClient,
 			baseURL+CollectionServiceListCollectionsProcedure,
@@ -87,9 +97,10 @@ func NewCollectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 
 // collectionServiceClient implements CollectionServiceClient.
 type collectionServiceClient struct {
-	createCollection    *connect.Client[v1.CreateCollectionRequest, v1.CollectionInfo]
-	getCollectionByName *connect.Client[v1.GetCollectionByNameRequest, v1.CollectionInfo]
-	listCollections     *connect.Client[v1.ListCollectionsRequest, v1.CollectionInfos]
+	createCollection       *connect.Client[v1.CreateCollectionRequest, v1.CollectionInfo]
+	getCollectionByName    *connect.Client[v1.GetCollectionByNameRequest, v1.CollectionInfo]
+	deleteCollectionByName *connect.Client[v1.DeleteCollectionByNameRequest, v1.DeleteCollectionByNameResponse]
+	listCollections        *connect.Client[v1.ListCollectionsRequest, v1.CollectionInfos]
 }
 
 // CreateCollection calls datasets.v1.CollectionService.CreateCollection.
@@ -102,6 +113,11 @@ func (c *collectionServiceClient) GetCollectionByName(ctx context.Context, req *
 	return c.getCollectionByName.CallUnary(ctx, req)
 }
 
+// DeleteCollectionByName calls datasets.v1.CollectionService.DeleteCollectionByName.
+func (c *collectionServiceClient) DeleteCollectionByName(ctx context.Context, req *connect.Request[v1.DeleteCollectionByNameRequest]) (*connect.Response[v1.DeleteCollectionByNameResponse], error) {
+	return c.deleteCollectionByName.CallUnary(ctx, req)
+}
+
 // ListCollections calls datasets.v1.CollectionService.ListCollections.
 func (c *collectionServiceClient) ListCollections(ctx context.Context, req *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error) {
 	return c.listCollections.CallUnary(ctx, req)
@@ -111,6 +127,7 @@ func (c *collectionServiceClient) ListCollections(ctx context.Context, req *conn
 type CollectionServiceHandler interface {
 	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
 	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
+	DeleteCollectionByName(context.Context, *connect.Request[v1.DeleteCollectionByNameRequest]) (*connect.Response[v1.DeleteCollectionByNameResponse], error)
 	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error)
 }
 
@@ -133,6 +150,12 @@ func NewCollectionServiceHandler(svc CollectionServiceHandler, opts ...connect.H
 		connect.WithSchema(collectionServiceMethods.ByName("GetCollectionByName")),
 		connect.WithHandlerOptions(opts...),
 	)
+	collectionServiceDeleteCollectionByNameHandler := connect.NewUnaryHandler(
+		CollectionServiceDeleteCollectionByNameProcedure,
+		svc.DeleteCollectionByName,
+		connect.WithSchema(collectionServiceMethods.ByName("DeleteCollectionByName")),
+		connect.WithHandlerOptions(opts...),
+	)
 	collectionServiceListCollectionsHandler := connect.NewUnaryHandler(
 		CollectionServiceListCollectionsProcedure,
 		svc.ListCollections,
@@ -145,6 +168,8 @@ func NewCollectionServiceHandler(svc CollectionServiceHandler, opts ...connect.H
 			collectionServiceCreateCollectionHandler.ServeHTTP(w, r)
 		case CollectionServiceGetCollectionByNameProcedure:
 			collectionServiceGetCollectionByNameHandler.ServeHTTP(w, r)
+		case CollectionServiceDeleteCollectionByNameProcedure:
+			collectionServiceDeleteCollectionByNameHandler.ServeHTTP(w, r)
 		case CollectionServiceListCollectionsProcedure:
 			collectionServiceListCollectionsHandler.ServeHTTP(w, r)
 		default:
@@ -162,6 +187,10 @@ func (UnimplementedCollectionServiceHandler) CreateCollection(context.Context, *
 
 func (UnimplementedCollectionServiceHandler) GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.GetCollectionByName is not implemented"))
+}
+
+func (UnimplementedCollectionServiceHandler) DeleteCollectionByName(context.Context, *connect.Request[v1.DeleteCollectionByNameRequest]) (*connect.Response[v1.DeleteCollectionByNameResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.DeleteCollectionByName is not implemented"))
 }
 
 func (UnimplementedCollectionServiceHandler) ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error) {
