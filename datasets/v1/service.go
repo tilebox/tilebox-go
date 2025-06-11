@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"runtime/debug"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -13,6 +14,7 @@ import (
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/datasets/v1/datasetsv1connect"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type DatasetService interface {
@@ -133,7 +135,7 @@ func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID u
 			},
 		))
 		if err != nil {
-			return nil, fmt.Errorf("failed to get collections: %w", err)
+			return nil, fmt.Errorf("failed to get collection: %w", err)
 		}
 
 		return res.Msg, nil
@@ -149,7 +151,7 @@ func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid
 			},
 		))
 		if err != nil {
-			return fmt.Errorf("failed to delete collections: %w", err)
+			return fmt.Errorf("failed to delete collection: %w", err)
 		}
 
 		return nil
@@ -230,6 +232,7 @@ func (s *dataAccessService) QueryByID(ctx context.Context, collectionIDs []uuid.
 type DataIngestionService interface {
 	Ingest(ctx context.Context, collectionID uuid.UUID, datapoints [][]byte, allowExisting bool) (*datasetsv1.IngestResponse, error)
 	Delete(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteResponse, error)
+	Trim(ctx context.Context, collectionID uuid.UUID, before time.Time) (*datasetsv1.TrimResponse, error)
 }
 
 var _ DataIngestionService = &dataIngestionService{}
@@ -275,6 +278,22 @@ func (s *dataIngestionService) Delete(ctx context.Context, collectionID uuid.UUI
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to delete datapoints: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *dataIngestionService) Trim(ctx context.Context, collectionID uuid.UUID, before time.Time) (*datasetsv1.TrimResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/trim", func(ctx context.Context) (*datasetsv1.TrimResponse, error) {
+		res, err := s.dataIngestionClient.Trim(ctx, connect.NewRequest(
+			&datasetsv1.TrimRequest{
+				CollectionId: uuidToProtobuf(collectionID),
+				Before:       timestamppb.New(before),
+			},
+		))
+		if err != nil {
+			return nil, fmt.Errorf("failed to trim collection: %w", err)
 		}
 
 		return res.Msg, nil

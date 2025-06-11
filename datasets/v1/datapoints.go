@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"iter"
 	"reflect"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/paulmach/orb"
@@ -86,6 +87,11 @@ type DatapointClient interface {
 	//
 	// Returns the number of deleted datapoints.
 	DeleteIDs(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (int64, error)
+
+	// Trim deletes datapoints from a collection before the specified date.
+	//
+	// Returns the number of deleted datapoints.
+	Trim(ctx context.Context, collectionID uuid.UUID, before time.Time) (int64, error)
 }
 
 var _ DatapointClient = &datapointClient{}
@@ -370,6 +376,15 @@ func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, 
 	}
 
 	response, err := d.dataIngestionService.Delete(ctx, collectionID, datapointIDs)
+	if err != nil {
+		return 0, err
+	}
+
+	return response.GetNumDeleted(), nil
+}
+
+func (d datapointClient) Trim(ctx context.Context, collectionID uuid.UUID, before time.Time) (int64, error) {
+	response, err := d.dataIngestionService.Trim(ctx, collectionID, before)
 	if err != nil {
 		return 0, err
 	}

@@ -5,6 +5,7 @@ syntax = "proto3";
 package datasets.v1;
 
 import "datasets/v1/core.proto";
+import "google/protobuf/timestamp.proto";
 
 // Legacy ingest request
 // IngestDatapointsRequest is used to ingest one or multiple datapoints into a collection.
@@ -54,8 +55,23 @@ message DeleteResponse {
   int64 num_deleted = 1; // The number of datapoints that were deleted.
 }
 
+// TrimRequest is used to trim a collection before a given date
+message TrimRequest {
+  // Id of the collection to trim.
+  ID collection_id = 1;
+  // All data before this date will be deleted.
+  google.protobuf.Timestamp before = 2;
+}
+
+// TrimResponse is used to indicate that multiple datapoints were deleted.
+message TrimResponse {
+  // The number of datapoints that were deleted.
+  int64 num_deleted = 1;
+}
+
 // DataIngestionService provides data ingestion and deletion capabilities for Tilebox datasets.
 service DataIngestionService {
   rpc Ingest(IngestRequest) returns (IngestResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc Trim(TrimRequest) returns (TrimResponse) {}
 }

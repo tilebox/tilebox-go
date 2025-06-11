@@ -41,12 +41,16 @@ const (
 	// DataIngestionServiceDeleteProcedure is the fully-qualified name of the DataIngestionService's
 	// Delete RPC.
 	DataIngestionServiceDeleteProcedure = "/datasets.v1.DataIngestionService/Delete"
+	// DataIngestionServiceTrimProcedure is the fully-qualified name of the DataIngestionService's Trim
+	// RPC.
+	DataIngestionServiceTrimProcedure = "/datasets.v1.DataIngestionService/Trim"
 )
 
 // DataIngestionServiceClient is a client for the datasets.v1.DataIngestionService service.
 type DataIngestionServiceClient interface {
 	Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error)
 	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
+	Trim(context.Context, *connect.Request[v1.TrimRequest]) (*connect.Response[v1.TrimResponse], error)
 }
 
 // NewDataIngestionServiceClient constructs a client for the datasets.v1.DataIngestionService
@@ -72,6 +76,12 @@ func NewDataIngestionServiceClient(httpClient connect.HTTPClient, baseURL string
 			connect.WithSchema(dataIngestionServiceMethods.ByName("Delete")),
 			connect.WithClientOptions(opts...),
 		),
+		trim: connect.NewClient[v1.TrimRequest, v1.TrimResponse](
+			httpClient,
+			baseURL+DataIngestionServiceTrimProcedure,
+			connect.WithSchema(dataIngestionServiceMethods.ByName("Trim")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -79,6 +89,7 @@ func NewDataIngestionServiceClient(httpClient connect.HTTPClient, baseURL string
 type dataIngestionServiceClient struct {
 	ingest *connect.Client[v1.IngestRequest, v1.IngestResponse]
 	delete *connect.Client[v1.DeleteRequest, v1.DeleteResponse]
+	trim   *connect.Client[v1.TrimRequest, v1.TrimResponse]
 }
 
 // Ingest calls datasets.v1.DataIngestionService.Ingest.
@@ -91,10 +102,16 @@ func (c *dataIngestionServiceClient) Delete(ctx context.Context, req *connect.Re
 	return c.delete.CallUnary(ctx, req)
 }
 
+// Trim calls datasets.v1.DataIngestionService.Trim.
+func (c *dataIngestionServiceClient) Trim(ctx context.Context, req *connect.Request[v1.TrimRequest]) (*connect.Response[v1.TrimResponse], error) {
+	return c.trim.CallUnary(ctx, req)
+}
+
 // DataIngestionServiceHandler is an implementation of the datasets.v1.DataIngestionService service.
 type DataIngestionServiceHandler interface {
 	Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error)
 	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
+	Trim(context.Context, *connect.Request[v1.TrimRequest]) (*connect.Response[v1.TrimResponse], error)
 }
 
 // NewDataIngestionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -116,12 +133,20 @@ func NewDataIngestionServiceHandler(svc DataIngestionServiceHandler, opts ...con
 		connect.WithSchema(dataIngestionServiceMethods.ByName("Delete")),
 		connect.WithHandlerOptions(opts...),
 	)
+	dataIngestionServiceTrimHandler := connect.NewUnaryHandler(
+		DataIngestionServiceTrimProcedure,
+		svc.Trim,
+		connect.WithSchema(dataIngestionServiceMethods.ByName("Trim")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/datasets.v1.DataIngestionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case DataIngestionServiceIngestProcedure:
 			dataIngestionServiceIngestHandler.ServeHTTP(w, r)
 		case DataIngestionServiceDeleteProcedure:
 			dataIngestionServiceDeleteHandler.ServeHTTP(w, r)
+		case DataIngestionServiceTrimProcedure:
+			dataIngestionServiceTrimHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -137,4 +162,8 @@ func (UnimplementedDataIngestionServiceHandler) Ingest(context.Context, *connect
 
 func (UnimplementedDataIngestionServiceHandler) Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.Delete is not implemented"))
+}
+
+func (UnimplementedDataIngestionServiceHandler) Trim(context.Context, *connect.Request[v1.TrimRequest]) (*connect.Response[v1.TrimResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.Trim is not implemented"))
 }

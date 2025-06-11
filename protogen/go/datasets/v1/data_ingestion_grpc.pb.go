@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	DataIngestionService_Ingest_FullMethodName = "/datasets.v1.DataIngestionService/Ingest"
 	DataIngestionService_Delete_FullMethodName = "/datasets.v1.DataIngestionService/Delete"
+	DataIngestionService_Trim_FullMethodName   = "/datasets.v1.DataIngestionService/Trim"
 )
 
 // DataIngestionServiceClient is the client API for DataIngestionService service.
@@ -33,6 +34,7 @@ const (
 type DataIngestionServiceClient interface {
 	Ingest(ctx context.Context, in *IngestRequest, opts ...grpc.CallOption) (*IngestResponse, error)
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
+	Trim(ctx context.Context, in *TrimRequest, opts ...grpc.CallOption) (*TrimResponse, error)
 }
 
 type dataIngestionServiceClient struct {
@@ -63,6 +65,16 @@ func (c *dataIngestionServiceClient) Delete(ctx context.Context, in *DeleteReque
 	return out, nil
 }
 
+func (c *dataIngestionServiceClient) Trim(ctx context.Context, in *TrimRequest, opts ...grpc.CallOption) (*TrimResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TrimResponse)
+	err := c.cc.Invoke(ctx, DataIngestionService_Trim_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DataIngestionServiceServer is the server API for DataIngestionService service.
 // All implementations must embed UnimplementedDataIngestionServiceServer
 // for forward compatibility.
@@ -71,6 +83,7 @@ func (c *dataIngestionServiceClient) Delete(ctx context.Context, in *DeleteReque
 type DataIngestionServiceServer interface {
 	Ingest(context.Context, *IngestRequest) (*IngestResponse, error)
 	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
+	Trim(context.Context, *TrimRequest) (*TrimResponse, error)
 	mustEmbedUnimplementedDataIngestionServiceServer()
 }
 
@@ -86,6 +99,9 @@ func (UnimplementedDataIngestionServiceServer) Ingest(context.Context, *IngestRe
 }
 func (UnimplementedDataIngestionServiceServer) Delete(context.Context, *DeleteRequest) (*DeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedDataIngestionServiceServer) Trim(context.Context, *TrimRequest) (*TrimResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Trim not implemented")
 }
 func (UnimplementedDataIngestionServiceServer) mustEmbedUnimplementedDataIngestionServiceServer() {}
 func (UnimplementedDataIngestionServiceServer) testEmbeddedByValue()                              {}
@@ -144,6 +160,24 @@ func _DataIngestionService_Delete_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DataIngestionService_Trim_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TrimRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataIngestionServiceServer).Trim(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DataIngestionService_Trim_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataIngestionServiceServer).Trim(ctx, req.(*TrimRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DataIngestionService_ServiceDesc is the grpc.ServiceDesc for DataIngestionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -158,6 +192,10 @@ var DataIngestionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _DataIngestionService_Delete_Handler,
+		},
+		{
+			MethodName: "Trim",
+			Handler:    _DataIngestionService_Trim_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -11,6 +11,7 @@ package datasetsv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -316,11 +317,112 @@ func (x *DeleteResponse) GetNumDeleted() int64 {
 	return 0
 }
 
+// TrimRequest is used to trim a collection before a given date
+type TrimRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Id of the collection to trim.
+	CollectionId *ID `protobuf:"bytes,1,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
+	// All data before this date will be deleted.
+	Before        *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=before,proto3" json:"before,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TrimRequest) Reset() {
+	*x = TrimRequest{}
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TrimRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TrimRequest) ProtoMessage() {}
+
+func (x *TrimRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TrimRequest.ProtoReflect.Descriptor instead.
+func (*TrimRequest) Descriptor() ([]byte, []int) {
+	return file_datasets_v1_data_ingestion_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *TrimRequest) GetCollectionId() *ID {
+	if x != nil {
+		return x.CollectionId
+	}
+	return nil
+}
+
+func (x *TrimRequest) GetBefore() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Before
+	}
+	return nil
+}
+
+// TrimResponse is used to indicate that multiple datapoints were deleted.
+type TrimResponse struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The number of datapoints that were deleted.
+	NumDeleted    int64 `protobuf:"varint,1,opt,name=num_deleted,json=numDeleted,proto3" json:"num_deleted,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TrimResponse) Reset() {
+	*x = TrimResponse{}
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TrimResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TrimResponse) ProtoMessage() {}
+
+func (x *TrimResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TrimResponse.ProtoReflect.Descriptor instead.
+func (*TrimResponse) Descriptor() ([]byte, []int) {
+	return file_datasets_v1_data_ingestion_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *TrimResponse) GetNumDeleted() int64 {
+	if x != nil {
+		return x.NumDeleted
+	}
+	return 0
+}
+
 var File_datasets_v1_data_ingestion_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_data_ingestion_proto_rawDesc = "" +
 	"\n" +
-	" datasets/v1/data_ingestion.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\"\xaf\x01\n" +
+	" datasets/v1/data_ingestion.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xaf\x01\n" +
 	"\x17IngestDatapointsRequest\x124\n" +
 	"\rcollection_id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\fcollectionId\x127\n" +
 	"\n" +
@@ -341,10 +443,17 @@ const file_datasets_v1_data_ingestion_proto_rawDesc = "" +
 	"\rdatapoint_ids\x18\x02 \x03(\v2\x0f.datasets.v1.IDR\fdatapointIds\"1\n" +
 	"\x0eDeleteResponse\x12\x1f\n" +
 	"\vnum_deleted\x18\x01 \x01(\x03R\n" +
-	"numDeleted2\xa0\x01\n" +
+	"numDeleted\"w\n" +
+	"\vTrimRequest\x124\n" +
+	"\rcollection_id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\fcollectionId\x122\n" +
+	"\x06before\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06before\"/\n" +
+	"\fTrimResponse\x12\x1f\n" +
+	"\vnum_deleted\x18\x01 \x01(\x03R\n" +
+	"numDeleted2\xdf\x01\n" +
 	"\x14DataIngestionService\x12C\n" +
 	"\x06Ingest\x12\x1a.datasets.v1.IngestRequest\x1a\x1b.datasets.v1.IngestResponse\"\x00\x12C\n" +
-	"\x06Delete\x12\x1a.datasets.v1.DeleteRequest\x1a\x1b.datasets.v1.DeleteResponse\"\x00B\xb4\x01\n" +
+	"\x06Delete\x12\x1a.datasets.v1.DeleteRequest\x1a\x1b.datasets.v1.DeleteResponse\"\x00\x12=\n" +
+	"\x04Trim\x12\x18.datasets.v1.TrimRequest\x1a\x19.datasets.v1.TrimResponse\"\x00B\xb4\x01\n" +
 	"\x0fcom.datasets.v1B\x12DataIngestionProtoP\x01Z@github.com/tilebox/tilebox-go/protogen/go/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1b\x06proto3"
 
 var (
@@ -359,32 +468,39 @@ func file_datasets_v1_data_ingestion_proto_rawDescGZIP() []byte {
 	return file_datasets_v1_data_ingestion_proto_rawDescData
 }
 
-var file_datasets_v1_data_ingestion_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_datasets_v1_data_ingestion_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_datasets_v1_data_ingestion_proto_goTypes = []any{
 	(*IngestDatapointsRequest)(nil), // 0: datasets.v1.IngestDatapointsRequest
 	(*IngestRequest)(nil),           // 1: datasets.v1.IngestRequest
 	(*IngestResponse)(nil),          // 2: datasets.v1.IngestResponse
 	(*DeleteRequest)(nil),           // 3: datasets.v1.DeleteRequest
 	(*DeleteResponse)(nil),          // 4: datasets.v1.DeleteResponse
-	(*ID)(nil),                      // 5: datasets.v1.ID
-	(*Datapoints)(nil),              // 6: datasets.v1.Datapoints
+	(*TrimRequest)(nil),             // 5: datasets.v1.TrimRequest
+	(*TrimResponse)(nil),            // 6: datasets.v1.TrimResponse
+	(*ID)(nil),                      // 7: datasets.v1.ID
+	(*Datapoints)(nil),              // 8: datasets.v1.Datapoints
+	(*timestamppb.Timestamp)(nil),   // 9: google.protobuf.Timestamp
 }
 var file_datasets_v1_data_ingestion_proto_depIdxs = []int32{
-	5, // 0: datasets.v1.IngestDatapointsRequest.collection_id:type_name -> datasets.v1.ID
-	6, // 1: datasets.v1.IngestDatapointsRequest.datapoints:type_name -> datasets.v1.Datapoints
-	5, // 2: datasets.v1.IngestRequest.collection_id:type_name -> datasets.v1.ID
-	5, // 3: datasets.v1.IngestResponse.datapoint_ids:type_name -> datasets.v1.ID
-	5, // 4: datasets.v1.DeleteRequest.collection_id:type_name -> datasets.v1.ID
-	5, // 5: datasets.v1.DeleteRequest.datapoint_ids:type_name -> datasets.v1.ID
-	1, // 6: datasets.v1.DataIngestionService.Ingest:input_type -> datasets.v1.IngestRequest
-	3, // 7: datasets.v1.DataIngestionService.Delete:input_type -> datasets.v1.DeleteRequest
-	2, // 8: datasets.v1.DataIngestionService.Ingest:output_type -> datasets.v1.IngestResponse
-	4, // 9: datasets.v1.DataIngestionService.Delete:output_type -> datasets.v1.DeleteResponse
-	8, // [8:10] is the sub-list for method output_type
-	6, // [6:8] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	7,  // 0: datasets.v1.IngestDatapointsRequest.collection_id:type_name -> datasets.v1.ID
+	8,  // 1: datasets.v1.IngestDatapointsRequest.datapoints:type_name -> datasets.v1.Datapoints
+	7,  // 2: datasets.v1.IngestRequest.collection_id:type_name -> datasets.v1.ID
+	7,  // 3: datasets.v1.IngestResponse.datapoint_ids:type_name -> datasets.v1.ID
+	7,  // 4: datasets.v1.DeleteRequest.collection_id:type_name -> datasets.v1.ID
+	7,  // 5: datasets.v1.DeleteRequest.datapoint_ids:type_name -> datasets.v1.ID
+	7,  // 6: datasets.v1.TrimRequest.collection_id:type_name -> datasets.v1.ID
+	9,  // 7: datasets.v1.TrimRequest.before:type_name -> google.protobuf.Timestamp
+	1,  // 8: datasets.v1.DataIngestionService.Ingest:input_type -> datasets.v1.IngestRequest
+	3,  // 9: datasets.v1.DataIngestionService.Delete:input_type -> datasets.v1.DeleteRequest
+	5,  // 10: datasets.v1.DataIngestionService.Trim:input_type -> datasets.v1.TrimRequest
+	2,  // 11: datasets.v1.DataIngestionService.Ingest:output_type -> datasets.v1.IngestResponse
+	4,  // 12: datasets.v1.DataIngestionService.Delete:output_type -> datasets.v1.DeleteResponse
+	6,  // 13: datasets.v1.DataIngestionService.Trim:output_type -> datasets.v1.TrimResponse
+	11, // [11:14] is the sub-list for method output_type
+	8,  // [8:11] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_data_ingestion_proto_init() }
@@ -399,7 +515,7 @@ func file_datasets_v1_data_ingestion_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_data_ingestion_proto_rawDesc), len(file_datasets_v1_data_ingestion_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
