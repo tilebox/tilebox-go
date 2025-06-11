@@ -88,7 +88,7 @@ func clientInfo() *datasetsv1.ClientInfo {
 type CollectionService interface {
 	CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
 	GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
-	DeleteCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) error
+	DeleteCollection(ctx context.Context, datasetID uuid.UUID, collectionID uuid.UUID) error
 	ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.CollectionInfos, error)
 }
 
@@ -133,23 +133,23 @@ func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID u
 			},
 		))
 		if err != nil {
-			return nil, fmt.Errorf("failed to get collections: %w", err)
+			return nil, fmt.Errorf("failed to get collection: %w", err)
 		}
 
 		return res.Msg, nil
 	})
 }
 
-func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid.UUID, name string) error {
+func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid.UUID, collectionID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "datasets/collections/delete", func(ctx context.Context) error {
-		_, err := s.collectionClient.DeleteCollectionByName(ctx, connect.NewRequest(
-			&datasetsv1.DeleteCollectionByNameRequest{
-				CollectionName: name,
-				DatasetId:      uuidToProtobuf(datasetID),
+		_, err := s.collectionClient.DeleteCollection(ctx, connect.NewRequest(
+			&datasetsv1.DeleteCollectionRequest{
+				CollectionId: uuidToProtobuf(collectionID),
+				DatasetId:    uuidToProtobuf(datasetID),
 			},
 		))
 		if err != nil {
-			return fmt.Errorf("failed to delete collections: %w", err)
+			return fmt.Errorf("failed to delete collection: %w", err)
 		}
 
 		return nil

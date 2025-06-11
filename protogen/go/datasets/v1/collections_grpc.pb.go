@@ -21,10 +21,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CollectionService_CreateCollection_FullMethodName       = "/datasets.v1.CollectionService/CreateCollection"
-	CollectionService_GetCollectionByName_FullMethodName    = "/datasets.v1.CollectionService/GetCollectionByName"
-	CollectionService_DeleteCollectionByName_FullMethodName = "/datasets.v1.CollectionService/DeleteCollectionByName"
-	CollectionService_ListCollections_FullMethodName        = "/datasets.v1.CollectionService/ListCollections"
+	CollectionService_CreateCollection_FullMethodName    = "/datasets.v1.CollectionService/CreateCollection"
+	CollectionService_GetCollectionByName_FullMethodName = "/datasets.v1.CollectionService/GetCollectionByName"
+	CollectionService_DeleteCollection_FullMethodName    = "/datasets.v1.CollectionService/DeleteCollection"
+	CollectionService_ListCollections_FullMethodName     = "/datasets.v1.CollectionService/ListCollections"
 )
 
 // CollectionServiceClient is the client API for CollectionService service.
@@ -35,7 +35,7 @@ const (
 type CollectionServiceClient interface {
 	CreateCollection(ctx context.Context, in *CreateCollectionRequest, opts ...grpc.CallOption) (*CollectionInfo, error)
 	GetCollectionByName(ctx context.Context, in *GetCollectionByNameRequest, opts ...grpc.CallOption) (*CollectionInfo, error)
-	DeleteCollectionByName(ctx context.Context, in *DeleteCollectionByNameRequest, opts ...grpc.CallOption) (*DeleteCollectionByNameResponse, error)
+	DeleteCollection(ctx context.Context, in *DeleteCollectionRequest, opts ...grpc.CallOption) (*DeleteCollectionResponse, error)
 	ListCollections(ctx context.Context, in *ListCollectionsRequest, opts ...grpc.CallOption) (*CollectionInfos, error)
 }
 
@@ -67,10 +67,10 @@ func (c *collectionServiceClient) GetCollectionByName(ctx context.Context, in *G
 	return out, nil
 }
 
-func (c *collectionServiceClient) DeleteCollectionByName(ctx context.Context, in *DeleteCollectionByNameRequest, opts ...grpc.CallOption) (*DeleteCollectionByNameResponse, error) {
+func (c *collectionServiceClient) DeleteCollection(ctx context.Context, in *DeleteCollectionRequest, opts ...grpc.CallOption) (*DeleteCollectionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DeleteCollectionByNameResponse)
-	err := c.cc.Invoke(ctx, CollectionService_DeleteCollectionByName_FullMethodName, in, out, cOpts...)
+	out := new(DeleteCollectionResponse)
+	err := c.cc.Invoke(ctx, CollectionService_DeleteCollection_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (c *collectionServiceClient) ListCollections(ctx context.Context, in *ListC
 type CollectionServiceServer interface {
 	CreateCollection(context.Context, *CreateCollectionRequest) (*CollectionInfo, error)
 	GetCollectionByName(context.Context, *GetCollectionByNameRequest) (*CollectionInfo, error)
-	DeleteCollectionByName(context.Context, *DeleteCollectionByNameRequest) (*DeleteCollectionByNameResponse, error)
+	DeleteCollection(context.Context, *DeleteCollectionRequest) (*DeleteCollectionResponse, error)
 	ListCollections(context.Context, *ListCollectionsRequest) (*CollectionInfos, error)
 	mustEmbedUnimplementedCollectionServiceServer()
 }
@@ -113,8 +113,8 @@ func (UnimplementedCollectionServiceServer) CreateCollection(context.Context, *C
 func (UnimplementedCollectionServiceServer) GetCollectionByName(context.Context, *GetCollectionByNameRequest) (*CollectionInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCollectionByName not implemented")
 }
-func (UnimplementedCollectionServiceServer) DeleteCollectionByName(context.Context, *DeleteCollectionByNameRequest) (*DeleteCollectionByNameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteCollectionByName not implemented")
+func (UnimplementedCollectionServiceServer) DeleteCollection(context.Context, *DeleteCollectionRequest) (*DeleteCollectionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCollection not implemented")
 }
 func (UnimplementedCollectionServiceServer) ListCollections(context.Context, *ListCollectionsRequest) (*CollectionInfos, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCollections not implemented")
@@ -176,20 +176,20 @@ func _CollectionService_GetCollectionByName_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CollectionService_DeleteCollectionByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteCollectionByNameRequest)
+func _CollectionService_DeleteCollection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCollectionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CollectionServiceServer).DeleteCollectionByName(ctx, in)
+		return srv.(CollectionServiceServer).DeleteCollection(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: CollectionService_DeleteCollectionByName_FullMethodName,
+		FullMethod: CollectionService_DeleteCollection_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CollectionServiceServer).DeleteCollectionByName(ctx, req.(*DeleteCollectionByNameRequest))
+		return srv.(CollectionServiceServer).DeleteCollection(ctx, req.(*DeleteCollectionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -228,8 +228,8 @@ var CollectionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _CollectionService_GetCollectionByName_Handler,
 		},
 		{
-			MethodName: "DeleteCollectionByName",
-			Handler:    _CollectionService_DeleteCollectionByName_Handler,
+			MethodName: "DeleteCollection",
+			Handler:    _CollectionService_DeleteCollection_Handler,
 		},
 		{
 			MethodName: "ListCollections",
