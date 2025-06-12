@@ -49,8 +49,8 @@ type CollectionClient interface {
 	// GetOrCreate returns a collection by its name, creating it if it does not exist.
 	GetOrCreate(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error)
 
-	// Delete deletes a collection by its name.
-	Delete(ctx context.Context, datasetID uuid.UUID, name string) error
+	// Delete deletes a collection by its id.
+	Delete(ctx context.Context, datasetID uuid.UUID, collectionID uuid.UUID) error
 
 	// List returns a list of all available collections in the dataset.
 	List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error)
@@ -102,8 +102,8 @@ func (c collectionClient) GetOrCreate(ctx context.Context, datasetID uuid.UUID, 
 	return collection, err
 }
 
-func (c collectionClient) Delete(ctx context.Context, datasetID uuid.UUID, name string) error {
-	return c.service.DeleteCollection(ctx, datasetID, name)
+func (c collectionClient) Delete(ctx context.Context, datasetID uuid.UUID, collectionID uuid.UUID) error {
+	return c.service.DeleteCollection(ctx, datasetID, collectionID)
 }
 
 func (c collectionClient) List(ctx context.Context, datasetID uuid.UUID) ([]*Collection, error) {
