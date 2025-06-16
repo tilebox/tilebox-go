@@ -28,7 +28,7 @@
 
 # Tilebox Go
 
-Go library for [Tilebox](https://tilebox.com) - a lightweight space data management and orchestration software - for on the ground and in orbit.
+Go library for [Tilebox](https://tilebox.com), a lightweight space data management and orchestration software - on ground and in orbit.
 
 ## Installation
 
