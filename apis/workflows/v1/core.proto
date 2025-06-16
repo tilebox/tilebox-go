@@ -46,7 +46,7 @@ message TaskSummary {
   string display = 2;
   TaskState state = 3;
   UUID parent_id = 4;
-  repeated UUID depends_on = 5;
+  reserved 5; // depends_on in case we want to add that in the future
   google.protobuf.Timestamp started_at = 6;
   google.protobuf.Timestamp stopped_at = 7;
 }
