@@ -324,7 +324,6 @@ type TaskSummary struct {
 	Display       string                 `protobuf:"bytes,2,opt,name=display,proto3" json:"display,omitempty"`
 	State         TaskState              `protobuf:"varint,3,opt,name=state,proto3,enum=workflows.v1.TaskState" json:"state,omitempty"`
 	ParentId      *UUID                  `protobuf:"bytes,4,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
-	DependsOn     []*UUID                `protobuf:"bytes,5,rep,name=depends_on,json=dependsOn,proto3" json:"depends_on,omitempty"`
 	StartedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
 	StoppedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=stopped_at,json=stoppedAt,proto3" json:"stopped_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -385,13 +384,6 @@ func (x *TaskSummary) GetState() TaskState {
 func (x *TaskSummary) GetParentId() *UUID {
 	if x != nil {
 		return x.ParentId
-	}
-	return nil
-}
-
-func (x *TaskSummary) GetDependsOn() []*UUID {
-	if x != nil {
-		return x.DependsOn
 	}
 	return nil
 }
@@ -1035,18 +1027,16 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"started_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x12@\n" +
 	"\x0etask_summaries\x18\t \x03(\v2\x19.workflows.v1.TaskSummaryR\rtaskSummaries\x127\n" +
 	"\rautomation_id\x18\n" +
-	" \x01(\v2\x12.workflows.v1.UUIDR\fautomationIdJ\x04\b\x04\x10\x05\"\xd4\x02\n" +
+	" \x01(\v2\x12.workflows.v1.UUIDR\fautomationIdJ\x04\b\x04\x10\x05\"\xa7\x02\n" +
 	"\vTaskSummary\x12\"\n" +
 	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x18\n" +
 	"\adisplay\x18\x02 \x01(\tR\adisplay\x12-\n" +
 	"\x05state\x18\x03 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\x12/\n" +
-	"\tparent_id\x18\x04 \x01(\v2\x12.workflows.v1.UUIDR\bparentId\x121\n" +
-	"\n" +
-	"depends_on\x18\x05 \x03(\v2\x12.workflows.v1.UUIDR\tdependsOn\x129\n" +
+	"\tparent_id\x18\x04 \x01(\v2\x12.workflows.v1.UUIDR\bparentId\x129\n" +
 	"\n" +
 	"started_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x129\n" +
 	"\n" +
-	"stopped_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tstoppedAt\"\xc0\x03\n" +
+	"stopped_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tstoppedAtJ\x04\b\x05\x10\x06\"\xc0\x03\n" +
 	"\x04Task\x12\"\n" +
 	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12<\n" +
 	"\n" +
@@ -1160,30 +1150,29 @@ var file_workflows_v1_core_proto_depIdxs = []int32{
 	9,  // 6: workflows.v1.TaskSummary.id:type_name -> workflows.v1.UUID
 	1,  // 7: workflows.v1.TaskSummary.state:type_name -> workflows.v1.TaskState
 	9,  // 8: workflows.v1.TaskSummary.parent_id:type_name -> workflows.v1.UUID
-	9,  // 9: workflows.v1.TaskSummary.depends_on:type_name -> workflows.v1.UUID
-	14, // 10: workflows.v1.TaskSummary.started_at:type_name -> google.protobuf.Timestamp
-	14, // 11: workflows.v1.TaskSummary.stopped_at:type_name -> google.protobuf.Timestamp
-	9,  // 12: workflows.v1.Task.id:type_name -> workflows.v1.UUID
-	6,  // 13: workflows.v1.Task.identifier:type_name -> workflows.v1.TaskIdentifier
-	1,  // 14: workflows.v1.Task.state:type_name -> workflows.v1.TaskState
-	3,  // 15: workflows.v1.Task.job:type_name -> workflows.v1.Job
-	9,  // 16: workflows.v1.Task.parent_id:type_name -> workflows.v1.UUID
-	9,  // 17: workflows.v1.Task.depends_on:type_name -> workflows.v1.UUID
-	10, // 18: workflows.v1.Task.lease:type_name -> workflows.v1.TaskLease
-	5,  // 19: workflows.v1.Tasks.tasks:type_name -> workflows.v1.Task
-	6,  // 20: workflows.v1.TaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
-	15, // 21: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
-	15, // 22: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
-	14, // 23: workflows.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
-	14, // 24: workflows.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
-	9,  // 25: workflows.v1.IDInterval.start_id:type_name -> workflows.v1.UUID
-	9,  // 26: workflows.v1.IDInterval.end_id:type_name -> workflows.v1.UUID
-	9,  // 27: workflows.v1.Pagination.starting_after:type_name -> workflows.v1.UUID
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	14, // 9: workflows.v1.TaskSummary.started_at:type_name -> google.protobuf.Timestamp
+	14, // 10: workflows.v1.TaskSummary.stopped_at:type_name -> google.protobuf.Timestamp
+	9,  // 11: workflows.v1.Task.id:type_name -> workflows.v1.UUID
+	6,  // 12: workflows.v1.Task.identifier:type_name -> workflows.v1.TaskIdentifier
+	1,  // 13: workflows.v1.Task.state:type_name -> workflows.v1.TaskState
+	3,  // 14: workflows.v1.Task.job:type_name -> workflows.v1.Job
+	9,  // 15: workflows.v1.Task.parent_id:type_name -> workflows.v1.UUID
+	9,  // 16: workflows.v1.Task.depends_on:type_name -> workflows.v1.UUID
+	10, // 17: workflows.v1.Task.lease:type_name -> workflows.v1.TaskLease
+	5,  // 18: workflows.v1.Tasks.tasks:type_name -> workflows.v1.Task
+	6,  // 19: workflows.v1.TaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
+	15, // 20: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
+	15, // 21: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
+	14, // 22: workflows.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
+	14, // 23: workflows.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
+	9,  // 24: workflows.v1.IDInterval.start_id:type_name -> workflows.v1.UUID
+	9,  // 25: workflows.v1.IDInterval.end_id:type_name -> workflows.v1.UUID
+	9,  // 26: workflows.v1.Pagination.starting_after:type_name -> workflows.v1.UUID
+	27, // [27:27] is the sub-list for method output_type
+	27, // [27:27] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_core_proto_init() }

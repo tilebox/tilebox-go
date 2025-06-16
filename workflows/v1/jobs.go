@@ -57,8 +57,6 @@ type TaskSummary struct {
 	State TaskState
 	// ParentID is the ID of the parent task.
 	ParentID uuid.UUID
-	// DependsOn is the list of task IDs that this task depends on.
-	DependsOn []uuid.UUID
 	// StartedAt is the time the task started.
 	StartedAt time.Time
 	// StoppedAt is the time the task stopped.
@@ -321,20 +319,11 @@ func protoToTaskSummary(t *workflowsv1.TaskSummary) (*TaskSummary, error) {
 		return nil, fmt.Errorf("failed to parse task summary parent id: %w", err)
 	}
 
-	dependsOn := make([]uuid.UUID, len(t.GetDependsOn()))
-	for j, dependsOnID := range t.GetDependsOn() {
-		dependsOn[j], err = protoToUUID(dependsOnID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse task summary depends on id: %w", err)
-		}
-	}
-
 	return &TaskSummary{
 		ID:        taskSummaryID,
 		Display:   t.GetDisplay(),
 		State:     TaskState(t.GetState()),
 		ParentID:  parentID,
-		DependsOn: dependsOn,
 		StartedAt: t.GetStartedAt().AsTime(),
 		StoppedAt: t.GetStoppedAt().AsTime(),
 	}, nil
