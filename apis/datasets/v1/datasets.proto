@@ -65,6 +65,15 @@ message UpdateDatasetDescriptionRequest {
   string description = 2;
 }
 
+// DeleteDatasetRequest is used to delete a dataset
+message DeleteDatasetRequest {
+  // id of the dataset to delete.
+  ID id = 1;
+}
+
+// DeleteDatasetResponse is the response to DeleteDatasetRequest
+message DeleteDatasetResponse {}
+
 // ListDatasetsRequest is used to request a list of datasets
 message ListDatasetsRequest {
   // some information about the Tilebox client requesting the datasets
@@ -92,5 +101,6 @@ service DatasetService {
   rpc GetDataset(GetDatasetRequest) returns (Dataset) {}
   rpc UpdateDataset(UpdateDatasetRequest) returns (Dataset) {}
   rpc UpdateDatasetDescription(UpdateDatasetDescriptionRequest) returns (Dataset) {}
+  rpc DeleteDataset(DeleteDatasetRequest) returns (DeleteDatasetResponse) {}
   rpc ListDatasets(ListDatasetsRequest) returns (ListDatasetsResponse) {}
 }
