@@ -446,7 +446,9 @@ func (x *DeleteDatasetRequest) GetId() *ID {
 
 // DeleteDatasetResponse is the response to DeleteDatasetRequest
 type DeleteDatasetResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// whether the dataset has been trashed or not
+	Trashed       bool `protobuf:"varint,1,opt,name=trashed,proto3" json:"trashed,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -479,6 +481,13 @@ func (x *DeleteDatasetResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use DeleteDatasetResponse.ProtoReflect.Descriptor instead.
 func (*DeleteDatasetResponse) Descriptor() ([]byte, []int) {
 	return file_datasets_v1_datasets_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *DeleteDatasetResponse) GetTrashed() bool {
+	if x != nil {
+		return x.Trashed
+	}
+	return false
 }
 
 // ListDatasetsRequest is used to request a list of datasets
@@ -639,8 +648,9 @@ const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\"7\n" +
 	"\x14DeleteDatasetRequest\x12\x1f\n" +
-	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\"\x17\n" +
-	"\x15DeleteDatasetResponse\"O\n" +
+	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\"1\n" +
+	"\x15DeleteDatasetResponse\x12\x18\n" +
+	"\atrashed\x18\x01 \x01(\bR\atrashed\"O\n" +
 	"\x13ListDatasetsRequest\x128\n" +
 	"\vclient_info\x18\x01 \x01(\v2\x17.datasets.v1.ClientInfoR\n" +
 	"clientInfo\"\x9f\x02\n" +

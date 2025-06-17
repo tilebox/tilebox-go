@@ -72,7 +72,10 @@ message DeleteDatasetRequest {
 }
 
 // DeleteDatasetResponse is the response to DeleteDatasetRequest
-message DeleteDatasetResponse {}
+message DeleteDatasetResponse {
+  // whether the dataset has been trashed or not
+  bool trashed = 1;
+}
 
 // ListDatasetsRequest is used to request a list of datasets
 message ListDatasetsRequest {
