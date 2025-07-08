@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/tilebox/tilebox-go/observability"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -18,7 +19,7 @@ const axiomTracesEndpoint = "https://api.axiom.co/v1/traces"
 // NewOtelSpanProcessor creates a new OpenTelemetry HTTP span processor.
 func NewOtelSpanProcessor(ctx context.Context, options ...Option) (trace.SpanProcessor, error) {
 	opts := &Options{
-		ExportInterval: trace.DefaultScheduleDelay,
+		ExportInterval: trace.DefaultScheduleDelay * time.Millisecond,
 	}
 	for _, option := range options {
 		option(opts)
