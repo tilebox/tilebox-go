@@ -33,37 +33,37 @@ func main() {
 	}
 
 	// Select a temporal extent
-	startDate := time.Date(2025, time.March, 1, 0, 0, 0, 0, time.UTC)
-	endDate := time.Date(2025, time.April, 1, 0, 0, 0, 0, time.UTC)
-	march2025 := query.NewTimeInterval(startDate, endDate)
+	startDate := time.Date(2025, 4, 2, 0, 0, 0, 0, time.UTC)
+	endDate := time.Date(2025, 4, 3, 0, 0, 0, 0, time.UTC)
 
 	// Select a spatial extent
-	colorado := orb.Polygon{
-		{{-109.05, 37.09}, {-102.06, 37.09}, {-102.06, 41.59}, {-109.05, 41.59}, {-109.05, 37.09}},
+	area := orb.Polygon{ // area roughly covering the state of Colorado
+		{{-109.05, 41.00}, {-102.05, 41.00}, {-102.05, 37.0}, {-109.045, 37.0}, {-109.05, 41.00}},
 	}
 
 	// Perform a spatial-temporal query
 	// Sentinel2Msi type is generated using tilebox-generate
-	var datapointsOverColorado []*examplesv1.Sentinel2Msi
+	var foundDatapoints []*examplesv1.Sentinel2Msi
 	err = client.Datapoints.QueryInto(ctx,
-		[]uuid.UUID{collection.ID}, &datapointsOverColorado,
-		datasets.WithTemporalExtent(march2025),
-		datasets.WithSpatialExtent(colorado),
+		[]uuid.UUID{collection.ID},
+		&foundDatapoints,
+		datasets.WithTemporalExtent(query.NewTimeInterval(startDate, endDate)),
+		datasets.WithSpatialExtent(area),
 	)
 	if err != nil {
 		log.Fatalf("Failed to query datapoints: %v", err)
 	}
 
-	slog.Info("Found datapoints over Colorado in March 2025", slog.Int("count", len(datapointsOverColorado)))
-	if len(datapointsOverColorado) > 0 {
+	slog.Info("Found datapoints over Colorado in March 2025", slog.Int("count", len(foundDatapoints)))
+	if len(foundDatapoints) > 0 {
 		slog.Info("First datapoint over Colorado",
-			slog.String("id", datapointsOverColorado[0].GetId().AsUUID().String()),
-			slog.Time("event time", datapointsOverColorado[0].GetTime().AsTime()),
-			slog.Time("ingestion time", datapointsOverColorado[0].GetIngestionTime().AsTime()),
-			slog.String("geometry", wkt.MarshalString(datapointsOverColorado[0].GetGeometry().AsGeometry())),
-			slog.String("granule name", datapointsOverColorado[0].GetGranuleName()),
-			slog.String("processing level", datapointsOverColorado[0].GetProcessingLevel().String()),
-			slog.String("product type", datapointsOverColorado[0].GetProductType()),
+			slog.String("id", foundDatapoints[0].GetId().AsUUID().String()),
+			slog.Time("event time", foundDatapoints[0].GetTime().AsTime()),
+			slog.Time("ingestion time", foundDatapoints[0].GetIngestionTime().AsTime()),
+			slog.String("geometry", wkt.MarshalString(foundDatapoints[0].GetGeometry().AsGeometry())),
+			slog.String("granule name", foundDatapoints[0].GetGranuleName()),
+			slog.String("processing level", foundDatapoints[0].GetProcessingLevel().String()),
+			slog.String("product type", foundDatapoints[0].GetProductType()),
 			// and so on...
 		)
 	}

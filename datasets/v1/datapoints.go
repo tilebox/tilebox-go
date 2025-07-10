@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/paulmach/orb"
-	"github.com/paulmach/orb/encoding/ewkb"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
@@ -98,7 +97,7 @@ type datapointClient struct {
 // queryOptions contains the configuration for a Query request.
 type queryOptions struct {
 	temporalExtent query.TemporalExtent
-	spatialExtent  orb.Geometry
+	spatialExtent  query.SpatialExtent
 	skipData       bool
 }
 
@@ -115,7 +114,14 @@ func WithTemporalExtent(temporalExtent query.TemporalExtent) QueryOption {
 
 // WithSpatialExtent specifies the geographical extent in which to query data.
 // Optional, if not specified the query will return all results found globally.
-func WithSpatialExtent(spatialExtent orb.Geometry) QueryOption {
+// Convenience wrapper for WithSpatialExtentFilter applying a default spatial filter mode and coordinate system.
+func WithSpatialExtent(geometry orb.Geometry) QueryOption {
+	return WithSpatialExtentFilter(&query.SpatialFilter{Geometry: geometry})
+}
+
+// WithSpatialExtentFilter specifies a geographical extent as well as an intersection mode and coordinate system to use
+// for spatial filtering when querying data.
+func WithSpatialExtentFilter(spatialExtent query.SpatialExtent) QueryOption {
 	return func(cfg *queryOptions) {
 		cfg.spatialExtent = spatialExtent
 	}
@@ -189,14 +195,12 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 
 		geometry := cfg.spatialExtent
 		if geometry != nil {
-			wkb, err := ewkb.Marshal(geometry, ewkb.DefaultSRID)
+			spatialExtent, err := cfg.spatialExtent.ToProtoSpatialFilter()
 			if err != nil {
-				yield(nil, fmt.Errorf("invalid geometry: failed to marshal geometry as wkb: %w", err))
+				yield(nil, err)
 				return
 			}
-			filters.SpatialExtent = &datasetsv1.SpatialFilter{
-				Geometry: &datasetsv1.Geometry{Wkb: wkb},
-			}
+			filters.SpatialExtent = spatialExtent
 		}
 
 		for {
