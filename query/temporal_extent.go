@@ -15,7 +15,7 @@ import (
 // smallestPossibleTimeDelta is the smallest possible time delta that can be represented by time.Duration.
 const smallestPossibleTimeDelta = time.Nanosecond
 
-// TemporalExtent is an interface for querying resources and filtering them by a time range.
+// TemporalExtent is an interface for types that can be converted to a temporal extent, to be used in queries.
 type TemporalExtent interface {
 	ToProtoTimeInterval() *datasetsv1.TimeInterval
 	ToProtoDatapointInterval() *datasetsv1.DatapointInterval

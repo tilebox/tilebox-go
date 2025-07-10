@@ -100,7 +100,16 @@ func Test_QueryOptions(t *testing.T) {
 				WithSpatialExtent(colorado),
 			},
 			want: queryOptions{
-				spatialExtent: colorado,
+				spatialExtent: &query.SpatialFilter{Geometry: colorado},
+			},
+		},
+		{
+			name: "with spatial extent filter",
+			options: []QueryOption{
+				WithSpatialExtentFilter(&query.SpatialFilter{Geometry: colorado, Mode: datasetsv1.SpatialFilterMode_SPATIAL_FILTER_MODE_INTERSECTS, CoordinateSystem: datasetsv1.SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_CARTESIAN}),
+			},
+			want: queryOptions{
+				spatialExtent: &query.SpatialFilter{Geometry: colorado, Mode: datasetsv1.SpatialFilterMode_SPATIAL_FILTER_MODE_INTERSECTS, CoordinateSystem: datasetsv1.SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_CARTESIAN},
 			},
 		},
 		{
