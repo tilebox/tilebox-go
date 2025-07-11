@@ -1,8 +1,0 @@
-repos:
-  - repo: https://github.com/bufbuild/buf
-    rev: v1.54.0
-    hooks:
-    - id: buf-lint
-    - id: buf-format
-    - id: buf-breaking
-      args: [--against, ".git#branch=main"]

@@ -17,17 +17,7 @@ plugins:
   - remote: buf.build/connectrpc/go
     out: protogen/go
     opt: paths=source_relative
-  - remote: buf.build/grpc/python
-    out: protogen/python
-  - remote: buf.build/protocolbuffers/python:v29.3 # v30.0 onwards requires protobuf > 6
-    out: protogen/python
-  - remote: buf.build/protocolbuffers/pyi:v29.3 # v30.0 onwards requires protobuf > 6
-    out: protogen/python
-  - remote: buf.build/bufbuild/es
-    out: protogen/web
-    opt:
-      - target=ts
-  - remote: buf.build/connectrpc/query-es
-    out: protogen/web
-    opt:
-      - target=ts
+inputs:
+  - module: buf.build/tilebox/api
+  # for local development
+  # - directory: ../api
