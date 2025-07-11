@@ -5,12 +5,12 @@
 
 <div align="center">
   <a href="https://pkg.go.dev/github.com/tilebox/tilebox-go">
-    <img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square&color=f43f5e" alt="PyPi Latest Release badge"/>
+    <img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square&color=f43f5e" alt="Go.dev reference badge"/>
   </a>
-  <a href="https://github.com/tilebox/tilebox-python/blob/main/LICENSE">
+  <a href="https://github.com/tilebox/tilebox-go/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/tilebox/tilebox-go.svg?style=flat-square&color=f43f5e" alt="MIT License"/>
   </a>
-  <a href="https://github.com/tilebox/tilebox-python/actions">
+  <a href="https://github.com/tilebox/tilebox-go/actions">
     <img src="https://img.shields.io/github/actions/workflow/status/tilebox/tilebox-go/main.yml?style=flat-square&color=f43f5e" alt="Build Status"/>
   </a>
   <a href="https://tilebox.com/discord">
