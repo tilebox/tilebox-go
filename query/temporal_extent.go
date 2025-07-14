@@ -103,12 +103,12 @@ func ProtoToTimeInterval(t *datasetsv1.TimeInterval) *TimeInterval {
 }
 
 func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
-	return &datasetsv1.TimeInterval{
+	return datasetsv1.TimeInterval_builder{
 		StartTime:      timestamppb.New(t.Start),
 		EndTime:        timestamppb.New(t.End),
 		StartExclusive: t.StartExclusive,
 		EndInclusive:   t.EndInclusive,
-	}
+	}.Build()
 }
 
 func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval {
@@ -116,12 +116,12 @@ func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval 
 }
 
 func (t *TimeInterval) ToProtoWorkflowTimeInterval() *workflowsv1.TimeInterval {
-	return &workflowsv1.TimeInterval{
+	return workflowsv1.TimeInterval_builder{
 		StartTime:      timestamppb.New(t.Start),
 		EndTime:        timestamppb.New(t.End),
 		StartExclusive: t.StartExclusive,
 		EndInclusive:   t.EndInclusive,
-	}
+	}.Build()
 }
 
 func (t *TimeInterval) ToProtoIDInterval() *workflowsv1.IDInterval {
@@ -135,12 +135,12 @@ func (t *TimeInterval) ToProtoIDInterval() *workflowsv1.IDInterval {
 		endID = uuid.Nil
 	}
 
-	return &workflowsv1.IDInterval{
-		StartId:        &workflowsv1.UUID{Uuid: startID[:]},
-		EndId:          &workflowsv1.UUID{Uuid: endID[:]},
+	return workflowsv1.IDInterval_builder{
+		StartId:        workflowsv1.UUID_builder{Uuid: startID[:]}.Build(),
+		EndId:          workflowsv1.UUID_builder{Uuid: endID[:]}.Build(),
 		StartExclusive: t.StartExclusive,
 		EndInclusive:   t.EndInclusive,
-	}
+	}.Build()
 }
 
 // newUUIDWithTime generates a new uuid.UUID for a given time and random entropy

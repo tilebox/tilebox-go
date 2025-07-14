@@ -31,9 +31,9 @@ func (s *SpatialFilter) ToProtoSpatialFilter() (*datasetsv1.SpatialFilter, error
 	if err != nil {
 		return nil, fmt.Errorf("invalid geometry: failed to marshal geometry as wkb: %w", err)
 	}
-	return &datasetsv1.SpatialFilter{
-		Geometry:         &datasetsv1.Geometry{Wkb: wkb},
+	return datasetsv1.SpatialFilter_builder{
+		Geometry:         datasetsv1.Geometry_builder{Wkb: wkb}.Build(),
 		Mode:             s.Mode,
 		CoordinateSystem: s.CoordinateSystem,
-	}, nil
+	}.Build(), nil
 }

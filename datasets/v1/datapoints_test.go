@@ -32,9 +32,9 @@ type mockDataIngestionService struct {
 }
 
 func (m mockDataIngestionService) Ingest(_ context.Context, _ uuid.UUID, datapoints [][]byte, _ bool) (*datasetsv1.IngestResponse, error) {
-	return &datasetsv1.IngestResponse{
+	return datasetsv1.IngestResponse_builder{
 		NumCreated: int64(len(datapoints)),
-	}, nil
+	}.Build(), nil
 }
 
 type mockDataAccessService struct {
@@ -60,12 +60,12 @@ func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datase
 		data[i] = message
 	}
 
-	return &datasetsv1.QueryResultPage{
-		Data: &datasetsv1.RepeatedAny{
+	return datasetsv1.QueryResultPage_builder{
+		Data: datasetsv1.RepeatedAny_builder{
 			Value: data,
-		},
+		}.Build(),
 		NextPage: nil,
-	}, nil
+	}.Build(), nil
 }
 
 func Test_QueryOptions(t *testing.T) {

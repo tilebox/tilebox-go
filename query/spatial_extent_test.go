@@ -28,11 +28,11 @@ func TestSpatialFilter_ToProtoSpatialFilter(t *testing.T) {
 				Mode:             datasetsv1.SpatialFilterMode_SPATIAL_FILTER_MODE_INTERSECTS,
 				CoordinateSystem: datasetsv1.SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_CARTESIAN,
 			},
-			want: &datasetsv1.SpatialFilter{
-				Geometry:         &datasetsv1.Geometry{Wkb: coloradoWkb},
+			want: datasetsv1.SpatialFilter_builder{
+				Geometry:         datasetsv1.Geometry_builder{Wkb: coloradoWkb}.Build(),
 				Mode:             datasetsv1.SpatialFilterMode_SPATIAL_FILTER_MODE_INTERSECTS,
 				CoordinateSystem: datasetsv1.SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_CARTESIAN,
-			},
+			}.Build(),
 		},
 		{
 			name: "ToProtoSpatialFilter invalid geometry",

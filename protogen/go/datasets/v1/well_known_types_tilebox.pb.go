@@ -14,7 +14,7 @@ import (
 
 // NewUUID constructs a new UUID from the provided uuid.UUID.
 func NewUUID(id uuid.UUID) *UUID {
-	return &UUID{Uuid: id[:]}
+	return UUID_builder{Uuid: id[:]}.Build()
 }
 
 // AsUUID converts x to a uuid.UUID.
@@ -55,7 +55,7 @@ func NewGeometry(geometry orb.Geometry) *Geometry {
 		return nil
 	}
 
-	return &Geometry{Wkb: wkb}
+	return Geometry_builder{Wkb: wkb}.Build()
 }
 
 // AsGeometry converts x to a orb.Geometry.

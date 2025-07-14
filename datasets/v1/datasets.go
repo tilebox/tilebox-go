@@ -120,7 +120,7 @@ func uuidToProtobuf(id uuid.UUID) *datasetsv1.ID {
 		return nil
 	}
 
-	return &datasetsv1.ID{Uuid: id[:]}
+	return datasetsv1.ID_builder{Uuid: id[:]}.Build()
 }
 
 func uuidsToProtobuf(ids []uuid.UUID) []*datasetsv1.ID {

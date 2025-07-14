@@ -71,12 +71,12 @@ func TestDataset_String(t *testing.T) {
 	genDataset := rapid.Custom(func(t *rapid.T) *Dataset {
 		return &Dataset{
 			ID: uuid.New(),
-			Type: &datasetsv1.AnnotatedType{
+			Type: datasetsv1.AnnotatedType_builder{
 				Kind: rapid.OneOf(
 					rapid.Just(datasetsv1.DatasetKind_DATASET_KIND_TEMPORAL),
 					rapid.Just(datasetsv1.DatasetKind_DATASET_KIND_SPATIOTEMPORAL),
 				).Draw(t, "Kind"),
-			},
+			}.Build(),
 			Name:        rapid.String().Draw(t, "Name"),
 			Description: rapid.String().Draw(t, "Description"),
 		}
