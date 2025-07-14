@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
@@ -140,7 +141,7 @@ func (b0 CreateDatasetRequest_builder) Build() *CreateDatasetRequest {
 type GetDatasetRequest struct {
 	state           protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Slug string                 `protobuf:"bytes,1,opt,name=slug"`
-	xxx_hidden_Id   *ID                    `protobuf:"bytes,2,opt,name=id"`
+	xxx_hidden_Id   *v1.ID                 `protobuf:"bytes,2,opt,name=id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -177,7 +178,7 @@ func (x *GetDatasetRequest) GetSlug() string {
 	return ""
 }
 
-func (x *GetDatasetRequest) GetId() *ID {
+func (x *GetDatasetRequest) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -188,7 +189,7 @@ func (x *GetDatasetRequest) SetSlug(v string) {
 	x.xxx_hidden_Slug = v
 }
 
-func (x *GetDatasetRequest) SetId(v *ID) {
+func (x *GetDatasetRequest) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -209,7 +210,7 @@ type GetDatasetRequest_builder struct {
 	// slug of the dataset to be returned, e.g. "open_data.copernicus.sentinel1_sar"
 	Slug string
 	// or alternatively a dataset id
-	Id *ID
+	Id *v1.ID
 }
 
 func (b0 GetDatasetRequest_builder) Build() *GetDatasetRequest {
@@ -224,7 +225,7 @@ func (b0 GetDatasetRequest_builder) Build() *GetDatasetRequest {
 // UpdateDatasetRequest is used to update a dataset.
 type UpdateDatasetRequest struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id      *ID                    `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id      *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Name    string                 `protobuf:"bytes,2,opt,name=name"`
 	xxx_hidden_Type    *DatasetType           `protobuf:"bytes,3,opt,name=type"`
 	xxx_hidden_Summary string                 `protobuf:"bytes,4,opt,name=summary"`
@@ -257,7 +258,7 @@ func (x *UpdateDatasetRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *UpdateDatasetRequest) GetId() *ID {
+func (x *UpdateDatasetRequest) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -285,7 +286,7 @@ func (x *UpdateDatasetRequest) GetSummary() string {
 	return ""
 }
 
-func (x *UpdateDatasetRequest) SetId(v *ID) {
+func (x *UpdateDatasetRequest) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -327,7 +328,7 @@ type UpdateDatasetRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// id of the dataset to update.
-	Id *ID
+	Id *v1.ID
 	// updated name of the dataset.
 	Name string
 	// updated type of the dataset.
@@ -515,7 +516,7 @@ func (b0 Package_builder) Build() *Package {
 // UpdateDatasetDescriptionRequest is used to update a dataset description
 type UpdateDatasetDescriptionRequest struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id          *ID                    `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id          *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Description string                 `protobuf:"bytes,2,opt,name=description"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
@@ -546,7 +547,7 @@ func (x *UpdateDatasetDescriptionRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *UpdateDatasetDescriptionRequest) GetId() *ID {
+func (x *UpdateDatasetDescriptionRequest) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -560,7 +561,7 @@ func (x *UpdateDatasetDescriptionRequest) GetDescription() string {
 	return ""
 }
 
-func (x *UpdateDatasetDescriptionRequest) SetId(v *ID) {
+func (x *UpdateDatasetDescriptionRequest) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -583,7 +584,7 @@ type UpdateDatasetDescriptionRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// dataset id
-	Id *ID
+	Id *v1.ID
 	// description of the dataset, in markdown format
 	Description string
 }
@@ -600,7 +601,7 @@ func (b0 UpdateDatasetDescriptionRequest_builder) Build() *UpdateDatasetDescript
 // DeleteDatasetRequest is used to delete a dataset
 type DeleteDatasetRequest struct {
 	state         protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id *ID                    `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -630,14 +631,14 @@ func (x *DeleteDatasetRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *DeleteDatasetRequest) GetId() *ID {
+func (x *DeleteDatasetRequest) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
 	return nil
 }
 
-func (x *DeleteDatasetRequest) SetId(v *ID) {
+func (x *DeleteDatasetRequest) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -656,7 +657,7 @@ type DeleteDatasetRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// id of the dataset to delete.
-	Id *ID
+	Id *v1.ID
 }
 
 func (b0 DeleteDatasetRequest_builder) Build() *DeleteDatasetRequest {
@@ -941,17 +942,17 @@ var File_datasets_v1_datasets_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\n" +
-	"\x1adatasets/v1/datasets.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\x1edatasets/v1/dataset_type.proto\x1a!google/protobuf/go_features.proto\"\x8f\x01\n" +
+	"\x1adatasets/v1/datasets.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\x1edatasets/v1/dataset_type.proto\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\"\x8f\x01\n" +
 	"\x14CreateDatasetRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12,\n" +
 	"\x04type\x18\x02 \x01(\v2\x18.datasets.v1.DatasetTypeR\x04type\x12\x18\n" +
 	"\asummary\x18\x03 \x01(\tR\asummary\x12\x1b\n" +
-	"\tcode_name\x18\x04 \x01(\tR\bcodeName\"H\n" +
+	"\tcode_name\x18\x04 \x01(\tR\bcodeName\"G\n" +
 	"\x11GetDatasetRequest\x12\x12\n" +
-	"\x04slug\x18\x01 \x01(\tR\x04slug\x12\x1f\n" +
-	"\x02id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\x02id\"\x93\x01\n" +
-	"\x14UpdateDatasetRequest\x12\x1f\n" +
-	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12\x12\n" +
+	"\x04slug\x18\x01 \x01(\tR\x04slug\x12\x1e\n" +
+	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id\"\x92\x01\n" +
+	"\x14UpdateDatasetRequest\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12,\n" +
 	"\x04type\x18\x03 \x01(\v2\x18.datasets.v1.DatasetTypeR\x04type\x12\x18\n" +
 	"\asummary\x18\x04 \x01(\tR\asummary\"t\n" +
@@ -962,12 +963,12 @@ const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\bpackages\x18\x03 \x03(\v2\x14.datasets.v1.PackageR\bpackages\"7\n" +
 	"\aPackage\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\"d\n" +
-	"\x1fUpdateDatasetDescriptionRequest\x12\x1f\n" +
-	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\"7\n" +
-	"\x14DeleteDatasetRequest\x12\x1f\n" +
-	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\"1\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\"c\n" +
+	"\x1fUpdateDatasetDescriptionRequest\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\"6\n" +
+	"\x14DeleteDatasetRequest\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\"1\n" +
 	"\x15DeleteDatasetResponse\x12\x18\n" +
 	"\atrashed\x18\x01 \x01(\bR\atrashed\"O\n" +
 	"\x13ListDatasetsRequest\x128\n" +
@@ -1002,18 +1003,18 @@ var file_datasets_v1_datasets_proto_goTypes = []any{
 	(*ListDatasetsRequest)(nil),             // 8: datasets.v1.ListDatasetsRequest
 	(*ListDatasetsResponse)(nil),            // 9: datasets.v1.ListDatasetsResponse
 	(*DatasetType)(nil),                     // 10: datasets.v1.DatasetType
-	(*ID)(nil),                              // 11: datasets.v1.ID
+	(*v1.ID)(nil),                           // 11: tilebox.v1.ID
 	(*Dataset)(nil),                         // 12: datasets.v1.Dataset
 	(*DatasetGroup)(nil),                    // 13: datasets.v1.DatasetGroup
 }
 var file_datasets_v1_datasets_proto_depIdxs = []int32{
 	10, // 0: datasets.v1.CreateDatasetRequest.type:type_name -> datasets.v1.DatasetType
-	11, // 1: datasets.v1.GetDatasetRequest.id:type_name -> datasets.v1.ID
-	11, // 2: datasets.v1.UpdateDatasetRequest.id:type_name -> datasets.v1.ID
+	11, // 1: datasets.v1.GetDatasetRequest.id:type_name -> tilebox.v1.ID
+	11, // 2: datasets.v1.UpdateDatasetRequest.id:type_name -> tilebox.v1.ID
 	10, // 3: datasets.v1.UpdateDatasetRequest.type:type_name -> datasets.v1.DatasetType
 	4,  // 4: datasets.v1.ClientInfo.packages:type_name -> datasets.v1.Package
-	11, // 5: datasets.v1.UpdateDatasetDescriptionRequest.id:type_name -> datasets.v1.ID
-	11, // 6: datasets.v1.DeleteDatasetRequest.id:type_name -> datasets.v1.ID
+	11, // 5: datasets.v1.UpdateDatasetDescriptionRequest.id:type_name -> tilebox.v1.ID
+	11, // 6: datasets.v1.DeleteDatasetRequest.id:type_name -> tilebox.v1.ID
 	3,  // 7: datasets.v1.ListDatasetsRequest.client_info:type_name -> datasets.v1.ClientInfo
 	12, // 8: datasets.v1.ListDatasetsResponse.datasets:type_name -> datasets.v1.Dataset
 	13, // 9: datasets.v1.ListDatasetsResponse.groups:type_name -> datasets.v1.DatasetGroup

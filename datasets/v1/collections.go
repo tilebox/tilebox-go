@@ -68,12 +68,7 @@ func (c collectionClient) Create(ctx context.Context, datasetID uuid.UUID, name 
 		return nil, err
 	}
 
-	collection, err := protoToCollection(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert collection from response: %w", err)
-	}
-
-	return collection, nil
+	return protoToCollection(response), nil
 }
 
 func (c collectionClient) Get(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
@@ -82,12 +77,7 @@ func (c collectionClient) Get(ctx context.Context, datasetID uuid.UUID, name str
 		return nil, err
 	}
 
-	collection, err := protoToCollection(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert collection from response: %w", err)
-	}
-
-	return collection, nil
+	return protoToCollection(response), nil
 }
 
 func (c collectionClient) GetOrCreate(ctx context.Context, datasetID uuid.UUID, name string) (*Collection, error) {
@@ -114,27 +104,17 @@ func (c collectionClient) List(ctx context.Context, datasetID uuid.UUID) ([]*Col
 
 	collections := make([]*Collection, len(response.GetData()))
 	for i, collectionMessage := range response.GetData() {
-		collection, err := protoToCollection(collectionMessage)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert collection from response: %w", err)
-		}
-
-		collections[i] = collection
+		collections[i] = protoToCollection(collectionMessage)
 	}
 
 	return collections, nil
 }
 
-func protoToCollection(c *datasetsv1.CollectionInfo) (*Collection, error) {
-	id, err := protoToUUID(c.GetCollection().GetId())
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse collection id: %w", err)
-	}
-
+func protoToCollection(c *datasetsv1.CollectionInfo) *Collection {
 	return &Collection{
-		ID:           id,
+		ID:           c.GetCollection().GetId().AsUUID(),
 		Name:         c.GetCollection().GetName(),
 		Availability: query.ProtoToTimeInterval(c.GetAvailability()),
 		Count:        c.GetCount(),
-	}, nil
+	}
 }

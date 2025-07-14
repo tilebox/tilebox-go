@@ -8,6 +8,7 @@ package workflowsv1
 
 import (
 	context "context"
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -42,15 +43,15 @@ type AutomationServiceClient interface {
 	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
 	ListStorageLocations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StorageLocations, error)
 	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*StorageLocation, error)
+	GetStorageLocation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*StorageLocation, error)
 	// CreateStorageLocation creates a new storage bucket.
 	CreateStorageLocation(ctx context.Context, in *StorageLocation, opts ...grpc.CallOption) (*StorageLocation, error)
 	// DeleteStorageLocation deletes a storage location.
-	DeleteStorageLocation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteStorageLocation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// ListAutomations lists all the automations that are currently registered in a namespace.
 	ListAutomations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Automations, error)
 	// GetAutomation gets an automation by its ID.
-	GetAutomation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*AutomationPrototype, error)
+	GetAutomation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*AutomationPrototype, error)
 	// CreateAutomation creates a new automation in a namespace.
 	CreateAutomation(ctx context.Context, in *AutomationPrototype, opts ...grpc.CallOption) (*AutomationPrototype, error)
 	// UpdateAutomation updates an automation in a namespace.
@@ -77,7 +78,7 @@ func (c *automationServiceClient) ListStorageLocations(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *automationServiceClient) GetStorageLocation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*StorageLocation, error) {
+func (c *automationServiceClient) GetStorageLocation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*StorageLocation, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(StorageLocation)
 	err := c.cc.Invoke(ctx, AutomationService_GetStorageLocation_FullMethodName, in, out, cOpts...)
@@ -97,7 +98,7 @@ func (c *automationServiceClient) CreateStorageLocation(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *automationServiceClient) DeleteStorageLocation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+func (c *automationServiceClient) DeleteStorageLocation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, AutomationService_DeleteStorageLocation_FullMethodName, in, out, cOpts...)
@@ -117,7 +118,7 @@ func (c *automationServiceClient) ListAutomations(ctx context.Context, in *empty
 	return out, nil
 }
 
-func (c *automationServiceClient) GetAutomation(ctx context.Context, in *UUID, opts ...grpc.CallOption) (*AutomationPrototype, error) {
+func (c *automationServiceClient) GetAutomation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*AutomationPrototype, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AutomationPrototype)
 	err := c.cc.Invoke(ctx, AutomationService_GetAutomation_FullMethodName, in, out, cOpts...)
@@ -168,15 +169,15 @@ type AutomationServiceServer interface {
 	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
 	ListStorageLocations(context.Context, *emptypb.Empty) (*StorageLocations, error)
 	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(context.Context, *UUID) (*StorageLocation, error)
+	GetStorageLocation(context.Context, *v1.ID) (*StorageLocation, error)
 	// CreateStorageLocation creates a new storage bucket.
 	CreateStorageLocation(context.Context, *StorageLocation) (*StorageLocation, error)
 	// DeleteStorageLocation deletes a storage location.
-	DeleteStorageLocation(context.Context, *UUID) (*emptypb.Empty, error)
+	DeleteStorageLocation(context.Context, *v1.ID) (*emptypb.Empty, error)
 	// ListAutomations lists all the automations that are currently registered in a namespace.
 	ListAutomations(context.Context, *emptypb.Empty) (*Automations, error)
 	// GetAutomation gets an automation by its ID.
-	GetAutomation(context.Context, *UUID) (*AutomationPrototype, error)
+	GetAutomation(context.Context, *v1.ID) (*AutomationPrototype, error)
 	// CreateAutomation creates a new automation in a namespace.
 	CreateAutomation(context.Context, *AutomationPrototype) (*AutomationPrototype, error)
 	// UpdateAutomation updates an automation in a namespace.
@@ -196,19 +197,19 @@ type UnimplementedAutomationServiceServer struct{}
 func (UnimplementedAutomationServiceServer) ListStorageLocations(context.Context, *emptypb.Empty) (*StorageLocations, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListStorageLocations not implemented")
 }
-func (UnimplementedAutomationServiceServer) GetStorageLocation(context.Context, *UUID) (*StorageLocation, error) {
+func (UnimplementedAutomationServiceServer) GetStorageLocation(context.Context, *v1.ID) (*StorageLocation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStorageLocation not implemented")
 }
 func (UnimplementedAutomationServiceServer) CreateStorageLocation(context.Context, *StorageLocation) (*StorageLocation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateStorageLocation not implemented")
 }
-func (UnimplementedAutomationServiceServer) DeleteStorageLocation(context.Context, *UUID) (*emptypb.Empty, error) {
+func (UnimplementedAutomationServiceServer) DeleteStorageLocation(context.Context, *v1.ID) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteStorageLocation not implemented")
 }
 func (UnimplementedAutomationServiceServer) ListAutomations(context.Context, *emptypb.Empty) (*Automations, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAutomations not implemented")
 }
-func (UnimplementedAutomationServiceServer) GetAutomation(context.Context, *UUID) (*AutomationPrototype, error) {
+func (UnimplementedAutomationServiceServer) GetAutomation(context.Context, *v1.ID) (*AutomationPrototype, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAutomation not implemented")
 }
 func (UnimplementedAutomationServiceServer) CreateAutomation(context.Context, *AutomationPrototype) (*AutomationPrototype, error) {
@@ -260,7 +261,7 @@ func _AutomationService_ListStorageLocations_Handler(srv interface{}, ctx contex
 }
 
 func _AutomationService_GetStorageLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UUID)
+	in := new(v1.ID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -272,7 +273,7 @@ func _AutomationService_GetStorageLocation_Handler(srv interface{}, ctx context.
 		FullMethod: AutomationService_GetStorageLocation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AutomationServiceServer).GetStorageLocation(ctx, req.(*UUID))
+		return srv.(AutomationServiceServer).GetStorageLocation(ctx, req.(*v1.ID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -296,7 +297,7 @@ func _AutomationService_CreateStorageLocation_Handler(srv interface{}, ctx conte
 }
 
 func _AutomationService_DeleteStorageLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UUID)
+	in := new(v1.ID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -308,7 +309,7 @@ func _AutomationService_DeleteStorageLocation_Handler(srv interface{}, ctx conte
 		FullMethod: AutomationService_DeleteStorageLocation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AutomationServiceServer).DeleteStorageLocation(ctx, req.(*UUID))
+		return srv.(AutomationServiceServer).DeleteStorageLocation(ctx, req.(*v1.ID))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -332,7 +333,7 @@ func _AutomationService_ListAutomations_Handler(srv interface{}, ctx context.Con
 }
 
 func _AutomationService_GetAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UUID)
+	in := new(v1.ID)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -344,7 +345,7 @@ func _AutomationService_GetAutomation_Handler(srv interface{}, ctx context.Conte
 		FullMethod: AutomationService_GetAutomation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AutomationServiceServer).GetAutomation(ctx, req.(*UUID))
+		return srv.(AutomationServiceServer).GetAutomation(ctx, req.(*v1.ID))
 	}
 	return interceptor(ctx, in, info, handler)
 }

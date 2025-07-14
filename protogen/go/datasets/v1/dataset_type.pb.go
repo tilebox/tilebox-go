@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
@@ -453,7 +454,7 @@ func (b0 AnnotatedType_builder) Build() *AnnotatedType {
 type TemporalDatapoint struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Time          *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time"`
-	xxx_hidden_Id            *UUID                  `protobuf:"bytes,2,opt,name=id"`
+	xxx_hidden_Id            *v1.ID                 `protobuf:"bytes,2,opt,name=id"`
 	xxx_hidden_IngestionTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=ingestion_time,json=ingestionTime"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
@@ -491,7 +492,7 @@ func (x *TemporalDatapoint) GetTime() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *TemporalDatapoint) GetId() *UUID {
+func (x *TemporalDatapoint) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -509,7 +510,7 @@ func (x *TemporalDatapoint) SetTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_Time = v
 }
 
-func (x *TemporalDatapoint) SetId(v *UUID) {
+func (x *TemporalDatapoint) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -554,7 +555,7 @@ type TemporalDatapoint_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Time          *timestamppb.Timestamp
-	Id            *UUID
+	Id            *v1.ID
 	IngestionTime *timestamppb.Timestamp
 }
 
@@ -573,7 +574,7 @@ func (b0 TemporalDatapoint_builder) Build() *TemporalDatapoint {
 type SpatioTemporalDatapoint struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Time          *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=time"`
-	xxx_hidden_Id            *UUID                  `protobuf:"bytes,2,opt,name=id"`
+	xxx_hidden_Id            *v1.ID                 `protobuf:"bytes,2,opt,name=id"`
 	xxx_hidden_IngestionTime *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=ingestion_time,json=ingestionTime"`
 	xxx_hidden_Geometry      *Geometry              `protobuf:"bytes,4,opt,name=geometry"`
 	unknownFields            protoimpl.UnknownFields
@@ -612,7 +613,7 @@ func (x *SpatioTemporalDatapoint) GetTime() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *SpatioTemporalDatapoint) GetId() *UUID {
+func (x *SpatioTemporalDatapoint) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -637,7 +638,7 @@ func (x *SpatioTemporalDatapoint) SetTime(v *timestamppb.Timestamp) {
 	x.xxx_hidden_Time = v
 }
 
-func (x *SpatioTemporalDatapoint) SetId(v *UUID) {
+func (x *SpatioTemporalDatapoint) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -697,7 +698,7 @@ type SpatioTemporalDatapoint_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Time          *timestamppb.Timestamp
-	Id            *UUID
+	Id            *v1.ID
 	IngestionTime *timestamppb.Timestamp
 	Geometry      *Geometry
 }
@@ -717,7 +718,7 @@ var File_datasets_v1_dataset_type_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"\n" +
-	"\x1edatasets/v1/dataset_type.proto\x12\vdatasets.v1\x1a\"datasets/v1/well_known_types.proto\x1a google/protobuf/descriptor.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xaa\x01\n" +
+	"\x1edatasets/v1/dataset_type.proto\x12\vdatasets.v1\x1a\"datasets/v1/well_known_types.proto\x1a google/protobuf/descriptor.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xaa\x01\n" +
 	"\x05Field\x12E\n" +
 	"\n" +
 	"descriptor\x18\x01 \x01(\v2%.google.protobuf.FieldDescriptorProtoR\n" +
@@ -736,14 +737,14 @@ const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"\x0edescriptor_set\x18\x01 \x01(\v2\".google.protobuf.FileDescriptorSetR\rdescriptorSet\x12\x19\n" +
 	"\btype_url\x18\x02 \x01(\tR\atypeUrl\x12I\n" +
 	"\x11field_annotations\x18\x04 \x03(\v2\x1c.datasets.v1.FieldAnnotationR\x10fieldAnnotations\x12,\n" +
-	"\x04kind\x18\x05 \x01(\x0e2\x18.datasets.v1.DatasetKindR\x04kindJ\x04\b\x03\x10\x04\"\xa9\x01\n" +
+	"\x04kind\x18\x05 \x01(\x0e2\x18.datasets.v1.DatasetKindR\x04kindJ\x04\b\x03\x10\x04\"\xa6\x01\n" +
 	"\x11TemporalDatapoint\x12.\n" +
-	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12!\n" +
-	"\x02id\x18\x02 \x01(\v2\x11.datasets.v1.UUIDR\x02id\x12A\n" +
-	"\x0eingestion_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\ringestionTime\"\xe2\x01\n" +
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x1e\n" +
+	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12A\n" +
+	"\x0eingestion_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\ringestionTime\"\xdf\x01\n" +
 	"\x17SpatioTemporalDatapoint\x12.\n" +
-	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12!\n" +
-	"\x02id\x18\x02 \x01(\v2\x11.datasets.v1.UUIDR\x02id\x12A\n" +
+	"\x04time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x04time\x12\x1e\n" +
+	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12A\n" +
 	"\x0eingestion_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\ringestionTime\x121\n" +
 	"\bgeometry\x18\x04 \x01(\v2\x15.datasets.v1.GeometryR\bgeometry*g\n" +
 	"\vDatasetKind\x12\x1c\n" +
@@ -765,7 +766,7 @@ var file_datasets_v1_dataset_type_proto_goTypes = []any{
 	(*descriptorpb.FieldDescriptorProto)(nil), // 7: google.protobuf.FieldDescriptorProto
 	(*descriptorpb.FileDescriptorSet)(nil),    // 8: google.protobuf.FileDescriptorSet
 	(*timestamppb.Timestamp)(nil),             // 9: google.protobuf.Timestamp
-	(*UUID)(nil),                              // 10: datasets.v1.UUID
+	(*v1.ID)(nil),                             // 10: tilebox.v1.ID
 	(*Geometry)(nil),                          // 11: datasets.v1.Geometry
 }
 var file_datasets_v1_dataset_type_proto_depIdxs = []int32{
@@ -777,10 +778,10 @@ var file_datasets_v1_dataset_type_proto_depIdxs = []int32{
 	2,  // 5: datasets.v1.AnnotatedType.field_annotations:type_name -> datasets.v1.FieldAnnotation
 	0,  // 6: datasets.v1.AnnotatedType.kind:type_name -> datasets.v1.DatasetKind
 	9,  // 7: datasets.v1.TemporalDatapoint.time:type_name -> google.protobuf.Timestamp
-	10, // 8: datasets.v1.TemporalDatapoint.id:type_name -> datasets.v1.UUID
+	10, // 8: datasets.v1.TemporalDatapoint.id:type_name -> tilebox.v1.ID
 	9,  // 9: datasets.v1.TemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
 	9,  // 10: datasets.v1.SpatioTemporalDatapoint.time:type_name -> google.protobuf.Timestamp
-	10, // 11: datasets.v1.SpatioTemporalDatapoint.id:type_name -> datasets.v1.UUID
+	10, // 11: datasets.v1.SpatioTemporalDatapoint.id:type_name -> tilebox.v1.ID
 	9,  // 12: datasets.v1.SpatioTemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
 	11, // 13: datasets.v1.SpatioTemporalDatapoint.geometry:type_name -> datasets.v1.Geometry
 	14, // [14:14] is the sub-list for method output_type

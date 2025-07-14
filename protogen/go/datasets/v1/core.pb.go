@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
@@ -118,67 +119,6 @@ func (x Visibility) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// General, multi purpose messages
-type ID struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Uuid []byte                 `protobuf:"bytes,1,opt,name=uuid"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *ID) Reset() {
-	*x = ID{}
-	mi := &file_datasets_v1_core_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ID) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ID) ProtoMessage() {}
-
-func (x *ID) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ID) GetUuid() []byte {
-	if x != nil {
-		return x.xxx_hidden_Uuid
-	}
-	return nil
-}
-
-func (x *ID) SetUuid(v []byte) {
-	if v == nil {
-		v = []byte{}
-	}
-	x.xxx_hidden_Uuid = v
-}
-
-type ID_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	Uuid []byte
-}
-
-func (b0 ID_builder) Build() *ID {
-	m0 := &ID{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Uuid = b.Uuid
-	return m0
-}
-
 // A time interval
 type TimeInterval struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
@@ -192,7 +132,7 @@ type TimeInterval struct {
 
 func (x *TimeInterval) Reset() {
 	*x = TimeInterval{}
-	mi := &file_datasets_v1_core_proto_msgTypes[1]
+	mi := &file_datasets_v1_core_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -204,7 +144,7 @@ func (x *TimeInterval) String() string {
 func (*TimeInterval) ProtoMessage() {}
 
 func (x *TimeInterval) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[1]
+	mi := &file_datasets_v1_core_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -308,8 +248,8 @@ func (b0 TimeInterval_builder) Build() *TimeInterval {
 // A datapoint interval
 type DatapointInterval struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_StartId        *ID                    `protobuf:"bytes,1,opt,name=start_id,json=startId"`
-	xxx_hidden_EndId          *ID                    `protobuf:"bytes,2,opt,name=end_id,json=endId"`
+	xxx_hidden_StartId        *v1.ID                 `protobuf:"bytes,1,opt,name=start_id,json=startId"`
+	xxx_hidden_EndId          *v1.ID                 `protobuf:"bytes,2,opt,name=end_id,json=endId"`
 	xxx_hidden_StartExclusive bool                   `protobuf:"varint,3,opt,name=start_exclusive,json=startExclusive"`
 	xxx_hidden_EndInclusive   bool                   `protobuf:"varint,4,opt,name=end_inclusive,json=endInclusive"`
 	unknownFields             protoimpl.UnknownFields
@@ -318,7 +258,7 @@ type DatapointInterval struct {
 
 func (x *DatapointInterval) Reset() {
 	*x = DatapointInterval{}
-	mi := &file_datasets_v1_core_proto_msgTypes[2]
+	mi := &file_datasets_v1_core_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -330,7 +270,7 @@ func (x *DatapointInterval) String() string {
 func (*DatapointInterval) ProtoMessage() {}
 
 func (x *DatapointInterval) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[2]
+	mi := &file_datasets_v1_core_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -341,14 +281,14 @@ func (x *DatapointInterval) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *DatapointInterval) GetStartId() *ID {
+func (x *DatapointInterval) GetStartId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_StartId
 	}
 	return nil
 }
 
-func (x *DatapointInterval) GetEndId() *ID {
+func (x *DatapointInterval) GetEndId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_EndId
 	}
@@ -369,11 +309,11 @@ func (x *DatapointInterval) GetEndInclusive() bool {
 	return false
 }
 
-func (x *DatapointInterval) SetStartId(v *ID) {
+func (x *DatapointInterval) SetStartId(v *v1.ID) {
 	x.xxx_hidden_StartId = v
 }
 
-func (x *DatapointInterval) SetEndId(v *ID) {
+func (x *DatapointInterval) SetEndId(v *v1.ID) {
 	x.xxx_hidden_EndId = v
 }
 
@@ -410,8 +350,8 @@ func (x *DatapointInterval) ClearEndId() {
 type DatapointInterval_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	StartId *ID
-	EndId   *ID
+	StartId *v1.ID
+	EndId   *v1.ID
 	// We use exclusive for start and inclusive for end, because that way when both are false
 	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
 	// Flag indicating whether the start id is exclusive.
@@ -446,7 +386,7 @@ type LegacyPagination struct {
 
 func (x *LegacyPagination) Reset() {
 	*x = LegacyPagination{}
-	mi := &file_datasets_v1_core_proto_msgTypes[3]
+	mi := &file_datasets_v1_core_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -458,7 +398,7 @@ func (x *LegacyPagination) String() string {
 func (*LegacyPagination) ProtoMessage() {}
 
 func (x *LegacyPagination) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[3]
+	mi := &file_datasets_v1_core_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -549,7 +489,7 @@ func (b0 LegacyPagination_builder) Build() *LegacyPagination {
 type Pagination struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Limit         int64                  `protobuf:"varint,1,opt,name=limit"`
-	xxx_hidden_StartingAfter *ID                    `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter"`
+	xxx_hidden_StartingAfter *v1.ID                 `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter"`
 	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
 	XXX_presence             [1]uint32
 	unknownFields            protoimpl.UnknownFields
@@ -558,7 +498,7 @@ type Pagination struct {
 
 func (x *Pagination) Reset() {
 	*x = Pagination{}
-	mi := &file_datasets_v1_core_proto_msgTypes[4]
+	mi := &file_datasets_v1_core_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -570,7 +510,7 @@ func (x *Pagination) String() string {
 func (*Pagination) ProtoMessage() {}
 
 func (x *Pagination) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[4]
+	mi := &file_datasets_v1_core_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -588,7 +528,7 @@ func (x *Pagination) GetLimit() int64 {
 	return 0
 }
 
-func (x *Pagination) GetStartingAfter() *ID {
+func (x *Pagination) GetStartingAfter() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_StartingAfter
 	}
@@ -600,7 +540,7 @@ func (x *Pagination) SetLimit(v int64) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
 }
 
-func (x *Pagination) SetStartingAfter(v *ID) {
+func (x *Pagination) SetStartingAfter(v *v1.ID) {
 	x.xxx_hidden_StartingAfter = v
 }
 
@@ -634,7 +574,7 @@ type Pagination_builder struct {
 	Limit *int64
 	// Return entries starting after this entry.
 	// This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
-	StartingAfter *ID
+	StartingAfter *v1.ID
 }
 
 func (b0 Pagination_builder) Build() *Pagination {
@@ -661,7 +601,7 @@ type Any struct {
 
 func (x *Any) Reset() {
 	*x = Any{}
-	mi := &file_datasets_v1_core_proto_msgTypes[5]
+	mi := &file_datasets_v1_core_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -673,7 +613,7 @@ func (x *Any) String() string {
 func (*Any) ProtoMessage() {}
 
 func (x *Any) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[5]
+	mi := &file_datasets_v1_core_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -738,7 +678,7 @@ type RepeatedAny struct {
 
 func (x *RepeatedAny) Reset() {
 	*x = RepeatedAny{}
-	mi := &file_datasets_v1_core_proto_msgTypes[6]
+	mi := &file_datasets_v1_core_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -750,7 +690,7 @@ func (x *RepeatedAny) String() string {
 func (*RepeatedAny) ProtoMessage() {}
 
 func (x *RepeatedAny) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[6]
+	mi := &file_datasets_v1_core_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -815,7 +755,7 @@ type DatapointMetadata struct {
 
 func (x *DatapointMetadata) Reset() {
 	*x = DatapointMetadata{}
-	mi := &file_datasets_v1_core_proto_msgTypes[7]
+	mi := &file_datasets_v1_core_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -827,7 +767,7 @@ func (x *DatapointMetadata) String() string {
 func (*DatapointMetadata) ProtoMessage() {}
 
 func (x *DatapointMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[7]
+	mi := &file_datasets_v1_core_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -941,7 +881,7 @@ type Datapoints struct {
 
 func (x *Datapoints) Reset() {
 	*x = Datapoints{}
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
+	mi := &file_datasets_v1_core_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -953,7 +893,7 @@ func (x *Datapoints) String() string {
 func (*Datapoints) ProtoMessage() {}
 
 func (x *Datapoints) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
+	mi := &file_datasets_v1_core_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1027,7 +967,7 @@ type DatapointPage struct {
 
 func (x *DatapointPage) Reset() {
 	*x = DatapointPage{}
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1039,7 +979,7 @@ func (x *DatapointPage) String() string {
 func (*DatapointPage) ProtoMessage() {}
 
 func (x *DatapointPage) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1136,7 +1076,7 @@ type Datapoint struct {
 
 func (x *Datapoint) Reset() {
 	*x = Datapoint{}
-	mi := &file_datasets_v1_core_proto_msgTypes[10]
+	mi := &file_datasets_v1_core_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1148,7 +1088,7 @@ func (x *Datapoint) String() string {
 func (*Datapoint) ProtoMessage() {}
 
 func (x *Datapoint) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[10]
+	mi := &file_datasets_v1_core_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1224,14 +1164,14 @@ type Collection struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_LegacyId string                 `protobuf:"bytes,1,opt,name=legacy_id,json=legacyId"`
 	xxx_hidden_Name     string                 `protobuf:"bytes,2,opt,name=name"`
-	xxx_hidden_Id       *ID                    `protobuf:"bytes,3,opt,name=id"`
+	xxx_hidden_Id       *v1.ID                 `protobuf:"bytes,3,opt,name=id"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Collection) Reset() {
 	*x = Collection{}
-	mi := &file_datasets_v1_core_proto_msgTypes[11]
+	mi := &file_datasets_v1_core_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1243,7 +1183,7 @@ func (x *Collection) String() string {
 func (*Collection) ProtoMessage() {}
 
 func (x *Collection) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[11]
+	mi := &file_datasets_v1_core_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1268,7 +1208,7 @@ func (x *Collection) GetName() string {
 	return ""
 }
 
-func (x *Collection) GetId() *ID {
+func (x *Collection) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -1283,7 +1223,7 @@ func (x *Collection) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
 
-func (x *Collection) SetId(v *ID) {
+func (x *Collection) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -1303,7 +1243,7 @@ type Collection_builder struct {
 
 	LegacyId string
 	Name     string
-	Id       *ID
+	Id       *v1.ID
 }
 
 func (b0 Collection_builder) Build() *Collection {
@@ -1330,7 +1270,7 @@ type CollectionInfo struct {
 
 func (x *CollectionInfo) Reset() {
 	*x = CollectionInfo{}
-	mi := &file_datasets_v1_core_proto_msgTypes[12]
+	mi := &file_datasets_v1_core_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1342,7 +1282,7 @@ func (x *CollectionInfo) String() string {
 func (*CollectionInfo) ProtoMessage() {}
 
 func (x *CollectionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[12]
+	mi := &file_datasets_v1_core_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1452,7 +1392,7 @@ type CollectionInfos struct {
 
 func (x *CollectionInfos) Reset() {
 	*x = CollectionInfos{}
-	mi := &file_datasets_v1_core_proto_msgTypes[13]
+	mi := &file_datasets_v1_core_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1464,7 +1404,7 @@ func (x *CollectionInfos) String() string {
 func (*CollectionInfos) ProtoMessage() {}
 
 func (x *CollectionInfos) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[13]
+	mi := &file_datasets_v1_core_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1505,8 +1445,8 @@ func (b0 CollectionInfos_builder) Build() *CollectionInfos {
 // Dataset contains information about a single dataset
 type Dataset struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id           *ID                    `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_GroupId      *ID                    `protobuf:"bytes,2,opt,name=group_id,json=groupId"`
+	xxx_hidden_Id           *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_GroupId      *v1.ID                 `protobuf:"bytes,2,opt,name=group_id,json=groupId"`
 	xxx_hidden_Type         *AnnotatedType         `protobuf:"bytes,3,opt,name=type"`
 	xxx_hidden_CodeName     string                 `protobuf:"bytes,4,opt,name=code_name,json=codeName"`
 	xxx_hidden_Name         string                 `protobuf:"bytes,5,opt,name=name"`
@@ -1523,7 +1463,7 @@ type Dataset struct {
 
 func (x *Dataset) Reset() {
 	*x = Dataset{}
-	mi := &file_datasets_v1_core_proto_msgTypes[14]
+	mi := &file_datasets_v1_core_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1535,7 +1475,7 @@ func (x *Dataset) String() string {
 func (*Dataset) ProtoMessage() {}
 
 func (x *Dataset) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[14]
+	mi := &file_datasets_v1_core_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1546,14 +1486,14 @@ func (x *Dataset) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Dataset) GetId() *ID {
+func (x *Dataset) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
 	return nil
 }
 
-func (x *Dataset) GetGroupId() *ID {
+func (x *Dataset) GetGroupId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_GroupId
 	}
@@ -1630,11 +1570,11 @@ func (x *Dataset) GetTypeEditable() bool {
 	return false
 }
 
-func (x *Dataset) SetId(v *ID) {
+func (x *Dataset) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
-func (x *Dataset) SetGroupId(v *ID) {
+func (x *Dataset) SetGroupId(v *v1.ID) {
 	x.xxx_hidden_GroupId = v
 }
 
@@ -1715,9 +1655,9 @@ type Dataset_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// dataset id
-	Id *ID
+	Id *v1.ID
 	// the dataset group to which this dataset belongs
-	GroupId *ID
+	GroupId *v1.ID
 	// the type of the dataset
 	Type *AnnotatedType
 	// normalized snake case name of the dataset, which can be used as a valid code identifier
@@ -1762,8 +1702,8 @@ func (b0 Dataset_builder) Build() *Dataset {
 // DatasetGroup represent a dataset group
 type DatasetGroup struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id       *ID                    `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_ParentId *ID                    `protobuf:"bytes,2,opt,name=parent_id,json=parentId"`
+	xxx_hidden_Id       *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_ParentId *v1.ID                 `protobuf:"bytes,2,opt,name=parent_id,json=parentId"`
 	xxx_hidden_CodeName string                 `protobuf:"bytes,3,opt,name=code_name,json=codeName"`
 	xxx_hidden_Name     string                 `protobuf:"bytes,4,opt,name=name"`
 	xxx_hidden_Icon     string                 `protobuf:"bytes,5,opt,name=icon"`
@@ -1773,7 +1713,7 @@ type DatasetGroup struct {
 
 func (x *DatasetGroup) Reset() {
 	*x = DatasetGroup{}
-	mi := &file_datasets_v1_core_proto_msgTypes[15]
+	mi := &file_datasets_v1_core_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1785,7 +1725,7 @@ func (x *DatasetGroup) String() string {
 func (*DatasetGroup) ProtoMessage() {}
 
 func (x *DatasetGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[15]
+	mi := &file_datasets_v1_core_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1796,14 +1736,14 @@ func (x *DatasetGroup) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *DatasetGroup) GetId() *ID {
+func (x *DatasetGroup) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
 	return nil
 }
 
-func (x *DatasetGroup) GetParentId() *ID {
+func (x *DatasetGroup) GetParentId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_ParentId
 	}
@@ -1831,11 +1771,11 @@ func (x *DatasetGroup) GetIcon() string {
 	return ""
 }
 
-func (x *DatasetGroup) SetId(v *ID) {
+func (x *DatasetGroup) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
-func (x *DatasetGroup) SetParentId(v *ID) {
+func (x *DatasetGroup) SetParentId(v *v1.ID) {
 	x.xxx_hidden_ParentId = v
 }
 
@@ -1877,9 +1817,9 @@ type DatasetGroup_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// group id
-	Id *ID
+	Id *v1.ID
 	// optional parent group id
-	ParentId *ID
+	ParentId *v1.ID
 	// normalized snake case name of the dataset group, which can be used as a valid code identifier
 	CodeName string
 	// display name of the group
@@ -1904,27 +1844,25 @@ var File_datasets_v1_core_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x18\n" +
-	"\x02ID\x12\x12\n" +
-	"\x04uuid\x18\x01 \x01(\fR\x04uuid\"\xce\x01\n" +
+	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xce\x01\n" +
 	"\fTimeInterval\x129\n" +
 	"\n" +
 	"start_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
 	"\bend_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12'\n" +
 	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
-	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"\xb5\x01\n" +
-	"\x11DatapointInterval\x12*\n" +
-	"\bstart_id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\astartId\x12&\n" +
-	"\x06end_id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\x05endId\x12'\n" +
+	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"\xb3\x01\n" +
+	"\x11DatapointInterval\x12)\n" +
+	"\bstart_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\astartId\x12%\n" +
+	"\x06end_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x05endId\x12'\n" +
 	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
 	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"]\n" +
 	"\x10LegacyPagination\x12\x1b\n" +
 	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12,\n" +
-	"\x0estarting_after\x18\x02 \x01(\tB\x05\xaa\x01\x02\b\x01R\rstartingAfter\"h\n" +
+	"\x0estarting_after\x18\x02 \x01(\tB\x05\xaa\x01\x02\b\x01R\rstartingAfter\"g\n" +
 	"\n" +
 	"Pagination\x12\x1b\n" +
-	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12=\n" +
-	"\x0estarting_after\x18\x02 \x01(\v2\x0f.datasets.v1.IDB\x05\xaa\x01\x02\b\x01R\rstartingAfter\"6\n" +
+	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12<\n" +
+	"\x0estarting_after\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\rstartingAfter\"6\n" +
 	"\x03Any\x12\x19\n" +
 	"\btype_url\x18\x01 \x01(\tR\atypeUrl\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\">\n" +
@@ -1946,12 +1884,12 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\tnext_page\x18\x03 \x01(\v2\x1d.datasets.v1.LegacyPaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"e\n" +
 	"\tDatapoint\x122\n" +
 	"\x04meta\x18\x01 \x01(\v2\x1e.datasets.v1.DatapointMetadataR\x04meta\x12$\n" +
-	"\x04data\x18\x02 \x01(\v2\x10.datasets.v1.AnyR\x04data\"^\n" +
+	"\x04data\x18\x02 \x01(\v2\x10.datasets.v1.AnyR\x04data\"]\n" +
 	"\n" +
 	"Collection\x12\x1b\n" +
 	"\tlegacy_id\x18\x01 \x01(\tR\blegacyId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1f\n" +
-	"\x02id\x18\x03 \x01(\v2\x0f.datasets.v1.IDR\x02id\"\xac\x01\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1e\n" +
+	"\x02id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDR\x02id\"\xac\x01\n" +
 	"\x0eCollectionInfo\x127\n" +
 	"\n" +
 	"collection\x18\x01 \x01(\v2\x17.datasets.v1.CollectionR\n" +
@@ -1959,10 +1897,10 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\favailability\x18\x02 \x01(\v2\x19.datasets.v1.TimeIntervalB\x05\xaa\x01\x02\b\x01R\favailability\x12\x1b\n" +
 	"\x05count\x18\x03 \x01(\x04B\x05\xaa\x01\x02\b\x01R\x05count\"B\n" +
 	"\x0fCollectionInfos\x12/\n" +
-	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\"\xbb\x03\n" +
-	"\aDataset\x12\x1f\n" +
-	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12*\n" +
-	"\bgroup_id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\agroupId\x12.\n" +
+	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\"\xb9\x03\n" +
+	"\aDataset\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12)\n" +
+	"\bgroup_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\agroupId\x12.\n" +
 	"\x04type\x18\x03 \x01(\v2\x1a.datasets.v1.AnnotatedTypeR\x04type\x12\x1b\n" +
 	"\tcode_name\x18\x04 \x01(\tR\bcodeName\x12\x12\n" +
 	"\x04name\x18\x05 \x01(\tR\x04name\x12\x18\n" +
@@ -1975,10 +1913,10 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"visibility\x18\v \x01(\x0e2\x17.datasets.v1.VisibilityR\n" +
 	"visibility\x12\x12\n" +
 	"\x04slug\x18\f \x01(\tR\x04slug\x12#\n" +
-	"\rtype_editable\x18\r \x01(\bR\ftypeEditable\"\xa2\x01\n" +
-	"\fDatasetGroup\x12\x1f\n" +
-	"\x02id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12,\n" +
-	"\tparent_id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\bparentId\x12\x1b\n" +
+	"\rtype_editable\x18\r \x01(\bR\ftypeEditable\"\xa0\x01\n" +
+	"\fDatasetGroup\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12+\n" +
+	"\tparent_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\bparentId\x12\x1b\n" +
 	"\tcode_name\x18\x03 \x01(\tR\bcodeName\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x12\n" +
 	"\x04icon\x18\x05 \x01(\tR\x04icon*\x9b\x01\n" +
@@ -1996,55 +1934,55 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\x0fcom.datasets.v1B\tCoreProtoP\x01Z@github.com/tilebox/tilebox-go/protogen/go/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\a\xd2>\x02\x10\x03\b\x02b\beditionsp\xe8\a"
 
 var file_datasets_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_datasets_v1_core_proto_goTypes = []any{
 	(DatasetPermission)(0),        // 0: datasets.v1.DatasetPermission
 	(Visibility)(0),               // 1: datasets.v1.Visibility
-	(*ID)(nil),                    // 2: datasets.v1.ID
-	(*TimeInterval)(nil),          // 3: datasets.v1.TimeInterval
-	(*DatapointInterval)(nil),     // 4: datasets.v1.DatapointInterval
-	(*LegacyPagination)(nil),      // 5: datasets.v1.LegacyPagination
-	(*Pagination)(nil),            // 6: datasets.v1.Pagination
-	(*Any)(nil),                   // 7: datasets.v1.Any
-	(*RepeatedAny)(nil),           // 8: datasets.v1.RepeatedAny
-	(*DatapointMetadata)(nil),     // 9: datasets.v1.DatapointMetadata
-	(*Datapoints)(nil),            // 10: datasets.v1.Datapoints
-	(*DatapointPage)(nil),         // 11: datasets.v1.DatapointPage
-	(*Datapoint)(nil),             // 12: datasets.v1.Datapoint
-	(*Collection)(nil),            // 13: datasets.v1.Collection
-	(*CollectionInfo)(nil),        // 14: datasets.v1.CollectionInfo
-	(*CollectionInfos)(nil),       // 15: datasets.v1.CollectionInfos
-	(*Dataset)(nil),               // 16: datasets.v1.Dataset
-	(*DatasetGroup)(nil),          // 17: datasets.v1.DatasetGroup
-	(*timestamppb.Timestamp)(nil), // 18: google.protobuf.Timestamp
+	(*TimeInterval)(nil),          // 2: datasets.v1.TimeInterval
+	(*DatapointInterval)(nil),     // 3: datasets.v1.DatapointInterval
+	(*LegacyPagination)(nil),      // 4: datasets.v1.LegacyPagination
+	(*Pagination)(nil),            // 5: datasets.v1.Pagination
+	(*Any)(nil),                   // 6: datasets.v1.Any
+	(*RepeatedAny)(nil),           // 7: datasets.v1.RepeatedAny
+	(*DatapointMetadata)(nil),     // 8: datasets.v1.DatapointMetadata
+	(*Datapoints)(nil),            // 9: datasets.v1.Datapoints
+	(*DatapointPage)(nil),         // 10: datasets.v1.DatapointPage
+	(*Datapoint)(nil),             // 11: datasets.v1.Datapoint
+	(*Collection)(nil),            // 12: datasets.v1.Collection
+	(*CollectionInfo)(nil),        // 13: datasets.v1.CollectionInfo
+	(*CollectionInfos)(nil),       // 14: datasets.v1.CollectionInfos
+	(*Dataset)(nil),               // 15: datasets.v1.Dataset
+	(*DatasetGroup)(nil),          // 16: datasets.v1.DatasetGroup
+	(*timestamppb.Timestamp)(nil), // 17: google.protobuf.Timestamp
+	(*v1.ID)(nil),                 // 18: tilebox.v1.ID
 	(*AnnotatedType)(nil),         // 19: datasets.v1.AnnotatedType
 }
 var file_datasets_v1_core_proto_depIdxs = []int32{
-	18, // 0: datasets.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
-	18, // 1: datasets.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
-	2,  // 2: datasets.v1.DatapointInterval.start_id:type_name -> datasets.v1.ID
-	2,  // 3: datasets.v1.DatapointInterval.end_id:type_name -> datasets.v1.ID
-	2,  // 4: datasets.v1.Pagination.starting_after:type_name -> datasets.v1.ID
-	18, // 5: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
-	18, // 6: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
-	9,  // 7: datasets.v1.Datapoints.meta:type_name -> datasets.v1.DatapointMetadata
-	8,  // 8: datasets.v1.Datapoints.data:type_name -> datasets.v1.RepeatedAny
-	9,  // 9: datasets.v1.DatapointPage.meta:type_name -> datasets.v1.DatapointMetadata
-	8,  // 10: datasets.v1.DatapointPage.data:type_name -> datasets.v1.RepeatedAny
-	5,  // 11: datasets.v1.DatapointPage.next_page:type_name -> datasets.v1.LegacyPagination
-	9,  // 12: datasets.v1.Datapoint.meta:type_name -> datasets.v1.DatapointMetadata
-	7,  // 13: datasets.v1.Datapoint.data:type_name -> datasets.v1.Any
-	2,  // 14: datasets.v1.Collection.id:type_name -> datasets.v1.ID
-	13, // 15: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
-	3,  // 16: datasets.v1.CollectionInfo.availability:type_name -> datasets.v1.TimeInterval
-	14, // 17: datasets.v1.CollectionInfos.data:type_name -> datasets.v1.CollectionInfo
-	2,  // 18: datasets.v1.Dataset.id:type_name -> datasets.v1.ID
-	2,  // 19: datasets.v1.Dataset.group_id:type_name -> datasets.v1.ID
+	17, // 0: datasets.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
+	17, // 1: datasets.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
+	18, // 2: datasets.v1.DatapointInterval.start_id:type_name -> tilebox.v1.ID
+	18, // 3: datasets.v1.DatapointInterval.end_id:type_name -> tilebox.v1.ID
+	18, // 4: datasets.v1.Pagination.starting_after:type_name -> tilebox.v1.ID
+	17, // 5: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
+	17, // 6: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
+	8,  // 7: datasets.v1.Datapoints.meta:type_name -> datasets.v1.DatapointMetadata
+	7,  // 8: datasets.v1.Datapoints.data:type_name -> datasets.v1.RepeatedAny
+	8,  // 9: datasets.v1.DatapointPage.meta:type_name -> datasets.v1.DatapointMetadata
+	7,  // 10: datasets.v1.DatapointPage.data:type_name -> datasets.v1.RepeatedAny
+	4,  // 11: datasets.v1.DatapointPage.next_page:type_name -> datasets.v1.LegacyPagination
+	8,  // 12: datasets.v1.Datapoint.meta:type_name -> datasets.v1.DatapointMetadata
+	6,  // 13: datasets.v1.Datapoint.data:type_name -> datasets.v1.Any
+	18, // 14: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
+	12, // 15: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
+	2,  // 16: datasets.v1.CollectionInfo.availability:type_name -> datasets.v1.TimeInterval
+	13, // 17: datasets.v1.CollectionInfos.data:type_name -> datasets.v1.CollectionInfo
+	18, // 18: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
+	18, // 19: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
 	19, // 20: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
 	0,  // 21: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
 	1,  // 22: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
-	2,  // 23: datasets.v1.DatasetGroup.id:type_name -> datasets.v1.ID
-	2,  // 24: datasets.v1.DatasetGroup.parent_id:type_name -> datasets.v1.ID
+	18, // 23: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
+	18, // 24: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
 	25, // [25:25] is the sub-list for method output_type
 	25, // [25:25] is the sub-list for method input_type
 	25, // [25:25] is the sub-list for extension type_name
@@ -2064,7 +2002,7 @@ func file_datasets_v1_core_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_core_proto_rawDesc), len(file_datasets_v1_core_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   16,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

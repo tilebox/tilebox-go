@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
@@ -116,7 +117,7 @@ func (x StorageEventType) Number() protoreflect.EnumNumber {
 // Storage location is some kind of storage that can contain data files or objects and be used as a trigger source.
 type StorageLocation struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id       *UUID                  `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id       *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Location string                 `protobuf:"bytes,2,opt,name=location"`
 	xxx_hidden_Type     StorageType            `protobuf:"varint,3,opt,name=type,enum=workflows.v1.StorageType"`
 	unknownFields       protoimpl.UnknownFields
@@ -148,7 +149,7 @@ func (x *StorageLocation) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *StorageLocation) GetId() *UUID {
+func (x *StorageLocation) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -169,7 +170,7 @@ func (x *StorageLocation) GetType() StorageType {
 	return StorageType_STORAGE_TYPE_UNSPECIFIED
 }
 
-func (x *StorageLocation) SetId(v *UUID) {
+func (x *StorageLocation) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -195,7 +196,7 @@ func (x *StorageLocation) ClearId() {
 type StorageLocation_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id       *UUID
+	Id       *v1.ID
 	Location string
 	Type     StorageType
 }
@@ -274,7 +275,7 @@ func (b0 StorageLocations_builder) Build() *StorageLocations {
 // NRT triggers, such as bucket triggers or cron triggers.
 type AutomationPrototype struct {
 	state                           protoimpl.MessageState  `protogen:"opaque.v1"`
-	xxx_hidden_Id                   *UUID                   `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id                   *v1.ID                  `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Name                 string                  `protobuf:"bytes,2,opt,name=name"`
 	xxx_hidden_Prototype            *TaskSubmission         `protobuf:"bytes,3,opt,name=prototype"`
 	xxx_hidden_StorageEventTriggers *[]*StorageEventTrigger `protobuf:"bytes,4,rep,name=storage_event_triggers,json=storageEventTriggers"`
@@ -308,7 +309,7 @@ func (x *AutomationPrototype) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *AutomationPrototype) GetId() *UUID {
+func (x *AutomationPrototype) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -347,7 +348,7 @@ func (x *AutomationPrototype) GetCronTriggers() []*CronTrigger {
 	return nil
 }
 
-func (x *AutomationPrototype) SetId(v *UUID) {
+func (x *AutomationPrototype) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -392,7 +393,7 @@ func (x *AutomationPrototype) ClearPrototype() {
 type AutomationPrototype_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id                   *UUID
+	Id                   *v1.ID
 	Name                 string
 	Prototype            *TaskSubmission
 	StorageEventTriggers []*StorageEventTrigger
@@ -475,7 +476,7 @@ func (b0 Automations_builder) Build() *Automations {
 // created in a storage location.
 type StorageEventTrigger struct {
 	state                      protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id              *UUID                  `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id              *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_StorageLocation *StorageLocation       `protobuf:"bytes,2,opt,name=storage_location,json=storageLocation"`
 	xxx_hidden_GlobPattern     string                 `protobuf:"bytes,3,opt,name=glob_pattern,json=globPattern"`
 	unknownFields              protoimpl.UnknownFields
@@ -507,7 +508,7 @@ func (x *StorageEventTrigger) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *StorageEventTrigger) GetId() *UUID {
+func (x *StorageEventTrigger) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -528,7 +529,7 @@ func (x *StorageEventTrigger) GetGlobPattern() string {
 	return ""
 }
 
-func (x *StorageEventTrigger) SetId(v *UUID) {
+func (x *StorageEventTrigger) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -565,7 +566,7 @@ func (x *StorageEventTrigger) ClearStorageLocation() {
 type StorageEventTrigger_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id              *UUID
+	Id              *v1.ID
 	StorageLocation *StorageLocation
 	GlobPattern     string
 }
@@ -583,7 +584,7 @@ func (b0 StorageEventTrigger_builder) Build() *StorageEventTrigger {
 // CronTrigger is a trigger that will trigger a task submission on a schedule.
 type CronTrigger struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id       *UUID                  `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id       *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Schedule string                 `protobuf:"bytes,2,opt,name=schedule"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
@@ -614,7 +615,7 @@ func (x *CronTrigger) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *CronTrigger) GetId() *UUID {
+func (x *CronTrigger) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -628,7 +629,7 @@ func (x *CronTrigger) GetSchedule() string {
 	return ""
 }
 
-func (x *CronTrigger) SetId(v *UUID) {
+func (x *CronTrigger) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -650,7 +651,7 @@ func (x *CronTrigger) ClearId() {
 type CronTrigger_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id       *UUID
+	Id       *v1.ID
 	Schedule string
 }
 
@@ -747,7 +748,7 @@ func (b0 Automation_builder) Build() *Automation {
 // TriggeredStorageEvent contains the details of the concrete event that triggered a storage event trigger.
 type TriggeredStorageEvent struct {
 	state                        protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_StorageLocationId *UUID                  `protobuf:"bytes,1,opt,name=storage_location_id,json=storageLocationId"`
+	xxx_hidden_StorageLocationId *v1.ID                 `protobuf:"bytes,1,opt,name=storage_location_id,json=storageLocationId"`
 	xxx_hidden_Type              StorageEventType       `protobuf:"varint,2,opt,name=type,enum=workflows.v1.StorageEventType"`
 	xxx_hidden_Location          string                 `protobuf:"bytes,3,opt,name=location"`
 	unknownFields                protoimpl.UnknownFields
@@ -779,7 +780,7 @@ func (x *TriggeredStorageEvent) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TriggeredStorageEvent) GetStorageLocationId() *UUID {
+func (x *TriggeredStorageEvent) GetStorageLocationId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_StorageLocationId
 	}
@@ -800,7 +801,7 @@ func (x *TriggeredStorageEvent) GetLocation() string {
 	return ""
 }
 
-func (x *TriggeredStorageEvent) SetStorageLocationId(v *UUID) {
+func (x *TriggeredStorageEvent) SetStorageLocationId(v *v1.ID) {
 	x.xxx_hidden_StorageLocationId = v
 }
 
@@ -826,7 +827,7 @@ func (x *TriggeredStorageEvent) ClearStorageLocationId() {
 type TriggeredStorageEvent_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	StorageLocationId *UUID
+	StorageLocationId *v1.ID
 	Type              StorageEventType
 	// The object that triggered the task, e.g. a file name in a directory or object name in a bucket
 	Location string
@@ -914,7 +915,7 @@ func (b0 TriggeredCronEvent_builder) Build() *TriggeredCronEvent {
 // DeleteAutomationRequest requests the deletion of an automation.
 type DeleteAutomationRequest struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_AutomationId *UUID                  `protobuf:"bytes,1,opt,name=automation_id,json=automationId"`
+	xxx_hidden_AutomationId *v1.ID                 `protobuf:"bytes,1,opt,name=automation_id,json=automationId"`
 	xxx_hidden_CancelJobs   bool                   `protobuf:"varint,2,opt,name=cancel_jobs,json=cancelJobs"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
@@ -945,7 +946,7 @@ func (x *DeleteAutomationRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *DeleteAutomationRequest) GetAutomationId() *UUID {
+func (x *DeleteAutomationRequest) GetAutomationId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_AutomationId
 	}
@@ -959,7 +960,7 @@ func (x *DeleteAutomationRequest) GetCancelJobs() bool {
 	return false
 }
 
-func (x *DeleteAutomationRequest) SetAutomationId(v *UUID) {
+func (x *DeleteAutomationRequest) SetAutomationId(v *v1.ID) {
 	x.xxx_hidden_AutomationId = v
 }
 
@@ -982,7 +983,7 @@ type DeleteAutomationRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The ID of the automation to delete.
-	AutomationId *UUID
+	AutomationId *v1.ID
 	// Whether to cancel all jobs that have been created by this automation.
 	CancelJobs bool
 }
@@ -1000,40 +1001,40 @@ var File_workflows_v1_automation_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\n" +
-	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17workflows/v1/core.proto\"\x80\x01\n" +
-	"\x0fStorageLocation\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x1a\n" +
+	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"|\n" +
+	"\x0fStorageLocation\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1a\n" +
 	"\blocation\x18\x02 \x01(\tR\blocation\x12-\n" +
 	"\x04type\x18\x03 \x01(\x0e2\x19.workflows.v1.StorageTypeR\x04type\"O\n" +
 	"\x10StorageLocations\x12;\n" +
-	"\tlocations\x18\x01 \x03(\v2\x1d.workflows.v1.StorageLocationR\tlocations\"\xa2\x02\n" +
-	"\x13AutomationPrototype\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x12\n" +
+	"\tlocations\x18\x01 \x03(\v2\x1d.workflows.v1.StorageLocationR\tlocations\"\x9e\x02\n" +
+	"\x13AutomationPrototype\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12:\n" +
 	"\tprototype\x18\x03 \x01(\v2\x1c.workflows.v1.TaskSubmissionR\tprototype\x12W\n" +
 	"\x16storage_event_triggers\x18\x04 \x03(\v2!.workflows.v1.StorageEventTriggerR\x14storageEventTriggers\x12>\n" +
 	"\rcron_triggers\x18\x05 \x03(\v2\x19.workflows.v1.CronTriggerR\fcronTriggers\"R\n" +
 	"\vAutomations\x12C\n" +
-	"\vautomations\x18\x01 \x03(\v2!.workflows.v1.AutomationPrototypeR\vautomations\"\xa6\x01\n" +
-	"\x13StorageEventTrigger\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12H\n" +
+	"\vautomations\x18\x01 \x03(\v2!.workflows.v1.AutomationPrototypeR\vautomations\"\xa2\x01\n" +
+	"\x13StorageEventTrigger\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12H\n" +
 	"\x10storage_location\x18\x02 \x01(\v2\x1d.workflows.v1.StorageLocationR\x0fstorageLocation\x12!\n" +
-	"\fglob_pattern\x18\x03 \x01(\tR\vglobPattern\"M\n" +
-	"\vCronTrigger\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x1a\n" +
+	"\fglob_pattern\x18\x03 \x01(\tR\vglobPattern\"I\n" +
+	"\vCronTrigger\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1a\n" +
 	"\bschedule\x18\x02 \x01(\tR\bschedule\"E\n" +
 	"\n" +
 	"Automation\x12#\n" +
 	"\rtrigger_event\x18\x01 \x01(\fR\ftriggerEvent\x12\x12\n" +
-	"\x04args\x18\x02 \x01(\fR\x04args\"\xab\x01\n" +
-	"\x15TriggeredStorageEvent\x12B\n" +
-	"\x13storage_location_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x11storageLocationId\x122\n" +
+	"\x04args\x18\x02 \x01(\fR\x04args\"\xa7\x01\n" +
+	"\x15TriggeredStorageEvent\x12>\n" +
+	"\x13storage_location_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x11storageLocationId\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.workflows.v1.StorageEventTypeR\x04type\x12\x1a\n" +
 	"\blocation\x18\x03 \x01(\tR\blocation\"S\n" +
 	"\x12TriggeredCronEvent\x12=\n" +
-	"\ftrigger_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vtriggerTime\"s\n" +
-	"\x17DeleteAutomationRequest\x127\n" +
-	"\rautomation_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\fautomationId\x12\x1f\n" +
+	"\ftrigger_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vtriggerTime\"o\n" +
+	"\x17DeleteAutomationRequest\x123\n" +
+	"\rautomation_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fautomationId\x12\x1f\n" +
 	"\vcancel_jobs\x18\x02 \x01(\bR\n" +
 	"cancelJobs*k\n" +
 	"\vStorageType\x12\x1c\n" +
@@ -1043,14 +1044,14 @@ const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\x0fSTORAGE_TYPE_FS\x10\x03*V\n" +
 	"\x10StorageEventType\x12\"\n" +
 	"\x1eSTORAGE_EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
-	"\x1aSTORAGE_EVENT_TYPE_CREATED\x10\x012\xdd\x05\n" +
+	"\x1aSTORAGE_EVENT_TYPE_CREATED\x10\x012\xd1\x05\n" +
 	"\x11AutomationService\x12N\n" +
-	"\x14ListStorageLocations\x12\x16.google.protobuf.Empty\x1a\x1e.workflows.v1.StorageLocations\x12G\n" +
-	"\x12GetStorageLocation\x12\x12.workflows.v1.UUID\x1a\x1d.workflows.v1.StorageLocation\x12U\n" +
-	"\x15CreateStorageLocation\x12\x1d.workflows.v1.StorageLocation\x1a\x1d.workflows.v1.StorageLocation\x12C\n" +
-	"\x15DeleteStorageLocation\x12\x12.workflows.v1.UUID\x1a\x16.google.protobuf.Empty\x12D\n" +
-	"\x0fListAutomations\x12\x16.google.protobuf.Empty\x1a\x19.workflows.v1.Automations\x12F\n" +
-	"\rGetAutomation\x12\x12.workflows.v1.UUID\x1a!.workflows.v1.AutomationPrototype\x12X\n" +
+	"\x14ListStorageLocations\x12\x16.google.protobuf.Empty\x1a\x1e.workflows.v1.StorageLocations\x12C\n" +
+	"\x12GetStorageLocation\x12\x0e.tilebox.v1.ID\x1a\x1d.workflows.v1.StorageLocation\x12U\n" +
+	"\x15CreateStorageLocation\x12\x1d.workflows.v1.StorageLocation\x1a\x1d.workflows.v1.StorageLocation\x12?\n" +
+	"\x15DeleteStorageLocation\x12\x0e.tilebox.v1.ID\x1a\x16.google.protobuf.Empty\x12D\n" +
+	"\x0fListAutomations\x12\x16.google.protobuf.Empty\x1a\x19.workflows.v1.Automations\x12B\n" +
+	"\rGetAutomation\x12\x0e.tilebox.v1.ID\x1a!.workflows.v1.AutomationPrototype\x12X\n" +
 	"\x10CreateAutomation\x12!.workflows.v1.AutomationPrototype\x1a!.workflows.v1.AutomationPrototype\x12X\n" +
 	"\x10UpdateAutomation\x12!.workflows.v1.AutomationPrototype\x1a!.workflows.v1.AutomationPrototype\x12Q\n" +
 	"\x10DeleteAutomation\x12%.workflows.v1.DeleteAutomationRequest\x1a\x16.google.protobuf.EmptyB\xc2\x01\n" +
@@ -1071,33 +1072,33 @@ var file_workflows_v1_automation_proto_goTypes = []any{
 	(*TriggeredStorageEvent)(nil),   // 9: workflows.v1.TriggeredStorageEvent
 	(*TriggeredCronEvent)(nil),      // 10: workflows.v1.TriggeredCronEvent
 	(*DeleteAutomationRequest)(nil), // 11: workflows.v1.DeleteAutomationRequest
-	(*UUID)(nil),                    // 12: workflows.v1.UUID
+	(*v1.ID)(nil),                   // 12: tilebox.v1.ID
 	(*TaskSubmission)(nil),          // 13: workflows.v1.TaskSubmission
 	(*timestamppb.Timestamp)(nil),   // 14: google.protobuf.Timestamp
 	(*emptypb.Empty)(nil),           // 15: google.protobuf.Empty
 }
 var file_workflows_v1_automation_proto_depIdxs = []int32{
-	12, // 0: workflows.v1.StorageLocation.id:type_name -> workflows.v1.UUID
+	12, // 0: workflows.v1.StorageLocation.id:type_name -> tilebox.v1.ID
 	0,  // 1: workflows.v1.StorageLocation.type:type_name -> workflows.v1.StorageType
 	2,  // 2: workflows.v1.StorageLocations.locations:type_name -> workflows.v1.StorageLocation
-	12, // 3: workflows.v1.AutomationPrototype.id:type_name -> workflows.v1.UUID
+	12, // 3: workflows.v1.AutomationPrototype.id:type_name -> tilebox.v1.ID
 	13, // 4: workflows.v1.AutomationPrototype.prototype:type_name -> workflows.v1.TaskSubmission
 	6,  // 5: workflows.v1.AutomationPrototype.storage_event_triggers:type_name -> workflows.v1.StorageEventTrigger
 	7,  // 6: workflows.v1.AutomationPrototype.cron_triggers:type_name -> workflows.v1.CronTrigger
 	4,  // 7: workflows.v1.Automations.automations:type_name -> workflows.v1.AutomationPrototype
-	12, // 8: workflows.v1.StorageEventTrigger.id:type_name -> workflows.v1.UUID
+	12, // 8: workflows.v1.StorageEventTrigger.id:type_name -> tilebox.v1.ID
 	2,  // 9: workflows.v1.StorageEventTrigger.storage_location:type_name -> workflows.v1.StorageLocation
-	12, // 10: workflows.v1.CronTrigger.id:type_name -> workflows.v1.UUID
-	12, // 11: workflows.v1.TriggeredStorageEvent.storage_location_id:type_name -> workflows.v1.UUID
+	12, // 10: workflows.v1.CronTrigger.id:type_name -> tilebox.v1.ID
+	12, // 11: workflows.v1.TriggeredStorageEvent.storage_location_id:type_name -> tilebox.v1.ID
 	1,  // 12: workflows.v1.TriggeredStorageEvent.type:type_name -> workflows.v1.StorageEventType
 	14, // 13: workflows.v1.TriggeredCronEvent.trigger_time:type_name -> google.protobuf.Timestamp
-	12, // 14: workflows.v1.DeleteAutomationRequest.automation_id:type_name -> workflows.v1.UUID
+	12, // 14: workflows.v1.DeleteAutomationRequest.automation_id:type_name -> tilebox.v1.ID
 	15, // 15: workflows.v1.AutomationService.ListStorageLocations:input_type -> google.protobuf.Empty
-	12, // 16: workflows.v1.AutomationService.GetStorageLocation:input_type -> workflows.v1.UUID
+	12, // 16: workflows.v1.AutomationService.GetStorageLocation:input_type -> tilebox.v1.ID
 	2,  // 17: workflows.v1.AutomationService.CreateStorageLocation:input_type -> workflows.v1.StorageLocation
-	12, // 18: workflows.v1.AutomationService.DeleteStorageLocation:input_type -> workflows.v1.UUID
+	12, // 18: workflows.v1.AutomationService.DeleteStorageLocation:input_type -> tilebox.v1.ID
 	15, // 19: workflows.v1.AutomationService.ListAutomations:input_type -> google.protobuf.Empty
-	12, // 20: workflows.v1.AutomationService.GetAutomation:input_type -> workflows.v1.UUID
+	12, // 20: workflows.v1.AutomationService.GetAutomation:input_type -> tilebox.v1.ID
 	4,  // 21: workflows.v1.AutomationService.CreateAutomation:input_type -> workflows.v1.AutomationPrototype
 	4,  // 22: workflows.v1.AutomationService.UpdateAutomation:input_type -> workflows.v1.AutomationPrototype
 	11, // 23: workflows.v1.AutomationService.DeleteAutomation:input_type -> workflows.v1.DeleteAutomationRequest

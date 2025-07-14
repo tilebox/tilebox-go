@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
@@ -224,7 +225,7 @@ func (b0 Cluster_builder) Build() *Cluster {
 // A job is a logical grouping of tasks that are related.
 type Job struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id            *UUID                  `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id            *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Name          string                 `protobuf:"bytes,2,opt,name=name"`
 	xxx_hidden_TraceParent   string                 `protobuf:"bytes,3,opt,name=trace_parent,json=traceParent"`
 	xxx_hidden_Canceled      bool                   `protobuf:"varint,5,opt,name=canceled"`
@@ -232,7 +233,7 @@ type Job struct {
 	xxx_hidden_SubmittedAt   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=submitted_at,json=submittedAt"`
 	xxx_hidden_StartedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=started_at,json=startedAt"`
 	xxx_hidden_TaskSummaries *[]*TaskSummary        `protobuf:"bytes,9,rep,name=task_summaries,json=taskSummaries"`
-	xxx_hidden_AutomationId  *UUID                  `protobuf:"bytes,10,opt,name=automation_id,json=automationId"`
+	xxx_hidden_AutomationId  *v1.ID                 `protobuf:"bytes,10,opt,name=automation_id,json=automationId"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -262,7 +263,7 @@ func (x *Job) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Job) GetId() *UUID {
+func (x *Job) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -320,14 +321,14 @@ func (x *Job) GetTaskSummaries() []*TaskSummary {
 	return nil
 }
 
-func (x *Job) GetAutomationId() *UUID {
+func (x *Job) GetAutomationId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_AutomationId
 	}
 	return nil
 }
 
-func (x *Job) SetId(v *UUID) {
+func (x *Job) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -359,7 +360,7 @@ func (x *Job) SetTaskSummaries(v []*TaskSummary) {
 	x.xxx_hidden_TaskSummaries = &v
 }
 
-func (x *Job) SetAutomationId(v *UUID) {
+func (x *Job) SetAutomationId(v *v1.ID) {
 	x.xxx_hidden_AutomationId = v
 }
 
@@ -410,7 +411,7 @@ func (x *Job) ClearAutomationId() {
 type Job_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id            *UUID
+	Id            *v1.ID
 	Name          string
 	TraceParent   string
 	Canceled      bool
@@ -418,7 +419,7 @@ type Job_builder struct {
 	SubmittedAt   *timestamppb.Timestamp
 	StartedAt     *timestamppb.Timestamp
 	TaskSummaries []*TaskSummary
-	AutomationId  *UUID
+	AutomationId  *v1.ID
 }
 
 func (b0 Job_builder) Build() *Job {
@@ -440,10 +441,10 @@ func (b0 Job_builder) Build() *Job {
 // A summary of a task. Mainly used in the Console.
 type TaskSummary struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id        *UUID                  `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id        *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Display   string                 `protobuf:"bytes,2,opt,name=display"`
 	xxx_hidden_State     TaskState              `protobuf:"varint,3,opt,name=state,enum=workflows.v1.TaskState"`
-	xxx_hidden_ParentId  *UUID                  `protobuf:"bytes,4,opt,name=parent_id,json=parentId"`
+	xxx_hidden_ParentId  *v1.ID                 `protobuf:"bytes,4,opt,name=parent_id,json=parentId"`
 	xxx_hidden_StartedAt *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=started_at,json=startedAt"`
 	xxx_hidden_StoppedAt *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=stopped_at,json=stoppedAt"`
 	unknownFields        protoimpl.UnknownFields
@@ -475,7 +476,7 @@ func (x *TaskSummary) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TaskSummary) GetId() *UUID {
+func (x *TaskSummary) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -496,7 +497,7 @@ func (x *TaskSummary) GetState() TaskState {
 	return TaskState_TASK_STATE_UNSPECIFIED
 }
 
-func (x *TaskSummary) GetParentId() *UUID {
+func (x *TaskSummary) GetParentId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_ParentId
 	}
@@ -517,7 +518,7 @@ func (x *TaskSummary) GetStoppedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *TaskSummary) SetId(v *UUID) {
+func (x *TaskSummary) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -529,7 +530,7 @@ func (x *TaskSummary) SetState(v TaskState) {
 	x.xxx_hidden_State = v
 }
 
-func (x *TaskSummary) SetParentId(v *UUID) {
+func (x *TaskSummary) SetParentId(v *v1.ID) {
 	x.xxx_hidden_ParentId = v
 }
 
@@ -588,10 +589,10 @@ func (x *TaskSummary) ClearStoppedAt() {
 type TaskSummary_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id        *UUID
+	Id        *v1.ID
 	Display   string
 	State     TaskState
-	ParentId  *UUID
+	ParentId  *v1.ID
 	StartedAt *timestamppb.Timestamp
 	StoppedAt *timestamppb.Timestamp
 }
@@ -612,14 +613,14 @@ func (b0 TaskSummary_builder) Build() *TaskSummary {
 // A task is a single unit of work.
 type Task struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id          *UUID                  `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id          *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Identifier  *TaskIdentifier        `protobuf:"bytes,2,opt,name=identifier"`
 	xxx_hidden_State       TaskState              `protobuf:"varint,3,opt,name=state,enum=workflows.v1.TaskState"`
 	xxx_hidden_Input       []byte                 `protobuf:"bytes,4,opt,name=input"`
 	xxx_hidden_Display     *string                `protobuf:"bytes,5,opt,name=display"`
 	xxx_hidden_Job         *Job                   `protobuf:"bytes,6,opt,name=job"`
-	xxx_hidden_ParentId    *UUID                  `protobuf:"bytes,7,opt,name=parent_id,json=parentId"`
-	xxx_hidden_DependsOn   *[]*UUID               `protobuf:"bytes,8,rep,name=depends_on,json=dependsOn"`
+	xxx_hidden_ParentId    *v1.ID                 `protobuf:"bytes,7,opt,name=parent_id,json=parentId"`
+	xxx_hidden_DependsOn   *[]*v1.ID              `protobuf:"bytes,8,rep,name=depends_on,json=dependsOn"`
 	xxx_hidden_Lease       *TaskLease             `protobuf:"bytes,9,opt,name=lease"`
 	xxx_hidden_RetryCount  int64                  `protobuf:"varint,10,opt,name=retry_count,json=retryCount"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
@@ -653,7 +654,7 @@ func (x *Task) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Task) GetId() *UUID {
+func (x *Task) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -698,14 +699,14 @@ func (x *Task) GetJob() *Job {
 	return nil
 }
 
-func (x *Task) GetParentId() *UUID {
+func (x *Task) GetParentId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_ParentId
 	}
 	return nil
 }
 
-func (x *Task) GetDependsOn() []*UUID {
+func (x *Task) GetDependsOn() []*v1.ID {
 	if x != nil {
 		if x.xxx_hidden_DependsOn != nil {
 			return *x.xxx_hidden_DependsOn
@@ -728,7 +729,7 @@ func (x *Task) GetRetryCount() int64 {
 	return 0
 }
 
-func (x *Task) SetId(v *UUID) {
+func (x *Task) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -757,11 +758,11 @@ func (x *Task) SetJob(v *Job) {
 	x.xxx_hidden_Job = v
 }
 
-func (x *Task) SetParentId(v *UUID) {
+func (x *Task) SetParentId(v *v1.ID) {
 	x.xxx_hidden_ParentId = v
 }
 
-func (x *Task) SetDependsOn(v []*UUID) {
+func (x *Task) SetDependsOn(v []*v1.ID) {
 	x.xxx_hidden_DependsOn = &v
 }
 
@@ -855,7 +856,7 @@ func (x *Task) ClearLease() {
 type Task_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id *UUID
+	Id *v1.ID
 	// Unique identifier for the task. Used by runners to match tasks to specific functions.
 	Identifier *TaskIdentifier
 	State      TaskState
@@ -863,8 +864,8 @@ type Task_builder struct {
 	// Display is a human readable representation of the Task used for printing or visualizations
 	Display    *string
 	Job        *Job
-	ParentId   *UUID
-	DependsOn  []*UUID
+	ParentId   *v1.ID
+	DependsOn  []*v1.ID
 	Lease      *TaskLease
 	RetryCount int64
 }
@@ -1167,67 +1168,6 @@ func (b0 TaskSubmission_builder) Build() *TaskSubmission {
 	return m0
 }
 
-// Bytes field (in message)
-type UUID struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Uuid []byte                 `protobuf:"bytes,1,opt,name=uuid"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *UUID) Reset() {
-	*x = UUID{}
-	mi := &file_workflows_v1_core_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UUID) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UUID) ProtoMessage() {}
-
-func (x *UUID) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *UUID) GetUuid() []byte {
-	if x != nil {
-		return x.xxx_hidden_Uuid
-	}
-	return nil
-}
-
-func (x *UUID) SetUuid(v []byte) {
-	if v == nil {
-		v = []byte{}
-	}
-	x.xxx_hidden_Uuid = v
-}
-
-type UUID_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	Uuid []byte
-}
-
-func (b0 UUID_builder) Build() *UUID {
-	m0 := &UUID{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Uuid = b.Uuid
-	return m0
-}
-
 // A lease for a task.
 type TaskLease struct {
 	state                                        protoimpl.MessageState `protogen:"opaque.v1"`
@@ -1239,7 +1179,7 @@ type TaskLease struct {
 
 func (x *TaskLease) Reset() {
 	*x = TaskLease{}
-	mi := &file_workflows_v1_core_proto_msgTypes[8]
+	mi := &file_workflows_v1_core_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1251,7 +1191,7 @@ func (x *TaskLease) String() string {
 func (*TaskLease) ProtoMessage() {}
 
 func (x *TaskLease) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[8]
+	mi := &file_workflows_v1_core_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1335,7 +1275,7 @@ type TimeInterval struct {
 
 func (x *TimeInterval) Reset() {
 	*x = TimeInterval{}
-	mi := &file_workflows_v1_core_proto_msgTypes[9]
+	mi := &file_workflows_v1_core_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1347,7 +1287,7 @@ func (x *TimeInterval) String() string {
 func (*TimeInterval) ProtoMessage() {}
 
 func (x *TimeInterval) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[9]
+	mi := &file_workflows_v1_core_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1451,8 +1391,8 @@ func (b0 TimeInterval_builder) Build() *TimeInterval {
 // An ID interval
 type IDInterval struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_StartId        *UUID                  `protobuf:"bytes,1,opt,name=start_id,json=startId"`
-	xxx_hidden_EndId          *UUID                  `protobuf:"bytes,2,opt,name=end_id,json=endId"`
+	xxx_hidden_StartId        *v1.ID                 `protobuf:"bytes,1,opt,name=start_id,json=startId"`
+	xxx_hidden_EndId          *v1.ID                 `protobuf:"bytes,2,opt,name=end_id,json=endId"`
 	xxx_hidden_StartExclusive bool                   `protobuf:"varint,3,opt,name=start_exclusive,json=startExclusive"`
 	xxx_hidden_EndInclusive   bool                   `protobuf:"varint,4,opt,name=end_inclusive,json=endInclusive"`
 	unknownFields             protoimpl.UnknownFields
@@ -1461,7 +1401,7 @@ type IDInterval struct {
 
 func (x *IDInterval) Reset() {
 	*x = IDInterval{}
-	mi := &file_workflows_v1_core_proto_msgTypes[10]
+	mi := &file_workflows_v1_core_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1473,7 +1413,7 @@ func (x *IDInterval) String() string {
 func (*IDInterval) ProtoMessage() {}
 
 func (x *IDInterval) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[10]
+	mi := &file_workflows_v1_core_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1484,14 +1424,14 @@ func (x *IDInterval) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *IDInterval) GetStartId() *UUID {
+func (x *IDInterval) GetStartId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_StartId
 	}
 	return nil
 }
 
-func (x *IDInterval) GetEndId() *UUID {
+func (x *IDInterval) GetEndId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_EndId
 	}
@@ -1512,11 +1452,11 @@ func (x *IDInterval) GetEndInclusive() bool {
 	return false
 }
 
-func (x *IDInterval) SetStartId(v *UUID) {
+func (x *IDInterval) SetStartId(v *v1.ID) {
 	x.xxx_hidden_StartId = v
 }
 
-func (x *IDInterval) SetEndId(v *UUID) {
+func (x *IDInterval) SetEndId(v *v1.ID) {
 	x.xxx_hidden_EndId = v
 }
 
@@ -1553,8 +1493,8 @@ func (x *IDInterval) ClearEndId() {
 type IDInterval_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	StartId *UUID
-	EndId   *UUID
+	StartId *v1.ID
+	EndId   *v1.ID
 	// We use exclusive for start and inclusive for end, because that way when both are false
 	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
 	// Flag indicating whether the start id is exclusive.
@@ -1580,7 +1520,7 @@ func (b0 IDInterval_builder) Build() *IDInterval {
 type Pagination struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Limit         int64                  `protobuf:"varint,1,opt,name=limit"`
-	xxx_hidden_StartingAfter *UUID                  `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter"`
+	xxx_hidden_StartingAfter *v1.ID                 `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter"`
 	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
 	XXX_presence             [1]uint32
 	unknownFields            protoimpl.UnknownFields
@@ -1589,7 +1529,7 @@ type Pagination struct {
 
 func (x *Pagination) Reset() {
 	*x = Pagination{}
-	mi := &file_workflows_v1_core_proto_msgTypes[11]
+	mi := &file_workflows_v1_core_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1601,7 +1541,7 @@ func (x *Pagination) String() string {
 func (*Pagination) ProtoMessage() {}
 
 func (x *Pagination) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[11]
+	mi := &file_workflows_v1_core_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1619,7 +1559,7 @@ func (x *Pagination) GetLimit() int64 {
 	return 0
 }
 
-func (x *Pagination) GetStartingAfter() *UUID {
+func (x *Pagination) GetStartingAfter() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_StartingAfter
 	}
@@ -1631,7 +1571,7 @@ func (x *Pagination) SetLimit(v int64) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
 }
 
-func (x *Pagination) SetStartingAfter(v *UUID) {
+func (x *Pagination) SetStartingAfter(v *v1.ID) {
 	x.xxx_hidden_StartingAfter = v
 }
 
@@ -1665,7 +1605,7 @@ type Pagination_builder struct {
 	Limit *int64
 	// Return entries starting after this entry.
 	// This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
-	StartingAfter *UUID
+	StartingAfter *v1.ID
 }
 
 func (b0 Pagination_builder) Build() *Pagination {
@@ -1684,13 +1624,13 @@ var File_workflows_v1_core_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"^\n" +
+	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"^\n" +
 	"\aCluster\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12!\n" +
 	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12\x1c\n" +
-	"\tdeletable\x18\x04 \x01(\bR\tdeletable\"\xa5\x03\n" +
-	"\x03Job\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x12\n" +
+	"\tdeletable\x18\x04 \x01(\bR\tdeletable\"\x9d\x03\n" +
+	"\x03Job\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
 	"\ftrace_parent\x18\x03 \x01(\tR\vtraceParent\x12\x1a\n" +
 	"\bcanceled\x18\x05 \x01(\bR\bcanceled\x12,\n" +
@@ -1698,30 +1638,30 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\fsubmitted_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\vsubmittedAt\x129\n" +
 	"\n" +
 	"started_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x12@\n" +
-	"\x0etask_summaries\x18\t \x03(\v2\x19.workflows.v1.TaskSummaryR\rtaskSummaries\x127\n" +
+	"\x0etask_summaries\x18\t \x03(\v2\x19.workflows.v1.TaskSummaryR\rtaskSummaries\x123\n" +
 	"\rautomation_id\x18\n" +
-	" \x01(\v2\x12.workflows.v1.UUIDR\fautomationIdJ\x04\b\x04\x10\x05\"\xa7\x02\n" +
-	"\vTaskSummary\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x18\n" +
+	" \x01(\v2\x0e.tilebox.v1.IDR\fautomationIdJ\x04\b\x04\x10\x05\"\x9f\x02\n" +
+	"\vTaskSummary\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x18\n" +
 	"\adisplay\x18\x02 \x01(\tR\adisplay\x12-\n" +
-	"\x05state\x18\x03 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\x12/\n" +
-	"\tparent_id\x18\x04 \x01(\v2\x12.workflows.v1.UUIDR\bparentId\x129\n" +
+	"\x05state\x18\x03 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\x12+\n" +
+	"\tparent_id\x18\x04 \x01(\v2\x0e.tilebox.v1.IDR\bparentId\x129\n" +
 	"\n" +
 	"started_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x129\n" +
 	"\n" +
-	"stopped_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tstoppedAtJ\x04\b\x05\x10\x06\"\xae\x03\n" +
-	"\x04Task\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12<\n" +
+	"stopped_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tstoppedAtJ\x04\b\x05\x10\x06\"\xa2\x03\n" +
+	"\x04Task\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12<\n" +
 	"\n" +
 	"identifier\x18\x02 \x01(\v2\x1c.workflows.v1.TaskIdentifierR\n" +
 	"identifier\x12-\n" +
 	"\x05state\x18\x03 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\x12\x1b\n" +
 	"\x05input\x18\x04 \x01(\fB\x05\xaa\x01\x02\b\x01R\x05input\x12\x1f\n" +
 	"\adisplay\x18\x05 \x01(\tB\x05\xaa\x01\x02\b\x01R\adisplay\x12#\n" +
-	"\x03job\x18\x06 \x01(\v2\x11.workflows.v1.JobR\x03job\x12/\n" +
-	"\tparent_id\x18\a \x01(\v2\x12.workflows.v1.UUIDR\bparentId\x121\n" +
+	"\x03job\x18\x06 \x01(\v2\x11.workflows.v1.JobR\x03job\x12+\n" +
+	"\tparent_id\x18\a \x01(\v2\x0e.tilebox.v1.IDR\bparentId\x12-\n" +
 	"\n" +
-	"depends_on\x18\b \x03(\v2\x12.workflows.v1.UUIDR\tdependsOn\x12-\n" +
+	"depends_on\x18\b \x03(\v2\x0e.tilebox.v1.IDR\tdependsOn\x12-\n" +
 	"\x05lease\x18\t \x01(\v2\x17.workflows.v1.TaskLeaseR\x05lease\x12\x1f\n" +
 	"\vretry_count\x18\n" +
 	" \x01(\x03R\n" +
@@ -1740,9 +1680,7 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\adisplay\x18\x04 \x01(\tR\adisplay\x12\"\n" +
 	"\fdependencies\x18\x05 \x03(\x03R\fdependencies\x12\x1f\n" +
 	"\vmax_retries\x18\x06 \x01(\x03R\n" +
-	"maxRetries\"\x1a\n" +
-	"\x04UUID\x12\x12\n" +
-	"\x04uuid\x18\x01 \x01(\fR\x04uuid\"\xa9\x01\n" +
+	"maxRetries\"\xa9\x01\n" +
 	"\tTaskLease\x12/\n" +
 	"\x05lease\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x05lease\x12k\n" +
 	"%recommended_wait_until_next_extension\x18\x02 \x01(\v2\x19.google.protobuf.DurationR!recommendedWaitUntilNextExtension\"\xce\x01\n" +
@@ -1751,17 +1689,17 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"start_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
 	"\bend_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12'\n" +
 	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
-	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"\xb4\x01\n" +
+	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"\xac\x01\n" +
 	"\n" +
-	"IDInterval\x12-\n" +
-	"\bstart_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\astartId\x12)\n" +
-	"\x06end_id\x18\x02 \x01(\v2\x12.workflows.v1.UUIDR\x05endId\x12'\n" +
+	"IDInterval\x12)\n" +
+	"\bstart_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\astartId\x12%\n" +
+	"\x06end_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x05endId\x12'\n" +
 	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
-	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"k\n" +
+	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"g\n" +
 	"\n" +
 	"Pagination\x12\x1b\n" +
-	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12@\n" +
-	"\x0estarting_after\x18\x02 \x01(\v2\x12.workflows.v1.UUIDB\x05\xaa\x01\x02\b\x01R\rstartingAfter*k\n" +
+	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12<\n" +
+	"\x0estarting_after\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\rstartingAfter*k\n" +
 	"\bJobState\x12\x19\n" +
 	"\x15JOB_STATE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10JOB_STATE_QUEUED\x10\x01\x12\x15\n" +
@@ -1777,7 +1715,7 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x10com.workflows.v1B\tCoreProtoP\x01ZBgithub.com/tilebox/tilebox-go/protogen/go/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1\x92\x03\a\xd2>\x02\x10\x03\b\x02b\beditionsp\xe8\a"
 
 var file_workflows_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_workflows_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_workflows_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_workflows_v1_core_proto_goTypes = []any{
 	(JobState)(0),                 // 0: workflows.v1.JobState
 	(TaskState)(0),                // 1: workflows.v1.TaskState
@@ -1788,42 +1726,42 @@ var file_workflows_v1_core_proto_goTypes = []any{
 	(*TaskIdentifier)(nil),        // 6: workflows.v1.TaskIdentifier
 	(*Tasks)(nil),                 // 7: workflows.v1.Tasks
 	(*TaskSubmission)(nil),        // 8: workflows.v1.TaskSubmission
-	(*UUID)(nil),                  // 9: workflows.v1.UUID
-	(*TaskLease)(nil),             // 10: workflows.v1.TaskLease
-	(*TimeInterval)(nil),          // 11: workflows.v1.TimeInterval
-	(*IDInterval)(nil),            // 12: workflows.v1.IDInterval
-	(*Pagination)(nil),            // 13: workflows.v1.Pagination
+	(*TaskLease)(nil),             // 9: workflows.v1.TaskLease
+	(*TimeInterval)(nil),          // 10: workflows.v1.TimeInterval
+	(*IDInterval)(nil),            // 11: workflows.v1.IDInterval
+	(*Pagination)(nil),            // 12: workflows.v1.Pagination
+	(*v1.ID)(nil),                 // 13: tilebox.v1.ID
 	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
 	(*durationpb.Duration)(nil),   // 15: google.protobuf.Duration
 }
 var file_workflows_v1_core_proto_depIdxs = []int32{
-	9,  // 0: workflows.v1.Job.id:type_name -> workflows.v1.UUID
+	13, // 0: workflows.v1.Job.id:type_name -> tilebox.v1.ID
 	0,  // 1: workflows.v1.Job.state:type_name -> workflows.v1.JobState
 	14, // 2: workflows.v1.Job.submitted_at:type_name -> google.protobuf.Timestamp
 	14, // 3: workflows.v1.Job.started_at:type_name -> google.protobuf.Timestamp
 	4,  // 4: workflows.v1.Job.task_summaries:type_name -> workflows.v1.TaskSummary
-	9,  // 5: workflows.v1.Job.automation_id:type_name -> workflows.v1.UUID
-	9,  // 6: workflows.v1.TaskSummary.id:type_name -> workflows.v1.UUID
+	13, // 5: workflows.v1.Job.automation_id:type_name -> tilebox.v1.ID
+	13, // 6: workflows.v1.TaskSummary.id:type_name -> tilebox.v1.ID
 	1,  // 7: workflows.v1.TaskSummary.state:type_name -> workflows.v1.TaskState
-	9,  // 8: workflows.v1.TaskSummary.parent_id:type_name -> workflows.v1.UUID
+	13, // 8: workflows.v1.TaskSummary.parent_id:type_name -> tilebox.v1.ID
 	14, // 9: workflows.v1.TaskSummary.started_at:type_name -> google.protobuf.Timestamp
 	14, // 10: workflows.v1.TaskSummary.stopped_at:type_name -> google.protobuf.Timestamp
-	9,  // 11: workflows.v1.Task.id:type_name -> workflows.v1.UUID
+	13, // 11: workflows.v1.Task.id:type_name -> tilebox.v1.ID
 	6,  // 12: workflows.v1.Task.identifier:type_name -> workflows.v1.TaskIdentifier
 	1,  // 13: workflows.v1.Task.state:type_name -> workflows.v1.TaskState
 	3,  // 14: workflows.v1.Task.job:type_name -> workflows.v1.Job
-	9,  // 15: workflows.v1.Task.parent_id:type_name -> workflows.v1.UUID
-	9,  // 16: workflows.v1.Task.depends_on:type_name -> workflows.v1.UUID
-	10, // 17: workflows.v1.Task.lease:type_name -> workflows.v1.TaskLease
+	13, // 15: workflows.v1.Task.parent_id:type_name -> tilebox.v1.ID
+	13, // 16: workflows.v1.Task.depends_on:type_name -> tilebox.v1.ID
+	9,  // 17: workflows.v1.Task.lease:type_name -> workflows.v1.TaskLease
 	5,  // 18: workflows.v1.Tasks.tasks:type_name -> workflows.v1.Task
 	6,  // 19: workflows.v1.TaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
 	15, // 20: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
 	15, // 21: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
 	14, // 22: workflows.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
 	14, // 23: workflows.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
-	9,  // 24: workflows.v1.IDInterval.start_id:type_name -> workflows.v1.UUID
-	9,  // 25: workflows.v1.IDInterval.end_id:type_name -> workflows.v1.UUID
-	9,  // 26: workflows.v1.Pagination.starting_after:type_name -> workflows.v1.UUID
+	13, // 24: workflows.v1.IDInterval.start_id:type_name -> tilebox.v1.ID
+	13, // 25: workflows.v1.IDInterval.end_id:type_name -> tilebox.v1.ID
+	13, // 26: workflows.v1.Pagination.starting_after:type_name -> tilebox.v1.ID
 	27, // [27:27] is the sub-list for method output_type
 	27, // [27:27] is the sub-list for method input_type
 	27, // [27:27] is the sub-list for extension type_name
@@ -1842,7 +1780,7 @@ func file_workflows_v1_core_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_core_proto_rawDesc), len(file_workflows_v1_core_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

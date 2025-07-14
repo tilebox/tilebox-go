@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
@@ -25,7 +26,7 @@ const (
 // IngestDatapointsRequest is used to ingest one or multiple datapoints into a collection.
 type IngestDatapointsRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CollectionId  *ID                    `protobuf:"bytes,1,opt,name=collection_id,json=collectionId"`
+	xxx_hidden_CollectionId  *v1.ID                 `protobuf:"bytes,1,opt,name=collection_id,json=collectionId"`
 	xxx_hidden_Datapoints    *Datapoints            `protobuf:"bytes,2,opt,name=datapoints"`
 	xxx_hidden_AllowExisting bool                   `protobuf:"varint,3,opt,name=allow_existing,json=allowExisting"`
 	unknownFields            protoimpl.UnknownFields
@@ -57,7 +58,7 @@ func (x *IngestDatapointsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *IngestDatapointsRequest) GetCollectionId() *ID {
+func (x *IngestDatapointsRequest) GetCollectionId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_CollectionId
 	}
@@ -78,7 +79,7 @@ func (x *IngestDatapointsRequest) GetAllowExisting() bool {
 	return false
 }
 
-func (x *IngestDatapointsRequest) SetCollectionId(v *ID) {
+func (x *IngestDatapointsRequest) SetCollectionId(v *v1.ID) {
 	x.xxx_hidden_CollectionId = v
 }
 
@@ -115,7 +116,7 @@ func (x *IngestDatapointsRequest) ClearDatapoints() {
 type IngestDatapointsRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	CollectionId *ID
+	CollectionId *v1.ID
 	Datapoints   *Datapoints
 	// Whether to allow existing datapoints as part of the request. If true, datapoints that already exist will be
 	// ignored, and the number of such existing datapoints will be returned in the response. If false, any datapoints
@@ -137,7 +138,7 @@ func (b0 IngestDatapointsRequest_builder) Build() *IngestDatapointsRequest {
 // IngestRequest is used to ingest one or multiple datapoints into a collection.
 type IngestRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CollectionId  *ID                    `protobuf:"bytes,1,opt,name=collection_id,json=collectionId"`
+	xxx_hidden_CollectionId  *v1.ID                 `protobuf:"bytes,1,opt,name=collection_id,json=collectionId"`
 	xxx_hidden_Values        [][]byte               `protobuf:"bytes,2,rep,name=values"`
 	xxx_hidden_AllowExisting bool                   `protobuf:"varint,3,opt,name=allow_existing,json=allowExisting"`
 	unknownFields            protoimpl.UnknownFields
@@ -169,7 +170,7 @@ func (x *IngestRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *IngestRequest) GetCollectionId() *ID {
+func (x *IngestRequest) GetCollectionId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_CollectionId
 	}
@@ -190,7 +191,7 @@ func (x *IngestRequest) GetAllowExisting() bool {
 	return false
 }
 
-func (x *IngestRequest) SetCollectionId(v *ID) {
+func (x *IngestRequest) SetCollectionId(v *v1.ID) {
 	x.xxx_hidden_CollectionId = v
 }
 
@@ -216,7 +217,7 @@ func (x *IngestRequest) ClearCollectionId() {
 type IngestRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	CollectionId *ID
+	CollectionId *v1.ID
 	// The datapoints to insert. The values here are encoded protobuf messages. The type of the message is determined
 	// by the type of the dataset that the specified collection belongs to.
 	Values [][]byte
@@ -243,7 +244,7 @@ type IngestResponse struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_NumCreated   int64                  `protobuf:"varint,1,opt,name=num_created,json=numCreated"`
 	xxx_hidden_NumExisting  int64                  `protobuf:"varint,2,opt,name=num_existing,json=numExisting"`
-	xxx_hidden_DatapointIds *[]*ID                 `protobuf:"bytes,3,rep,name=datapoint_ids,json=datapointIds"`
+	xxx_hidden_DatapointIds *[]*v1.ID              `protobuf:"bytes,3,rep,name=datapoint_ids,json=datapointIds"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -287,7 +288,7 @@ func (x *IngestResponse) GetNumExisting() int64 {
 	return 0
 }
 
-func (x *IngestResponse) GetDatapointIds() []*ID {
+func (x *IngestResponse) GetDatapointIds() []*v1.ID {
 	if x != nil {
 		if x.xxx_hidden_DatapointIds != nil {
 			return *x.xxx_hidden_DatapointIds
@@ -304,7 +305,7 @@ func (x *IngestResponse) SetNumExisting(v int64) {
 	x.xxx_hidden_NumExisting = v
 }
 
-func (x *IngestResponse) SetDatapointIds(v []*ID) {
+func (x *IngestResponse) SetDatapointIds(v []*v1.ID) {
 	x.xxx_hidden_DatapointIds = &v
 }
 
@@ -313,7 +314,7 @@ type IngestResponse_builder struct {
 
 	NumCreated   int64
 	NumExisting  int64
-	DatapointIds []*ID
+	DatapointIds []*v1.ID
 }
 
 func (b0 IngestResponse_builder) Build() *IngestResponse {
@@ -329,8 +330,8 @@ func (b0 IngestResponse_builder) Build() *IngestResponse {
 // DeleteRequest is used to delete multiple datapoints from a collection.
 type DeleteRequest struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CollectionId *ID                    `protobuf:"bytes,1,opt,name=collection_id,json=collectionId"`
-	xxx_hidden_DatapointIds *[]*ID                 `protobuf:"bytes,2,rep,name=datapoint_ids,json=datapointIds"`
+	xxx_hidden_CollectionId *v1.ID                 `protobuf:"bytes,1,opt,name=collection_id,json=collectionId"`
+	xxx_hidden_DatapointIds *[]*v1.ID              `protobuf:"bytes,2,rep,name=datapoint_ids,json=datapointIds"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -360,14 +361,14 @@ func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *DeleteRequest) GetCollectionId() *ID {
+func (x *DeleteRequest) GetCollectionId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_CollectionId
 	}
 	return nil
 }
 
-func (x *DeleteRequest) GetDatapointIds() []*ID {
+func (x *DeleteRequest) GetDatapointIds() []*v1.ID {
 	if x != nil {
 		if x.xxx_hidden_DatapointIds != nil {
 			return *x.xxx_hidden_DatapointIds
@@ -376,11 +377,11 @@ func (x *DeleteRequest) GetDatapointIds() []*ID {
 	return nil
 }
 
-func (x *DeleteRequest) SetCollectionId(v *ID) {
+func (x *DeleteRequest) SetCollectionId(v *v1.ID) {
 	x.xxx_hidden_CollectionId = v
 }
 
-func (x *DeleteRequest) SetDatapointIds(v []*ID) {
+func (x *DeleteRequest) SetDatapointIds(v []*v1.ID) {
 	x.xxx_hidden_DatapointIds = &v
 }
 
@@ -398,8 +399,8 @@ func (x *DeleteRequest) ClearCollectionId() {
 type DeleteRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	CollectionId *ID
-	DatapointIds []*ID
+	CollectionId *v1.ID
+	DatapointIds []*v1.ID
 }
 
 func (b0 DeleteRequest_builder) Build() *DeleteRequest {
@@ -473,25 +474,25 @@ var File_datasets_v1_data_ingestion_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_data_ingestion_proto_rawDesc = "" +
 	"\n" +
-	" datasets/v1/data_ingestion.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a!google/protobuf/go_features.proto\"\xaf\x01\n" +
-	"\x17IngestDatapointsRequest\x124\n" +
-	"\rcollection_id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\fcollectionId\x127\n" +
+	" datasets/v1/data_ingestion.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\"\xae\x01\n" +
+	"\x17IngestDatapointsRequest\x123\n" +
+	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x127\n" +
 	"\n" +
 	"datapoints\x18\x02 \x01(\v2\x17.datasets.v1.DatapointsR\n" +
 	"datapoints\x12%\n" +
-	"\x0eallow_existing\x18\x03 \x01(\bR\rallowExisting\"\x84\x01\n" +
-	"\rIngestRequest\x124\n" +
-	"\rcollection_id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\fcollectionId\x12\x16\n" +
+	"\x0eallow_existing\x18\x03 \x01(\bR\rallowExisting\"\x83\x01\n" +
+	"\rIngestRequest\x123\n" +
+	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x12\x16\n" +
 	"\x06values\x18\x02 \x03(\fR\x06values\x12%\n" +
-	"\x0eallow_existing\x18\x03 \x01(\bR\rallowExisting\"\x8a\x01\n" +
+	"\x0eallow_existing\x18\x03 \x01(\bR\rallowExisting\"\x89\x01\n" +
 	"\x0eIngestResponse\x12\x1f\n" +
 	"\vnum_created\x18\x01 \x01(\x03R\n" +
 	"numCreated\x12!\n" +
-	"\fnum_existing\x18\x02 \x01(\x03R\vnumExisting\x124\n" +
-	"\rdatapoint_ids\x18\x03 \x03(\v2\x0f.datasets.v1.IDR\fdatapointIds\"{\n" +
-	"\rDeleteRequest\x124\n" +
-	"\rcollection_id\x18\x01 \x01(\v2\x0f.datasets.v1.IDR\fcollectionId\x124\n" +
-	"\rdatapoint_ids\x18\x02 \x03(\v2\x0f.datasets.v1.IDR\fdatapointIds\"1\n" +
+	"\fnum_existing\x18\x02 \x01(\x03R\vnumExisting\x123\n" +
+	"\rdatapoint_ids\x18\x03 \x03(\v2\x0e.tilebox.v1.IDR\fdatapointIds\"y\n" +
+	"\rDeleteRequest\x123\n" +
+	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x123\n" +
+	"\rdatapoint_ids\x18\x02 \x03(\v2\x0e.tilebox.v1.IDR\fdatapointIds\"1\n" +
 	"\x0eDeleteResponse\x12\x1f\n" +
 	"\vnum_deleted\x18\x01 \x01(\x03R\n" +
 	"numDeleted2\xa0\x01\n" +
@@ -507,16 +508,16 @@ var file_datasets_v1_data_ingestion_proto_goTypes = []any{
 	(*IngestResponse)(nil),          // 2: datasets.v1.IngestResponse
 	(*DeleteRequest)(nil),           // 3: datasets.v1.DeleteRequest
 	(*DeleteResponse)(nil),          // 4: datasets.v1.DeleteResponse
-	(*ID)(nil),                      // 5: datasets.v1.ID
+	(*v1.ID)(nil),                   // 5: tilebox.v1.ID
 	(*Datapoints)(nil),              // 6: datasets.v1.Datapoints
 }
 var file_datasets_v1_data_ingestion_proto_depIdxs = []int32{
-	5, // 0: datasets.v1.IngestDatapointsRequest.collection_id:type_name -> datasets.v1.ID
+	5, // 0: datasets.v1.IngestDatapointsRequest.collection_id:type_name -> tilebox.v1.ID
 	6, // 1: datasets.v1.IngestDatapointsRequest.datapoints:type_name -> datasets.v1.Datapoints
-	5, // 2: datasets.v1.IngestRequest.collection_id:type_name -> datasets.v1.ID
-	5, // 3: datasets.v1.IngestResponse.datapoint_ids:type_name -> datasets.v1.ID
-	5, // 4: datasets.v1.DeleteRequest.collection_id:type_name -> datasets.v1.ID
-	5, // 5: datasets.v1.DeleteRequest.datapoint_ids:type_name -> datasets.v1.ID
+	5, // 2: datasets.v1.IngestRequest.collection_id:type_name -> tilebox.v1.ID
+	5, // 3: datasets.v1.IngestResponse.datapoint_ids:type_name -> tilebox.v1.ID
+	5, // 4: datasets.v1.DeleteRequest.collection_id:type_name -> tilebox.v1.ID
+	5, // 5: datasets.v1.DeleteRequest.datapoint_ids:type_name -> tilebox.v1.ID
 	1, // 6: datasets.v1.DataIngestionService.Ingest:input_type -> datasets.v1.IngestRequest
 	3, // 7: datasets.v1.DataIngestionService.Delete:input_type -> datasets.v1.DeleteRequest
 	2, // 8: datasets.v1.DataIngestionService.Ingest:output_type -> datasets.v1.IngestResponse

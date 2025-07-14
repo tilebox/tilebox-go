@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/subtask"
 	"go.opentelemetry.io/otel/trace/noop"
@@ -122,7 +123,7 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 
 func Test_isEmpty(t *testing.T) {
 	type args struct {
-		id *workflowsv1.UUID
+		id *tileboxv1.ID
 	}
 	tests := []struct {
 		name string
@@ -139,14 +140,14 @@ func Test_isEmpty(t *testing.T) {
 		{
 			name: "isEmpty not nil but invalid id",
 			args: args{
-				id: workflowsv1.UUID_builder{Uuid: []byte{1, 2, 3}}.Build(),
+				id: tileboxv1.ID_builder{Uuid: []byte{1, 2, 3}}.Build(),
 			},
-			want: false,
+			want: true,
 		},
 		{
 			name: "isEmpty not nil but valid id",
 			args: args{
-				id: workflowsv1.UUID_builder{Uuid: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6}}.Build(),
+				id: tileboxv1.ID_builder{Uuid: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6}}.Build(),
 			},
 			want: false,
 		},
@@ -217,7 +218,7 @@ func TestTaskRunner_RunForever(t *testing.T) {
 
 	// we simulate a response from NextTask to let our runner start our task instead of calling Execute() ourselves
 	mockNextTask := workflowsv1.Task_builder{
-		Id: uuidToProtobuf(uuid.New()),
+		Id: tileboxv1.NewUUID(uuid.New()),
 		Identifier: workflowsv1.TaskIdentifier_builder{
 			Name:    task.Identifier().Name(),
 			Version: task.Identifier().Version(),
@@ -225,7 +226,7 @@ func TestTaskRunner_RunForever(t *testing.T) {
 		State: workflowsv1.TaskState_TASK_STATE_RUNNING,
 		Input: taskInput,
 		Job: workflowsv1.Job_builder{
-			Id:          uuidToProtobuf(uuid.New()),
+			Id:          tileboxv1.NewUUID(uuid.New()),
 			Name:        "tilebox-test-job",
 			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
 		}.Build(),
@@ -260,7 +261,7 @@ func TestTaskRunner_RunAll(t *testing.T) {
 
 	// we simulate a response from NextTask to let our runner start our task instead of calling Execute() ourselves
 	mockNextTask := workflowsv1.Task_builder{
-		Id: uuidToProtobuf(uuid.New()),
+		Id: tileboxv1.NewUUID(uuid.New()),
 		Identifier: workflowsv1.TaskIdentifier_builder{
 			Name:    task.Identifier().Name(),
 			Version: task.Identifier().Version(),
@@ -268,7 +269,7 @@ func TestTaskRunner_RunAll(t *testing.T) {
 		State: workflowsv1.TaskState_TASK_STATE_RUNNING,
 		Input: taskInput,
 		Job: workflowsv1.Job_builder{
-			Id:          uuidToProtobuf(uuid.New()),
+			Id:          tileboxv1.NewUUID(uuid.New()),
 			Name:        "tilebox-test-job",
 			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
 		}.Build(),
@@ -316,7 +317,7 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 			args: args{
 				ctx: context.Background(),
 				task: workflowsv1.Task_builder{
-					Id: workflowsv1.UUID_builder{Uuid: taskID[:]}.Build(),
+					Id: tileboxv1.ID_builder{Uuid: taskID[:]}.Build(),
 				}.Build(),
 			},
 		},
@@ -356,7 +357,7 @@ func TestGetCurrentCluster(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
-				Id: workflowsv1.UUID_builder{Uuid: currentTaskID[:]}.Build(),
+				Id: tileboxv1.ID_builder{Uuid: currentTaskID[:]}.Build(),
 			}.Build())
 
 			gotCluster, err := GetCurrentCluster(ctx)
@@ -400,7 +401,7 @@ func TestSetTaskDisplay(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
-				Id: workflowsv1.UUID_builder{Uuid: currentTaskID[:]}.Build(),
+				Id: tileboxv1.ID_builder{Uuid: currentTaskID[:]}.Build(),
 			}.Build())
 
 			err := SetTaskDisplay(ctx, tt.args.display)
@@ -543,7 +544,7 @@ func TestSubmitSubtask(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
-				Id: workflowsv1.UUID_builder{Uuid: currentTaskID[:]}.Build(),
+				Id: tileboxv1.ID_builder{Uuid: currentTaskID[:]}.Build(),
 			}.Build())
 
 			for _, task := range tt.setup {
@@ -641,7 +642,7 @@ func TestSubmitSubtasks(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
-				Id: workflowsv1.UUID_builder{Uuid: currentTaskID[:]}.Build(),
+				Id: tileboxv1.ID_builder{Uuid: currentTaskID[:]}.Build(),
 			}.Build())
 
 			futureTasks, err := SubmitSubtasks(ctx, tt.args.tasks)

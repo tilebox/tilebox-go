@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
@@ -196,7 +197,7 @@ func (b0 NextTaskToRun_builder) Build() *NextTaskToRun {
 // ComputedTask is a message specifying a task that has been computed by the task runner.
 type ComputedTask struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id       *UUID                  `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Id       *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
 	xxx_hidden_Display  string                 `protobuf:"bytes,2,opt,name=display"`
 	xxx_hidden_SubTasks *[]*TaskSubmission     `protobuf:"bytes,3,rep,name=sub_tasks,json=subTasks"`
 	unknownFields       protoimpl.UnknownFields
@@ -228,7 +229,7 @@ func (x *ComputedTask) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ComputedTask) GetId() *UUID {
+func (x *ComputedTask) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -251,7 +252,7 @@ func (x *ComputedTask) GetSubTasks() []*TaskSubmission {
 	return nil
 }
 
-func (x *ComputedTask) SetId(v *UUID) {
+func (x *ComputedTask) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -277,7 +278,7 @@ func (x *ComputedTask) ClearId() {
 type ComputedTask_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id *UUID
+	Id *v1.ID
 	// A display name for the task that has been computed for visualization purposes.
 	// If not set, the display message specified upon task submission will be kept.
 	Display  string
@@ -367,7 +368,7 @@ func (b0 NextTaskResponse_builder) Build() *NextTaskResponse {
 // TaskFailedRequest is the request for marking a task as failed.
 type TaskFailedRequest struct {
 	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_TaskId    *UUID                  `protobuf:"bytes,1,opt,name=task_id,json=taskId"`
+	xxx_hidden_TaskId    *v1.ID                 `protobuf:"bytes,1,opt,name=task_id,json=taskId"`
 	xxx_hidden_Display   string                 `protobuf:"bytes,2,opt,name=display"`
 	xxx_hidden_CancelJob bool                   `protobuf:"varint,3,opt,name=cancel_job,json=cancelJob"`
 	unknownFields        protoimpl.UnknownFields
@@ -399,7 +400,7 @@ func (x *TaskFailedRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TaskFailedRequest) GetTaskId() *UUID {
+func (x *TaskFailedRequest) GetTaskId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_TaskId
 	}
@@ -420,7 +421,7 @@ func (x *TaskFailedRequest) GetCancelJob() bool {
 	return false
 }
 
-func (x *TaskFailedRequest) SetTaskId(v *UUID) {
+func (x *TaskFailedRequest) SetTaskId(v *v1.ID) {
 	x.xxx_hidden_TaskId = v
 }
 
@@ -446,7 +447,7 @@ func (x *TaskFailedRequest) ClearTaskId() {
 type TaskFailedRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	TaskId    *UUID
+	TaskId    *v1.ID
 	Display   string
 	CancelJob bool
 }
@@ -523,7 +524,7 @@ func (b0 TaskStateResponse_builder) Build() *TaskStateResponse {
 // TaskLease is a message specifying the new lease expiration time of a task.
 type TaskLeaseRequest struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_TaskId         *UUID                  `protobuf:"bytes,1,opt,name=task_id,json=taskId"`
+	xxx_hidden_TaskId         *v1.ID                 `protobuf:"bytes,1,opt,name=task_id,json=taskId"`
 	xxx_hidden_RequestedLease *durationpb.Duration   `protobuf:"bytes,2,opt,name=requested_lease,json=requestedLease"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
@@ -554,7 +555,7 @@ func (x *TaskLeaseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TaskLeaseRequest) GetTaskId() *UUID {
+func (x *TaskLeaseRequest) GetTaskId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_TaskId
 	}
@@ -568,7 +569,7 @@ func (x *TaskLeaseRequest) GetRequestedLease() *durationpb.Duration {
 	return nil
 }
 
-func (x *TaskLeaseRequest) SetTaskId(v *UUID) {
+func (x *TaskLeaseRequest) SetTaskId(v *v1.ID) {
 	x.xxx_hidden_TaskId = v
 }
 
@@ -601,7 +602,7 @@ func (x *TaskLeaseRequest) ClearRequestedLease() {
 type TaskLeaseRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	TaskId         *UUID
+	TaskId         *v1.ID
 	RequestedLease *durationpb.Duration
 }
 
@@ -618,28 +619,28 @@ var File_workflows_v1_task_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_task_proto_rawDesc = "" +
 	"\n" +
-	"\x17workflows/v1/task.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a!google/protobuf/go_features.proto\x1a\x17workflows/v1/core.proto\"\xa6\x01\n" +
+	"\x17workflows/v1/task.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"\xa6\x01\n" +
 	"\x0fNextTaskRequest\x12F\n" +
 	"\rcomputed_task\x18\x01 \x01(\v2\x1a.workflows.v1.ComputedTaskB\x05\xaa\x01\x02\b\x01R\fcomputedTask\x12K\n" +
 	"\x10next_task_to_run\x18\x02 \x01(\v2\x1b.workflows.v1.NextTaskToRunB\x05\xaa\x01\x02\b\x01R\rnextTaskToRun\"r\n" +
 	"\rNextTaskToRun\x12!\n" +
 	"\fcluster_slug\x18\x01 \x01(\tR\vclusterSlug\x12>\n" +
-	"\videntifiers\x18\x02 \x03(\v2\x1c.workflows.v1.TaskIdentifierR\videntifiers\"\x87\x01\n" +
-	"\fComputedTask\x12\"\n" +
-	"\x02id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x02id\x12\x18\n" +
+	"\videntifiers\x18\x02 \x03(\v2\x1c.workflows.v1.TaskIdentifierR\videntifiers\"\x83\x01\n" +
+	"\fComputedTask\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x18\n" +
 	"\adisplay\x18\x02 \x01(\tR\adisplay\x129\n" +
 	"\tsub_tasks\x18\x03 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\bsubTasks\"C\n" +
 	"\x10NextTaskResponse\x12/\n" +
-	"\tnext_task\x18\x01 \x01(\v2\x12.workflows.v1.TaskR\bnextTask\"y\n" +
-	"\x11TaskFailedRequest\x12+\n" +
-	"\atask_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x06taskId\x12\x18\n" +
+	"\tnext_task\x18\x01 \x01(\v2\x12.workflows.v1.TaskR\bnextTask\"u\n" +
+	"\x11TaskFailedRequest\x12'\n" +
+	"\atask_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x06taskId\x12\x18\n" +
 	"\adisplay\x18\x02 \x01(\tR\adisplay\x12\x1d\n" +
 	"\n" +
 	"cancel_job\x18\x03 \x01(\bR\tcancelJob\"B\n" +
 	"\x11TaskStateResponse\x12-\n" +
-	"\x05state\x18\x01 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\"\x8a\x01\n" +
-	"\x10TaskLeaseRequest\x12+\n" +
-	"\atask_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x06taskId\x12I\n" +
+	"\x05state\x18\x01 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\"\x86\x01\n" +
+	"\x10TaskLeaseRequest\x12'\n" +
+	"\atask_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x06taskId\x12I\n" +
 	"\x0frequested_lease\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\x05\xaa\x01\x02\b\x01R\x0erequestedLease2\xf4\x01\n" +
 	"\vTaskService\x12I\n" +
 	"\bNextTask\x12\x1d.workflows.v1.NextTaskRequest\x1a\x1e.workflows.v1.NextTaskResponse\x12N\n" +
@@ -658,7 +659,7 @@ var file_workflows_v1_task_proto_goTypes = []any{
 	(*TaskStateResponse)(nil),   // 5: workflows.v1.TaskStateResponse
 	(*TaskLeaseRequest)(nil),    // 6: workflows.v1.TaskLeaseRequest
 	(*TaskIdentifier)(nil),      // 7: workflows.v1.TaskIdentifier
-	(*UUID)(nil),                // 8: workflows.v1.UUID
+	(*v1.ID)(nil),               // 8: tilebox.v1.ID
 	(*TaskSubmission)(nil),      // 9: workflows.v1.TaskSubmission
 	(*Task)(nil),                // 10: workflows.v1.Task
 	(TaskState)(0),              // 11: workflows.v1.TaskState
@@ -669,12 +670,12 @@ var file_workflows_v1_task_proto_depIdxs = []int32{
 	2,  // 0: workflows.v1.NextTaskRequest.computed_task:type_name -> workflows.v1.ComputedTask
 	1,  // 1: workflows.v1.NextTaskRequest.next_task_to_run:type_name -> workflows.v1.NextTaskToRun
 	7,  // 2: workflows.v1.NextTaskToRun.identifiers:type_name -> workflows.v1.TaskIdentifier
-	8,  // 3: workflows.v1.ComputedTask.id:type_name -> workflows.v1.UUID
+	8,  // 3: workflows.v1.ComputedTask.id:type_name -> tilebox.v1.ID
 	9,  // 4: workflows.v1.ComputedTask.sub_tasks:type_name -> workflows.v1.TaskSubmission
 	10, // 5: workflows.v1.NextTaskResponse.next_task:type_name -> workflows.v1.Task
-	8,  // 6: workflows.v1.TaskFailedRequest.task_id:type_name -> workflows.v1.UUID
+	8,  // 6: workflows.v1.TaskFailedRequest.task_id:type_name -> tilebox.v1.ID
 	11, // 7: workflows.v1.TaskStateResponse.state:type_name -> workflows.v1.TaskState
-	8,  // 8: workflows.v1.TaskLeaseRequest.task_id:type_name -> workflows.v1.UUID
+	8,  // 8: workflows.v1.TaskLeaseRequest.task_id:type_name -> tilebox.v1.ID
 	12, // 9: workflows.v1.TaskLeaseRequest.requested_lease:type_name -> google.protobuf.Duration
 	0,  // 10: workflows.v1.TaskService.NextTask:input_type -> workflows.v1.NextTaskRequest
 	4,  // 11: workflows.v1.TaskService.TaskFailed:input_type -> workflows.v1.TaskFailedRequest
