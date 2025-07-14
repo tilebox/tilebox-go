@@ -15,7 +15,7 @@ func TestNewGeometry(t *testing.T) {
 	}
 	validWkb, err := hex.DecodeString("0103000020e610000001000000050000000000000000001440000000000000084000000000000014400000000000001040000000000000184000000000000010400000000000001840000000000000084000000000000014400000000000000840")
 	require.NoError(t, err)
-	geometryProto := &Geometry{Wkb: validWkb}
+	geometryProto := Geometry_builder{Wkb: validWkb}.Build()
 
 	t.Run("NewGeometry", func(t *testing.T) {
 		got := NewGeometry(validGeometry)

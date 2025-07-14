@@ -23,5 +23,5 @@ func uuidToProtobuf(id uuid.UUID) *workflowsv1.UUID {
 		return nil
 	}
 
-	return &workflowsv1.UUID{Uuid: id[:]}
+	return workflowsv1.UUID_builder{Uuid: id[:]}.Build()
 }

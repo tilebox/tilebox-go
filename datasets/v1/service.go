@@ -37,9 +37,9 @@ func newDatasetsService(datasetClient datasetsv1connect.DatasetServiceClient, tr
 func (s *datasetService) GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/get", func(ctx context.Context) (*datasetsv1.Dataset, error) {
 		res, err := s.datasetClient.GetDataset(ctx, connect.NewRequest(
-			&datasetsv1.GetDatasetRequest{
+			datasetsv1.GetDatasetRequest_builder{
 				Slug: slug,
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dataset: %w", err)
@@ -52,9 +52,9 @@ func (s *datasetService) GetDataset(ctx context.Context, slug string) (*datasets
 func (s *datasetService) ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/list", func(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
 		res, err := s.datasetClient.ListDatasets(ctx, connect.NewRequest(
-			&datasetsv1.ListDatasetsRequest{
+			datasetsv1.ListDatasetsRequest_builder{
 				ClientInfo: clientInfo(),
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list datasets: %w", err)
@@ -70,19 +70,19 @@ func clientInfo() *datasetsv1.ClientInfo {
 	if ok {
 		for _, dep := range buildInfo.Deps {
 			if strings.HasPrefix(dep.Path, "github.com/tilebox/") {
-				packages = append(packages, &datasetsv1.Package{
+				packages = append(packages, datasetsv1.Package_builder{
 					Name:    dep.Path,
 					Version: dep.Version,
-				})
+				}.Build())
 			}
 		}
 	}
 
-	return &datasetsv1.ClientInfo{
+	return datasetsv1.ClientInfo_builder{
 		Name:        "Go",
 		Environment: "Tilebox Go Client",
 		Packages:    packages,
-	}
+	}.Build()
 }
 
 type CollectionService interface {
@@ -109,10 +109,10 @@ func newCollectionService(collectionClient datasetsv1connect.CollectionServiceCl
 func (s *collectionService) CreateCollection(ctx context.Context, datasetID uuid.UUID, name string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/create", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
 		res, err := s.collectionClient.CreateCollection(ctx, connect.NewRequest(
-			&datasetsv1.CreateCollectionRequest{
+			datasetsv1.CreateCollectionRequest_builder{
 				DatasetId: uuidToProtobuf(datasetID),
 				Name:      name,
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create collection: %w", err)
@@ -125,12 +125,12 @@ func (s *collectionService) CreateCollection(ctx context.Context, datasetID uuid
 func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, name string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/get", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
 		res, err := s.collectionClient.GetCollectionByName(ctx, connect.NewRequest(
-			&datasetsv1.GetCollectionByNameRequest{
+			datasetsv1.GetCollectionByNameRequest_builder{
 				CollectionName:   name,
 				WithAvailability: true,
 				WithCount:        true,
 				DatasetId:        uuidToProtobuf(datasetID),
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get collection: %w", err)
@@ -143,10 +143,10 @@ func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID u
 func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid.UUID, collectionID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "datasets/collections/delete", func(ctx context.Context) error {
 		_, err := s.collectionClient.DeleteCollection(ctx, connect.NewRequest(
-			&datasetsv1.DeleteCollectionRequest{
+			datasetsv1.DeleteCollectionRequest_builder{
 				CollectionId: uuidToProtobuf(collectionID),
 				DatasetId:    uuidToProtobuf(datasetID),
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return fmt.Errorf("failed to delete collection: %w", err)
@@ -159,11 +159,11 @@ func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid
 func (s *collectionService) ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.CollectionInfos, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.CollectionInfos, error) {
 		res, err := s.collectionClient.ListCollections(ctx, connect.NewRequest(
-			&datasetsv1.ListCollectionsRequest{
+			datasetsv1.ListCollectionsRequest_builder{
 				DatasetId:        uuidToProtobuf(datasetID),
 				WithAvailability: true,
 				WithCount:        true,
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list collections: %w", err)
@@ -195,12 +195,12 @@ func newDataAccessService(dataAccessClient datasetsv1connect.DataAccessServiceCl
 func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *datasetsv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/query", func(ctx context.Context) (*datasetsv1.QueryResultPage, error) {
 		res, err := s.dataAccessClient.Query(ctx, connect.NewRequest(
-			&datasetsv1.QueryRequest{
+			datasetsv1.QueryRequest_builder{
 				CollectionIds: uuidsToProtobuf(collectionIDs),
 				Filters:       filters,
 				Page:          page,
 				SkipData:      skipData,
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to query datpoints: %w", err)
@@ -213,11 +213,11 @@ func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID
 func (s *dataAccessService) QueryByID(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/get", func(ctx context.Context) (*datasetsv1.Any, error) {
 		res, err := s.dataAccessClient.QueryByID(ctx, connect.NewRequest(
-			&datasetsv1.QueryByIDRequest{
+			datasetsv1.QueryByIDRequest_builder{
 				CollectionIds: uuidsToProtobuf(collectionIDs),
 				Id:            uuidToProtobuf(datapointID),
 				SkipData:      skipData,
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to query datapoint by id: %w", err)
@@ -249,11 +249,11 @@ func newDataIngestionService(dataIngestionClient datasetsv1connect.DataIngestion
 func (s *dataIngestionService) Ingest(ctx context.Context, collectionID uuid.UUID, datapoints [][]byte, allowExisting bool) (*datasetsv1.IngestResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/ingest", func(ctx context.Context) (*datasetsv1.IngestResponse, error) {
 		res, err := s.dataIngestionClient.Ingest(ctx, connect.NewRequest(
-			&datasetsv1.IngestRequest{
+			datasetsv1.IngestRequest_builder{
 				CollectionId:  uuidToProtobuf(collectionID),
 				Values:        datapoints,
 				AllowExisting: allowExisting,
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to ingest datapoints: %w", err)
@@ -266,12 +266,12 @@ func (s *dataIngestionService) Ingest(ctx context.Context, collectionID uuid.UUI
 func (s *dataIngestionService) Delete(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/delete", func(ctx context.Context) (*datasetsv1.DeleteResponse, error) {
 		res, err := s.dataIngestionClient.Delete(ctx, connect.NewRequest(
-			&datasetsv1.DeleteRequest{
+			datasetsv1.DeleteRequest_builder{
 				CollectionId: uuidToProtobuf(collectionID),
 				DatapointIds: lo.Map(datapointIDs, func(datapointID uuid.UUID, _ int) *datasetsv1.ID {
 					return uuidToProtobuf(datapointID)
 				}),
-			},
+			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to delete datapoints: %w", err)

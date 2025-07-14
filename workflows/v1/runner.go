@@ -139,10 +139,10 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 
 	for _, task := range t.taskDefinitions {
 		identifier := identifierFromTask(task)
-		identifiers = append(identifiers, &workflowsv1.TaskIdentifier{
+		identifiers = append(identifiers, workflowsv1.TaskIdentifier_builder{
 			Name:    identifier.Name(),
 			Version: identifier.Version(),
-		})
+		}.Build())
 	}
 
 	var task *workflowsv1.Task
@@ -151,7 +151,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 		if task == nil { // if we don't have a task, let's try work-stealing one
 			taskResponse, err := t.service.NextTask(ctx,
 				nil,
-				&workflowsv1.NextTaskToRun{ClusterSlug: t.cluster, Identifiers: identifiers},
+				workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build(),
 			)
 			if err != nil {
 				t.logger.ErrorContext(ctx, "failed to work-steal a task", slog.Any("error", err))
@@ -170,15 +170,15 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 			executionContext, errTask := t.executeTask(ctx, task)
 			stopExecution := false
 			if errTask == nil { // in case we got no error, let's mark the task as computed and get the next one
-				computedTask := &workflowsv1.ComputedTask{
+				computedTask := workflowsv1.ComputedTask_builder{
 					Id:       task.GetId(),
 					Display:  task.GetDisplay(),
 					SubTasks: nil,
-				}
+				}.Build()
 				if executionContext != nil && len(executionContext.Subtasks) > 0 {
-					computedTask.SubTasks = executionContext.Subtasks
+					computedTask.SetSubTasks(executionContext.Subtasks)
 				}
-				nextTaskToRun := &workflowsv1.NextTaskToRun{ClusterSlug: t.cluster, Identifiers: identifiers}
+				nextTaskToRun := workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build()
 				select {
 				case <-ctxSignal.Done():
 					// if we got a context cancellation, don't request a new task
@@ -438,7 +438,7 @@ func SetTaskDisplay(ctx context.Context, display string) error {
 	if executionContext == nil {
 		return errors.New("cannot set task display name without task execution context")
 	}
-	executionContext.CurrentTask.Display = &display
+	executionContext.CurrentTask.SetDisplay(display)
 	return nil
 }
 
@@ -498,17 +498,17 @@ func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOpti
 		dependencies = append(dependencies, int64(ft))
 	}
 
-	subtaskSubmission := &workflowsv1.TaskSubmission{
+	subtaskSubmission := workflowsv1.TaskSubmission_builder{
 		ClusterSlug: opts.ClusterSlug,
-		Identifier: &workflowsv1.TaskIdentifier{
+		Identifier: workflowsv1.TaskIdentifier_builder{
 			Name:    identifier.Name(),
 			Version: identifier.Version(),
-		},
+		}.Build(),
 		Input:        subtaskInput,
 		Dependencies: dependencies,
 		MaxRetries:   opts.MaxRetries,
 		Display:      identifier.Display(),
-	}
+	}.Build()
 
 	executionContext.Subtasks = append(executionContext.Subtasks, subtaskSubmission)
 	return subtask.FutureTask(taskIndex), nil

@@ -23,11 +23,11 @@ func (t *SampleTask) Execute(ctx context.Context) error {
 	slog.InfoContext(ctx, "Spawning a Tree", slog.String("message", t.Message), slog.Int("depth", t.Depth))
 
 	_, err := workflows.SubmitSubtask(ctx, &SpawnWorkflowTreeTask{
-		examplesv1.SpawnWorkflowTreeTask{
+		*examplesv1.SpawnWorkflowTreeTask_builder{
 			CurrentLevel: 0,
 			Depth:        int64(t.Depth),
 			BranchFactor: int64(t.BranchFactor),
-		},
+		}.Build(),
 	})
 	return err
 }
@@ -49,11 +49,11 @@ func (t *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
 	subtasks := make([]workflows.Task, t.GetBranchFactor())
 	for i := range t.GetBranchFactor() {
 		subtasks[i] = &SpawnWorkflowTreeTask{
-			examplesv1.SpawnWorkflowTreeTask{
+			*examplesv1.SpawnWorkflowTreeTask_builder{
 				CurrentLevel: t.GetCurrentLevel() + 1,
 				Depth:        t.GetDepth(),
 				BranchFactor: t.GetBranchFactor(),
-			},
+			}.Build(),
 		}
 	}
 

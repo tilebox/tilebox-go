@@ -25,11 +25,11 @@ func (m *mockClusterService) GetCluster(ctx context.Context, slug string) (*work
 		panic("mock only support empty slug")
 	}
 
-	return &workflowsv1.Cluster{
+	return workflowsv1.Cluster_builder{
 		Slug:        "default-5GGzdzBZEA3oeD",
 		DisplayName: "Default",
 		Deletable:   false,
-	}, nil
+	}.Build(), nil
 }
 
 type mockTaskService struct {
@@ -139,14 +139,14 @@ func Test_isEmpty(t *testing.T) {
 		{
 			name: "isEmpty not nil but invalid id",
 			args: args{
-				id: &workflowsv1.UUID{Uuid: []byte{1, 2, 3}},
+				id: workflowsv1.UUID_builder{Uuid: []byte{1, 2, 3}}.Build(),
 			},
 			want: false,
 		},
 		{
 			name: "isEmpty not nil but valid id",
 			args: args{
-				id: &workflowsv1.UUID{Uuid: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6}},
+				id: workflowsv1.UUID_builder{Uuid: []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6}}.Build(),
 			},
 			want: false,
 		},
@@ -174,28 +174,28 @@ func (m *mockMinimalTaskService) NextTask(_ context.Context, computedTask *workf
 	}
 
 	if m.nextTask != nil {
-		resp := &workflowsv1.NextTaskResponse{NextTask: proto.CloneOf(m.nextTask)}
+		resp := workflowsv1.NextTaskResponse_builder{NextTask: proto.CloneOf(m.nextTask)}.Build()
 		m.nextTask = nil
 		return resp, nil
 	}
 	// subsequent calls => no next task
-	return &workflowsv1.NextTaskResponse{
+	return workflowsv1.NextTaskResponse_builder{
 		NextTask: nil,
-	}, nil
+	}.Build(), nil
 }
 
 func (m *mockMinimalTaskService) TaskFailed(context.Context, uuid.UUID, string, bool) (*workflowsv1.TaskStateResponse, error) {
 	m.failed = true
-	return &workflowsv1.TaskStateResponse{
+	return workflowsv1.TaskStateResponse_builder{
 		State: workflowsv1.TaskState_TASK_STATE_FAILED,
-	}, nil
+	}.Build(), nil
 }
 
 func (m *mockMinimalTaskService) ExtendTaskLease(context.Context, uuid.UUID, time.Duration) (*workflowsv1.TaskLease, error) {
-	return &workflowsv1.TaskLease{
+	return workflowsv1.TaskLease_builder{
 		Lease:                             durationpb.New(5 * time.Minute),
 		RecommendedWaitUntilNextExtension: durationpb.New(5 * time.Minute),
-	}, nil
+	}.Build(), nil
 }
 
 type testTaskExecute struct{}
@@ -216,20 +216,20 @@ func TestTaskRunner_RunForever(t *testing.T) {
 	require.NoError(t, err)
 
 	// we simulate a response from NextTask to let our runner start our task instead of calling Execute() ourselves
-	mockNextTask := &workflowsv1.Task{
+	mockNextTask := workflowsv1.Task_builder{
 		Id: uuidToProtobuf(uuid.New()),
-		Identifier: &workflowsv1.TaskIdentifier{
+		Identifier: workflowsv1.TaskIdentifier_builder{
 			Name:    task.Identifier().Name(),
 			Version: task.Identifier().Version(),
-		},
+		}.Build(),
 		State: workflowsv1.TaskState_TASK_STATE_RUNNING,
 		Input: taskInput,
-		Job: &workflowsv1.Job{
+		Job: workflowsv1.Job_builder{
 			Id:          uuidToProtobuf(uuid.New()),
 			Name:        "tilebox-test-job",
 			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-		},
-	}
+		}.Build(),
+	}.Build()
 	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
 
 	tracer := noop.NewTracerProvider().Tracer("")
@@ -259,20 +259,20 @@ func TestTaskRunner_RunAll(t *testing.T) {
 	require.NoError(t, err)
 
 	// we simulate a response from NextTask to let our runner start our task instead of calling Execute() ourselves
-	mockNextTask := &workflowsv1.Task{
+	mockNextTask := workflowsv1.Task_builder{
 		Id: uuidToProtobuf(uuid.New()),
-		Identifier: &workflowsv1.TaskIdentifier{
+		Identifier: workflowsv1.TaskIdentifier_builder{
 			Name:    task.Identifier().Name(),
 			Version: task.Identifier().Version(),
-		},
+		}.Build(),
 		State: workflowsv1.TaskState_TASK_STATE_RUNNING,
 		Input: taskInput,
-		Job: &workflowsv1.Job{
+		Job: workflowsv1.Job_builder{
 			Id:          uuidToProtobuf(uuid.New()),
 			Name:        "tilebox-test-job",
 			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
-		},
-	}
+		}.Build(),
+	}.Build()
 	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
 
 	tracer := noop.NewTracerProvider().Tracer("")
@@ -315,9 +315,9 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 			name: "withTaskExecutionContext",
 			args: args{
 				ctx: context.Background(),
-				task: &workflowsv1.Task{
-					Id: &workflowsv1.UUID{Uuid: taskID[:]},
-				},
+				task: workflowsv1.Task_builder{
+					Id: workflowsv1.UUID_builder{Uuid: taskID[:]}.Build(),
+				}.Build(),
 			},
 		},
 	}
@@ -355,9 +355,9 @@ func TestGetCurrentCluster(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
-				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
-			})
+			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
+				Id: workflowsv1.UUID_builder{Uuid: currentTaskID[:]}.Build(),
+			}.Build())
 
 			gotCluster, err := GetCurrentCluster(ctx)
 			if tt.wantErr {
@@ -399,9 +399,9 @@ func TestSetTaskDisplay(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
-				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
-			})
+			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
+				Id: workflowsv1.UUID_builder{Uuid: currentTaskID[:]}.Build(),
+			}.Build())
 
 			err := SetTaskDisplay(ctx, tt.args.display)
 			if tt.wantErr {
@@ -450,14 +450,14 @@ func TestSubmitSubtask(t *testing.T) {
 			args: args{
 				task: &testTask1{},
 			},
-			wantSubmission: &workflowsv1.TaskSubmission{
+			wantSubmission: workflowsv1.TaskSubmission_builder{
 				ClusterSlug:  "default-5GGzdzBZEA3oeD",
-				Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+				Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
 				Input:        []byte("{\"ExecutableTask\":null}"),
 				Display:      "testTask1",
 				Dependencies: nil,
 				MaxRetries:   0,
-			},
+			}.Build(),
 			wantFutureTask: subtask.FutureTask(0),
 		},
 		{
@@ -475,14 +475,14 @@ func TestSubmitSubtask(t *testing.T) {
 					subtask.WithClusterSlug("my-production-cluster"),
 				},
 			},
-			wantSubmission: &workflowsv1.TaskSubmission{
+			wantSubmission: workflowsv1.TaskSubmission_builder{
 				ClusterSlug:  "my-production-cluster",
-				Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+				Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
 				Input:        []byte("{\"ExecutableTask\":null}"),
 				Display:      "testTask1",
 				Dependencies: nil,
 				MaxRetries:   0,
-			},
+			}.Build(),
 			wantFutureTask: subtask.FutureTask(0),
 		},
 		{
@@ -493,14 +493,14 @@ func TestSubmitSubtask(t *testing.T) {
 					subtask.WithMaxRetries(12),
 				},
 			},
-			wantSubmission: &workflowsv1.TaskSubmission{
+			wantSubmission: workflowsv1.TaskSubmission_builder{
 				ClusterSlug:  "default-5GGzdzBZEA3oeD",
-				Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+				Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
 				Input:        []byte("{\"ExecutableTask\":null}"),
 				Display:      "testTask1",
 				Dependencies: nil,
 				MaxRetries:   12,
-			},
+			}.Build(),
 			wantFutureTask: subtask.FutureTask(0),
 		},
 		{
@@ -529,22 +529,22 @@ func TestSubmitSubtask(t *testing.T) {
 					),
 				},
 			},
-			wantSubmission: &workflowsv1.TaskSubmission{
+			wantSubmission: workflowsv1.TaskSubmission_builder{
 				ClusterSlug:  "default-5GGzdzBZEA3oeD",
-				Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+				Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
 				Input:        []byte("{\"ExecutableTask\":null}"),
 				Display:      "testTask1",
 				Dependencies: []int64{2, 0},
 				MaxRetries:   0,
-			},
+			}.Build(),
 			wantFutureTask: subtask.FutureTask(3),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
-				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
-			})
+			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
+				Id: workflowsv1.UUID_builder{Uuid: currentTaskID[:]}.Build(),
+			}.Build())
 
 			for _, task := range tt.setup {
 				_, err := SubmitSubtask(ctx, task)
@@ -604,14 +604,14 @@ func TestSubmitSubtasks(t *testing.T) {
 				},
 			},
 			wantSubmissions: []*workflowsv1.TaskSubmission{
-				{
+				workflowsv1.TaskSubmission_builder{
 					ClusterSlug:  "default-5GGzdzBZEA3oeD",
-					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+					Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
 					Input:        []byte("{\"ExecutableTask\":null}"),
 					Display:      "testTask1",
 					Dependencies: nil,
 					MaxRetries:   0,
-				},
+				}.Build(),
 			},
 			wantFutureTasks: []subtask.FutureTask{0},
 		},
@@ -626,23 +626,23 @@ func TestSubmitSubtasks(t *testing.T) {
 			},
 			wantErr: true,
 			wantSubmissions: []*workflowsv1.TaskSubmission{
-				{
+				workflowsv1.TaskSubmission_builder{
 					ClusterSlug:  "default-5GGzdzBZEA3oeD",
-					Identifier:   &workflowsv1.TaskIdentifier{Name: "testTask1", Version: "v0.0"},
+					Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
 					Input:        []byte("{\"ExecutableTask\":null}"),
 					Display:      "testTask1",
 					Dependencies: nil,
 					MaxRetries:   0,
-				},
+				}.Build(),
 			},
 			wantFutureTasks: []subtask.FutureTask{0},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := runner.withTaskExecutionContext(context.Background(), &workflowsv1.Task{
-				Id: &workflowsv1.UUID{Uuid: currentTaskID[:]},
-			})
+			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
+				Id: workflowsv1.UUID_builder{Uuid: currentTaskID[:]}.Build(),
+			}.Build())
 
 			futureTasks, err := SubmitSubtasks(ctx, tt.args.tasks)
 			if (err != nil) != tt.wantErr {

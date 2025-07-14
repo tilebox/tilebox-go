@@ -195,12 +195,11 @@ func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.S
 			return
 		}
 
-		filters := &workflowsv1.QueryFilters{}
-		if timeInterval != nil {
-			filters.TemporalExtent = &workflowsv1.QueryFilters_TimeInterval{TimeInterval: timeInterval}
-		} else {
-			filters.TemporalExtent = &workflowsv1.QueryFilters_IdInterval{IdInterval: idInterval}
-		}
+		filters := workflowsv1.QueryFilters_builder{
+			TimeInterval: proto.ValueOrDefault(timeInterval),
+			IdInterval:   proto.ValueOrDefault(idInterval),
+			AutomationId: nil,
+		}.Build()
 
 		for {
 			jobsMessage, err := c.service.QueryJobs(ctx, filters, page)
@@ -259,22 +258,22 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 			}
 		}
 
-		rootTasks = append(rootTasks, &workflowsv1.TaskSubmission{
+		rootTasks = append(rootTasks, workflowsv1.TaskSubmission_builder{
 			ClusterSlug: clusterSlug,
-			Identifier: &workflowsv1.TaskIdentifier{
+			Identifier: workflowsv1.TaskIdentifier_builder{
 				Name:    identifier.Name(),
 				Version: identifier.Version(),
-			},
+			}.Build(),
 			Input:      subtaskInput,
 			Display:    identifier.Display(),
 			MaxRetries: maxRetries,
-		})
+		}.Build())
 	}
 
-	return &workflowsv1.SubmitJobRequest{
+	return workflowsv1.SubmitJobRequest_builder{
 		Tasks:   rootTasks,
 		JobName: jobName,
-	}, nil
+	}.Build(), nil
 }
 
 func protoToJob(job *workflowsv1.Job) (*Job, error) {

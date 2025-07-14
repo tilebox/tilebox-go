@@ -21,9 +21,9 @@ type mockJobService struct {
 func (m *mockJobService) SubmitJob(_ context.Context, req *workflowsv1.SubmitJobRequest) (*workflowsv1.Job, error) {
 	m.reqs = append(m.reqs, req)
 
-	return &workflowsv1.Job{
+	return workflowsv1.Job_builder{
 		Name: req.GetJobName(),
-	}, nil
+	}.Build(), nil
 }
 
 func TestJobService_Submit(t *testing.T) {
@@ -47,20 +47,20 @@ func TestJobService_Submit(t *testing.T) {
 			want: &Job{
 				Name: "test-job",
 			},
-			wantReq: &workflowsv1.SubmitJobRequest{
+			wantReq: workflowsv1.SubmitJobRequest_builder{
 				Tasks: []*workflowsv1.TaskSubmission{
-					{
+					workflowsv1.TaskSubmission_builder{
 						ClusterSlug: "",
-						Identifier: &workflowsv1.TaskIdentifier{
+						Identifier: workflowsv1.TaskIdentifier_builder{
 							Name:    "testTask1",
 							Version: "v0.0",
-						},
+						}.Build(),
 						Input:   []byte("{\"ExecutableTask\":null}"),
 						Display: "testTask1",
-					},
+					}.Build(),
 				},
 				JobName: "test-job",
-			},
+			}.Build(),
 		},
 	}
 	for _, tt := range tests {
