@@ -29,8 +29,8 @@ type TimeseriesDatasetChunk struct {
 	state                            protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_DatasetId             *v1.ID                 `protobuf:"bytes,1,opt,name=dataset_id,json=datasetId"`
 	xxx_hidden_CollectionId          *v1.ID                 `protobuf:"bytes,2,opt,name=collection_id,json=collectionId"`
-	xxx_hidden_TimeInterval          *TimeInterval          `protobuf:"bytes,3,opt,name=time_interval,json=timeInterval"`
-	xxx_hidden_DatapointInterval     *DatapointInterval     `protobuf:"bytes,4,opt,name=datapoint_interval,json=datapointInterval"`
+	xxx_hidden_TimeInterval          *v1.TimeInterval       `protobuf:"bytes,3,opt,name=time_interval,json=timeInterval"`
+	xxx_hidden_DatapointInterval     *v1.IDInterval         `protobuf:"bytes,4,opt,name=datapoint_interval,json=datapointInterval"`
 	xxx_hidden_BranchFactor          int32                  `protobuf:"varint,5,opt,name=branch_factor,json=branchFactor"`
 	xxx_hidden_ChunkSize             int32                  `protobuf:"varint,6,opt,name=chunk_size,json=chunkSize"`
 	xxx_hidden_DatapointsPer_365Days int64                  `protobuf:"varint,7,opt,name=datapoints_per_365_days,json=datapointsPer365Days"`
@@ -77,14 +77,14 @@ func (x *TimeseriesDatasetChunk) GetCollectionId() *v1.ID {
 	return nil
 }
 
-func (x *TimeseriesDatasetChunk) GetTimeInterval() *TimeInterval {
+func (x *TimeseriesDatasetChunk) GetTimeInterval() *v1.TimeInterval {
 	if x != nil {
 		return x.xxx_hidden_TimeInterval
 	}
 	return nil
 }
 
-func (x *TimeseriesDatasetChunk) GetDatapointInterval() *DatapointInterval {
+func (x *TimeseriesDatasetChunk) GetDatapointInterval() *v1.IDInterval {
 	if x != nil {
 		return x.xxx_hidden_DatapointInterval
 	}
@@ -120,11 +120,11 @@ func (x *TimeseriesDatasetChunk) SetCollectionId(v *v1.ID) {
 	x.xxx_hidden_CollectionId = v
 }
 
-func (x *TimeseriesDatasetChunk) SetTimeInterval(v *TimeInterval) {
+func (x *TimeseriesDatasetChunk) SetTimeInterval(v *v1.TimeInterval) {
 	x.xxx_hidden_TimeInterval = v
 }
 
-func (x *TimeseriesDatasetChunk) SetDatapointInterval(v *DatapointInterval) {
+func (x *TimeseriesDatasetChunk) SetDatapointInterval(v *v1.IDInterval) {
 	x.xxx_hidden_DatapointInterval = v
 }
 
@@ -189,8 +189,8 @@ type TimeseriesDatasetChunk_builder struct {
 
 	DatasetId             *v1.ID
 	CollectionId          *v1.ID
-	TimeInterval          *TimeInterval
-	DatapointInterval     *DatapointInterval
+	TimeInterval          *v1.TimeInterval
+	DatapointInterval     *v1.IDInterval
 	BranchFactor          int32
 	ChunkSize             int32
 	DatapointsPer_365Days int64
@@ -216,7 +216,7 @@ func (b0 TimeseriesDatasetChunk_builder) Build() *TimeseriesDatasetChunk {
 // eventually 100 leaf tasks
 type TimeChunk struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_TimeInterval *TimeInterval          `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval"`
+	xxx_hidden_TimeInterval *v1.TimeInterval       `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval"`
 	xxx_hidden_ChunkSize    *durationpb.Duration   `protobuf:"bytes,2,opt,name=chunk_size,json=chunkSize"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
@@ -247,7 +247,7 @@ func (x *TimeChunk) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TimeChunk) GetTimeInterval() *TimeInterval {
+func (x *TimeChunk) GetTimeInterval() *v1.TimeInterval {
 	if x != nil {
 		return x.xxx_hidden_TimeInterval
 	}
@@ -261,7 +261,7 @@ func (x *TimeChunk) GetChunkSize() *durationpb.Duration {
 	return nil
 }
 
-func (x *TimeChunk) SetTimeInterval(v *TimeInterval) {
+func (x *TimeChunk) SetTimeInterval(v *v1.TimeInterval) {
 	x.xxx_hidden_TimeInterval = v
 }
 
@@ -294,7 +294,7 @@ func (x *TimeChunk) ClearChunkSize() {
 type TimeChunk_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	TimeInterval *TimeInterval
+	TimeInterval *v1.TimeInterval
 	ChunkSize    *durationpb.Duration
 }
 
@@ -311,19 +311,19 @@ var File_datasets_v1_timeseries_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_timeseries_proto_rawDesc = "" +
 	"\n" +
-	"\x1cdatasets/v1/timeseries.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\x1egoogle/protobuf/duration.proto\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\"\x86\x03\n" +
+	"\x1cdatasets/v1/timeseries.proto\x12\vdatasets.v1\x1a\x1egoogle/protobuf/duration.proto\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"\xfd\x02\n" +
 	"\x16TimeseriesDatasetChunk\x12-\n" +
 	"\n" +
 	"dataset_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\tdatasetId\x123\n" +
-	"\rcollection_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x12>\n" +
-	"\rtime_interval\x18\x03 \x01(\v2\x19.datasets.v1.TimeIntervalR\ftimeInterval\x12M\n" +
-	"\x12datapoint_interval\x18\x04 \x01(\v2\x1e.datasets.v1.DatapointIntervalR\x11datapointInterval\x12#\n" +
+	"\rcollection_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x12=\n" +
+	"\rtime_interval\x18\x03 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x12E\n" +
+	"\x12datapoint_interval\x18\x04 \x01(\v2\x16.tilebox.v1.IDIntervalR\x11datapointInterval\x12#\n" +
 	"\rbranch_factor\x18\x05 \x01(\x05R\fbranchFactor\x12\x1d\n" +
 	"\n" +
 	"chunk_size\x18\x06 \x01(\x05R\tchunkSize\x125\n" +
-	"\x17datapoints_per_365_days\x18\a \x01(\x03R\x14datapointsPer365Days\"\x85\x01\n" +
-	"\tTimeChunk\x12>\n" +
-	"\rtime_interval\x18\x01 \x01(\v2\x19.datasets.v1.TimeIntervalR\ftimeInterval\x128\n" +
+	"\x17datapoints_per_365_days\x18\a \x01(\x03R\x14datapointsPer365Days\"\x84\x01\n" +
+	"\tTimeChunk\x12=\n" +
+	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x128\n" +
 	"\n" +
 	"chunk_size\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\tchunkSizeB\xbb\x01\n" +
 	"\x0fcom.datasets.v1B\x0fTimeseriesProtoP\x01Z@github.com/tilebox/tilebox-go/protogen/go/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\a\xd2>\x02\x10\x03\b\x02b\beditionsp\xe8\a"
@@ -333,16 +333,16 @@ var file_datasets_v1_timeseries_proto_goTypes = []any{
 	(*TimeseriesDatasetChunk)(nil), // 0: datasets.v1.TimeseriesDatasetChunk
 	(*TimeChunk)(nil),              // 1: datasets.v1.TimeChunk
 	(*v1.ID)(nil),                  // 2: tilebox.v1.ID
-	(*TimeInterval)(nil),           // 3: datasets.v1.TimeInterval
-	(*DatapointInterval)(nil),      // 4: datasets.v1.DatapointInterval
+	(*v1.TimeInterval)(nil),        // 3: tilebox.v1.TimeInterval
+	(*v1.IDInterval)(nil),          // 4: tilebox.v1.IDInterval
 	(*durationpb.Duration)(nil),    // 5: google.protobuf.Duration
 }
 var file_datasets_v1_timeseries_proto_depIdxs = []int32{
 	2, // 0: datasets.v1.TimeseriesDatasetChunk.dataset_id:type_name -> tilebox.v1.ID
 	2, // 1: datasets.v1.TimeseriesDatasetChunk.collection_id:type_name -> tilebox.v1.ID
-	3, // 2: datasets.v1.TimeseriesDatasetChunk.time_interval:type_name -> datasets.v1.TimeInterval
-	4, // 3: datasets.v1.TimeseriesDatasetChunk.datapoint_interval:type_name -> datasets.v1.DatapointInterval
-	3, // 4: datasets.v1.TimeChunk.time_interval:type_name -> datasets.v1.TimeInterval
+	3, // 2: datasets.v1.TimeseriesDatasetChunk.time_interval:type_name -> tilebox.v1.TimeInterval
+	4, // 3: datasets.v1.TimeseriesDatasetChunk.datapoint_interval:type_name -> tilebox.v1.IDInterval
+	3, // 4: datasets.v1.TimeChunk.time_interval:type_name -> tilebox.v1.TimeInterval
 	5, // 5: datasets.v1.TimeChunk.chunk_size:type_name -> google.protobuf.Duration
 	6, // [6:6] is the sub-list for method output_type
 	6, // [6:6] is the sub-list for method input_type
@@ -356,7 +356,6 @@ func file_datasets_v1_timeseries_proto_init() {
 	if File_datasets_v1_timeseries_proto != nil {
 		return
 	}
-	file_datasets_v1_core_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

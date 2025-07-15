@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
 	"google.golang.org/protobuf/proto"
@@ -174,10 +175,10 @@ func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.S
 	}
 
 	return func(yield func(*Job, error) bool) {
-		var page *workflowsv1.Pagination // nil for the first request
+		var page *tileboxv1.Pagination // nil for the first request
 
 		// we already validated that TemporalExtent is not nil
-		timeInterval := opts.TemporalExtent.ToProtoWorkflowTimeInterval()
+		timeInterval := opts.TemporalExtent.ToProtoTimeInterval()
 		idInterval := opts.TemporalExtent.ToProtoIDInterval()
 
 		if timeInterval == nil && idInterval == nil {

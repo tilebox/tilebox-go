@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	"pgregory.net/rapid"
 )
 
@@ -154,7 +154,7 @@ func TestTimeInterval_ToHalfOpen(t *testing.T) {
 
 func TestTimeInterval_ToProtoDatapointInterval(t *testing.T) {
 	timeInterval := NewTimeInterval(time.Now(), time.Now().Add(time.Hour))
-	got := timeInterval.ToProtoDatapointInterval()
+	got := timeInterval.ToProtoIDInterval()
 
 	assert.Nil(t, got)
 }
@@ -163,7 +163,7 @@ func TestTimeInterval_ToProtoTimeInterval(t *testing.T) {
 	tests := []struct {
 		name         string
 		timeInterval *TimeInterval
-		want         *datasetsv1.TimeInterval
+		want         *tileboxv1.TimeInterval
 	}{
 		{
 			name:         "ToProtoTimeInterval",

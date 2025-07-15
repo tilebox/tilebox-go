@@ -1,15 +1,10 @@
 package query // import "github.com/tilebox/tilebox-go/query"
 
 import (
-	"crypto/rand"
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/oklog/ulid/v2"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
-	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -18,10 +13,8 @@ const smallestPossibleTimeDelta = time.Nanosecond
 
 // TemporalExtent is an interface for types that can be converted to a temporal extent, to be used in queries.
 type TemporalExtent interface {
-	ToProtoTimeInterval() *datasetsv1.TimeInterval
-	ToProtoDatapointInterval() *datasetsv1.DatapointInterval
-	ToProtoWorkflowTimeInterval() *workflowsv1.TimeInterval
-	ToProtoIDInterval() *workflowsv1.IDInterval
+	ToProtoTimeInterval() *tileboxv1.TimeInterval
+	ToProtoIDInterval() *tileboxv1.IDInterval
 }
 
 var _ TemporalExtent = &TimeInterval{}
@@ -90,7 +83,7 @@ func NewEmptyTimeInterval() *TimeInterval {
 	}
 }
 
-func ProtoToTimeInterval(t *datasetsv1.TimeInterval) *TimeInterval {
+func ProtoToTimeInterval(t *tileboxv1.TimeInterval) *TimeInterval {
 	if t == nil {
 		return NewEmptyTimeInterval()
 	}
@@ -103,8 +96,8 @@ func ProtoToTimeInterval(t *datasetsv1.TimeInterval) *TimeInterval {
 	}
 }
 
-func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
-	return datasetsv1.TimeInterval_builder{
+func (t *TimeInterval) ToProtoTimeInterval() *tileboxv1.TimeInterval {
+	return tileboxv1.TimeInterval_builder{
 		StartTime:      timestamppb.New(t.Start),
 		EndTime:        timestamppb.New(t.End),
 		StartExclusive: t.StartExclusive,
@@ -112,45 +105,8 @@ func (t *TimeInterval) ToProtoTimeInterval() *datasetsv1.TimeInterval {
 	}.Build()
 }
 
-func (t *TimeInterval) ToProtoDatapointInterval() *datasetsv1.DatapointInterval {
+func (t *TimeInterval) ToProtoIDInterval() *tileboxv1.IDInterval {
 	return nil
-}
-
-func (t *TimeInterval) ToProtoWorkflowTimeInterval() *workflowsv1.TimeInterval {
-	return workflowsv1.TimeInterval_builder{
-		StartTime:      timestamppb.New(t.Start),
-		EndTime:        timestamppb.New(t.End),
-		StartExclusive: t.StartExclusive,
-		EndInclusive:   t.EndInclusive,
-	}.Build()
-}
-
-func (t *TimeInterval) ToProtoIDInterval() *workflowsv1.IDInterval {
-	startID, err := newUUIDWithTime(t.Start)
-	if err != nil {
-		startID = uuid.Nil
-	}
-
-	endID, err := newUUIDWithTime(t.End)
-	if err != nil {
-		endID = uuid.Nil
-	}
-
-	return workflowsv1.IDInterval_builder{
-		StartId:        tileboxv1.ID_builder{Uuid: startID[:]}.Build(),
-		EndId:          tileboxv1.ID_builder{Uuid: endID[:]}.Build(),
-		StartExclusive: t.StartExclusive,
-		EndInclusive:   t.EndInclusive,
-	}.Build()
-}
-
-// newUUIDWithTime generates a new uuid.UUID for a given time and random entropy
-func newUUIDWithTime(t time.Time) (uuid.UUID, error) {
-	uu, err := ulid.New(ulid.Timestamp(t), rand.Reader)
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("failed to create new ulid: %w", err)
-	}
-	return uuid.UUID(uu), nil
 }
 
 // ToHalfOpen converts the TimeInterval to a half-open interval [Start, End).

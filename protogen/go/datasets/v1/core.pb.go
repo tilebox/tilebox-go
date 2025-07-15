@@ -119,260 +119,6 @@ func (x Visibility) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// A time interval
-type TimeInterval struct {
-	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_StartTime      *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=start_time,json=startTime"`
-	xxx_hidden_EndTime        *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=end_time,json=endTime"`
-	xxx_hidden_StartExclusive bool                   `protobuf:"varint,3,opt,name=start_exclusive,json=startExclusive"`
-	xxx_hidden_EndInclusive   bool                   `protobuf:"varint,4,opt,name=end_inclusive,json=endInclusive"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
-}
-
-func (x *TimeInterval) Reset() {
-	*x = TimeInterval{}
-	mi := &file_datasets_v1_core_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TimeInterval) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TimeInterval) ProtoMessage() {}
-
-func (x *TimeInterval) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *TimeInterval) GetStartTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.xxx_hidden_StartTime
-	}
-	return nil
-}
-
-func (x *TimeInterval) GetEndTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.xxx_hidden_EndTime
-	}
-	return nil
-}
-
-func (x *TimeInterval) GetStartExclusive() bool {
-	if x != nil {
-		return x.xxx_hidden_StartExclusive
-	}
-	return false
-}
-
-func (x *TimeInterval) GetEndInclusive() bool {
-	if x != nil {
-		return x.xxx_hidden_EndInclusive
-	}
-	return false
-}
-
-func (x *TimeInterval) SetStartTime(v *timestamppb.Timestamp) {
-	x.xxx_hidden_StartTime = v
-}
-
-func (x *TimeInterval) SetEndTime(v *timestamppb.Timestamp) {
-	x.xxx_hidden_EndTime = v
-}
-
-func (x *TimeInterval) SetStartExclusive(v bool) {
-	x.xxx_hidden_StartExclusive = v
-}
-
-func (x *TimeInterval) SetEndInclusive(v bool) {
-	x.xxx_hidden_EndInclusive = v
-}
-
-func (x *TimeInterval) HasStartTime() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_StartTime != nil
-}
-
-func (x *TimeInterval) HasEndTime() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_EndTime != nil
-}
-
-func (x *TimeInterval) ClearStartTime() {
-	x.xxx_hidden_StartTime = nil
-}
-
-func (x *TimeInterval) ClearEndTime() {
-	x.xxx_hidden_EndTime = nil
-}
-
-type TimeInterval_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	StartTime *timestamppb.Timestamp
-	EndTime   *timestamppb.Timestamp
-	// We use exclusive for start and inclusive for end, because that way when both are false
-	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
-	// Flag indicating whether the start time is exclusive. If true, the start time is not included in the interval.
-	StartExclusive bool
-	// Flag indicating whether the end time is inclusive. If true, the end time is included in the interval.
-	EndInclusive bool
-}
-
-func (b0 TimeInterval_builder) Build() *TimeInterval {
-	m0 := &TimeInterval{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_StartTime = b.StartTime
-	x.xxx_hidden_EndTime = b.EndTime
-	x.xxx_hidden_StartExclusive = b.StartExclusive
-	x.xxx_hidden_EndInclusive = b.EndInclusive
-	return m0
-}
-
-// A datapoint interval
-type DatapointInterval struct {
-	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_StartId        *v1.ID                 `protobuf:"bytes,1,opt,name=start_id,json=startId"`
-	xxx_hidden_EndId          *v1.ID                 `protobuf:"bytes,2,opt,name=end_id,json=endId"`
-	xxx_hidden_StartExclusive bool                   `protobuf:"varint,3,opt,name=start_exclusive,json=startExclusive"`
-	xxx_hidden_EndInclusive   bool                   `protobuf:"varint,4,opt,name=end_inclusive,json=endInclusive"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
-}
-
-func (x *DatapointInterval) Reset() {
-	*x = DatapointInterval{}
-	mi := &file_datasets_v1_core_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DatapointInterval) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DatapointInterval) ProtoMessage() {}
-
-func (x *DatapointInterval) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *DatapointInterval) GetStartId() *v1.ID {
-	if x != nil {
-		return x.xxx_hidden_StartId
-	}
-	return nil
-}
-
-func (x *DatapointInterval) GetEndId() *v1.ID {
-	if x != nil {
-		return x.xxx_hidden_EndId
-	}
-	return nil
-}
-
-func (x *DatapointInterval) GetStartExclusive() bool {
-	if x != nil {
-		return x.xxx_hidden_StartExclusive
-	}
-	return false
-}
-
-func (x *DatapointInterval) GetEndInclusive() bool {
-	if x != nil {
-		return x.xxx_hidden_EndInclusive
-	}
-	return false
-}
-
-func (x *DatapointInterval) SetStartId(v *v1.ID) {
-	x.xxx_hidden_StartId = v
-}
-
-func (x *DatapointInterval) SetEndId(v *v1.ID) {
-	x.xxx_hidden_EndId = v
-}
-
-func (x *DatapointInterval) SetStartExclusive(v bool) {
-	x.xxx_hidden_StartExclusive = v
-}
-
-func (x *DatapointInterval) SetEndInclusive(v bool) {
-	x.xxx_hidden_EndInclusive = v
-}
-
-func (x *DatapointInterval) HasStartId() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_StartId != nil
-}
-
-func (x *DatapointInterval) HasEndId() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_EndId != nil
-}
-
-func (x *DatapointInterval) ClearStartId() {
-	x.xxx_hidden_StartId = nil
-}
-
-func (x *DatapointInterval) ClearEndId() {
-	x.xxx_hidden_EndId = nil
-}
-
-type DatapointInterval_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	StartId *v1.ID
-	EndId   *v1.ID
-	// We use exclusive for start and inclusive for end, because that way when both are false
-	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
-	// Flag indicating whether the start id is exclusive.
-	// If true, the datapoint with the given start id is not included in the interval.
-	StartExclusive bool
-	// Flag indicating whether the end id is inclusive.
-	// If true, the datapoint with the given end id is included in the interval.
-	EndInclusive bool
-}
-
-func (b0 DatapointInterval_builder) Build() *DatapointInterval {
-	m0 := &DatapointInterval{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_StartId = b.StartId
-	x.xxx_hidden_EndId = b.EndId
-	x.xxx_hidden_StartExclusive = b.StartExclusive
-	x.xxx_hidden_EndInclusive = b.EndInclusive
-	return m0
-}
-
 // LegacyPagination - used for backwards compatibility, will be removed as soon as all datasets are migrated
 type LegacyPagination struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
@@ -386,7 +132,7 @@ type LegacyPagination struct {
 
 func (x *LegacyPagination) Reset() {
 	*x = LegacyPagination{}
-	mi := &file_datasets_v1_core_proto_msgTypes[2]
+	mi := &file_datasets_v1_core_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +144,7 @@ func (x *LegacyPagination) String() string {
 func (*LegacyPagination) ProtoMessage() {}
 
 func (x *LegacyPagination) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[2]
+	mi := &file_datasets_v1_core_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -485,110 +231,6 @@ func (b0 LegacyPagination_builder) Build() *LegacyPagination {
 	return m0
 }
 
-// Pagination information for paginated queries
-type Pagination struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Limit         int64                  `protobuf:"varint,1,opt,name=limit"`
-	xxx_hidden_StartingAfter *v1.ID                 `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter"`
-	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
-	XXX_presence             [1]uint32
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
-}
-
-func (x *Pagination) Reset() {
-	*x = Pagination{}
-	mi := &file_datasets_v1_core_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Pagination) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Pagination) ProtoMessage() {}
-
-func (x *Pagination) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *Pagination) GetLimit() int64 {
-	if x != nil {
-		return x.xxx_hidden_Limit
-	}
-	return 0
-}
-
-func (x *Pagination) GetStartingAfter() *v1.ID {
-	if x != nil {
-		return x.xxx_hidden_StartingAfter
-	}
-	return nil
-}
-
-func (x *Pagination) SetLimit(v int64) {
-	x.xxx_hidden_Limit = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
-}
-
-func (x *Pagination) SetStartingAfter(v *v1.ID) {
-	x.xxx_hidden_StartingAfter = v
-}
-
-func (x *Pagination) HasLimit() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
-}
-
-func (x *Pagination) HasStartingAfter() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_StartingAfter != nil
-}
-
-func (x *Pagination) ClearLimit() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Limit = 0
-}
-
-func (x *Pagination) ClearStartingAfter() {
-	x.xxx_hidden_StartingAfter = nil
-}
-
-type Pagination_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The maximum number of entries to return.
-	Limit *int64
-	// Return entries starting after this entry.
-	// This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
-	StartingAfter *v1.ID
-}
-
-func (b0 Pagination_builder) Build() *Pagination {
-	m0 := &Pagination{}
-	b, x := &b0, m0
-	_, _ = b, x
-	if b.Limit != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
-		x.xxx_hidden_Limit = *b.Limit
-	}
-	x.xxx_hidden_StartingAfter = b.StartingAfter
-	return m0
-}
-
 // Any is a message that can hold any other message as bytes.
 // We don't use google.protobuf.Any because we want the JSON representation of the value field to be bytes.
 type Any struct {
@@ -601,7 +243,7 @@ type Any struct {
 
 func (x *Any) Reset() {
 	*x = Any{}
-	mi := &file_datasets_v1_core_proto_msgTypes[4]
+	mi := &file_datasets_v1_core_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -613,7 +255,7 @@ func (x *Any) String() string {
 func (*Any) ProtoMessage() {}
 
 func (x *Any) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[4]
+	mi := &file_datasets_v1_core_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -678,7 +320,7 @@ type RepeatedAny struct {
 
 func (x *RepeatedAny) Reset() {
 	*x = RepeatedAny{}
-	mi := &file_datasets_v1_core_proto_msgTypes[5]
+	mi := &file_datasets_v1_core_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -690,7 +332,7 @@ func (x *RepeatedAny) String() string {
 func (*RepeatedAny) ProtoMessage() {}
 
 func (x *RepeatedAny) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[5]
+	mi := &file_datasets_v1_core_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -755,7 +397,7 @@ type DatapointMetadata struct {
 
 func (x *DatapointMetadata) Reset() {
 	*x = DatapointMetadata{}
-	mi := &file_datasets_v1_core_proto_msgTypes[6]
+	mi := &file_datasets_v1_core_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -767,7 +409,7 @@ func (x *DatapointMetadata) String() string {
 func (*DatapointMetadata) ProtoMessage() {}
 
 func (x *DatapointMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[6]
+	mi := &file_datasets_v1_core_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -881,7 +523,7 @@ type Datapoints struct {
 
 func (x *Datapoints) Reset() {
 	*x = Datapoints{}
-	mi := &file_datasets_v1_core_proto_msgTypes[7]
+	mi := &file_datasets_v1_core_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -893,7 +535,7 @@ func (x *Datapoints) String() string {
 func (*Datapoints) ProtoMessage() {}
 
 func (x *Datapoints) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[7]
+	mi := &file_datasets_v1_core_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -967,7 +609,7 @@ type DatapointPage struct {
 
 func (x *DatapointPage) Reset() {
 	*x = DatapointPage{}
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
+	mi := &file_datasets_v1_core_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -979,7 +621,7 @@ func (x *DatapointPage) String() string {
 func (*DatapointPage) ProtoMessage() {}
 
 func (x *DatapointPage) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
+	mi := &file_datasets_v1_core_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1076,7 +718,7 @@ type Datapoint struct {
 
 func (x *Datapoint) Reset() {
 	*x = Datapoint{}
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1088,7 +730,7 @@ func (x *Datapoint) String() string {
 func (*Datapoint) ProtoMessage() {}
 
 func (x *Datapoint) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1171,7 +813,7 @@ type Collection struct {
 
 func (x *Collection) Reset() {
 	*x = Collection{}
-	mi := &file_datasets_v1_core_proto_msgTypes[10]
+	mi := &file_datasets_v1_core_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1183,7 +825,7 @@ func (x *Collection) String() string {
 func (*Collection) ProtoMessage() {}
 
 func (x *Collection) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[10]
+	mi := &file_datasets_v1_core_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1260,7 +902,7 @@ func (b0 Collection_builder) Build() *Collection {
 type CollectionInfo struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Collection   *Collection            `protobuf:"bytes,1,opt,name=collection"`
-	xxx_hidden_Availability *TimeInterval          `protobuf:"bytes,2,opt,name=availability"`
+	xxx_hidden_Availability *v1.TimeInterval       `protobuf:"bytes,2,opt,name=availability"`
 	xxx_hidden_Count        uint64                 `protobuf:"varint,3,opt,name=count"`
 	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
 	XXX_presence            [1]uint32
@@ -1270,7 +912,7 @@ type CollectionInfo struct {
 
 func (x *CollectionInfo) Reset() {
 	*x = CollectionInfo{}
-	mi := &file_datasets_v1_core_proto_msgTypes[11]
+	mi := &file_datasets_v1_core_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1282,7 +924,7 @@ func (x *CollectionInfo) String() string {
 func (*CollectionInfo) ProtoMessage() {}
 
 func (x *CollectionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[11]
+	mi := &file_datasets_v1_core_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1300,7 +942,7 @@ func (x *CollectionInfo) GetCollection() *Collection {
 	return nil
 }
 
-func (x *CollectionInfo) GetAvailability() *TimeInterval {
+func (x *CollectionInfo) GetAvailability() *v1.TimeInterval {
 	if x != nil {
 		return x.xxx_hidden_Availability
 	}
@@ -1318,7 +960,7 @@ func (x *CollectionInfo) SetCollection(v *Collection) {
 	x.xxx_hidden_Collection = v
 }
 
-func (x *CollectionInfo) SetAvailability(v *TimeInterval) {
+func (x *CollectionInfo) SetAvailability(v *v1.TimeInterval) {
 	x.xxx_hidden_Availability = v
 }
 
@@ -1365,7 +1007,7 @@ type CollectionInfo_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Collection   *Collection
-	Availability *TimeInterval
+	Availability *v1.TimeInterval
 	Count        *uint64
 }
 
@@ -1392,7 +1034,7 @@ type CollectionInfos struct {
 
 func (x *CollectionInfos) Reset() {
 	*x = CollectionInfos{}
-	mi := &file_datasets_v1_core_proto_msgTypes[12]
+	mi := &file_datasets_v1_core_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1404,7 +1046,7 @@ func (x *CollectionInfos) String() string {
 func (*CollectionInfos) ProtoMessage() {}
 
 func (x *CollectionInfos) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[12]
+	mi := &file_datasets_v1_core_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1463,7 +1105,7 @@ type Dataset struct {
 
 func (x *Dataset) Reset() {
 	*x = Dataset{}
-	mi := &file_datasets_v1_core_proto_msgTypes[13]
+	mi := &file_datasets_v1_core_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1475,7 +1117,7 @@ func (x *Dataset) String() string {
 func (*Dataset) ProtoMessage() {}
 
 func (x *Dataset) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[13]
+	mi := &file_datasets_v1_core_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1713,7 +1355,7 @@ type DatasetGroup struct {
 
 func (x *DatasetGroup) Reset() {
 	*x = DatasetGroup{}
-	mi := &file_datasets_v1_core_proto_msgTypes[14]
+	mi := &file_datasets_v1_core_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1725,7 +1367,7 @@ func (x *DatasetGroup) String() string {
 func (*DatasetGroup) ProtoMessage() {}
 
 func (x *DatasetGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[14]
+	mi := &file_datasets_v1_core_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1844,25 +1486,10 @@ var File_datasets_v1_core_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xce\x01\n" +
-	"\fTimeInterval\x129\n" +
-	"\n" +
-	"start_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
-	"\bend_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12'\n" +
-	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
-	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"\xb3\x01\n" +
-	"\x11DatapointInterval\x12)\n" +
-	"\bstart_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\astartId\x12%\n" +
-	"\x06end_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x05endId\x12'\n" +
-	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
-	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"]\n" +
+	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"]\n" +
 	"\x10LegacyPagination\x12\x1b\n" +
 	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12,\n" +
-	"\x0estarting_after\x18\x02 \x01(\tB\x05\xaa\x01\x02\b\x01R\rstartingAfter\"g\n" +
-	"\n" +
-	"Pagination\x12\x1b\n" +
-	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12<\n" +
-	"\x0estarting_after\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\rstartingAfter\"6\n" +
+	"\x0estarting_after\x18\x02 \x01(\tB\x05\xaa\x01\x02\b\x01R\rstartingAfter\"6\n" +
 	"\x03Any\x12\x19\n" +
 	"\btype_url\x18\x01 \x01(\tR\atypeUrl\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\">\n" +
@@ -1889,12 +1516,12 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"Collection\x12\x1b\n" +
 	"\tlegacy_id\x18\x01 \x01(\tR\blegacyId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1e\n" +
-	"\x02id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDR\x02id\"\xac\x01\n" +
+	"\x02id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDR\x02id\"\xab\x01\n" +
 	"\x0eCollectionInfo\x127\n" +
 	"\n" +
 	"collection\x18\x01 \x01(\v2\x17.datasets.v1.CollectionR\n" +
-	"collection\x12D\n" +
-	"\favailability\x18\x02 \x01(\v2\x19.datasets.v1.TimeIntervalB\x05\xaa\x01\x02\b\x01R\favailability\x12\x1b\n" +
+	"collection\x12C\n" +
+	"\favailability\x18\x02 \x01(\v2\x18.tilebox.v1.TimeIntervalB\x05\xaa\x01\x02\b\x01R\favailability\x12\x1b\n" +
 	"\x05count\x18\x03 \x01(\x04B\x05\xaa\x01\x02\b\x01R\x05count\"B\n" +
 	"\x0fCollectionInfos\x12/\n" +
 	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\"\xb9\x03\n" +
@@ -1934,60 +1561,53 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\x0fcom.datasets.v1B\tCoreProtoP\x01Z@github.com/tilebox/tilebox-go/protogen/go/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\a\xd2>\x02\x10\x03\b\x02b\beditionsp\xe8\a"
 
 var file_datasets_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_datasets_v1_core_proto_goTypes = []any{
 	(DatasetPermission)(0),        // 0: datasets.v1.DatasetPermission
 	(Visibility)(0),               // 1: datasets.v1.Visibility
-	(*TimeInterval)(nil),          // 2: datasets.v1.TimeInterval
-	(*DatapointInterval)(nil),     // 3: datasets.v1.DatapointInterval
-	(*LegacyPagination)(nil),      // 4: datasets.v1.LegacyPagination
-	(*Pagination)(nil),            // 5: datasets.v1.Pagination
-	(*Any)(nil),                   // 6: datasets.v1.Any
-	(*RepeatedAny)(nil),           // 7: datasets.v1.RepeatedAny
-	(*DatapointMetadata)(nil),     // 8: datasets.v1.DatapointMetadata
-	(*Datapoints)(nil),            // 9: datasets.v1.Datapoints
-	(*DatapointPage)(nil),         // 10: datasets.v1.DatapointPage
-	(*Datapoint)(nil),             // 11: datasets.v1.Datapoint
-	(*Collection)(nil),            // 12: datasets.v1.Collection
-	(*CollectionInfo)(nil),        // 13: datasets.v1.CollectionInfo
-	(*CollectionInfos)(nil),       // 14: datasets.v1.CollectionInfos
-	(*Dataset)(nil),               // 15: datasets.v1.Dataset
-	(*DatasetGroup)(nil),          // 16: datasets.v1.DatasetGroup
-	(*timestamppb.Timestamp)(nil), // 17: google.protobuf.Timestamp
-	(*v1.ID)(nil),                 // 18: tilebox.v1.ID
-	(*AnnotatedType)(nil),         // 19: datasets.v1.AnnotatedType
+	(*LegacyPagination)(nil),      // 2: datasets.v1.LegacyPagination
+	(*Any)(nil),                   // 3: datasets.v1.Any
+	(*RepeatedAny)(nil),           // 4: datasets.v1.RepeatedAny
+	(*DatapointMetadata)(nil),     // 5: datasets.v1.DatapointMetadata
+	(*Datapoints)(nil),            // 6: datasets.v1.Datapoints
+	(*DatapointPage)(nil),         // 7: datasets.v1.DatapointPage
+	(*Datapoint)(nil),             // 8: datasets.v1.Datapoint
+	(*Collection)(nil),            // 9: datasets.v1.Collection
+	(*CollectionInfo)(nil),        // 10: datasets.v1.CollectionInfo
+	(*CollectionInfos)(nil),       // 11: datasets.v1.CollectionInfos
+	(*Dataset)(nil),               // 12: datasets.v1.Dataset
+	(*DatasetGroup)(nil),          // 13: datasets.v1.DatasetGroup
+	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
+	(*v1.ID)(nil),                 // 15: tilebox.v1.ID
+	(*v1.TimeInterval)(nil),       // 16: tilebox.v1.TimeInterval
+	(*AnnotatedType)(nil),         // 17: datasets.v1.AnnotatedType
 }
 var file_datasets_v1_core_proto_depIdxs = []int32{
-	17, // 0: datasets.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
-	17, // 1: datasets.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
-	18, // 2: datasets.v1.DatapointInterval.start_id:type_name -> tilebox.v1.ID
-	18, // 3: datasets.v1.DatapointInterval.end_id:type_name -> tilebox.v1.ID
-	18, // 4: datasets.v1.Pagination.starting_after:type_name -> tilebox.v1.ID
-	17, // 5: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
-	17, // 6: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
-	8,  // 7: datasets.v1.Datapoints.meta:type_name -> datasets.v1.DatapointMetadata
-	7,  // 8: datasets.v1.Datapoints.data:type_name -> datasets.v1.RepeatedAny
-	8,  // 9: datasets.v1.DatapointPage.meta:type_name -> datasets.v1.DatapointMetadata
-	7,  // 10: datasets.v1.DatapointPage.data:type_name -> datasets.v1.RepeatedAny
-	4,  // 11: datasets.v1.DatapointPage.next_page:type_name -> datasets.v1.LegacyPagination
-	8,  // 12: datasets.v1.Datapoint.meta:type_name -> datasets.v1.DatapointMetadata
-	6,  // 13: datasets.v1.Datapoint.data:type_name -> datasets.v1.Any
-	18, // 14: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
-	12, // 15: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
-	2,  // 16: datasets.v1.CollectionInfo.availability:type_name -> datasets.v1.TimeInterval
-	13, // 17: datasets.v1.CollectionInfos.data:type_name -> datasets.v1.CollectionInfo
-	18, // 18: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
-	18, // 19: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
-	19, // 20: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
-	0,  // 21: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
-	1,  // 22: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
-	18, // 23: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
-	18, // 24: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
-	25, // [25:25] is the sub-list for method output_type
-	25, // [25:25] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	14, // 0: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
+	14, // 1: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
+	5,  // 2: datasets.v1.Datapoints.meta:type_name -> datasets.v1.DatapointMetadata
+	4,  // 3: datasets.v1.Datapoints.data:type_name -> datasets.v1.RepeatedAny
+	5,  // 4: datasets.v1.DatapointPage.meta:type_name -> datasets.v1.DatapointMetadata
+	4,  // 5: datasets.v1.DatapointPage.data:type_name -> datasets.v1.RepeatedAny
+	2,  // 6: datasets.v1.DatapointPage.next_page:type_name -> datasets.v1.LegacyPagination
+	5,  // 7: datasets.v1.Datapoint.meta:type_name -> datasets.v1.DatapointMetadata
+	3,  // 8: datasets.v1.Datapoint.data:type_name -> datasets.v1.Any
+	15, // 9: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
+	9,  // 10: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
+	16, // 11: datasets.v1.CollectionInfo.availability:type_name -> tilebox.v1.TimeInterval
+	10, // 12: datasets.v1.CollectionInfos.data:type_name -> datasets.v1.CollectionInfo
+	15, // 13: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
+	15, // 14: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
+	17, // 15: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
+	0,  // 16: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
+	1,  // 17: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
+	15, // 18: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
+	15, // 19: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
+	20, // [20:20] is the sub-list for method output_type
+	20, // [20:20] is the sub-list for method input_type
+	20, // [20:20] is the sub-list for extension type_name
+	20, // [20:20] is the sub-list for extension extendee
+	0,  // [0:20] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_core_proto_init() }
@@ -2002,7 +1622,7 @@ func file_datasets_v1_core_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_core_proto_rawDesc), len(file_datasets_v1_core_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   15,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

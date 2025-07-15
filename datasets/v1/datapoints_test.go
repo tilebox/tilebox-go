@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	examplesv1 "github.com/tilebox/tilebox-go/protogen/go/examples/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
 )
@@ -42,7 +43,7 @@ type mockDataAccessService struct {
 	DataAccessService
 }
 
-func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *datasetsv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
+func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *tileboxv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
 	data := make([][]byte, m.n)
 	for i := range m.n {
 		datapoint := examplesv1.Sentinel2Msi_builder{

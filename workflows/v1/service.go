@@ -152,7 +152,7 @@ type JobService interface {
 	GetJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.Job, error)
 	RetryJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.RetryJobResponse, error)
 	CancelJob(ctx context.Context, jobID uuid.UUID) error
-	QueryJobs(ctx context.Context, filters *workflowsv1.QueryFilters, page *workflowsv1.Pagination) (*workflowsv1.QueryJobsResponse, error)
+	QueryJobs(ctx context.Context, filters *workflowsv1.QueryFilters, page *tileboxv1.Pagination) (*workflowsv1.QueryJobsResponse, error)
 }
 
 var _ JobService = &jobService{}
@@ -222,7 +222,7 @@ func (s *jobService) CancelJob(ctx context.Context, jobID uuid.UUID) error {
 	})
 }
 
-func (s *jobService) QueryJobs(ctx context.Context, filters *workflowsv1.QueryFilters, page *workflowsv1.Pagination) (*workflowsv1.QueryJobsResponse, error) {
+func (s *jobService) QueryJobs(ctx context.Context, filters *workflowsv1.QueryFilters, page *tileboxv1.Pagination) (*workflowsv1.QueryJobsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/query", func(ctx context.Context) (*workflowsv1.QueryJobsResponse, error) {
 		res, err := s.jobClient.QueryJobs(ctx, connect.NewRequest(workflowsv1.QueryJobsRequest_builder{
 			Filters: filters,
