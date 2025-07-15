@@ -187,10 +187,13 @@ func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.S
 		}
 
 		filters := workflowsv1.QueryFilters_builder{
-			TimeInterval: proto.ValueOrDefault(timeInterval),
-			IdInterval:   proto.ValueOrDefault(idInterval),
-			AutomationId: nil,
+			AutomationId: tileboxv1.NewUUID(opts.AutomationID),
 		}.Build()
+		if timeInterval != nil {
+			filters.SetTimeInterval(timeInterval)
+		} else {
+			filters.SetIdInterval(idInterval)
+		}
 
 		for {
 			jobsMessage, err := c.service.QueryJobs(ctx, filters, page)
