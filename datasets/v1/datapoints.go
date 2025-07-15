@@ -298,11 +298,7 @@ func (d datapointClient) Ingest(ctx context.Context, collectionID uuid.UUID, dat
 		numCreated += response.GetNumCreated()
 		numExisting += response.GetNumExisting()
 		for _, id := range response.GetDatapointIds() {
-			datapointID, err := protoToUUID(id)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert datapoint id from response: %w", err)
-			}
-			datapointIDs = append(datapointIDs, datapointID)
+			datapointIDs = append(datapointIDs, id.AsUUID())
 		}
 	}
 

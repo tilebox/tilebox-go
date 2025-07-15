@@ -135,12 +135,7 @@ func (c jobClient) Submit(ctx context.Context, jobName string, tasks []Task, opt
 		return nil, err
 	}
 
-	job, err := protoToJob(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert job from response: %w", err)
-	}
-
-	return job, nil
+	return protoToJob(response), nil
 }
 
 func (c jobClient) Get(ctx context.Context, jobID uuid.UUID) (*Job, error) {
@@ -149,12 +144,7 @@ func (c jobClient) Get(ctx context.Context, jobID uuid.UUID) (*Job, error) {
 		return nil, err
 	}
 
-	job, err := protoToJob(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert job from response: %w", err)
-	}
-
-	return job, nil
+	return protoToJob(response), nil
 }
 
 func (c jobClient) Retry(ctx context.Context, jobID uuid.UUID) (int64, error) {
@@ -209,13 +199,7 @@ func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.S
 			}
 
 			for _, jobMessage := range jobsMessage.GetJobs() {
-				job, err := protoToJob(jobMessage)
-				if err != nil {
-					yield(nil, fmt.Errorf("failed to convert job from response: %w", err))
-					return
-				}
-
-				if !yield(job, nil) {
+				if !yield(protoToJob(jobMessage), nil) {
 					return
 				}
 			}
@@ -276,56 +260,33 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 	}.Build(), nil
 }
 
-func protoToJob(job *workflowsv1.Job) (*Job, error) {
-	id, err := protoToUUID(job.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse job id: %w", err)
-	}
-
-	automationID, err := protoToUUID(job.GetAutomationId())
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse automation id: %w", err)
-	}
-
+func protoToJob(job *workflowsv1.Job) *Job {
 	taskSummaries := make([]*TaskSummary, len(job.GetTaskSummaries()))
 	for i, taskSummary := range job.GetTaskSummaries() {
-		taskSummaries[i], err = protoToTaskSummary(taskSummary)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert task summary from response: %w", err)
-		}
+		taskSummaries[i] = protoToTaskSummary(taskSummary)
 	}
 
 	return &Job{
-		ID:            id,
+		ID:            job.GetId().AsUUID(),
 		Name:          job.GetName(),
 		Canceled:      job.GetCanceled(),
 		State:         JobState(job.GetState()),
 		SubmittedAt:   job.GetSubmittedAt().AsTime(),
 		StartedAt:     job.GetStartedAt().AsTime(),
 		TaskSummaries: taskSummaries,
-		AutomationID:  automationID,
-	}, nil
+		AutomationID:  job.GetAutomationId().AsUUID(),
+	}
 }
 
-func protoToTaskSummary(t *workflowsv1.TaskSummary) (*TaskSummary, error) {
-	taskSummaryID, err := protoToUUID(t.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse task summary id: %w", err)
-	}
-
-	parentID, err := protoToUUID(t.GetParentId())
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse task summary parent id: %w", err)
-	}
-
+func protoToTaskSummary(t *workflowsv1.TaskSummary) *TaskSummary {
 	return &TaskSummary{
-		ID:        taskSummaryID,
+		ID:        t.GetId().AsUUID(),
 		Display:   t.GetDisplay(),
 		State:     TaskState(t.GetState()),
-		ParentID:  parentID,
+		ParentID:  t.GetParentId().AsUUID(),
 		StartedAt: t.GetStartedAt().AsTime(),
 		StoppedAt: t.GetStoppedAt().AsTime(),
-	}, nil
+	}
 }
 
 // Collect converts any sequence into a slice.

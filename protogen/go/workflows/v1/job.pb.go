@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
@@ -78,7 +79,7 @@ type SubmitJobRequest struct {
 	xxx_hidden_Tasks        *[]*TaskSubmission     `protobuf:"bytes,1,rep,name=tasks"`
 	xxx_hidden_JobName      string                 `protobuf:"bytes,2,opt,name=job_name,json=jobName"`
 	xxx_hidden_TraceParent  string                 `protobuf:"bytes,3,opt,name=trace_parent,json=traceParent"`
-	xxx_hidden_AutomationId *UUID                  `protobuf:"bytes,4,opt,name=automation_id,json=automationId"`
+	xxx_hidden_AutomationId *v1.ID                 `protobuf:"bytes,4,opt,name=automation_id,json=automationId"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -131,7 +132,7 @@ func (x *SubmitJobRequest) GetTraceParent() string {
 	return ""
 }
 
-func (x *SubmitJobRequest) GetAutomationId() *UUID {
+func (x *SubmitJobRequest) GetAutomationId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_AutomationId
 	}
@@ -150,7 +151,7 @@ func (x *SubmitJobRequest) SetTraceParent(v string) {
 	x.xxx_hidden_TraceParent = v
 }
 
-func (x *SubmitJobRequest) SetAutomationId(v *UUID) {
+func (x *SubmitJobRequest) SetAutomationId(v *v1.ID) {
 	x.xxx_hidden_AutomationId = v
 }
 
@@ -175,7 +176,7 @@ type SubmitJobRequest_builder struct {
 	// Tracing information for the job. This is used to propagate tracing information to the workers that execute the job.
 	TraceParent string
 	// Optional. The ID of the automation that submits this job.
-	AutomationId *UUID
+	AutomationId *v1.ID
 }
 
 func (b0 SubmitJobRequest_builder) Build() *SubmitJobRequest {
@@ -192,7 +193,7 @@ func (b0 SubmitJobRequest_builder) Build() *SubmitJobRequest {
 // GetJobRequest requests details for a job.
 type GetJobRequest struct {
 	state            protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_JobId *UUID                  `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
+	xxx_hidden_JobId *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -222,14 +223,14 @@ func (x *GetJobRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *GetJobRequest) GetJobId() *UUID {
+func (x *GetJobRequest) GetJobId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_JobId
 	}
 	return nil
 }
 
-func (x *GetJobRequest) SetJobId(v *UUID) {
+func (x *GetJobRequest) SetJobId(v *v1.ID) {
 	x.xxx_hidden_JobId = v
 }
 
@@ -248,7 +249,7 @@ type GetJobRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The ID of the job to get details for.
-	JobId *UUID
+	JobId *v1.ID
 }
 
 func (b0 GetJobRequest_builder) Build() *GetJobRequest {
@@ -262,7 +263,7 @@ func (b0 GetJobRequest_builder) Build() *GetJobRequest {
 // RetryJobRequest requests a retry of a job that has failed.
 type RetryJobRequest struct {
 	state            protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_JobId *UUID                  `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
+	xxx_hidden_JobId *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -292,14 +293,14 @@ func (x *RetryJobRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *RetryJobRequest) GetJobId() *UUID {
+func (x *RetryJobRequest) GetJobId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_JobId
 	}
 	return nil
 }
 
-func (x *RetryJobRequest) SetJobId(v *UUID) {
+func (x *RetryJobRequest) SetJobId(v *v1.ID) {
 	x.xxx_hidden_JobId = v
 }
 
@@ -318,7 +319,7 @@ type RetryJobRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The job to retry.
-	JobId *UUID
+	JobId *v1.ID
 }
 
 func (b0 RetryJobRequest_builder) Build() *RetryJobRequest {
@@ -391,7 +392,7 @@ func (b0 RetryJobResponse_builder) Build() *RetryJobResponse {
 // CancelJobRequest requests a cancel of a job.
 type CancelJobRequest struct {
 	state            protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_JobId *UUID                  `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
+	xxx_hidden_JobId *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -421,14 +422,14 @@ func (x *CancelJobRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *CancelJobRequest) GetJobId() *UUID {
+func (x *CancelJobRequest) GetJobId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_JobId
 	}
 	return nil
 }
 
-func (x *CancelJobRequest) SetJobId(v *UUID) {
+func (x *CancelJobRequest) SetJobId(v *v1.ID) {
 	x.xxx_hidden_JobId = v
 }
 
@@ -447,7 +448,7 @@ type CancelJobRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The job to cancel.
-	JobId *UUID
+	JobId *v1.ID
 }
 
 func (b0 CancelJobRequest_builder) Build() *CancelJobRequest {
@@ -505,7 +506,7 @@ func (b0 CancelJobResponse_builder) Build() *CancelJobResponse {
 // VisualizeJobRequest requests a visualization of a job.
 type VisualizeJobRequest struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_JobId          *UUID                  `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
+	xxx_hidden_JobId          *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
 	xxx_hidden_RenderOptions  *RenderOptions         `protobuf:"bytes,2,opt,name=render_options,json=renderOptions"`
 	xxx_hidden_Theme          WorkflowDiagramTheme   `protobuf:"varint,3,opt,name=theme,enum=workflows.v1.WorkflowDiagramTheme"`
 	xxx_hidden_IncludeJobName bool                   `protobuf:"varint,4,opt,name=include_job_name,json=includeJobName"`
@@ -538,7 +539,7 @@ func (x *VisualizeJobRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *VisualizeJobRequest) GetJobId() *UUID {
+func (x *VisualizeJobRequest) GetJobId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_JobId
 	}
@@ -566,7 +567,7 @@ func (x *VisualizeJobRequest) GetIncludeJobName() bool {
 	return false
 }
 
-func (x *VisualizeJobRequest) SetJobId(v *UUID) {
+func (x *VisualizeJobRequest) SetJobId(v *v1.ID) {
 	x.xxx_hidden_JobId = v
 }
 
@@ -608,7 +609,7 @@ type VisualizeJobRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The job to visualize.
-	JobId *UUID
+	JobId *v1.ID
 	// The options for rendering the diagram
 	RenderOptions *RenderOptions
 	// The theme to render the workflow diagram in
@@ -632,7 +633,7 @@ func (b0 VisualizeJobRequest_builder) Build() *VisualizeJobRequest {
 type QueryFilters struct {
 	state                     protoimpl.MessageState        `protogen:"opaque.v1"`
 	xxx_hidden_TemporalExtent isQueryFilters_TemporalExtent `protobuf_oneof:"temporal_extent"`
-	xxx_hidden_AutomationId   *UUID                         `protobuf:"bytes,3,opt,name=automation_id,json=automationId"`
+	xxx_hidden_AutomationId   *v1.ID                        `protobuf:"bytes,3,opt,name=automation_id,json=automationId"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -680,7 +681,7 @@ func (x *QueryFilters) GetIdInterval() *IDInterval {
 	return nil
 }
 
-func (x *QueryFilters) GetAutomationId() *UUID {
+func (x *QueryFilters) GetAutomationId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_AutomationId
 	}
@@ -703,7 +704,7 @@ func (x *QueryFilters) SetIdInterval(v *IDInterval) {
 	x.xxx_hidden_TemporalExtent = &queryFilters_IdInterval{v}
 }
 
-func (x *QueryFilters) SetAutomationId(v *UUID) {
+func (x *QueryFilters) SetAutomationId(v *v1.ID) {
 	x.xxx_hidden_AutomationId = v
 }
 
@@ -785,7 +786,7 @@ type QueryFilters_builder struct {
 	IdInterval   *IDInterval
 	// -- end of xxx_hidden_TemporalExtent
 	// Filter jobs by automation id.
-	AutomationId *UUID
+	AutomationId *v1.ID
 }
 
 func (b0 QueryFilters_builder) Build() *QueryFilters {
@@ -1014,7 +1015,7 @@ func (b0 QueryJobsResponse_builder) Build() *QueryJobsResponse {
 // GetJobPrototypeRequest requests a clone prototype of a job.
 type GetJobPrototypeRequest struct {
 	state            protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_JobId *UUID                  `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
+	xxx_hidden_JobId *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -1044,14 +1045,14 @@ func (x *GetJobPrototypeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *GetJobPrototypeRequest) GetJobId() *UUID {
+func (x *GetJobPrototypeRequest) GetJobId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_JobId
 	}
 	return nil
 }
 
-func (x *GetJobPrototypeRequest) SetJobId(v *UUID) {
+func (x *GetJobPrototypeRequest) SetJobId(v *v1.ID) {
 	x.xxx_hidden_JobId = v
 }
 
@@ -1070,7 +1071,7 @@ type GetJobPrototypeRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The ID of the job to get a clone prototype for.
-	JobId *UUID
+	JobId *v1.ID
 }
 
 func (b0 GetJobPrototypeRequest_builder) Build() *GetJobPrototypeRequest {
@@ -1160,7 +1161,7 @@ func (b0 GetJobPrototypeResponse_builder) Build() *GetJobPrototypeResponse {
 // CloneJobRequest requests a clone of a job.
 type CloneJobRequest struct {
 	state                         protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_JobId              *UUID                  `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
+	xxx_hidden_JobId              *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
 	xxx_hidden_RootTasksOverrides *[]*TaskSubmission     `protobuf:"bytes,2,rep,name=root_tasks_overrides,json=rootTasksOverrides"`
 	xxx_hidden_JobName            string                 `protobuf:"bytes,3,opt,name=job_name,json=jobName"`
 	unknownFields                 protoimpl.UnknownFields
@@ -1192,7 +1193,7 @@ func (x *CloneJobRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *CloneJobRequest) GetJobId() *UUID {
+func (x *CloneJobRequest) GetJobId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_JobId
 	}
@@ -1215,7 +1216,7 @@ func (x *CloneJobRequest) GetJobName() string {
 	return ""
 }
 
-func (x *CloneJobRequest) SetJobId(v *UUID) {
+func (x *CloneJobRequest) SetJobId(v *v1.ID) {
 	x.xxx_hidden_JobId = v
 }
 
@@ -1242,7 +1243,7 @@ type CloneJobRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The ID of the job to clone.
-	JobId *UUID
+	JobId *v1.ID
 	// The updated root tasks of the job.
 	RootTasksOverrides []*TaskSubmission
 	// The name of the job.
@@ -1263,46 +1264,46 @@ var File_workflows_v1_job_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a!google/protobuf/go_features.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xbd\x01\n" +
+	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xb9\x01\n" +
 	"\x10SubmitJobRequest\x122\n" +
 	"\x05tasks\x18\x01 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\x05tasks\x12\x19\n" +
 	"\bjob_name\x18\x02 \x01(\tR\ajobName\x12!\n" +
-	"\ftrace_parent\x18\x03 \x01(\tR\vtraceParent\x127\n" +
-	"\rautomation_id\x18\x04 \x01(\v2\x12.workflows.v1.UUIDR\fautomationId\":\n" +
-	"\rGetJobRequest\x12)\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x05jobId\"<\n" +
-	"\x0fRetryJobRequest\x12)\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x05jobId\"F\n" +
+	"\ftrace_parent\x18\x03 \x01(\tR\vtraceParent\x123\n" +
+	"\rautomation_id\x18\x04 \x01(\v2\x0e.tilebox.v1.IDR\fautomationId\"6\n" +
+	"\rGetJobRequest\x12%\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"8\n" +
+	"\x0fRetryJobRequest\x12%\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"F\n" +
 	"\x10RetryJobResponse\x122\n" +
-	"\x15num_tasks_rescheduled\x18\x01 \x01(\x03R\x13numTasksRescheduled\"=\n" +
-	"\x10CancelJobRequest\x12)\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x05jobId\"\x13\n" +
-	"\x11CancelJobResponse\"\xe8\x01\n" +
-	"\x13VisualizeJobRequest\x12)\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x05jobId\x12B\n" +
+	"\x15num_tasks_rescheduled\x18\x01 \x01(\x03R\x13numTasksRescheduled\"9\n" +
+	"\x10CancelJobRequest\x12%\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"\x13\n" +
+	"\x11CancelJobResponse\"\xe4\x01\n" +
+	"\x13VisualizeJobRequest\x12%\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\x12B\n" +
 	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\x128\n" +
 	"\x05theme\x18\x03 \x01(\x0e2\".workflows.v1.WorkflowDiagramThemeR\x05theme\x12(\n" +
-	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xe1\x01\n" +
+	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xdd\x01\n" +
 	"\fQueryFilters\x12A\n" +
 	"\rtime_interval\x18\x01 \x01(\v2\x1a.workflows.v1.TimeIntervalH\x00R\ftimeInterval\x12;\n" +
 	"\vid_interval\x18\x02 \x01(\v2\x18.workflows.v1.IDIntervalH\x00R\n" +
-	"idInterval\x12>\n" +
-	"\rautomation_id\x18\x03 \x01(\v2\x12.workflows.v1.UUIDB\x05\xaa\x01\x02\b\x01R\fautomationIdB\x11\n" +
+	"idInterval\x12:\n" +
+	"\rautomation_id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\fautomationIdB\x11\n" +
 	"\x0ftemporal_extent\"}\n" +
 	"\x10QueryJobsRequest\x124\n" +
 	"\afilters\x18\x01 \x01(\v2\x1a.workflows.v1.QueryFiltersR\afilters\x123\n" +
 	"\x04page\x18\x02 \x01(\v2\x18.workflows.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\"x\n" +
 	"\x11QueryJobsResponse\x12%\n" +
 	"\x04jobs\x18\x01 \x03(\v2\x11.workflows.v1.JobR\x04jobs\x12<\n" +
-	"\tnext_page\x18\x03 \x01(\v2\x18.workflows.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"C\n" +
-	"\x16GetJobPrototypeRequest\x12)\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x05jobId\"q\n" +
+	"\tnext_page\x18\x03 \x01(\v2\x18.workflows.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"?\n" +
+	"\x16GetJobPrototypeRequest\x12%\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"q\n" +
 	"\x17GetJobPrototypeResponse\x12;\n" +
 	"\n" +
 	"root_tasks\x18\x01 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\trootTasks\x12\x19\n" +
-	"\bjob_name\x18\x02 \x01(\tR\ajobName\"\xa7\x01\n" +
-	"\x0fCloneJobRequest\x12)\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x12.workflows.v1.UUIDR\x05jobId\x12N\n" +
+	"\bjob_name\x18\x02 \x01(\tR\ajobName\"\xa3\x01\n" +
+	"\x0fCloneJobRequest\x12%\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\x12N\n" +
 	"\x14root_tasks_overrides\x18\x02 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\x12rootTasksOverrides\x12\x19\n" +
 	"\bjob_name\x18\x03 \x01(\tR\ajobName*\xd4\x01\n" +
 	"\x14WorkflowDiagramTheme\x12&\n" +
@@ -1341,7 +1342,7 @@ var file_workflows_v1_job_proto_goTypes = []any{
 	(*GetJobPrototypeResponse)(nil), // 12: workflows.v1.GetJobPrototypeResponse
 	(*CloneJobRequest)(nil),         // 13: workflows.v1.CloneJobRequest
 	(*TaskSubmission)(nil),          // 14: workflows.v1.TaskSubmission
-	(*UUID)(nil),                    // 15: workflows.v1.UUID
+	(*v1.ID)(nil),                   // 15: tilebox.v1.ID
 	(*RenderOptions)(nil),           // 16: workflows.v1.RenderOptions
 	(*TimeInterval)(nil),            // 17: workflows.v1.TimeInterval
 	(*IDInterval)(nil),              // 18: workflows.v1.IDInterval
@@ -1351,23 +1352,23 @@ var file_workflows_v1_job_proto_goTypes = []any{
 }
 var file_workflows_v1_job_proto_depIdxs = []int32{
 	14, // 0: workflows.v1.SubmitJobRequest.tasks:type_name -> workflows.v1.TaskSubmission
-	15, // 1: workflows.v1.SubmitJobRequest.automation_id:type_name -> workflows.v1.UUID
-	15, // 2: workflows.v1.GetJobRequest.job_id:type_name -> workflows.v1.UUID
-	15, // 3: workflows.v1.RetryJobRequest.job_id:type_name -> workflows.v1.UUID
-	15, // 4: workflows.v1.CancelJobRequest.job_id:type_name -> workflows.v1.UUID
-	15, // 5: workflows.v1.VisualizeJobRequest.job_id:type_name -> workflows.v1.UUID
+	15, // 1: workflows.v1.SubmitJobRequest.automation_id:type_name -> tilebox.v1.ID
+	15, // 2: workflows.v1.GetJobRequest.job_id:type_name -> tilebox.v1.ID
+	15, // 3: workflows.v1.RetryJobRequest.job_id:type_name -> tilebox.v1.ID
+	15, // 4: workflows.v1.CancelJobRequest.job_id:type_name -> tilebox.v1.ID
+	15, // 5: workflows.v1.VisualizeJobRequest.job_id:type_name -> tilebox.v1.ID
 	16, // 6: workflows.v1.VisualizeJobRequest.render_options:type_name -> workflows.v1.RenderOptions
 	0,  // 7: workflows.v1.VisualizeJobRequest.theme:type_name -> workflows.v1.WorkflowDiagramTheme
 	17, // 8: workflows.v1.QueryFilters.time_interval:type_name -> workflows.v1.TimeInterval
 	18, // 9: workflows.v1.QueryFilters.id_interval:type_name -> workflows.v1.IDInterval
-	15, // 10: workflows.v1.QueryFilters.automation_id:type_name -> workflows.v1.UUID
+	15, // 10: workflows.v1.QueryFilters.automation_id:type_name -> tilebox.v1.ID
 	8,  // 11: workflows.v1.QueryJobsRequest.filters:type_name -> workflows.v1.QueryFilters
 	19, // 12: workflows.v1.QueryJobsRequest.page:type_name -> workflows.v1.Pagination
 	20, // 13: workflows.v1.QueryJobsResponse.jobs:type_name -> workflows.v1.Job
 	19, // 14: workflows.v1.QueryJobsResponse.next_page:type_name -> workflows.v1.Pagination
-	15, // 15: workflows.v1.GetJobPrototypeRequest.job_id:type_name -> workflows.v1.UUID
+	15, // 15: workflows.v1.GetJobPrototypeRequest.job_id:type_name -> tilebox.v1.ID
 	14, // 16: workflows.v1.GetJobPrototypeResponse.root_tasks:type_name -> workflows.v1.TaskSubmission
-	15, // 17: workflows.v1.CloneJobRequest.job_id:type_name -> workflows.v1.UUID
+	15, // 17: workflows.v1.CloneJobRequest.job_id:type_name -> tilebox.v1.ID
 	14, // 18: workflows.v1.CloneJobRequest.root_tasks_overrides:type_name -> workflows.v1.TaskSubmission
 	1,  // 19: workflows.v1.JobService.SubmitJob:input_type -> workflows.v1.SubmitJobRequest
 	2,  // 20: workflows.v1.JobService.GetJob:input_type -> workflows.v1.GetJobRequest

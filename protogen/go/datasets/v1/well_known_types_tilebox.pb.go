@@ -14,11 +14,19 @@ import (
 
 // NewUUID constructs a new UUID from the provided uuid.UUID.
 func NewUUID(id uuid.UUID) *UUID {
+	if id == uuid.Nil {
+		return nil
+	}
+
 	return UUID_builder{Uuid: id[:]}.Build()
 }
 
 // AsUUID converts x to a uuid.UUID.
 func (x *UUID) AsUUID() uuid.UUID {
+	if x == nil || len(x.GetUuid()) == 0 {
+		return uuid.Nil
+	}
+
 	id, err := uuid.FromBytes(x.GetUuid())
 	if err != nil {
 		return uuid.Nil
@@ -26,7 +34,7 @@ func (x *UUID) AsUUID() uuid.UUID {
 	return id
 }
 
-// IsValid reports whether the timestamp is valid.
+// IsValid reports whether the uuid is valid.
 // It is equivalent to CheckValid == nil.
 func (x *UUID) IsValid() bool {
 	return x.CheckValid() == nil

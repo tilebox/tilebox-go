@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/oklog/ulid/v2"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -136,8 +137,8 @@ func (t *TimeInterval) ToProtoIDInterval() *workflowsv1.IDInterval {
 	}
 
 	return workflowsv1.IDInterval_builder{
-		StartId:        workflowsv1.UUID_builder{Uuid: startID[:]}.Build(),
-		EndId:          workflowsv1.UUID_builder{Uuid: endID[:]}.Build(),
+		StartId:        tileboxv1.ID_builder{Uuid: startID[:]}.Build(),
+		EndId:          tileboxv1.ID_builder{Uuid: endID[:]}.Build(),
 		StartExclusive: t.StartExclusive,
 		EndInclusive:   t.EndInclusive,
 	}.Build()

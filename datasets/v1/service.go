@@ -8,10 +8,10 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 	"github.com/tilebox/tilebox-go/observability"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/datasets/v1/datasetsv1connect"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -110,7 +110,7 @@ func (s *collectionService) CreateCollection(ctx context.Context, datasetID uuid
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/create", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
 		res, err := s.collectionClient.CreateCollection(ctx, connect.NewRequest(
 			datasetsv1.CreateCollectionRequest_builder{
-				DatasetId: uuidToProtobuf(datasetID),
+				DatasetId: tileboxv1.NewUUID(datasetID),
 				Name:      name,
 			}.Build(),
 		))
@@ -129,7 +129,7 @@ func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID u
 				CollectionName:   name,
 				WithAvailability: true,
 				WithCount:        true,
-				DatasetId:        uuidToProtobuf(datasetID),
+				DatasetId:        tileboxv1.NewUUID(datasetID),
 			}.Build(),
 		))
 		if err != nil {
@@ -144,8 +144,8 @@ func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid
 	return observability.WithSpan(ctx, s.tracer, "datasets/collections/delete", func(ctx context.Context) error {
 		_, err := s.collectionClient.DeleteCollection(ctx, connect.NewRequest(
 			datasetsv1.DeleteCollectionRequest_builder{
-				CollectionId: uuidToProtobuf(collectionID),
-				DatasetId:    uuidToProtobuf(datasetID),
+				CollectionId: tileboxv1.NewUUID(collectionID),
+				DatasetId:    tileboxv1.NewUUID(datasetID),
 			}.Build(),
 		))
 		if err != nil {
@@ -160,7 +160,7 @@ func (s *collectionService) ListCollections(ctx context.Context, datasetID uuid.
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.CollectionInfos, error) {
 		res, err := s.collectionClient.ListCollections(ctx, connect.NewRequest(
 			datasetsv1.ListCollectionsRequest_builder{
-				DatasetId:        uuidToProtobuf(datasetID),
+				DatasetId:        tileboxv1.NewUUID(datasetID),
 				WithAvailability: true,
 				WithCount:        true,
 			}.Build(),
@@ -196,7 +196,7 @@ func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/query", func(ctx context.Context) (*datasetsv1.QueryResultPage, error) {
 		res, err := s.dataAccessClient.Query(ctx, connect.NewRequest(
 			datasetsv1.QueryRequest_builder{
-				CollectionIds: uuidsToProtobuf(collectionIDs),
+				CollectionIds: tileboxv1.NewUUIDSlice(collectionIDs),
 				Filters:       filters,
 				Page:          page,
 				SkipData:      skipData,
@@ -214,8 +214,8 @@ func (s *dataAccessService) QueryByID(ctx context.Context, collectionIDs []uuid.
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/get", func(ctx context.Context) (*datasetsv1.Any, error) {
 		res, err := s.dataAccessClient.QueryByID(ctx, connect.NewRequest(
 			datasetsv1.QueryByIDRequest_builder{
-				CollectionIds: uuidsToProtobuf(collectionIDs),
-				Id:            uuidToProtobuf(datapointID),
+				CollectionIds: tileboxv1.NewUUIDSlice(collectionIDs),
+				Id:            tileboxv1.NewUUID(datapointID),
 				SkipData:      skipData,
 			}.Build(),
 		))
@@ -250,7 +250,7 @@ func (s *dataIngestionService) Ingest(ctx context.Context, collectionID uuid.UUI
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/ingest", func(ctx context.Context) (*datasetsv1.IngestResponse, error) {
 		res, err := s.dataIngestionClient.Ingest(ctx, connect.NewRequest(
 			datasetsv1.IngestRequest_builder{
-				CollectionId:  uuidToProtobuf(collectionID),
+				CollectionId:  tileboxv1.NewUUID(collectionID),
 				Values:        datapoints,
 				AllowExisting: allowExisting,
 			}.Build(),
@@ -267,10 +267,8 @@ func (s *dataIngestionService) Delete(ctx context.Context, collectionID uuid.UUI
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/delete", func(ctx context.Context) (*datasetsv1.DeleteResponse, error) {
 		res, err := s.dataIngestionClient.Delete(ctx, connect.NewRequest(
 			datasetsv1.DeleteRequest_builder{
-				CollectionId: uuidToProtobuf(collectionID),
-				DatapointIds: lo.Map(datapointIDs, func(datapointID uuid.UUID, _ int) *datasetsv1.ID {
-					return uuidToProtobuf(datapointID)
-				}),
+				CollectionId: tileboxv1.NewUUID(collectionID),
+				DatapointIds: tileboxv1.NewUUIDSlice(datapointIDs),
 			}.Build(),
 		))
 		if err != nil {

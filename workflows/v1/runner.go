@@ -16,6 +16,7 @@ import (
 	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/runner"
 	"github.com/tilebox/tilebox-go/workflows/v1/subtask"
@@ -112,12 +113,8 @@ func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
 	return nil
 }
 
-func isEmpty(id *workflowsv1.UUID) bool {
-	taskID, err := protoToUUID(id)
-	if err != nil {
-		return false
-	}
-	return taskID == uuid.Nil
+func isEmpty(id *tileboxv1.ID) bool {
+	return id.AsUUID() == uuid.Nil
 }
 
 // RunForever runs the task runner forever, looking for new tasks to run and polling for new tasks when idle.
@@ -209,14 +206,8 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 					return // we got a cancellation signal, so let's just stop here
 				}
 			} else { // errTask != nil
-				taskID, err := protoToUUID(task.GetId())
-				if err != nil {
-					t.logger.ErrorContext(ctx, "failed to convert task id to uuid", slog.Any("error", err))
-					return
-				}
-
 				// the error itself is already logged in executeTask, so we just need to report the task as failed
-				err = t.taskFailed(ctx, ctxSignal, taskID, errTask, task.GetDisplay())
+				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay())
 				if err != nil {
 					if !errors.Is(err, context.Canceled) {
 						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", slog.Any("error", err))
@@ -276,18 +267,13 @@ func (t *TaskRunner) taskFailed(ctx, ctxSignal context.Context, taskID uuid.UUID
 }
 
 func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*taskExecutionContext, error) {
-	taskID, err := protoToUUID(task.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert task id to uuid: %w", err)
-	}
-
 	// start a goroutine to extend the lease of the task continuously until the task execution is finished
 	leaseCtx, stopLeaseExtensions := context.WithCancel(ctx)
 
 	go t.extendTaskLease(
 		leaseCtx,
 		t.service,
-		taskID,
+		task.GetId().AsUUID(),
 		task.GetLease().GetLease().AsDuration(),
 		task.GetLease().GetRecommendedWaitUntilNextExtension().AsDuration(),
 	)
@@ -303,11 +289,6 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 	taskPrototype, found := t.GetRegisteredTask(identifier)
 	if !found {
 		return nil, fmt.Errorf("task %s is not registered on this runner", task.GetIdentifier().GetName())
-	}
-
-	jobID, err := protoToUUID(task.GetJob().GetId())
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert job id to uuid: %w", err)
 	}
 
 	return observability.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (taskExecutionContext *taskExecutionContext, err error) { //nolint:nonamedreturns // needed to return a value in case of panic
@@ -328,7 +309,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 		}
 
 		log := t.logger.With(
-			slog.String("job_id", jobID.String()),
+			slog.String("job_id", task.GetJob().GetId().AsUUID().String()),
 			slog.String("task", identifier.Name()),
 			slog.String("version", identifier.Version()),
 			slog.Time("start_time", beforeTime),

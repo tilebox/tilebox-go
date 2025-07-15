@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	v1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
@@ -368,8 +369,8 @@ func (b0 GetDatapointByIdRequest_builder) Build() *GetDatapointByIdRequest {
 // QueryByIDRequest contains the request parameters for retrieving a single data point by its id.
 type QueryByIDRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CollectionIds *[]*ID                 `protobuf:"bytes,1,rep,name=collection_ids,json=collectionIds"`
-	xxx_hidden_Id            *ID                    `protobuf:"bytes,2,opt,name=id"`
+	xxx_hidden_CollectionIds *[]*v1.ID              `protobuf:"bytes,1,rep,name=collection_ids,json=collectionIds"`
+	xxx_hidden_Id            *v1.ID                 `protobuf:"bytes,2,opt,name=id"`
 	xxx_hidden_SkipData      bool                   `protobuf:"varint,3,opt,name=skip_data,json=skipData"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
@@ -400,7 +401,7 @@ func (x *QueryByIDRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *QueryByIDRequest) GetCollectionIds() []*ID {
+func (x *QueryByIDRequest) GetCollectionIds() []*v1.ID {
 	if x != nil {
 		if x.xxx_hidden_CollectionIds != nil {
 			return *x.xxx_hidden_CollectionIds
@@ -409,7 +410,7 @@ func (x *QueryByIDRequest) GetCollectionIds() []*ID {
 	return nil
 }
 
-func (x *QueryByIDRequest) GetId() *ID {
+func (x *QueryByIDRequest) GetId() *v1.ID {
 	if x != nil {
 		return x.xxx_hidden_Id
 	}
@@ -423,11 +424,11 @@ func (x *QueryByIDRequest) GetSkipData() bool {
 	return false
 }
 
-func (x *QueryByIDRequest) SetCollectionIds(v []*ID) {
+func (x *QueryByIDRequest) SetCollectionIds(v []*v1.ID) {
 	x.xxx_hidden_CollectionIds = &v
 }
 
-func (x *QueryByIDRequest) SetId(v *ID) {
+func (x *QueryByIDRequest) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
@@ -449,8 +450,8 @@ func (x *QueryByIDRequest) ClearId() {
 type QueryByIDRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	CollectionIds []*ID
-	Id            *ID
+	CollectionIds []*v1.ID
+	Id            *v1.ID
 	SkipData      bool
 }
 
@@ -763,7 +764,7 @@ func (b0 SpatialFilter_builder) Build() *SpatialFilter {
 // QueryRequest contains the request parameters for retrieving data from a Tilebox dataset.
 type QueryRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CollectionIds *[]*ID                 `protobuf:"bytes,1,rep,name=collection_ids,json=collectionIds"`
+	xxx_hidden_CollectionIds *[]*v1.ID              `protobuf:"bytes,1,rep,name=collection_ids,json=collectionIds"`
 	xxx_hidden_Filters       *QueryFilters          `protobuf:"bytes,2,opt,name=filters"`
 	xxx_hidden_Page          *Pagination            `protobuf:"bytes,3,opt,name=page"`
 	xxx_hidden_SkipData      bool                   `protobuf:"varint,4,opt,name=skip_data,json=skipData"`
@@ -796,7 +797,7 @@ func (x *QueryRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *QueryRequest) GetCollectionIds() []*ID {
+func (x *QueryRequest) GetCollectionIds() []*v1.ID {
 	if x != nil {
 		if x.xxx_hidden_CollectionIds != nil {
 			return *x.xxx_hidden_CollectionIds
@@ -826,7 +827,7 @@ func (x *QueryRequest) GetSkipData() bool {
 	return false
 }
 
-func (x *QueryRequest) SetCollectionIds(v []*ID) {
+func (x *QueryRequest) SetCollectionIds(v []*v1.ID) {
 	x.xxx_hidden_CollectionIds = &v
 }
 
@@ -867,7 +868,7 @@ func (x *QueryRequest) ClearPage() {
 type QueryRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	CollectionIds []*ID
+	CollectionIds []*v1.ID
 	Filters       *QueryFilters
 	Page          *Pagination
 	SkipData      bool
@@ -982,7 +983,7 @@ var File_datasets_v1_data_access_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\n" +
-	"\x1ddatasets/v1/data_access.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\"datasets/v1/well_known_types.proto\x1a!google/protobuf/go_features.proto\"\xc6\x02\n" +
+	"\x1ddatasets/v1/data_access.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\"datasets/v1/well_known_types.proto\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\"\xc6\x02\n" +
 	"\x1cGetDatasetForIntervalRequest\x12#\n" +
 	"\rcollection_id\x18\x01 \x01(\tR\fcollectionId\x12>\n" +
 	"\rtime_interval\x18\x02 \x01(\v2\x19.datasets.v1.TimeIntervalR\ftimeInterval\x12M\n" +
@@ -993,10 +994,10 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\x17GetDatapointByIdRequest\x12#\n" +
 	"\rcollection_id\x18\x01 \x01(\tR\fcollectionId\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x1b\n" +
-	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\x88\x01\n" +
-	"\x10QueryByIDRequest\x126\n" +
-	"\x0ecollection_ids\x18\x01 \x03(\v2\x0f.datasets.v1.IDR\rcollectionIds\x12\x1f\n" +
-	"\x02id\x18\x02 \x01(\v2\x0f.datasets.v1.IDR\x02id\x12\x1b\n" +
+	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\x86\x01\n" +
+	"\x10QueryByIDRequest\x125\n" +
+	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDR\rcollectionIds\x12\x1e\n" +
+	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1b\n" +
 	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\xf7\x01\n" +
 	"\fQueryFilters\x12@\n" +
 	"\rtime_interval\x18\x01 \x01(\v2\x19.datasets.v1.TimeIntervalH\x00R\ftimeInterval\x12O\n" +
@@ -1006,9 +1007,9 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\rSpatialFilter\x121\n" +
 	"\bgeometry\x18\x01 \x01(\v2\x15.datasets.v1.GeometryR\bgeometry\x122\n" +
 	"\x04mode\x18\x02 \x01(\x0e2\x1e.datasets.v1.SpatialFilterModeR\x04mode\x12Q\n" +
-	"\x11coordinate_system\x18\x03 \x01(\x0e2$.datasets.v1.SpatialCoordinateSystemR\x10coordinateSystem\"\xcc\x01\n" +
-	"\fQueryRequest\x126\n" +
-	"\x0ecollection_ids\x18\x01 \x03(\v2\x0f.datasets.v1.IDR\rcollectionIds\x123\n" +
+	"\x11coordinate_system\x18\x03 \x01(\x0e2$.datasets.v1.SpatialCoordinateSystemR\x10coordinateSystem\"\xcb\x01\n" +
+	"\fQueryRequest\x125\n" +
+	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDR\rcollectionIds\x123\n" +
 	"\afilters\x18\x02 \x01(\v2\x19.datasets.v1.QueryFiltersR\afilters\x122\n" +
 	"\x04page\x18\x03 \x01(\v2\x17.datasets.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12\x1b\n" +
 	"\tskip_data\x18\x04 \x01(\bR\bskipData\"|\n" +
@@ -1045,7 +1046,7 @@ var file_datasets_v1_data_access_proto_goTypes = []any{
 	(*TimeInterval)(nil),                 // 9: datasets.v1.TimeInterval
 	(*DatapointInterval)(nil),            // 10: datasets.v1.DatapointInterval
 	(*LegacyPagination)(nil),             // 11: datasets.v1.LegacyPagination
-	(*ID)(nil),                           // 12: datasets.v1.ID
+	(*v1.ID)(nil),                        // 12: tilebox.v1.ID
 	(*Geometry)(nil),                     // 13: datasets.v1.Geometry
 	(*Pagination)(nil),                   // 14: datasets.v1.Pagination
 	(*RepeatedAny)(nil),                  // 15: datasets.v1.RepeatedAny
@@ -1057,15 +1058,15 @@ var file_datasets_v1_data_access_proto_depIdxs = []int32{
 	9,  // 0: datasets.v1.GetDatasetForIntervalRequest.time_interval:type_name -> datasets.v1.TimeInterval
 	10, // 1: datasets.v1.GetDatasetForIntervalRequest.datapoint_interval:type_name -> datasets.v1.DatapointInterval
 	11, // 2: datasets.v1.GetDatasetForIntervalRequest.page:type_name -> datasets.v1.LegacyPagination
-	12, // 3: datasets.v1.QueryByIDRequest.collection_ids:type_name -> datasets.v1.ID
-	12, // 4: datasets.v1.QueryByIDRequest.id:type_name -> datasets.v1.ID
+	12, // 3: datasets.v1.QueryByIDRequest.collection_ids:type_name -> tilebox.v1.ID
+	12, // 4: datasets.v1.QueryByIDRequest.id:type_name -> tilebox.v1.ID
 	9,  // 5: datasets.v1.QueryFilters.time_interval:type_name -> datasets.v1.TimeInterval
 	10, // 6: datasets.v1.QueryFilters.datapoint_interval:type_name -> datasets.v1.DatapointInterval
 	6,  // 7: datasets.v1.QueryFilters.spatial_extent:type_name -> datasets.v1.SpatialFilter
 	13, // 8: datasets.v1.SpatialFilter.geometry:type_name -> datasets.v1.Geometry
 	0,  // 9: datasets.v1.SpatialFilter.mode:type_name -> datasets.v1.SpatialFilterMode
 	1,  // 10: datasets.v1.SpatialFilter.coordinate_system:type_name -> datasets.v1.SpatialCoordinateSystem
-	12, // 11: datasets.v1.QueryRequest.collection_ids:type_name -> datasets.v1.ID
+	12, // 11: datasets.v1.QueryRequest.collection_ids:type_name -> tilebox.v1.ID
 	5,  // 12: datasets.v1.QueryRequest.filters:type_name -> datasets.v1.QueryFilters
 	14, // 13: datasets.v1.QueryRequest.page:type_name -> datasets.v1.Pagination
 	15, // 14: datasets.v1.QueryResultPage.data:type_name -> datasets.v1.RepeatedAny

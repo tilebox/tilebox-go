@@ -8,6 +8,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	"github.com/tilebox/tilebox-go/protogen/go/workflows/v1/workflowsv1connect"
 	"go.opentelemetry.io/otel/trace"
@@ -52,7 +53,7 @@ func (s *automationService) CreateStorageLocation(ctx context.Context, location 
 func (s *automationService) GetStorageLocation(ctx context.Context, storageLocationID uuid.UUID) (*workflowsv1.StorageLocation, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/get", func(ctx context.Context) (*workflowsv1.StorageLocation, error) {
 		res, err := s.automationClient.GetStorageLocation(ctx, connect.NewRequest(
-			uuidToProtobuf(storageLocationID),
+			tileboxv1.NewUUID(storageLocationID),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get storage location: %w", err)
@@ -65,7 +66,7 @@ func (s *automationService) GetStorageLocation(ctx context.Context, storageLocat
 func (s *automationService) DeleteStorageLocation(ctx context.Context, storageLocationID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/storage_locations/delete", func(ctx context.Context) error {
 		_, err := s.automationClient.DeleteStorageLocation(ctx, connect.NewRequest(
-			uuidToProtobuf(storageLocationID),
+			tileboxv1.NewUUID(storageLocationID),
 		))
 		if err != nil {
 			return fmt.Errorf("failed to delete storage location: %w", err)
@@ -100,7 +101,7 @@ func (s *automationService) CreateAutomation(ctx context.Context, automation *wo
 func (s *automationService) GetAutomation(ctx context.Context, automationID uuid.UUID) (*workflowsv1.AutomationPrototype, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/automations/get", func(ctx context.Context) (*workflowsv1.AutomationPrototype, error) {
 		res, err := s.automationClient.GetAutomation(ctx, connect.NewRequest(
-			uuidToProtobuf(automationID),
+			tileboxv1.NewUUID(automationID),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get automation: %w", err)
@@ -124,7 +125,7 @@ func (s *automationService) UpdateAutomation(ctx context.Context, automation *wo
 func (s *automationService) DeleteAutomation(ctx context.Context, automationID uuid.UUID, cancelJobs bool) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/automations/delete", func(ctx context.Context) error {
 		_, err := s.automationClient.DeleteAutomation(ctx, connect.NewRequest(workflowsv1.DeleteAutomationRequest_builder{
-			AutomationId: uuidToProtobuf(automationID),
+			AutomationId: tileboxv1.NewUUID(automationID),
 			CancelJobs:   cancelJobs,
 		}.Build()))
 		if err != nil {
@@ -185,7 +186,7 @@ func (s *jobService) SubmitJob(ctx context.Context, req *workflowsv1.SubmitJobRe
 func (s *jobService) GetJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.Job, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/get", func(ctx context.Context) (*workflowsv1.Job, error) {
 		res, err := s.jobClient.GetJob(ctx, connect.NewRequest(workflowsv1.GetJobRequest_builder{
-			JobId: uuidToProtobuf(jobID),
+			JobId: tileboxv1.NewUUID(jobID),
 		}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get job: %w", err)
@@ -198,7 +199,7 @@ func (s *jobService) GetJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.
 func (s *jobService) RetryJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.RetryJobResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/retry", func(ctx context.Context) (*workflowsv1.RetryJobResponse, error) {
 		res, err := s.jobClient.RetryJob(ctx, connect.NewRequest(workflowsv1.RetryJobRequest_builder{
-			JobId: uuidToProtobuf(jobID),
+			JobId: tileboxv1.NewUUID(jobID),
 		}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to retry job: %w", err)
@@ -211,7 +212,7 @@ func (s *jobService) RetryJob(ctx context.Context, jobID uuid.UUID) (*workflowsv
 func (s *jobService) CancelJob(ctx context.Context, jobID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/jobs/cancel", func(ctx context.Context) error {
 		_, err := s.jobClient.CancelJob(ctx, connect.NewRequest(workflowsv1.CancelJobRequest_builder{
-			JobId: uuidToProtobuf(jobID),
+			JobId: tileboxv1.NewUUID(jobID),
 		}.Build()))
 		if err != nil {
 			return fmt.Errorf("failed to cancel job: %w", err)
@@ -272,7 +273,7 @@ func (s *taskService) NextTask(ctx context.Context, computedTask *workflowsv1.Co
 func (s *taskService) TaskFailed(ctx context.Context, taskID uuid.UUID, display string, cancelJob bool) (*workflowsv1.TaskStateResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/tasks/failed", func(ctx context.Context) (*workflowsv1.TaskStateResponse, error) {
 		res, err := s.taskClient.TaskFailed(ctx, connect.NewRequest(workflowsv1.TaskFailedRequest_builder{
-			TaskId:    uuidToProtobuf(taskID),
+			TaskId:    tileboxv1.NewUUID(taskID),
 			Display:   display,
 			CancelJob: cancelJob,
 		}.Build()))
@@ -287,7 +288,7 @@ func (s *taskService) TaskFailed(ctx context.Context, taskID uuid.UUID, display 
 func (s *taskService) ExtendTaskLease(ctx context.Context, taskID uuid.UUID, requestedLease time.Duration) (*workflowsv1.TaskLease, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/tasks/lease", func(ctx context.Context) (*workflowsv1.TaskLease, error) {
 		res, err := s.taskClient.ExtendTaskLease(ctx, connect.NewRequest(workflowsv1.TaskLeaseRequest_builder{
-			TaskId:         uuidToProtobuf(taskID),
+			TaskId:         tileboxv1.NewUUID(taskID),
 			RequestedLease: durationpb.New(requestedLease),
 		}.Build()))
 		if err != nil {

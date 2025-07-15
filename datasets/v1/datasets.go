@@ -60,12 +60,7 @@ func (d datasetClient) Get(ctx context.Context, slug string) (*Dataset, error) {
 		return nil, err
 	}
 
-	dataset, err := protoToDataset(response)
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert dataset from response: %w", err)
-	}
-
-	return dataset, nil
+	return protoToDataset(response), nil
 }
 
 func (d datasetClient) List(ctx context.Context) ([]*Dataset, error) {
@@ -76,57 +71,18 @@ func (d datasetClient) List(ctx context.Context) ([]*Dataset, error) {
 
 	datasets := make([]*Dataset, len(response.GetDatasets()))
 	for i, datasetMessage := range response.GetDatasets() {
-		dataset, err := protoToDataset(datasetMessage)
-		if err != nil {
-			return nil, fmt.Errorf("failed to convert dataset from response: %w", err)
-		}
-
-		datasets[i] = dataset
+		datasets[i] = protoToDataset(datasetMessage)
 	}
 
 	return datasets, nil
 }
 
-func protoToDataset(d *datasetsv1.Dataset) (*Dataset, error) {
-	id, err := protoToUUID(d.GetId())
-	if err != nil {
-		return nil, fmt.Errorf("failed to convert dataset id to uuid: %w", err)
-	}
-
+func protoToDataset(d *datasetsv1.Dataset) *Dataset {
 	return &Dataset{
-		ID:          id,
+		ID:          d.GetId().AsUUID(),
 		Type:        d.GetType(),
 		Name:        d.GetName(),
 		Description: d.GetSummary(),
 		Slug:        d.GetSlug(),
-	}, nil
-}
-
-func protoToUUID(id *datasetsv1.ID) (uuid.UUID, error) {
-	if id == nil || len(id.GetUuid()) == 0 {
-		return uuid.Nil, nil
 	}
-
-	bytes, err := uuid.FromBytes(id.GetUuid())
-	if err != nil {
-		return uuid.Nil, err
-	}
-
-	return bytes, nil
-}
-
-func uuidToProtobuf(id uuid.UUID) *datasetsv1.ID {
-	if id == uuid.Nil {
-		return nil
-	}
-
-	return datasetsv1.ID_builder{Uuid: id[:]}.Build()
-}
-
-func uuidsToProtobuf(ids []uuid.UUID) []*datasetsv1.ID {
-	pbIDs := make([]*datasetsv1.ID, 0, len(ids))
-	for _, id := range ids {
-		pbIDs = append(pbIDs, uuidToProtobuf(id))
-	}
-	return pbIDs
 }

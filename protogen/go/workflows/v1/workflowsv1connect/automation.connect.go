@@ -8,6 +8,7 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
+	v11 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	v1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	http "net/http"
@@ -68,15 +69,15 @@ type AutomationServiceClient interface {
 	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
 	ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error)
 	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.StorageLocation], error)
+	GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error)
 	// CreateStorageLocation creates a new storage bucket.
 	CreateStorageLocation(context.Context, *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error)
 	// DeleteStorageLocation deletes a storage location.
-	DeleteStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
+	DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error)
 	// ListAutomations lists all the automations that are currently registered in a namespace.
 	ListAutomations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error)
 	// GetAutomation gets an automation by its ID.
-	GetAutomation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.AutomationPrototype], error)
+	GetAutomation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.AutomationPrototype], error)
 	// CreateAutomation creates a new automation in a namespace.
 	CreateAutomation(context.Context, *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error)
 	// UpdateAutomation updates an automation in a namespace.
@@ -102,7 +103,7 @@ func NewAutomationServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(automationServiceMethods.ByName("ListStorageLocations")),
 			connect.WithClientOptions(opts...),
 		),
-		getStorageLocation: connect.NewClient[v1.UUID, v1.StorageLocation](
+		getStorageLocation: connect.NewClient[v11.ID, v1.StorageLocation](
 			httpClient,
 			baseURL+AutomationServiceGetStorageLocationProcedure,
 			connect.WithSchema(automationServiceMethods.ByName("GetStorageLocation")),
@@ -114,7 +115,7 @@ func NewAutomationServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(automationServiceMethods.ByName("CreateStorageLocation")),
 			connect.WithClientOptions(opts...),
 		),
-		deleteStorageLocation: connect.NewClient[v1.UUID, emptypb.Empty](
+		deleteStorageLocation: connect.NewClient[v11.ID, emptypb.Empty](
 			httpClient,
 			baseURL+AutomationServiceDeleteStorageLocationProcedure,
 			connect.WithSchema(automationServiceMethods.ByName("DeleteStorageLocation")),
@@ -126,7 +127,7 @@ func NewAutomationServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(automationServiceMethods.ByName("ListAutomations")),
 			connect.WithClientOptions(opts...),
 		),
-		getAutomation: connect.NewClient[v1.UUID, v1.AutomationPrototype](
+		getAutomation: connect.NewClient[v11.ID, v1.AutomationPrototype](
 			httpClient,
 			baseURL+AutomationServiceGetAutomationProcedure,
 			connect.WithSchema(automationServiceMethods.ByName("GetAutomation")),
@@ -156,11 +157,11 @@ func NewAutomationServiceClient(httpClient connect.HTTPClient, baseURL string, o
 // automationServiceClient implements AutomationServiceClient.
 type automationServiceClient struct {
 	listStorageLocations  *connect.Client[emptypb.Empty, v1.StorageLocations]
-	getStorageLocation    *connect.Client[v1.UUID, v1.StorageLocation]
+	getStorageLocation    *connect.Client[v11.ID, v1.StorageLocation]
 	createStorageLocation *connect.Client[v1.StorageLocation, v1.StorageLocation]
-	deleteStorageLocation *connect.Client[v1.UUID, emptypb.Empty]
+	deleteStorageLocation *connect.Client[v11.ID, emptypb.Empty]
 	listAutomations       *connect.Client[emptypb.Empty, v1.Automations]
-	getAutomation         *connect.Client[v1.UUID, v1.AutomationPrototype]
+	getAutomation         *connect.Client[v11.ID, v1.AutomationPrototype]
 	createAutomation      *connect.Client[v1.AutomationPrototype, v1.AutomationPrototype]
 	updateAutomation      *connect.Client[v1.AutomationPrototype, v1.AutomationPrototype]
 	deleteAutomation      *connect.Client[v1.DeleteAutomationRequest, emptypb.Empty]
@@ -172,7 +173,7 @@ func (c *automationServiceClient) ListStorageLocations(ctx context.Context, req 
 }
 
 // GetStorageLocation calls workflows.v1.AutomationService.GetStorageLocation.
-func (c *automationServiceClient) GetStorageLocation(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[v1.StorageLocation], error) {
+func (c *automationServiceClient) GetStorageLocation(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error) {
 	return c.getStorageLocation.CallUnary(ctx, req)
 }
 
@@ -182,7 +183,7 @@ func (c *automationServiceClient) CreateStorageLocation(ctx context.Context, req
 }
 
 // DeleteStorageLocation calls workflows.v1.AutomationService.DeleteStorageLocation.
-func (c *automationServiceClient) DeleteStorageLocation(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
+func (c *automationServiceClient) DeleteStorageLocation(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error) {
 	return c.deleteStorageLocation.CallUnary(ctx, req)
 }
 
@@ -192,7 +193,7 @@ func (c *automationServiceClient) ListAutomations(ctx context.Context, req *conn
 }
 
 // GetAutomation calls workflows.v1.AutomationService.GetAutomation.
-func (c *automationServiceClient) GetAutomation(ctx context.Context, req *connect.Request[v1.UUID]) (*connect.Response[v1.AutomationPrototype], error) {
+func (c *automationServiceClient) GetAutomation(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[v1.AutomationPrototype], error) {
 	return c.getAutomation.CallUnary(ctx, req)
 }
 
@@ -216,15 +217,15 @@ type AutomationServiceHandler interface {
 	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
 	ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error)
 	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.StorageLocation], error)
+	GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error)
 	// CreateStorageLocation creates a new storage bucket.
 	CreateStorageLocation(context.Context, *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error)
 	// DeleteStorageLocation deletes a storage location.
-	DeleteStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error)
+	DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error)
 	// ListAutomations lists all the automations that are currently registered in a namespace.
 	ListAutomations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error)
 	// GetAutomation gets an automation by its ID.
-	GetAutomation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.AutomationPrototype], error)
+	GetAutomation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.AutomationPrototype], error)
 	// CreateAutomation creates a new automation in a namespace.
 	CreateAutomation(context.Context, *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error)
 	// UpdateAutomation updates an automation in a namespace.
@@ -327,7 +328,7 @@ func (UnimplementedAutomationServiceHandler) ListStorageLocations(context.Contex
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.ListStorageLocations is not implemented"))
 }
 
-func (UnimplementedAutomationServiceHandler) GetStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.StorageLocation], error) {
+func (UnimplementedAutomationServiceHandler) GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.GetStorageLocation is not implemented"))
 }
 
@@ -335,7 +336,7 @@ func (UnimplementedAutomationServiceHandler) CreateStorageLocation(context.Conte
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.CreateStorageLocation is not implemented"))
 }
 
-func (UnimplementedAutomationServiceHandler) DeleteStorageLocation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[emptypb.Empty], error) {
+func (UnimplementedAutomationServiceHandler) DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.DeleteStorageLocation is not implemented"))
 }
 
@@ -343,7 +344,7 @@ func (UnimplementedAutomationServiceHandler) ListAutomations(context.Context, *c
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.ListAutomations is not implemented"))
 }
 
-func (UnimplementedAutomationServiceHandler) GetAutomation(context.Context, *connect.Request[v1.UUID]) (*connect.Response[v1.AutomationPrototype], error) {
+func (UnimplementedAutomationServiceHandler) GetAutomation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.AutomationPrototype], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.GetAutomation is not implemented"))
 }
 
