@@ -174,7 +174,7 @@ func (s *collectionService) ListCollections(ctx context.Context, datasetID uuid.
 }
 
 type DataAccessService interface {
-	Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *datasetsv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error)
+	Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *tileboxv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error)
 	QueryByID(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error)
 }
 
@@ -192,7 +192,7 @@ func newDataAccessService(dataAccessClient datasetsv1connect.DataAccessServiceCl
 	}
 }
 
-func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *datasetsv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error) {
+func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *tileboxv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/query", func(ctx context.Context) (*datasetsv1.QueryResultPage, error) {
 		res, err := s.dataAccessClient.Query(ctx, connect.NewRequest(
 			datasetsv1.QueryRequest_builder{

@@ -663,7 +663,7 @@ func (x *QueryFilters) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *QueryFilters) GetTimeInterval() *TimeInterval {
+func (x *QueryFilters) GetTimeInterval() *v1.TimeInterval {
 	if x != nil {
 		if x, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_TimeInterval); ok {
 			return x.TimeInterval
@@ -672,7 +672,7 @@ func (x *QueryFilters) GetTimeInterval() *TimeInterval {
 	return nil
 }
 
-func (x *QueryFilters) GetIdInterval() *IDInterval {
+func (x *QueryFilters) GetIdInterval() *v1.IDInterval {
 	if x != nil {
 		if x, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_IdInterval); ok {
 			return x.IdInterval
@@ -688,7 +688,7 @@ func (x *QueryFilters) GetAutomationId() *v1.ID {
 	return nil
 }
 
-func (x *QueryFilters) SetTimeInterval(v *TimeInterval) {
+func (x *QueryFilters) SetTimeInterval(v *v1.TimeInterval) {
 	if v == nil {
 		x.xxx_hidden_TemporalExtent = nil
 		return
@@ -696,7 +696,7 @@ func (x *QueryFilters) SetTimeInterval(v *TimeInterval) {
 	x.xxx_hidden_TemporalExtent = &queryFilters_TimeInterval{v}
 }
 
-func (x *QueryFilters) SetIdInterval(v *IDInterval) {
+func (x *QueryFilters) SetIdInterval(v *v1.IDInterval) {
 	if v == nil {
 		x.xxx_hidden_TemporalExtent = nil
 		return
@@ -782,8 +782,8 @@ type QueryFilters_builder struct {
 	// Either a time interval or ID interval must be set, but not both.
 
 	// Fields of oneof xxx_hidden_TemporalExtent:
-	TimeInterval *TimeInterval
-	IdInterval   *IDInterval
+	TimeInterval *v1.TimeInterval
+	IdInterval   *v1.IDInterval
 	// -- end of xxx_hidden_TemporalExtent
 	// Filter jobs by automation id.
 	AutomationId *v1.ID
@@ -818,11 +818,11 @@ type isQueryFilters_TemporalExtent interface {
 }
 
 type queryFilters_TimeInterval struct {
-	TimeInterval *TimeInterval `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval,oneof"`
+	TimeInterval *v1.TimeInterval `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval,oneof"`
 }
 
 type queryFilters_IdInterval struct {
-	IdInterval *IDInterval `protobuf:"bytes,2,opt,name=id_interval,json=idInterval,oneof"`
+	IdInterval *v1.IDInterval `protobuf:"bytes,2,opt,name=id_interval,json=idInterval,oneof"`
 }
 
 func (*queryFilters_TimeInterval) isQueryFilters_TemporalExtent() {}
@@ -833,7 +833,7 @@ func (*queryFilters_IdInterval) isQueryFilters_TemporalExtent() {}
 type QueryJobsRequest struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Filters *QueryFilters          `protobuf:"bytes,1,opt,name=filters"`
-	xxx_hidden_Page    *Pagination            `protobuf:"bytes,2,opt,name=page"`
+	xxx_hidden_Page    *v1.Pagination         `protobuf:"bytes,2,opt,name=page"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -870,7 +870,7 @@ func (x *QueryJobsRequest) GetFilters() *QueryFilters {
 	return nil
 }
 
-func (x *QueryJobsRequest) GetPage() *Pagination {
+func (x *QueryJobsRequest) GetPage() *v1.Pagination {
 	if x != nil {
 		return x.xxx_hidden_Page
 	}
@@ -881,7 +881,7 @@ func (x *QueryJobsRequest) SetFilters(v *QueryFilters) {
 	x.xxx_hidden_Filters = v
 }
 
-func (x *QueryJobsRequest) SetPage(v *Pagination) {
+func (x *QueryJobsRequest) SetPage(v *v1.Pagination) {
 	x.xxx_hidden_Page = v
 }
 
@@ -913,7 +913,7 @@ type QueryJobsRequest_builder struct {
 	// Filters to apply to the query.
 	Filters *QueryFilters
 	// The pagination parameters for this request.
-	Page *Pagination
+	Page *v1.Pagination
 }
 
 func (b0 QueryJobsRequest_builder) Build() *QueryJobsRequest {
@@ -929,7 +929,7 @@ func (b0 QueryJobsRequest_builder) Build() *QueryJobsRequest {
 type QueryJobsResponse struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Jobs     *[]*Job                `protobuf:"bytes,1,rep,name=jobs"`
-	xxx_hidden_NextPage *Pagination            `protobuf:"bytes,3,opt,name=next_page,json=nextPage"`
+	xxx_hidden_NextPage *v1.Pagination         `protobuf:"bytes,3,opt,name=next_page,json=nextPage"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -968,7 +968,7 @@ func (x *QueryJobsResponse) GetJobs() []*Job {
 	return nil
 }
 
-func (x *QueryJobsResponse) GetNextPage() *Pagination {
+func (x *QueryJobsResponse) GetNextPage() *v1.Pagination {
 	if x != nil {
 		return x.xxx_hidden_NextPage
 	}
@@ -979,7 +979,7 @@ func (x *QueryJobsResponse) SetJobs(v []*Job) {
 	x.xxx_hidden_Jobs = &v
 }
 
-func (x *QueryJobsResponse) SetNextPage(v *Pagination) {
+func (x *QueryJobsResponse) SetNextPage(v *v1.Pagination) {
 	x.xxx_hidden_NextPage = v
 }
 
@@ -1000,7 +1000,7 @@ type QueryJobsResponse_builder struct {
 	// The jobs.
 	Jobs []*Job
 	// The pagination parameters for the next page.
-	NextPage *Pagination
+	NextPage *v1.Pagination
 }
 
 func (b0 QueryJobsResponse_builder) Build() *QueryJobsResponse {
@@ -1264,7 +1264,7 @@ var File_workflows_v1_job_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xb9\x01\n" +
+	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xb9\x01\n" +
 	"\x10SubmitJobRequest\x122\n" +
 	"\x05tasks\x18\x01 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\x05tasks\x12\x19\n" +
 	"\bjob_name\x18\x02 \x01(\tR\ajobName\x12!\n" +
@@ -1283,19 +1283,19 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\x12B\n" +
 	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\x128\n" +
 	"\x05theme\x18\x03 \x01(\x0e2\".workflows.v1.WorkflowDiagramThemeR\x05theme\x12(\n" +
-	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xdd\x01\n" +
-	"\fQueryFilters\x12A\n" +
-	"\rtime_interval\x18\x01 \x01(\v2\x1a.workflows.v1.TimeIntervalH\x00R\ftimeInterval\x12;\n" +
-	"\vid_interval\x18\x02 \x01(\v2\x18.workflows.v1.IDIntervalH\x00R\n" +
+	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xd9\x01\n" +
+	"\fQueryFilters\x12?\n" +
+	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalH\x00R\ftimeInterval\x129\n" +
+	"\vid_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalH\x00R\n" +
 	"idInterval\x12:\n" +
 	"\rautomation_id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\fautomationIdB\x11\n" +
-	"\x0ftemporal_extent\"}\n" +
+	"\x0ftemporal_extent\"{\n" +
 	"\x10QueryJobsRequest\x124\n" +
-	"\afilters\x18\x01 \x01(\v2\x1a.workflows.v1.QueryFiltersR\afilters\x123\n" +
-	"\x04page\x18\x02 \x01(\v2\x18.workflows.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\"x\n" +
+	"\afilters\x18\x01 \x01(\v2\x1a.workflows.v1.QueryFiltersR\afilters\x121\n" +
+	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\"v\n" +
 	"\x11QueryJobsResponse\x12%\n" +
-	"\x04jobs\x18\x01 \x03(\v2\x11.workflows.v1.JobR\x04jobs\x12<\n" +
-	"\tnext_page\x18\x03 \x01(\v2\x18.workflows.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"?\n" +
+	"\x04jobs\x18\x01 \x03(\v2\x11.workflows.v1.JobR\x04jobs\x12:\n" +
+	"\tnext_page\x18\x03 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"?\n" +
 	"\x16GetJobPrototypeRequest\x12%\n" +
 	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"q\n" +
 	"\x17GetJobPrototypeResponse\x12;\n" +
@@ -1344,9 +1344,9 @@ var file_workflows_v1_job_proto_goTypes = []any{
 	(*TaskSubmission)(nil),          // 14: workflows.v1.TaskSubmission
 	(*v1.ID)(nil),                   // 15: tilebox.v1.ID
 	(*RenderOptions)(nil),           // 16: workflows.v1.RenderOptions
-	(*TimeInterval)(nil),            // 17: workflows.v1.TimeInterval
-	(*IDInterval)(nil),              // 18: workflows.v1.IDInterval
-	(*Pagination)(nil),              // 19: workflows.v1.Pagination
+	(*v1.TimeInterval)(nil),         // 17: tilebox.v1.TimeInterval
+	(*v1.IDInterval)(nil),           // 18: tilebox.v1.IDInterval
+	(*v1.Pagination)(nil),           // 19: tilebox.v1.Pagination
 	(*Job)(nil),                     // 20: workflows.v1.Job
 	(*Diagram)(nil),                 // 21: workflows.v1.Diagram
 }
@@ -1359,13 +1359,13 @@ var file_workflows_v1_job_proto_depIdxs = []int32{
 	15, // 5: workflows.v1.VisualizeJobRequest.job_id:type_name -> tilebox.v1.ID
 	16, // 6: workflows.v1.VisualizeJobRequest.render_options:type_name -> workflows.v1.RenderOptions
 	0,  // 7: workflows.v1.VisualizeJobRequest.theme:type_name -> workflows.v1.WorkflowDiagramTheme
-	17, // 8: workflows.v1.QueryFilters.time_interval:type_name -> workflows.v1.TimeInterval
-	18, // 9: workflows.v1.QueryFilters.id_interval:type_name -> workflows.v1.IDInterval
+	17, // 8: workflows.v1.QueryFilters.time_interval:type_name -> tilebox.v1.TimeInterval
+	18, // 9: workflows.v1.QueryFilters.id_interval:type_name -> tilebox.v1.IDInterval
 	15, // 10: workflows.v1.QueryFilters.automation_id:type_name -> tilebox.v1.ID
 	8,  // 11: workflows.v1.QueryJobsRequest.filters:type_name -> workflows.v1.QueryFilters
-	19, // 12: workflows.v1.QueryJobsRequest.page:type_name -> workflows.v1.Pagination
+	19, // 12: workflows.v1.QueryJobsRequest.page:type_name -> tilebox.v1.Pagination
 	20, // 13: workflows.v1.QueryJobsResponse.jobs:type_name -> workflows.v1.Job
-	19, // 14: workflows.v1.QueryJobsResponse.next_page:type_name -> workflows.v1.Pagination
+	19, // 14: workflows.v1.QueryJobsResponse.next_page:type_name -> tilebox.v1.Pagination
 	15, // 15: workflows.v1.GetJobPrototypeRequest.job_id:type_name -> tilebox.v1.ID
 	14, // 16: workflows.v1.GetJobPrototypeResponse.root_tasks:type_name -> workflows.v1.TaskSubmission
 	15, // 17: workflows.v1.CloneJobRequest.job_id:type_name -> tilebox.v1.ID

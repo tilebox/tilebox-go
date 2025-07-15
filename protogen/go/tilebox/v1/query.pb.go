@@ -10,6 +10,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/gofeaturespb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -21,24 +22,414 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// A time interval
+type TimeInterval struct {
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_StartTime      *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=start_time,json=startTime"`
+	xxx_hidden_EndTime        *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=end_time,json=endTime"`
+	xxx_hidden_StartExclusive bool                   `protobuf:"varint,3,opt,name=start_exclusive,json=startExclusive"`
+	xxx_hidden_EndInclusive   bool                   `protobuf:"varint,4,opt,name=end_inclusive,json=endInclusive"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *TimeInterval) Reset() {
+	*x = TimeInterval{}
+	mi := &file_tilebox_v1_query_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TimeInterval) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TimeInterval) ProtoMessage() {}
+
+func (x *TimeInterval) ProtoReflect() protoreflect.Message {
+	mi := &file_tilebox_v1_query_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *TimeInterval) GetStartTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_StartTime
+	}
+	return nil
+}
+
+func (x *TimeInterval) GetEndTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_EndTime
+	}
+	return nil
+}
+
+func (x *TimeInterval) GetStartExclusive() bool {
+	if x != nil {
+		return x.xxx_hidden_StartExclusive
+	}
+	return false
+}
+
+func (x *TimeInterval) GetEndInclusive() bool {
+	if x != nil {
+		return x.xxx_hidden_EndInclusive
+	}
+	return false
+}
+
+func (x *TimeInterval) SetStartTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_StartTime = v
+}
+
+func (x *TimeInterval) SetEndTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_EndTime = v
+}
+
+func (x *TimeInterval) SetStartExclusive(v bool) {
+	x.xxx_hidden_StartExclusive = v
+}
+
+func (x *TimeInterval) SetEndInclusive(v bool) {
+	x.xxx_hidden_EndInclusive = v
+}
+
+func (x *TimeInterval) HasStartTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_StartTime != nil
+}
+
+func (x *TimeInterval) HasEndTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_EndTime != nil
+}
+
+func (x *TimeInterval) ClearStartTime() {
+	x.xxx_hidden_StartTime = nil
+}
+
+func (x *TimeInterval) ClearEndTime() {
+	x.xxx_hidden_EndTime = nil
+}
+
+type TimeInterval_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Start time of the interval.
+	StartTime *timestamppb.Timestamp
+	// End time of the interval.
+	EndTime *timestamppb.Timestamp
+	// We use exclusive for start and inclusive for end, because that way when both are false
+	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
+	// Flag indicating whether the start time is exclusive. If true, the start time is not included in the interval.
+	StartExclusive bool
+	// Flag indicating whether the end time is inclusive. If true, the end time is included in the interval.
+	EndInclusive bool
+}
+
+func (b0 TimeInterval_builder) Build() *TimeInterval {
+	m0 := &TimeInterval{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_StartTime = b.StartTime
+	x.xxx_hidden_EndTime = b.EndTime
+	x.xxx_hidden_StartExclusive = b.StartExclusive
+	x.xxx_hidden_EndInclusive = b.EndInclusive
+	return m0
+}
+
+// An ID interval
+type IDInterval struct {
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_StartId        *ID                    `protobuf:"bytes,1,opt,name=start_id,json=startId"`
+	xxx_hidden_EndId          *ID                    `protobuf:"bytes,2,opt,name=end_id,json=endId"`
+	xxx_hidden_StartExclusive bool                   `protobuf:"varint,3,opt,name=start_exclusive,json=startExclusive"`
+	xxx_hidden_EndInclusive   bool                   `protobuf:"varint,4,opt,name=end_inclusive,json=endInclusive"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
+}
+
+func (x *IDInterval) Reset() {
+	*x = IDInterval{}
+	mi := &file_tilebox_v1_query_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IDInterval) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IDInterval) ProtoMessage() {}
+
+func (x *IDInterval) ProtoReflect() protoreflect.Message {
+	mi := &file_tilebox_v1_query_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *IDInterval) GetStartId() *ID {
+	if x != nil {
+		return x.xxx_hidden_StartId
+	}
+	return nil
+}
+
+func (x *IDInterval) GetEndId() *ID {
+	if x != nil {
+		return x.xxx_hidden_EndId
+	}
+	return nil
+}
+
+func (x *IDInterval) GetStartExclusive() bool {
+	if x != nil {
+		return x.xxx_hidden_StartExclusive
+	}
+	return false
+}
+
+func (x *IDInterval) GetEndInclusive() bool {
+	if x != nil {
+		return x.xxx_hidden_EndInclusive
+	}
+	return false
+}
+
+func (x *IDInterval) SetStartId(v *ID) {
+	x.xxx_hidden_StartId = v
+}
+
+func (x *IDInterval) SetEndId(v *ID) {
+	x.xxx_hidden_EndId = v
+}
+
+func (x *IDInterval) SetStartExclusive(v bool) {
+	x.xxx_hidden_StartExclusive = v
+}
+
+func (x *IDInterval) SetEndInclusive(v bool) {
+	x.xxx_hidden_EndInclusive = v
+}
+
+func (x *IDInterval) HasStartId() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_StartId != nil
+}
+
+func (x *IDInterval) HasEndId() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_EndId != nil
+}
+
+func (x *IDInterval) ClearStartId() {
+	x.xxx_hidden_StartId = nil
+}
+
+func (x *IDInterval) ClearEndId() {
+	x.xxx_hidden_EndId = nil
+}
+
+type IDInterval_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The id of the first data point in the interval.
+	StartId *ID
+	// The id of the last data point in the interval.
+	EndId *ID
+	// We use exclusive for start and inclusive for end, because that way when both are false
+	// we have a half-open interval [start, end) which is the default behaviour we want to achieve.
+	// Flag indicating whether the start id is exclusive.
+	// If true, the datapoint with the given start id is not included in the interval.
+	StartExclusive bool
+	// Flag indicating whether the end id is inclusive.
+	// If true, the datapoint with the given end id is included in the interval.
+	EndInclusive bool
+}
+
+func (b0 IDInterval_builder) Build() *IDInterval {
+	m0 := &IDInterval{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_StartId = b.StartId
+	x.xxx_hidden_EndId = b.EndId
+	x.xxx_hidden_StartExclusive = b.StartExclusive
+	x.xxx_hidden_EndInclusive = b.EndInclusive
+	return m0
+}
+
+// Pagination information for paginated queries
+type Pagination struct {
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Limit         int64                  `protobuf:"varint,1,opt,name=limit"`
+	xxx_hidden_StartingAfter *ID                    `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter"`
+	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
+	XXX_presence             [1]uint32
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *Pagination) Reset() {
+	*x = Pagination{}
+	mi := &file_tilebox_v1_query_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Pagination) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Pagination) ProtoMessage() {}
+
+func (x *Pagination) ProtoReflect() protoreflect.Message {
+	mi := &file_tilebox_v1_query_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Pagination) GetLimit() int64 {
+	if x != nil {
+		return x.xxx_hidden_Limit
+	}
+	return 0
+}
+
+func (x *Pagination) GetStartingAfter() *ID {
+	if x != nil {
+		return x.xxx_hidden_StartingAfter
+	}
+	return nil
+}
+
+func (x *Pagination) SetLimit(v int64) {
+	x.xxx_hidden_Limit = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+}
+
+func (x *Pagination) SetStartingAfter(v *ID) {
+	x.xxx_hidden_StartingAfter = v
+}
+
+func (x *Pagination) HasLimit() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *Pagination) HasStartingAfter() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_StartingAfter != nil
+}
+
+func (x *Pagination) ClearLimit() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Limit = 0
+}
+
+func (x *Pagination) ClearStartingAfter() {
+	x.xxx_hidden_StartingAfter = nil
+}
+
+type Pagination_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The maximum number of entries to return.
+	Limit *int64
+	// Return entries starting after this entry.
+	// This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
+	StartingAfter *ID
+}
+
+func (b0 Pagination_builder) Build() *Pagination {
+	m0 := &Pagination{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Limit != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		x.xxx_hidden_Limit = *b.Limit
+	}
+	x.xxx_hidden_StartingAfter = b.StartingAfter
+	return m0
+}
+
 var File_tilebox_v1_query_proto protoreflect.FileDescriptor
 
 const file_tilebox_v1_query_proto_rawDesc = "" +
 	"\n" +
 	"\x16tilebox/v1/query.proto\x12\n" +
-	"tilebox.v1\x1a!google/protobuf/go_features.protoB\xaf\x01\n" +
+	"tilebox.v1\x1a!google/protobuf/go_features.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xce\x01\n" +
+	"\fTimeInterval\x129\n" +
+	"\n" +
+	"start_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
+	"\bend_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\aendTime\x12'\n" +
+	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
+	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"\xac\x01\n" +
+	"\n" +
+	"IDInterval\x12)\n" +
+	"\bstart_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\astartId\x12%\n" +
+	"\x06end_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x05endId\x12'\n" +
+	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
+	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"g\n" +
+	"\n" +
+	"Pagination\x12\x1b\n" +
+	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12<\n" +
+	"\x0estarting_after\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\rstartingAfterB\xaf\x01\n" +
 	"\x0ecom.tilebox.v1B\n" +
 	"QueryProtoP\x01Z>github.com/tilebox/tilebox-go/protogen/go/tilebox/v1;tileboxv1\xa2\x02\x03TXX\xaa\x02\n" +
 	"Tilebox.V1\xca\x02\n" +
 	"Tilebox\\V1\xe2\x02\x16Tilebox\\V1\\GPBMetadata\xea\x02\vTilebox::V1\x92\x03\a\xd2>\x02\x10\x03\b\x02b\beditionsp\xe8\a"
 
-var file_tilebox_v1_query_proto_goTypes = []any{}
+var file_tilebox_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_tilebox_v1_query_proto_goTypes = []any{
+	(*TimeInterval)(nil),          // 0: tilebox.v1.TimeInterval
+	(*IDInterval)(nil),            // 1: tilebox.v1.IDInterval
+	(*Pagination)(nil),            // 2: tilebox.v1.Pagination
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*ID)(nil),                    // 4: tilebox.v1.ID
+}
 var file_tilebox_v1_query_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: tilebox.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
+	3, // 1: tilebox.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
+	4, // 2: tilebox.v1.IDInterval.start_id:type_name -> tilebox.v1.ID
+	4, // 3: tilebox.v1.IDInterval.end_id:type_name -> tilebox.v1.ID
+	4, // 4: tilebox.v1.Pagination.starting_after:type_name -> tilebox.v1.ID
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_tilebox_v1_query_proto_init() }
@@ -46,18 +437,20 @@ func file_tilebox_v1_query_proto_init() {
 	if File_tilebox_v1_query_proto != nil {
 		return
 	}
+	file_tilebox_v1_id_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tilebox_v1_query_proto_rawDesc), len(file_tilebox_v1_query_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   0,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_tilebox_v1_query_proto_goTypes,
 		DependencyIndexes: file_tilebox_v1_query_proto_depIdxs,
+		MessageInfos:      file_tilebox_v1_query_proto_msgTypes,
 	}.Build()
 	File_tilebox_v1_query_proto = out.File
 	file_tilebox_v1_query_proto_goTypes = nil

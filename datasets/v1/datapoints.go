@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/paulmach/orb"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
 	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
 )
@@ -175,11 +176,11 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 	}
 
 	return func(yield func([]byte, error) bool) {
-		var page *datasetsv1.Pagination // nil for the first request
+		var page *tileboxv1.Pagination // nil for the first request
 
 		// we already validated that temporalExtent is not nil
 		timeInterval := cfg.temporalExtent.ToProtoTimeInterval()
-		datapointInterval := cfg.temporalExtent.ToProtoDatapointInterval()
+		datapointInterval := cfg.temporalExtent.ToProtoIDInterval()
 
 		if timeInterval == nil && datapointInterval == nil {
 			yield(nil, errors.New("invalid temporal extent"))

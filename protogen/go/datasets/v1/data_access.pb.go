@@ -118,8 +118,8 @@ func (x SpatialCoordinateSystem) Number() protoreflect.EnumNumber {
 type GetDatasetForIntervalRequest struct {
 	state                        protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_CollectionId      string                 `protobuf:"bytes,1,opt,name=collection_id,json=collectionId"`
-	xxx_hidden_TimeInterval      *TimeInterval          `protobuf:"bytes,2,opt,name=time_interval,json=timeInterval"`
-	xxx_hidden_DatapointInterval *DatapointInterval     `protobuf:"bytes,6,opt,name=datapoint_interval,json=datapointInterval"`
+	xxx_hidden_TimeInterval      *v1.TimeInterval       `protobuf:"bytes,2,opt,name=time_interval,json=timeInterval"`
+	xxx_hidden_DatapointInterval *v1.IDInterval         `protobuf:"bytes,6,opt,name=datapoint_interval,json=datapointInterval"`
 	xxx_hidden_Page              *LegacyPagination      `protobuf:"bytes,3,opt,name=page"`
 	xxx_hidden_SkipData          bool                   `protobuf:"varint,4,opt,name=skip_data,json=skipData"`
 	xxx_hidden_SkipMeta          bool                   `protobuf:"varint,5,opt,name=skip_meta,json=skipMeta"`
@@ -159,14 +159,14 @@ func (x *GetDatasetForIntervalRequest) GetCollectionId() string {
 	return ""
 }
 
-func (x *GetDatasetForIntervalRequest) GetTimeInterval() *TimeInterval {
+func (x *GetDatasetForIntervalRequest) GetTimeInterval() *v1.TimeInterval {
 	if x != nil {
 		return x.xxx_hidden_TimeInterval
 	}
 	return nil
 }
 
-func (x *GetDatasetForIntervalRequest) GetDatapointInterval() *DatapointInterval {
+func (x *GetDatasetForIntervalRequest) GetDatapointInterval() *v1.IDInterval {
 	if x != nil {
 		return x.xxx_hidden_DatapointInterval
 	}
@@ -198,11 +198,11 @@ func (x *GetDatasetForIntervalRequest) SetCollectionId(v string) {
 	x.xxx_hidden_CollectionId = v
 }
 
-func (x *GetDatasetForIntervalRequest) SetTimeInterval(v *TimeInterval) {
+func (x *GetDatasetForIntervalRequest) SetTimeInterval(v *v1.TimeInterval) {
 	x.xxx_hidden_TimeInterval = v
 }
 
-func (x *GetDatasetForIntervalRequest) SetDatapointInterval(v *DatapointInterval) {
+func (x *GetDatasetForIntervalRequest) SetDatapointInterval(v *v1.IDInterval) {
 	x.xxx_hidden_DatapointInterval = v
 }
 
@@ -256,8 +256,8 @@ type GetDatasetForIntervalRequest_builder struct {
 
 	CollectionId string
 	// Either time interval or datapoint interval must be set, but not both.
-	TimeInterval      *TimeInterval
-	DatapointInterval *DatapointInterval
+	TimeInterval      *v1.TimeInterval
+	DatapointInterval *v1.IDInterval
 	Page              *LegacyPagination
 	SkipData          bool
 	// If true, the datapoint metadata is not returned.
@@ -499,7 +499,7 @@ func (x *QueryFilters) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *QueryFilters) GetTimeInterval() *TimeInterval {
+func (x *QueryFilters) GetTimeInterval() *v1.TimeInterval {
 	if x != nil {
 		if x, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_TimeInterval); ok {
 			return x.TimeInterval
@@ -508,7 +508,7 @@ func (x *QueryFilters) GetTimeInterval() *TimeInterval {
 	return nil
 }
 
-func (x *QueryFilters) GetDatapointInterval() *DatapointInterval {
+func (x *QueryFilters) GetDatapointInterval() *v1.IDInterval {
 	if x != nil {
 		if x, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_DatapointInterval); ok {
 			return x.DatapointInterval
@@ -524,7 +524,7 @@ func (x *QueryFilters) GetSpatialExtent() *SpatialFilter {
 	return nil
 }
 
-func (x *QueryFilters) SetTimeInterval(v *TimeInterval) {
+func (x *QueryFilters) SetTimeInterval(v *v1.TimeInterval) {
 	if v == nil {
 		x.xxx_hidden_TemporalExtent = nil
 		return
@@ -532,7 +532,7 @@ func (x *QueryFilters) SetTimeInterval(v *TimeInterval) {
 	x.xxx_hidden_TemporalExtent = &queryFilters_TimeInterval{v}
 }
 
-func (x *QueryFilters) SetDatapointInterval(v *DatapointInterval) {
+func (x *QueryFilters) SetDatapointInterval(v *v1.IDInterval) {
 	if v == nil {
 		x.xxx_hidden_TemporalExtent = nil
 		return
@@ -618,8 +618,8 @@ type QueryFilters_builder struct {
 	// Either a time interval or datapoint interval must be set, but not both.
 
 	// Fields of oneof xxx_hidden_TemporalExtent:
-	TimeInterval      *TimeInterval
-	DatapointInterval *DatapointInterval
+	TimeInterval      *v1.TimeInterval
+	DatapointInterval *v1.IDInterval
 	// -- end of xxx_hidden_TemporalExtent
 	SpatialExtent *SpatialFilter
 }
@@ -653,11 +653,11 @@ type isQueryFilters_TemporalExtent interface {
 }
 
 type queryFilters_TimeInterval struct {
-	TimeInterval *TimeInterval `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval,oneof"`
+	TimeInterval *v1.TimeInterval `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval,oneof"`
 }
 
 type queryFilters_DatapointInterval struct {
-	DatapointInterval *DatapointInterval `protobuf:"bytes,2,opt,name=datapoint_interval,json=datapointInterval,oneof"`
+	DatapointInterval *v1.IDInterval `protobuf:"bytes,2,opt,name=datapoint_interval,json=datapointInterval,oneof"`
 }
 
 func (*queryFilters_TimeInterval) isQueryFilters_TemporalExtent() {}
@@ -766,7 +766,7 @@ type QueryRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_CollectionIds *[]*v1.ID              `protobuf:"bytes,1,rep,name=collection_ids,json=collectionIds"`
 	xxx_hidden_Filters       *QueryFilters          `protobuf:"bytes,2,opt,name=filters"`
-	xxx_hidden_Page          *Pagination            `protobuf:"bytes,3,opt,name=page"`
+	xxx_hidden_Page          *v1.Pagination         `protobuf:"bytes,3,opt,name=page"`
 	xxx_hidden_SkipData      bool                   `protobuf:"varint,4,opt,name=skip_data,json=skipData"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
@@ -813,7 +813,7 @@ func (x *QueryRequest) GetFilters() *QueryFilters {
 	return nil
 }
 
-func (x *QueryRequest) GetPage() *Pagination {
+func (x *QueryRequest) GetPage() *v1.Pagination {
 	if x != nil {
 		return x.xxx_hidden_Page
 	}
@@ -835,7 +835,7 @@ func (x *QueryRequest) SetFilters(v *QueryFilters) {
 	x.xxx_hidden_Filters = v
 }
 
-func (x *QueryRequest) SetPage(v *Pagination) {
+func (x *QueryRequest) SetPage(v *v1.Pagination) {
 	x.xxx_hidden_Page = v
 }
 
@@ -870,7 +870,7 @@ type QueryRequest_builder struct {
 
 	CollectionIds []*v1.ID
 	Filters       *QueryFilters
-	Page          *Pagination
+	Page          *v1.Pagination
 	SkipData      bool
 }
 
@@ -889,7 +889,7 @@ func (b0 QueryRequest_builder) Build() *QueryRequest {
 type QueryResultPage struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Data     *RepeatedAny           `protobuf:"bytes,1,opt,name=data"`
-	xxx_hidden_NextPage *Pagination            `protobuf:"bytes,2,opt,name=next_page,json=nextPage"`
+	xxx_hidden_NextPage *v1.Pagination         `protobuf:"bytes,2,opt,name=next_page,json=nextPage"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -926,7 +926,7 @@ func (x *QueryResultPage) GetData() *RepeatedAny {
 	return nil
 }
 
-func (x *QueryResultPage) GetNextPage() *Pagination {
+func (x *QueryResultPage) GetNextPage() *v1.Pagination {
 	if x != nil {
 		return x.xxx_hidden_NextPage
 	}
@@ -937,7 +937,7 @@ func (x *QueryResultPage) SetData(v *RepeatedAny) {
 	x.xxx_hidden_Data = v
 }
 
-func (x *QueryResultPage) SetNextPage(v *Pagination) {
+func (x *QueryResultPage) SetNextPage(v *v1.Pagination) {
 	x.xxx_hidden_NextPage = v
 }
 
@@ -967,7 +967,7 @@ type QueryResultPage_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Data     *RepeatedAny
-	NextPage *Pagination
+	NextPage *v1.Pagination
 }
 
 func (b0 QueryResultPage_builder) Build() *QueryResultPage {
@@ -983,11 +983,11 @@ var File_datasets_v1_data_access_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\n" +
-	"\x1ddatasets/v1/data_access.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\"datasets/v1/well_known_types.proto\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\"\xc6\x02\n" +
+	"\x1ddatasets/v1/data_access.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\"datasets/v1/well_known_types.proto\x1a!google/protobuf/go_features.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"\xbd\x02\n" +
 	"\x1cGetDatasetForIntervalRequest\x12#\n" +
-	"\rcollection_id\x18\x01 \x01(\tR\fcollectionId\x12>\n" +
-	"\rtime_interval\x18\x02 \x01(\v2\x19.datasets.v1.TimeIntervalR\ftimeInterval\x12M\n" +
-	"\x12datapoint_interval\x18\x06 \x01(\v2\x1e.datasets.v1.DatapointIntervalR\x11datapointInterval\x128\n" +
+	"\rcollection_id\x18\x01 \x01(\tR\fcollectionId\x12=\n" +
+	"\rtime_interval\x18\x02 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x12E\n" +
+	"\x12datapoint_interval\x18\x06 \x01(\v2\x16.tilebox.v1.IDIntervalR\x11datapointInterval\x128\n" +
 	"\x04page\x18\x03 \x01(\v2\x1d.datasets.v1.LegacyPaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12\x1b\n" +
 	"\tskip_data\x18\x04 \x01(\bR\bskipData\x12\x1b\n" +
 	"\tskip_meta\x18\x05 \x01(\bR\bskipMeta\"k\n" +
@@ -998,24 +998,24 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\x10QueryByIDRequest\x125\n" +
 	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDR\rcollectionIds\x12\x1e\n" +
 	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1b\n" +
-	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\xf7\x01\n" +
-	"\fQueryFilters\x12@\n" +
-	"\rtime_interval\x18\x01 \x01(\v2\x19.datasets.v1.TimeIntervalH\x00R\ftimeInterval\x12O\n" +
-	"\x12datapoint_interval\x18\x02 \x01(\v2\x1e.datasets.v1.DatapointIntervalH\x00R\x11datapointInterval\x12A\n" +
+	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\xee\x01\n" +
+	"\fQueryFilters\x12?\n" +
+	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalH\x00R\ftimeInterval\x12G\n" +
+	"\x12datapoint_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalH\x00R\x11datapointInterval\x12A\n" +
 	"\x0espatial_extent\x18\x03 \x01(\v2\x1a.datasets.v1.SpatialFilterR\rspatialExtentB\x11\n" +
 	"\x0ftemporal_extent\"\xc9\x01\n" +
 	"\rSpatialFilter\x121\n" +
 	"\bgeometry\x18\x01 \x01(\v2\x15.datasets.v1.GeometryR\bgeometry\x122\n" +
 	"\x04mode\x18\x02 \x01(\x0e2\x1e.datasets.v1.SpatialFilterModeR\x04mode\x12Q\n" +
-	"\x11coordinate_system\x18\x03 \x01(\x0e2$.datasets.v1.SpatialCoordinateSystemR\x10coordinateSystem\"\xcb\x01\n" +
+	"\x11coordinate_system\x18\x03 \x01(\x0e2$.datasets.v1.SpatialCoordinateSystemR\x10coordinateSystem\"\xca\x01\n" +
 	"\fQueryRequest\x125\n" +
 	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDR\rcollectionIds\x123\n" +
-	"\afilters\x18\x02 \x01(\v2\x19.datasets.v1.QueryFiltersR\afilters\x122\n" +
-	"\x04page\x18\x03 \x01(\v2\x17.datasets.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12\x1b\n" +
-	"\tskip_data\x18\x04 \x01(\bR\bskipData\"|\n" +
+	"\afilters\x18\x02 \x01(\v2\x19.datasets.v1.QueryFiltersR\afilters\x121\n" +
+	"\x04page\x18\x03 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12\x1b\n" +
+	"\tskip_data\x18\x04 \x01(\bR\bskipData\"{\n" +
 	"\x0fQueryResultPage\x12,\n" +
-	"\x04data\x18\x01 \x01(\v2\x18.datasets.v1.RepeatedAnyR\x04data\x12;\n" +
-	"\tnext_page\x18\x02 \x01(\v2\x17.datasets.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage*~\n" +
+	"\x04data\x18\x01 \x01(\v2\x18.datasets.v1.RepeatedAnyR\x04data\x12:\n" +
+	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage*~\n" +
 	"\x11SpatialFilterMode\x12#\n" +
 	"\x1fSPATIAL_FILTER_MODE_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eSPATIAL_FILTER_MODE_INTERSECTS\x10\x01\x12 \n" +
@@ -1043,34 +1043,34 @@ var file_datasets_v1_data_access_proto_goTypes = []any{
 	(*SpatialFilter)(nil),                // 6: datasets.v1.SpatialFilter
 	(*QueryRequest)(nil),                 // 7: datasets.v1.QueryRequest
 	(*QueryResultPage)(nil),              // 8: datasets.v1.QueryResultPage
-	(*TimeInterval)(nil),                 // 9: datasets.v1.TimeInterval
-	(*DatapointInterval)(nil),            // 10: datasets.v1.DatapointInterval
+	(*v1.TimeInterval)(nil),              // 9: tilebox.v1.TimeInterval
+	(*v1.IDInterval)(nil),                // 10: tilebox.v1.IDInterval
 	(*LegacyPagination)(nil),             // 11: datasets.v1.LegacyPagination
 	(*v1.ID)(nil),                        // 12: tilebox.v1.ID
 	(*Geometry)(nil),                     // 13: datasets.v1.Geometry
-	(*Pagination)(nil),                   // 14: datasets.v1.Pagination
+	(*v1.Pagination)(nil),                // 14: tilebox.v1.Pagination
 	(*RepeatedAny)(nil),                  // 15: datasets.v1.RepeatedAny
 	(*DatapointPage)(nil),                // 16: datasets.v1.DatapointPage
 	(*Datapoint)(nil),                    // 17: datasets.v1.Datapoint
 	(*Any)(nil),                          // 18: datasets.v1.Any
 }
 var file_datasets_v1_data_access_proto_depIdxs = []int32{
-	9,  // 0: datasets.v1.GetDatasetForIntervalRequest.time_interval:type_name -> datasets.v1.TimeInterval
-	10, // 1: datasets.v1.GetDatasetForIntervalRequest.datapoint_interval:type_name -> datasets.v1.DatapointInterval
+	9,  // 0: datasets.v1.GetDatasetForIntervalRequest.time_interval:type_name -> tilebox.v1.TimeInterval
+	10, // 1: datasets.v1.GetDatasetForIntervalRequest.datapoint_interval:type_name -> tilebox.v1.IDInterval
 	11, // 2: datasets.v1.GetDatasetForIntervalRequest.page:type_name -> datasets.v1.LegacyPagination
 	12, // 3: datasets.v1.QueryByIDRequest.collection_ids:type_name -> tilebox.v1.ID
 	12, // 4: datasets.v1.QueryByIDRequest.id:type_name -> tilebox.v1.ID
-	9,  // 5: datasets.v1.QueryFilters.time_interval:type_name -> datasets.v1.TimeInterval
-	10, // 6: datasets.v1.QueryFilters.datapoint_interval:type_name -> datasets.v1.DatapointInterval
+	9,  // 5: datasets.v1.QueryFilters.time_interval:type_name -> tilebox.v1.TimeInterval
+	10, // 6: datasets.v1.QueryFilters.datapoint_interval:type_name -> tilebox.v1.IDInterval
 	6,  // 7: datasets.v1.QueryFilters.spatial_extent:type_name -> datasets.v1.SpatialFilter
 	13, // 8: datasets.v1.SpatialFilter.geometry:type_name -> datasets.v1.Geometry
 	0,  // 9: datasets.v1.SpatialFilter.mode:type_name -> datasets.v1.SpatialFilterMode
 	1,  // 10: datasets.v1.SpatialFilter.coordinate_system:type_name -> datasets.v1.SpatialCoordinateSystem
 	12, // 11: datasets.v1.QueryRequest.collection_ids:type_name -> tilebox.v1.ID
 	5,  // 12: datasets.v1.QueryRequest.filters:type_name -> datasets.v1.QueryFilters
-	14, // 13: datasets.v1.QueryRequest.page:type_name -> datasets.v1.Pagination
+	14, // 13: datasets.v1.QueryRequest.page:type_name -> tilebox.v1.Pagination
 	15, // 14: datasets.v1.QueryResultPage.data:type_name -> datasets.v1.RepeatedAny
-	14, // 15: datasets.v1.QueryResultPage.next_page:type_name -> datasets.v1.Pagination
+	14, // 15: datasets.v1.QueryResultPage.next_page:type_name -> tilebox.v1.Pagination
 	2,  // 16: datasets.v1.DataAccessService.GetDatasetForInterval:input_type -> datasets.v1.GetDatasetForIntervalRequest
 	3,  // 17: datasets.v1.DataAccessService.GetDatapointByID:input_type -> datasets.v1.GetDatapointByIdRequest
 	4,  // 18: datasets.v1.DataAccessService.QueryByID:input_type -> datasets.v1.QueryByIDRequest
