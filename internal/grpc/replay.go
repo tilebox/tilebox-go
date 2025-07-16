@@ -1,4 +1,4 @@
-package grpc // import "github.com/tilebox/tilebox-go/grpc"
+package grpc
 
 import (
 	"bytes"

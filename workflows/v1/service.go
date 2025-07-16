@@ -7,6 +7,7 @@ import (
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
+	"github.com/tilebox/tilebox-go/internal/span"
 	"github.com/tilebox/tilebox-go/observability"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
@@ -171,7 +172,7 @@ func newJobService(jobClient workflowsv1connect.JobServiceClient, tracer trace.T
 
 func (s *jobService) SubmitJob(ctx context.Context, req *workflowsv1.SubmitJobRequest) (*workflowsv1.Job, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/submit", func(ctx context.Context) (*workflowsv1.Job, error) {
-		traceParent := observability.GetTraceParentOfCurrentSpan(ctx)
+		traceParent := span.GetTraceParentOfCurrentSpan(ctx)
 		req.SetTraceParent(traceParent)
 
 		res, err := s.jobClient.SubmitJob(ctx, connect.NewRequest(req))
