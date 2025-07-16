@@ -9,7 +9,6 @@ package examplesv1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/gofeaturespb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -27,6 +26,8 @@ type SpawnWorkflowTreeTask struct {
 	xxx_hidden_CurrentLevel int64                  `protobuf:"varint,1,opt,name=current_level,json=currentLevel"`
 	xxx_hidden_Depth        int64                  `protobuf:"varint,2,opt,name=depth"`
 	xxx_hidden_BranchFactor int64                  `protobuf:"varint,3,opt,name=branch_factor,json=branchFactor"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -79,31 +80,79 @@ func (x *SpawnWorkflowTreeTask) GetBranchFactor() int64 {
 
 func (x *SpawnWorkflowTreeTask) SetCurrentLevel(v int64) {
 	x.xxx_hidden_CurrentLevel = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
 }
 
 func (x *SpawnWorkflowTreeTask) SetDepth(v int64) {
 	x.xxx_hidden_Depth = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
 }
 
 func (x *SpawnWorkflowTreeTask) SetBranchFactor(v int64) {
 	x.xxx_hidden_BranchFactor = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *SpawnWorkflowTreeTask) HasCurrentLevel() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *SpawnWorkflowTreeTask) HasDepth() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *SpawnWorkflowTreeTask) HasBranchFactor() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *SpawnWorkflowTreeTask) ClearCurrentLevel() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_CurrentLevel = 0
+}
+
+func (x *SpawnWorkflowTreeTask) ClearDepth() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Depth = 0
+}
+
+func (x *SpawnWorkflowTreeTask) ClearBranchFactor() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_BranchFactor = 0
 }
 
 type SpawnWorkflowTreeTask_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	CurrentLevel int64
-	Depth        int64
-	BranchFactor int64
+	CurrentLevel *int64
+	Depth        *int64
+	BranchFactor *int64
 }
 
 func (b0 SpawnWorkflowTreeTask_builder) Build() *SpawnWorkflowTreeTask {
 	m0 := &SpawnWorkflowTreeTask{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_CurrentLevel = b.CurrentLevel
-	x.xxx_hidden_Depth = b.Depth
-	x.xxx_hidden_BranchFactor = b.BranchFactor
+	if b.CurrentLevel != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_CurrentLevel = *b.CurrentLevel
+	}
+	if b.Depth != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_Depth = *b.Depth
+	}
+	if b.BranchFactor != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_BranchFactor = *b.BranchFactor
+	}
 	return m0
 }
 
@@ -111,12 +160,12 @@ var File_examples_v1_workflow_proto protoreflect.FileDescriptor
 
 const file_examples_v1_workflow_proto_rawDesc = "" +
 	"\n" +
-	"\x1aexamples/v1/workflow.proto\x12\vexamples.v1\x1a!google/protobuf/go_features.proto\"w\n" +
+	"\x1aexamples/v1/workflow.proto\x12\vexamples.v1\"w\n" +
 	"\x15SpawnWorkflowTreeTask\x12#\n" +
 	"\rcurrent_level\x18\x01 \x01(\x03R\fcurrentLevel\x12\x14\n" +
 	"\x05depth\x18\x02 \x01(\x03R\x05depth\x12#\n" +
-	"\rbranch_factor\x18\x03 \x01(\x03R\fbranchFactorB\xb6\x01\n" +
-	"\x0fcom.examples.v1B\rWorkflowProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/examples/v1;examplesv1\xa2\x02\x03EXX\xaa\x02\vExamples.V1\xca\x02\vExamples\\V1\xe2\x02\x17Examples\\V1\\GPBMetadata\xea\x02\fExamples::V1\x92\x03\a\xd2>\x02\x10\x03\b\x02b\beditionsp\xe8\a"
+	"\rbranch_factor\x18\x03 \x01(\x03R\fbranchFactorB\xac\x01\n" +
+	"\x0fcom.examples.v1B\rWorkflowProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/examples/v1;examplesv1\xa2\x02\x03EXX\xaa\x02\vExamples.V1\xca\x02\vExamples\\V1\xe2\x02\x17Examples\\V1\\GPBMetadata\xea\x02\fExamples::V1b\beditionsp\xe8\a"
 
 var file_examples_v1_workflow_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_examples_v1_workflow_proto_goTypes = []any{

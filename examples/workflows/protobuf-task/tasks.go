@@ -6,6 +6,7 @@ import (
 
 	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 // SampleTask is a regular struct task that submits a protobuf task.
@@ -24,9 +25,9 @@ func (t *SampleTask) Execute(ctx context.Context) error {
 
 	_, err := workflows.SubmitSubtask(ctx, &SpawnWorkflowTreeTask{
 		*examplesv1.SpawnWorkflowTreeTask_builder{
-			CurrentLevel: 0,
-			Depth:        int64(t.Depth),
-			BranchFactor: int64(t.BranchFactor),
+			CurrentLevel: proto.Int64(0),
+			Depth:        proto.Int64(int64(t.Depth)),
+			BranchFactor: proto.Int64(int64(t.BranchFactor)),
 		}.Build(),
 	})
 	return err
@@ -50,9 +51,9 @@ func (t *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
 	for i := range t.GetBranchFactor() {
 		subtasks[i] = &SpawnWorkflowTreeTask{
 			*examplesv1.SpawnWorkflowTreeTask_builder{
-				CurrentLevel: t.GetCurrentLevel() + 1,
-				Depth:        t.GetDepth(),
-				BranchFactor: t.GetBranchFactor(),
+				CurrentLevel: proto.Int64(t.GetCurrentLevel() + 1),
+				Depth:        proto.Int64(t.GetDepth()),
+				BranchFactor: proto.Int64(t.GetBranchFactor()),
 			}.Build(),
 		}
 	}

@@ -22,6 +22,7 @@ plugins:
     opt:
       - paths=source_relative
 inputs:
+  - directory: apis
   - module: buf.build/tilebox/api
   # for local development
   # - directory: ../api
