@@ -2,6 +2,7 @@ package observability // import "github.com/tilebox/tilebox-go/observability"
 
 import (
 	"context"
+
 	"go.opentelemetry.io/otel/codes"
 	oteltrace "go.opentelemetry.io/otel/trace"
 )

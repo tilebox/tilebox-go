@@ -57,4 +57,3 @@ func StartJobSpan[Result any](ctx context.Context, tracer oteltrace.Tracer, span
 
 	return observability.WithSpanResult(ctx, tracer, spanName, f)
 }
-
