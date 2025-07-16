@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 )
 
 // Dataset represents a Tilebox Dataset.

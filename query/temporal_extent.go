@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

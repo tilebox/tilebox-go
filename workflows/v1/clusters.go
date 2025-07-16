@@ -6,7 +6,7 @@ package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
 import (
 	"context"
 
-	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 )
 
 // Cluster represents a Tilebox Workflows cluster.

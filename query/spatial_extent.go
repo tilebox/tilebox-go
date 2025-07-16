@@ -5,7 +5,7 @@ import (
 
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/ewkb"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 )
 
 // SpatialExtent is an interface for types that can be converted to a spatial extent, to be used in queries.

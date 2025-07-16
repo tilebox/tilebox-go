@@ -10,7 +10,7 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/wkt"
 	"github.com/tilebox/tilebox-go/datasets/v1"
-	examplesv1 "github.com/tilebox/tilebox-go/protogen/go/examples/v1"
+	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
 	"github.com/tilebox/tilebox-go/query"
 )
 

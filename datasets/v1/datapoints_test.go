@@ -10,9 +10,9 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
-	examplesv1 "github.com/tilebox/tilebox-go/protogen/go/examples/v1"
-	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
+	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
+	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
 )

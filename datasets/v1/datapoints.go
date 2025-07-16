@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/paulmach/orb"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
-	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
+	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	"github.com/tilebox/tilebox-go/query"
 	"google.golang.org/protobuf/proto"
 )
