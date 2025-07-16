@@ -1,0 +1,12 @@
+// A sample tree workflow.
+
+edition = "2023";
+
+package examples.v1;
+
+// SpawnWorkflowTreeTask is a task that spawns a tree of tasks.
+message SpawnWorkflowTreeTask {
+  int64 current_level = 1;
+  int64 depth = 2;
+  int64 branch_factor = 3;
+}
