@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
-	"github.com/tilebox/tilebox-go/grpc"
+	"github.com/tilebox/tilebox-go/internal/grpc"
 	"github.com/tilebox/tilebox-go/protogen/workflows/v1/workflowsv1connect"
 	"github.com/tilebox/tilebox-go/workflows/v1/runner"
 	"go.opentelemetry.io/otel"

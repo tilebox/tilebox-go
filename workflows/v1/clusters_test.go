@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tilebox/tilebox-go/grpc"
+	"github.com/tilebox/tilebox-go/internal/grpc"
 )
 
 const recordingDirectory = "testdata/recordings"

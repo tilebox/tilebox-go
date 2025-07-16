@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tilebox/tilebox-go/grpc"
+	"github.com/tilebox/tilebox-go/internal/grpc"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 	"pgregory.net/rapid"
 )
