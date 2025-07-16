@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
-	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
+	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
 	"google.golang.org/protobuf/proto"
 )

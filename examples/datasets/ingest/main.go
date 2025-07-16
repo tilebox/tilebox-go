@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/tilebox/tilebox-go/datasets/v1"
-	examplesv1 "github.com/tilebox/tilebox-go/protogen/go/examples/v1"
+	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )

@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"github.com/tilebox/tilebox-go/query"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
 )

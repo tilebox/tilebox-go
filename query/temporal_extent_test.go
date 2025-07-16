@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	tileboxv1 "github.com/tilebox/tilebox-go/protogen/go/tilebox/v1"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	"pgregory.net/rapid"
 )
 

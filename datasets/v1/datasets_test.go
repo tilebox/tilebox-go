@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tilebox/tilebox-go/grpc"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 	"pgregory.net/rapid"
 )
 

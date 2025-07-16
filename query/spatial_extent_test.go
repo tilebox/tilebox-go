@@ -7,7 +7,7 @@ import (
 	"github.com/paulmach/orb/encoding/ewkb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	datasetsv1 "github.com/tilebox/tilebox-go/protogen/go/datasets/v1"
+	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 )
 
 func TestSpatialFilter_ToProtoSpatialFilter(t *testing.T) {

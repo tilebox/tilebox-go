@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	workflowsv1 "github.com/tilebox/tilebox-go/protogen/go/workflows/v1"
+	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	oteltrace "go.opentelemetry.io/otel/trace"

@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	examplesv1 "github.com/tilebox/tilebox-go/protogen/go/examples/v1"
+	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
