@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -28,9 +29,12 @@ type StorageType int32
 
 const (
 	StorageType_STORAGE_TYPE_UNSPECIFIED StorageType = 0
-	StorageType_STORAGE_TYPE_GCS         StorageType = 1 // Google Cloud Storage
-	StorageType_STORAGE_TYPE_S3          StorageType = 2 // Amazon Web Services S3
-	StorageType_STORAGE_TYPE_FS          StorageType = 3 // Local filesystem
+	// Google Cloud Storage
+	StorageType_STORAGE_TYPE_GCS StorageType = 1
+	// Amazon Web Services S3
+	StorageType_STORAGE_TYPE_S3 StorageType = 2
+	// Local filesystem
+	StorageType_STORAGE_TYPE_FS StorageType = 3
 )
 
 // Enum value maps for StorageType.
@@ -195,9 +199,12 @@ func (x *StorageLocation) ClearId() {
 type StorageLocation_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id       *v1.ID
+	// Unique identifier for the storage location
+	Id *v1.ID
+	// A unique identifier for the storage location in the storage system
 	Location string
-	Type     StorageType
+	// The type of the storage location, e.g. GCS, S3, FS
+	Type StorageType
 }
 
 func (b0 StorageLocation_builder) Build() *StorageLocation {
@@ -279,6 +286,7 @@ type AutomationPrototype struct {
 	xxx_hidden_Prototype            *TaskSubmission         `protobuf:"bytes,3,opt,name=prototype"`
 	xxx_hidden_StorageEventTriggers *[]*StorageEventTrigger `protobuf:"bytes,4,rep,name=storage_event_triggers,json=storageEventTriggers"`
 	xxx_hidden_CronTriggers         *[]*CronTrigger         `protobuf:"bytes,5,rep,name=cron_triggers,json=cronTriggers"`
+	xxx_hidden_Disabled             bool                    `protobuf:"varint,6,opt,name=disabled"`
 	unknownFields                   protoimpl.UnknownFields
 	sizeCache                       protoimpl.SizeCache
 }
@@ -347,6 +355,13 @@ func (x *AutomationPrototype) GetCronTriggers() []*CronTrigger {
 	return nil
 }
 
+func (x *AutomationPrototype) GetDisabled() bool {
+	if x != nil {
+		return x.xxx_hidden_Disabled
+	}
+	return false
+}
+
 func (x *AutomationPrototype) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
@@ -365,6 +380,10 @@ func (x *AutomationPrototype) SetStorageEventTriggers(v []*StorageEventTrigger) 
 
 func (x *AutomationPrototype) SetCronTriggers(v []*CronTrigger) {
 	x.xxx_hidden_CronTriggers = &v
+}
+
+func (x *AutomationPrototype) SetDisabled(v bool) {
+	x.xxx_hidden_Disabled = v
 }
 
 func (x *AutomationPrototype) HasId() bool {
@@ -392,11 +411,20 @@ func (x *AutomationPrototype) ClearPrototype() {
 type AutomationPrototype_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id                   *v1.ID
-	Name                 string
-	Prototype            *TaskSubmission
+	// Unique identifier for the trigger
+	Id *v1.ID
+	// A human-readable name for the trigger
+	Name string
+	// The task submission to trigger
+	Prototype *TaskSubmission
+	// The storage event triggers that will trigger the task
 	StorageEventTriggers []*StorageEventTrigger
-	CronTriggers         []*CronTrigger
+	// The cron triggers that will trigger the task
+	CronTriggers []*CronTrigger
+	// Whether the automation is disabled (paused) or not.
+	// the field is named disabled rather than enabled (with the semantics flipped) to make sure not setting the field at
+	// all results in the automation being enabled by default.
+	Disabled bool
 }
 
 func (b0 AutomationPrototype_builder) Build() *AutomationPrototype {
@@ -408,6 +436,7 @@ func (b0 AutomationPrototype_builder) Build() *AutomationPrototype {
 	x.xxx_hidden_Prototype = b.Prototype
 	x.xxx_hidden_StorageEventTriggers = &b.StorageEventTriggers
 	x.xxx_hidden_CronTriggers = &b.CronTriggers
+	x.xxx_hidden_Disabled = b.Disabled
 	return m0
 }
 
@@ -565,9 +594,12 @@ func (x *StorageEventTrigger) ClearStorageLocation() {
 type StorageEventTrigger_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id              *v1.ID
+	// Unique identifier for the trigger
+	Id *v1.ID
+	// The storage location to watch for events
 	StorageLocation *StorageLocation
-	GlobPattern     string
+	// A glob pattern to match objects/files in the storage location
+	GlobPattern string
 }
 
 func (b0 StorageEventTrigger_builder) Build() *StorageEventTrigger {
@@ -650,7 +682,9 @@ func (x *CronTrigger) ClearId() {
 type CronTrigger_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id       *v1.ID
+	// Unique identifier for the trigger
+	Id *v1.ID
+	// A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
 	Schedule string
 }
 
@@ -732,7 +766,8 @@ type Automation_builder struct {
 	// Details of the event that triggered the task. This is a serialized protobuf message. The type of the message
 	// depends on the type of the trigger, either StorageEventTriggerEvent or CronTriggerEvent.
 	TriggerEvent []byte
-	Args         []byte
+	// Additional, user-defined arguments for the task, to be deserialized by the task itself
+	Args []byte
 }
 
 func (b0 Automation_builder) Build() *Automation {
@@ -826,8 +861,10 @@ func (x *TriggeredStorageEvent) ClearStorageLocationId() {
 type TriggeredStorageEvent_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The storage location that triggered the task
 	StorageLocationId *v1.ID
-	Type              StorageEventType
+	// The type of the storage event, e.g. created
+	Type StorageEventType
 	// The object that triggered the task, e.g. a file name in a directory or object name in a bucket
 	Location string
 }
@@ -900,6 +937,7 @@ func (x *TriggeredCronEvent) ClearTriggerTime() {
 type TriggeredCronEvent_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The time the cron trigger fired
 	TriggerTime *timestamppb.Timestamp
 }
 
@@ -1000,28 +1038,34 @@ var File_workflows_v1_automation_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\n" +
-	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"|\n" +
-	"\x0fStorageLocation\x12\x1e\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1a\n" +
-	"\blocation\x18\x02 \x01(\tR\blocation\x12-\n" +
-	"\x04type\x18\x03 \x01(\x0e2\x19.workflows.v1.StorageTypeR\x04type\"O\n" +
+	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"\x9c\x01\n" +
+	"\x0fStorageLocation\x12&\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12&\n" +
+	"\blocation\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05 \x01(\x80\x04R\blocation\x129\n" +
+	"\x04type\x18\x03 \x01(\x0e2\x19.workflows.v1.StorageTypeB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type\"O\n" +
 	"\x10StorageLocations\x12;\n" +
-	"\tlocations\x18\x01 \x03(\v2\x1d.workflows.v1.StorageLocationR\tlocations\"\x9e\x02\n" +
+	"\tlocations\x18\x01 \x03(\v2\x1d.workflows.v1.StorageLocationR\tlocations\"\x8a\x03\n" +
 	"\x13AutomationPrototype\x12\x1e\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12:\n" +
-	"\tprototype\x18\x03 \x01(\v2\x1c.workflows.v1.TaskSubmissionR\tprototype\x12W\n" +
-	"\x16storage_event_triggers\x18\x04 \x03(\v2!.workflows.v1.StorageEventTriggerR\x14storageEventTriggers\x12>\n" +
-	"\rcron_triggers\x18\x05 \x03(\v2\x19.workflows.v1.CronTriggerR\fcronTriggers\"R\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1e\n" +
+	"\x04name\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05 \x01(\x80\bR\x04name\x12:\n" +
+	"\tprototype\x18\x03 \x01(\v2\x1c.workflows.v1.TaskSubmissionR\tprototype\x12a\n" +
+	"\x16storage_event_triggers\x18\x04 \x03(\v2!.workflows.v1.StorageEventTriggerB\b\xbaH\x05\x92\x01\x02\x10 R\x14storageEventTriggers\x12H\n" +
+	"\rcron_triggers\x18\x05 \x03(\v2\x19.workflows.v1.CronTriggerB\b\xbaH\x05\x92\x01\x02\x10 R\fcronTriggers\x12\x1a\n" +
+	"\bdisabled\x18\x06 \x01(\bR\bdisabled:.\xbaH+\")\n" +
+	"\x16storage_event_triggers\n" +
+	"\rcron_triggers\x10\x01\"R\n" +
 	"\vAutomations\x12C\n" +
-	"\vautomations\x18\x01 \x03(\v2!.workflows.v1.AutomationPrototypeR\vautomations\"\xa2\x01\n" +
+	"\vautomations\x18\x01 \x03(\v2!.workflows.v1.AutomationPrototypeR\vautomations\"\xab\x01\n" +
 	"\x13StorageEventTrigger\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12H\n" +
-	"\x10storage_location\x18\x02 \x01(\v2\x1d.workflows.v1.StorageLocationR\x0fstorageLocation\x12!\n" +
-	"\fglob_pattern\x18\x03 \x01(\tR\vglobPattern\"I\n" +
+	"\x10storage_location\x18\x02 \x01(\v2\x1d.workflows.v1.StorageLocationR\x0fstorageLocation\x12*\n" +
+	"\fglob_pattern\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vglobPattern\"R\n" +
 	"\vCronTrigger\x12\x1e\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1a\n" +
-	"\bschedule\x18\x02 \x01(\tR\bschedule\"E\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12#\n" +
+	"\bschedule\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bschedule\"E\n" +
 	"\n" +
 	"Automation\x12#\n" +
 	"\rtrigger_event\x18\x01 \x01(\fR\ftriggerEvent\x12\x12\n" +
@@ -1031,9 +1075,9 @@ const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.workflows.v1.StorageEventTypeR\x04type\x12\x1a\n" +
 	"\blocation\x18\x03 \x01(\tR\blocation\"S\n" +
 	"\x12TriggeredCronEvent\x12=\n" +
-	"\ftrigger_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vtriggerTime\"o\n" +
-	"\x17DeleteAutomationRequest\x123\n" +
-	"\rautomation_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fautomationId\x12\x1f\n" +
+	"\ftrigger_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vtriggerTime\"w\n" +
+	"\x17DeleteAutomationRequest\x12;\n" +
+	"\rautomation_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\fautomationId\x12\x1f\n" +
 	"\vcancel_jobs\x18\x02 \x01(\bR\n" +
 	"cancelJobs*k\n" +
 	"\vStorageType\x12\x1c\n" +

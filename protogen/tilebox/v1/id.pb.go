@@ -7,6 +7,7 @@
 package tileboxv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -86,9 +87,9 @@ var File_tilebox_v1_id_proto protoreflect.FileDescriptor
 const file_tilebox_v1_id_proto_rawDesc = "" +
 	"\n" +
 	"\x13tilebox/v1/id.proto\x12\n" +
-	"tilebox.v1\"\x18\n" +
-	"\x02ID\x12\x12\n" +
-	"\x04uuid\x18\x01 \x01(\fR\x04uuidB\xa4\x01\n" +
+	"tilebox.v1\x1a\x1bbuf/validate/validate.proto\"3\n" +
+	"\x02ID\x12-\n" +
+	"\x04uuid\x18\x01 \x01(\fB\x19\xbaH\x16z\x14J\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00h\x10R\x04uuidB\xa4\x01\n" +
 	"\x0ecom.tilebox.v1B\aIdProtoP\x01Z;github.com/tilebox/tilebox-go/protogen/tilebox/v1;tileboxv1\xa2\x02\x03TXX\xaa\x02\n" +
 	"Tilebox.V1\xca\x02\n" +
 	"Tilebox\\V1\xe2\x02\x16Tilebox\\V1\\GPBMetadata\xea\x02\vTilebox::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"

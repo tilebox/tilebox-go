@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -205,10 +206,12 @@ func (x *Cluster) SetDeletable(v bool) {
 type Cluster_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// 1 is reserved for a potential id field in the future.
-	Slug        string
+	// The unique slug of the cluster within the namespace.
+	Slug string
+	// The display name of the cluster.
 	DisplayName string
-	Deletable   bool
+	// Where the cluster is deletable
+	Deletable bool
 }
 
 func (b0 Cluster_builder) Build() *Cluster {
@@ -410,15 +413,21 @@ func (x *Job) ClearAutomationId() {
 type Job_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Id            *v1.ID
-	Name          string
-	TraceParent   string
-	Canceled      bool
-	State         JobState
-	SubmittedAt   *timestamppb.Timestamp
-	StartedAt     *timestamppb.Timestamp
+	Id          *v1.ID
+	Name        string
+	TraceParent string
+	// Whether the job has been canceled.
+	Canceled bool
+	// The current state of the job.
+	State JobState
+	// The time the job was submitted.
+	SubmittedAt *timestamppb.Timestamp
+	// The time the job started running.
+	StartedAt *timestamppb.Timestamp
+	// The task' summaries of the job.
 	TaskSummaries []*TaskSummary
-	AutomationId  *v1.ID
+	// The automation that submitted the job.
+	AutomationId *v1.ID
 }
 
 func (b0 Job_builder) Build() *Job {
@@ -855,17 +864,25 @@ func (x *Task) ClearLease() {
 type Task_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The id of the task instance. Contains the submission timestamp as the time part of the ULID.
 	Id *v1.ID
 	// Unique identifier for the task. Used by runners to match tasks to specific functions.
 	Identifier *TaskIdentifier
-	State      TaskState
-	Input      []byte
+	// The current state of the task.
+	State TaskState
+	// The serialized input parameters for the task in the format that this task expects.
+	Input []byte
 	// Display is a human readable representation of the Task used for printing or visualizations
-	Display    *string
-	Job        *Job
-	ParentId   *v1.ID
-	DependsOn  []*v1.ID
-	Lease      *TaskLease
+	Display *string
+	// The job that this task belongs to.
+	Job *Job
+	// The id of the parent task.
+	ParentId *v1.ID
+	// The ids of the tasks that this task depends on.
+	DependsOn []*v1.ID
+	// The lease of the task.
+	Lease *TaskLease
+	// The number of times this task has been retried.
 	RetryCount int64
 }
 
@@ -951,7 +968,9 @@ func (x *TaskIdentifier) SetVersion(v string) {
 type TaskIdentifier_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Name    string
+	// A unique name of a task (unique within a namespace).
+	Name string
+	// Version of the task.
 	Version string
 }
 
@@ -1145,13 +1164,18 @@ func (x *TaskSubmission) ClearIdentifier() {
 type TaskSubmission_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The cluster that this task should be run on
 	ClusterSlug string
-	Identifier  *TaskIdentifier
-	Input       []byte
-	Display     string
+	// The task identifier
+	Identifier *TaskIdentifier
+	// The serialized task instance
+	Input []byte
+	// A human-readable description of the task
+	Display string
 	// A list of indices, corresponding to tasks in the list of sub_tasks that this SubTask is part of.
 	Dependencies []int64
-	MaxRetries   int64
+	// The maximum number of retries for this task.
+	MaxRetries int64
 }
 
 func (b0 TaskSubmission_builder) Build() *TaskSubmission {
@@ -1265,7 +1289,7 @@ var File_workflows_v1_core_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"^\n" +
+	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"^\n" +
 	"\aCluster\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12!\n" +
 	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12\x1c\n" +
@@ -1306,21 +1330,22 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x05lease\x18\t \x01(\v2\x17.workflows.v1.TaskLeaseR\x05lease\x12\x1f\n" +
 	"\vretry_count\x18\n" +
 	" \x01(\x03R\n" +
-	"retryCount\">\n" +
-	"\x0eTaskIdentifier\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\"1\n" +
+	"retryCount\"d\n" +
+	"\x0eTaskIdentifier\x12\x1e\n" +
+	"\x04name\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05 \x01(\x80\x02R\x04name\x122\n" +
+	"\aversion\x18\x02 \x01(\tB\x18\xbaH\x15r\x13 \x012\x0f^v(\\d+)\\.(\\d+)$R\aversion\"1\n" +
 	"\x05Tasks\x12(\n" +
-	"\x05tasks\x18\x01 \x03(\v2\x12.workflows.v1.TaskR\x05tasks\"\xe6\x01\n" +
+	"\x05tasks\x18\x01 \x03(\v2\x12.workflows.v1.TaskR\x05tasks\"\x92\x02\n" +
 	"\x0eTaskSubmission\x12!\n" +
 	"\fcluster_slug\x18\x01 \x01(\tR\vclusterSlug\x12<\n" +
 	"\n" +
 	"identifier\x18\x02 \x01(\v2\x1c.workflows.v1.TaskIdentifierR\n" +
-	"identifier\x12\x14\n" +
-	"\x05input\x18\x03 \x01(\fR\x05input\x12\x18\n" +
-	"\adisplay\x18\x04 \x01(\tR\adisplay\x12\"\n" +
-	"\fdependencies\x18\x05 \x03(\x03R\fdependencies\x12\x1f\n" +
-	"\vmax_retries\x18\x06 \x01(\x03R\n" +
+	"identifier\x12\x1e\n" +
+	"\x05input\x18\x03 \x01(\fB\b\xbaH\x05z\x03\x18\x80\bR\x05input\x12!\n" +
+	"\adisplay\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\adisplay\x122\n" +
+	"\fdependencies\x18\x05 \x03(\x03B\x0e\xbaH\v\x92\x01\b\"\x06\"\x04\x18?(\x00R\fdependencies\x12(\n" +
+	"\vmax_retries\x18\x06 \x01(\x03B\a\xbaH\x04\"\x02(\x00R\n" +
 	"maxRetries\"\xa9\x01\n" +
 	"\tTaskLease\x12/\n" +
 	"\x05lease\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x05lease\x12k\n" +

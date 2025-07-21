@@ -4,6 +4,8 @@ managed:
   disable:
     - file_option: go_package
       module: buf.build/googleapis/googleapis
+    - file_option: go_package
+      module: buf.build/bufbuild/protovalidate
   override:
     - file_option: go_package_prefix
       value: github.com/tilebox/tilebox-go/protogen

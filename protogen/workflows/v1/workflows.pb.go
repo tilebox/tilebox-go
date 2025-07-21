@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -350,13 +351,13 @@ var File_workflows_v1_workflows_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\n" +
-	"\x1cworkflows/v1/workflows.proto\x12\fworkflows.v1\x1a\x17workflows/v1/core.proto\"*\n" +
-	"\x14CreateClusterRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\"6\n" +
+	"\x1cworkflows/v1/workflows.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x17workflows/v1/core.proto\"3\n" +
+	"\x14CreateClusterRequest\x12\x1b\n" +
+	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\"6\n" +
 	"\x11GetClusterRequest\x12!\n" +
-	"\fcluster_slug\x18\x01 \x01(\tR\vclusterSlug\"9\n" +
-	"\x14DeleteClusterRequest\x12!\n" +
-	"\fcluster_slug\x18\x01 \x01(\tR\vclusterSlug\"\x17\n" +
+	"\fcluster_slug\x18\x01 \x01(\tR\vclusterSlug\"B\n" +
+	"\x14DeleteClusterRequest\x12*\n" +
+	"\fcluster_slug\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vclusterSlug\"\x17\n" +
 	"\x15DeleteClusterResponse\"\x15\n" +
 	"\x13ListClustersRequest\"I\n" +
 	"\x14ListClustersResponse\x121\n" +
