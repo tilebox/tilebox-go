@@ -116,10 +116,13 @@ func (x ObservationDirection) Number() protoreflect.EnumNumber {
 type OpendataProvider int32
 
 const (
-	OpendataProvider_OPENDATA_PROVIDER_UNSPECIFIED          OpendataProvider = 0
-	OpendataProvider_OPENDATA_PROVIDER_ASF                  OpendataProvider = 1 // Alaska Satellite Facility
-	OpendataProvider_OPENDATA_PROVIDER_COPERNICUS_DATASPACE OpendataProvider = 2 // Copernicus Dataspace
-	OpendataProvider_OPENDATA_PROVIDER_UMBRA                OpendataProvider = 3 // Umbra Space
+	OpendataProvider_OPENDATA_PROVIDER_UNSPECIFIED OpendataProvider = 0
+	// Alaska Satellite Facility
+	OpendataProvider_OPENDATA_PROVIDER_ASF OpendataProvider = 1
+	// Copernicus Dataspace
+	OpendataProvider_OPENDATA_PROVIDER_COPERNICUS_DATASPACE OpendataProvider = 2
+	// Umbra Space
+	OpendataProvider_OPENDATA_PROVIDER_UMBRA OpendataProvider = 3
 )
 
 // Enum value maps for OpendataProvider.
@@ -164,8 +167,9 @@ func (x OpendataProvider) Number() protoreflect.EnumNumber {
 type ProcessingLevel int32
 
 const (
-	ProcessingLevel_PROCESSING_LEVEL_UNSPECIFIED    ProcessingLevel = 0
-	ProcessingLevel_PROCESSING_LEVEL_L0             ProcessingLevel = 12 // Raw data
+	ProcessingLevel_PROCESSING_LEVEL_UNSPECIFIED ProcessingLevel = 0
+	// Raw data
+	ProcessingLevel_PROCESSING_LEVEL_L0             ProcessingLevel = 12
 	ProcessingLevel_PROCESSING_LEVEL_L1             ProcessingLevel = 10
 	ProcessingLevel_PROCESSING_LEVEL_L1A            ProcessingLevel = 1
 	ProcessingLevel_PROCESSING_LEVEL_L1B            ProcessingLevel = 2
@@ -239,18 +243,27 @@ func (x ProcessingLevel) Number() protoreflect.EnumNumber {
 type Polarization int32
 
 const (
-	// Horizontal transmit, Horizontal receive
 	Polarization_POLARIZATION_UNSPECIFIED Polarization = 0
-	Polarization_POLARIZATION_HH          Polarization = 1
-	Polarization_POLARIZATION_HV          Polarization = 2  // Horizontal transmit, Vertical receive
-	Polarization_POLARIZATION_VH          Polarization = 3  // Vertical transmit, Horizontal receive
-	Polarization_POLARIZATION_VV          Polarization = 4  // Vertical transmit, Vertical receive
-	Polarization_POLARIZATION_DUAL_HH     Polarization = 5  // HH+HH
-	Polarization_POLARIZATION_DUAL_HV     Polarization = 6  // HV+HV
-	Polarization_POLARIZATION_DUAL_VH     Polarization = 7  // VH+VH
-	Polarization_POLARIZATION_DUAL_VV     Polarization = 8  // VV+VV
-	Polarization_POLARIZATION_HH_HV       Polarization = 9  // HH+HV
-	Polarization_POLARIZATION_VV_VH       Polarization = 10 // VV+VH
+	// Horizontal transmit, Horizontal receive
+	Polarization_POLARIZATION_HH Polarization = 1
+	// Horizontal transmit, Vertical receive
+	Polarization_POLARIZATION_HV Polarization = 2
+	// Vertical transmit, Horizontal receive
+	Polarization_POLARIZATION_VH Polarization = 3
+	// Vertical transmit, Vertical receive
+	Polarization_POLARIZATION_VV Polarization = 4
+	// HH+HH
+	Polarization_POLARIZATION_DUAL_HH Polarization = 5
+	// HV+HV
+	Polarization_POLARIZATION_DUAL_HV Polarization = 6
+	// VH+VH
+	Polarization_POLARIZATION_DUAL_VH Polarization = 7
+	// VV+VV
+	Polarization_POLARIZATION_DUAL_VV Polarization = 8
+	// HH+HV
+	Polarization_POLARIZATION_HH_HV Polarization = 9
+	// VV+VH
+	Polarization_POLARIZATION_VV_VH Polarization = 10
 )
 
 // Enum value maps for Polarization.
@@ -310,22 +323,35 @@ func (x Polarization) Number() protoreflect.EnumNumber {
 type AcquisitionMode int32
 
 const (
-	AcquisitionMode_ACQUISITION_MODE_UNSPECIFIED AcquisitionMode = 0 // In case it is not set for a dataset
+	// In case it is not set for a dataset
+	AcquisitionMode_ACQUISITION_MODE_UNSPECIFIED AcquisitionMode = 0
 	// used by Sentinel-1 SAR:
-	AcquisitionMode_ACQUISITION_MODE_SM AcquisitionMode = 1 // Strip Map
-	AcquisitionMode_ACQUISITION_MODE_EW AcquisitionMode = 2 // Extra Wide Swath
-	AcquisitionMode_ACQUISITION_MODE_IW AcquisitionMode = 3 // Interferometric Wide Swath
-	AcquisitionMode_ACQUISITION_MODE_WV AcquisitionMode = 4 // Wave
+	// Strip Map
+	AcquisitionMode_ACQUISITION_MODE_SM AcquisitionMode = 1
+	// Extra Wide Swath
+	AcquisitionMode_ACQUISITION_MODE_EW AcquisitionMode = 2
+	// Interferometric Wide Swath
+	AcquisitionMode_ACQUISITION_MODE_IW AcquisitionMode = 3
+	// Wave
+	AcquisitionMode_ACQUISITION_MODE_WV AcquisitionMode = 4
 	// used by Umbra SAR:
-	AcquisitionMode_ACQUISITION_MODE_SPOTLIGHT AcquisitionMode = 10 // Spotlight
+	// Spotlight
+	AcquisitionMode_ACQUISITION_MODE_SPOTLIGHT AcquisitionMode = 10
 	// used by Sentinel 2 MSI:
-	AcquisitionMode_ACQUISITION_MODE_NOBS AcquisitionMode = 20 // Nominal Observation
-	AcquisitionMode_ACQUISITION_MODE_EOBS AcquisitionMode = 21 // Extended Observation
-	AcquisitionMode_ACQUISITION_MODE_DASC AcquisitionMode = 22 // Dark Signal Calibration
-	AcquisitionMode_ACQUISITION_MODE_ABSR AcquisitionMode = 23 // Absolute Radiometry Calibration
-	AcquisitionMode_ACQUISITION_MODE_VIC  AcquisitionMode = 24 // Vicarious Calibration
-	AcquisitionMode_ACQUISITION_MODE_RAW  AcquisitionMode = 25 // Raw Measurement
-	AcquisitionMode_ACQUISITION_MODE_TST  AcquisitionMode = 26 // Test Mode
+	// Nominal Observation
+	AcquisitionMode_ACQUISITION_MODE_NOBS AcquisitionMode = 20
+	// Extended Observation
+	AcquisitionMode_ACQUISITION_MODE_EOBS AcquisitionMode = 21
+	// Dark Signal Calibration
+	AcquisitionMode_ACQUISITION_MODE_DASC AcquisitionMode = 22
+	// Absolute Radiometry Calibration
+	AcquisitionMode_ACQUISITION_MODE_ABSR AcquisitionMode = 23
+	// Vicarious Calibration
+	AcquisitionMode_ACQUISITION_MODE_VIC AcquisitionMode = 24
+	// Raw Measurement
+	AcquisitionMode_ACQUISITION_MODE_RAW AcquisitionMode = 25
+	// Test Mode
+	AcquisitionMode_ACQUISITION_MODE_TST AcquisitionMode = 26
 )
 
 // Enum value maps for AcquisitionMode.
@@ -840,6 +866,7 @@ func (x *Geometry) SetWkb(v []byte) {
 type Geometry_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// well-known binary representation of a geometry
 	Wkb []byte
 }
 

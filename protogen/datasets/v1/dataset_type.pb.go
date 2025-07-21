@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -431,7 +432,8 @@ func (x *AnnotatedType) ClearDescriptorSet() {
 type AnnotatedType_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	DescriptorSet    *descriptorpb.FileDescriptorSet
+	DescriptorSet *descriptorpb.FileDescriptorSet
+	// the url of the type, one of the types defined in the descriptor
 	TypeUrl          string
 	FieldAnnotations []*FieldAnnotation
 	Kind             DatasetKind
@@ -553,8 +555,11 @@ func (x *TemporalDatapoint) ClearIngestionTime() {
 type TemporalDatapoint_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Time          *timestamppb.Timestamp
-	Id            *v1.ID
+	// The timestamp associated with each data point.
+	Time *timestamppb.Timestamp
+	// A universally unique identifier (UUID) that uniquely identifies each data point.
+	Id *v1.ID
+	// The time the data point was ingested into the Tilebox API.
 	IngestionTime *timestamppb.Timestamp
 }
 
@@ -696,10 +701,14 @@ func (x *SpatioTemporalDatapoint) ClearGeometry() {
 type SpatioTemporalDatapoint_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Time          *timestamppb.Timestamp
-	Id            *v1.ID
+	// The timestamp associated with each data point.
+	Time *timestamppb.Timestamp
+	// A universally unique identifier (UUID) that uniquely identifies each data point.
+	Id *v1.ID
+	// The time the data point was ingested into the Tilebox API.
 	IngestionTime *timestamppb.Timestamp
-	Geometry      *Geometry
+	// The geometry associated with each data point.
+	Geometry *Geometry
 }
 
 func (b0 SpatioTemporalDatapoint_builder) Build() *SpatioTemporalDatapoint {
@@ -717,20 +726,21 @@ var File_datasets_v1_dataset_type_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"\n" +
-	"\x1edatasets/v1/dataset_type.proto\x12\vdatasets.v1\x1a\"datasets/v1/well_known_types.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xaa\x01\n" +
-	"\x05Field\x12E\n" +
+	"\x1edatasets/v1/dataset_type.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\"datasets/v1/well_known_types.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xbb\x01\n" +
+	"\x05Field\x12M\n" +
 	"\n" +
-	"descriptor\x18\x01 \x01(\v2%.google.protobuf.FieldDescriptorProtoR\n" +
+	"descriptor\x18\x01 \x01(\v2%.google.protobuf.FieldDescriptorProtoB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"descriptor\x12<\n" +
 	"\n" +
 	"annotation\x18\x02 \x01(\v2\x1c.datasets.v1.FieldAnnotationR\n" +
-	"annotation\x12\x1c\n" +
-	"\tqueryable\x18\x03 \x01(\bR\tqueryable\"X\n" +
+	"annotation\x12%\n" +
+	"\tqueryable\x18\x03 \x01(\bB\a\xbaH\x04j\x02\b\x00R\tqueryable\"X\n" +
 	"\x0fFieldAnnotation\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12#\n" +
-	"\rexample_value\x18\x02 \x01(\tR\fexampleValue\"g\n" +
-	"\vDatasetType\x12,\n" +
-	"\x04kind\x18\x01 \x01(\x0e2\x18.datasets.v1.DatasetKindR\x04kind\x12*\n" +
+	"\rexample_value\x18\x02 \x01(\tR\fexampleValue\"s\n" +
+	"\vDatasetType\x128\n" +
+	"\x04kind\x18\x01 \x01(\x0e2\x18.datasets.v1.DatasetKindB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04kind\x12*\n" +
 	"\x06fields\x18\x02 \x03(\v2\x12.datasets.v1.FieldR\x06fields\"\xf4\x01\n" +
 	"\rAnnotatedType\x12I\n" +
 	"\x0edescriptor_set\x18\x01 \x01(\v2\".google.protobuf.FileDescriptorSetR\rdescriptorSet\x12\x19\n" +

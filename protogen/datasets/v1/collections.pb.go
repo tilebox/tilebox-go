@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -91,8 +92,10 @@ func (x *CreateCollectionRequest) ClearDatasetId() {
 type CreateCollectionRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The dataset id where the collection should be created.
 	DatasetId *v1.ID
-	Name      string
+	// The name of the collection to create.
+	Name string
 }
 
 func (b0 CreateCollectionRequest_builder) Build() *CreateCollectionRequest {
@@ -198,10 +201,14 @@ func (x *GetCollectionByNameRequest) ClearDatasetId() {
 type GetCollectionByNameRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	CollectionName   string
+	// The name of the collection to retrieve.
+	CollectionName string
+	// If true, the response will include the availability interval.
 	WithAvailability bool
-	WithCount        bool
-	DatasetId        *v1.ID
+	// If true, the response will include the number of entries.
+	WithCount bool
+	// The dataset id.
+	DatasetId *v1.ID
 }
 
 func (b0 GetCollectionByNameRequest_builder) Build() *GetCollectionByNameRequest {
@@ -296,8 +303,10 @@ func (x *DeleteCollectionRequest) ClearDatasetId() {
 type DeleteCollectionRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The id of the collection to delete.
 	CollectionId *v1.ID
-	DatasetId    *v1.ID
+	// The dataset id.
+	DatasetId *v1.ID
 }
 
 func (b0 DeleteCollectionRequest_builder) Build() *DeleteCollectionRequest {
@@ -436,9 +445,12 @@ func (x *ListCollectionsRequest) ClearDatasetId() {
 type ListCollectionsRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	DatasetId        *v1.ID
+	// The dataset id.
+	DatasetId *v1.ID
+	// If true, the response will include the availability interval.
 	WithAvailability bool
-	WithCount        bool
+	// If true, the response will include the number of entries.
+	WithCount bool
 }
 
 func (b0 ListCollectionsRequest_builder) Build() *ListCollectionsRequest {
@@ -455,26 +467,26 @@ var File_datasets_v1_collections_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_collections_proto_rawDesc = "" +
 	"\n" +
-	"\x1ddatasets/v1/collections.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\x13tilebox/v1/id.proto\"\\\n" +
-	"\x17CreateCollectionRequest\x12-\n" +
+	"\x1ddatasets/v1/collections.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\x16datasets/v1/core.proto\x1a\x13tilebox/v1/id.proto\"m\n" +
+	"\x17CreateCollectionRequest\x125\n" +
 	"\n" +
-	"dataset_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\tdatasetId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\xc0\x01\n" +
-	"\x1aGetCollectionByNameRequest\x12'\n" +
-	"\x0fcollection_name\x18\x01 \x01(\tR\x0ecollectionName\x12+\n" +
+	"dataset_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\tdatasetId\x12\x1b\n" +
+	"\x04name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\"\xd1\x01\n" +
+	"\x1aGetCollectionByNameRequest\x120\n" +
+	"\x0fcollection_name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x0ecollectionName\x12+\n" +
 	"\x11with_availability\x18\x02 \x01(\bR\x10withAvailability\x12\x1d\n" +
 	"\n" +
-	"with_count\x18\x03 \x01(\bR\twithCount\x12-\n" +
+	"with_count\x18\x03 \x01(\bR\twithCount\x125\n" +
 	"\n" +
-	"dataset_id\x18\x04 \x01(\v2\x0e.tilebox.v1.IDR\tdatasetId\"}\n" +
-	"\x17DeleteCollectionRequest\x123\n" +
-	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x12-\n" +
+	"dataset_id\x18\x04 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\tdatasetId\"\x8d\x01\n" +
+	"\x17DeleteCollectionRequest\x12;\n" +
+	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\fcollectionId\x125\n" +
 	"\n" +
-	"dataset_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\tdatasetId\"\x1a\n" +
-	"\x18DeleteCollectionResponse\"\x93\x01\n" +
-	"\x16ListCollectionsRequest\x12-\n" +
+	"dataset_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\tdatasetId\"\x1a\n" +
+	"\x18DeleteCollectionResponse\"\x9b\x01\n" +
+	"\x16ListCollectionsRequest\x125\n" +
 	"\n" +
-	"dataset_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\tdatasetId\x12+\n" +
+	"dataset_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\tdatasetId\x12+\n" +
 	"\x11with_availability\x18\x02 \x01(\bR\x10withAvailability\x12\x1d\n" +
 	"\n" +
 	"with_count\x18\x03 \x01(\bR\twithCount2\x86\x03\n" +

@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -21,119 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Legacy ingest request
-// IngestDatapointsRequest is used to ingest one or multiple datapoints into a collection.
-type IngestDatapointsRequest struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_CollectionId  *v1.ID                 `protobuf:"bytes,1,opt,name=collection_id,json=collectionId"`
-	xxx_hidden_Datapoints    *Datapoints            `protobuf:"bytes,2,opt,name=datapoints"`
-	xxx_hidden_AllowExisting bool                   `protobuf:"varint,3,opt,name=allow_existing,json=allowExisting"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
-}
-
-func (x *IngestDatapointsRequest) Reset() {
-	*x = IngestDatapointsRequest{}
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *IngestDatapointsRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*IngestDatapointsRequest) ProtoMessage() {}
-
-func (x *IngestDatapointsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *IngestDatapointsRequest) GetCollectionId() *v1.ID {
-	if x != nil {
-		return x.xxx_hidden_CollectionId
-	}
-	return nil
-}
-
-func (x *IngestDatapointsRequest) GetDatapoints() *Datapoints {
-	if x != nil {
-		return x.xxx_hidden_Datapoints
-	}
-	return nil
-}
-
-func (x *IngestDatapointsRequest) GetAllowExisting() bool {
-	if x != nil {
-		return x.xxx_hidden_AllowExisting
-	}
-	return false
-}
-
-func (x *IngestDatapointsRequest) SetCollectionId(v *v1.ID) {
-	x.xxx_hidden_CollectionId = v
-}
-
-func (x *IngestDatapointsRequest) SetDatapoints(v *Datapoints) {
-	x.xxx_hidden_Datapoints = v
-}
-
-func (x *IngestDatapointsRequest) SetAllowExisting(v bool) {
-	x.xxx_hidden_AllowExisting = v
-}
-
-func (x *IngestDatapointsRequest) HasCollectionId() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_CollectionId != nil
-}
-
-func (x *IngestDatapointsRequest) HasDatapoints() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Datapoints != nil
-}
-
-func (x *IngestDatapointsRequest) ClearCollectionId() {
-	x.xxx_hidden_CollectionId = nil
-}
-
-func (x *IngestDatapointsRequest) ClearDatapoints() {
-	x.xxx_hidden_Datapoints = nil
-}
-
-type IngestDatapointsRequest_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	CollectionId *v1.ID
-	Datapoints   *Datapoints
-	// Whether to allow existing datapoints as part of the request. If true, datapoints that already exist will be
-	// ignored, and the number of such existing datapoints will be returned in the response. If false, any datapoints
-	// that already exist will result in an error. Setting this to true is useful for achieving idempotency (e.g.
-	// allowing re-ingestion of datapoints that have already been ingested in the past).
-	AllowExisting bool
-}
-
-func (b0 IngestDatapointsRequest_builder) Build() *IngestDatapointsRequest {
-	m0 := &IngestDatapointsRequest{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_CollectionId = b.CollectionId
-	x.xxx_hidden_Datapoints = b.Datapoints
-	x.xxx_hidden_AllowExisting = b.AllowExisting
-	return m0
-}
-
 // IngestRequest is used to ingest one or multiple datapoints into a collection.
 type IngestRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
@@ -146,7 +34,7 @@ type IngestRequest struct {
 
 func (x *IngestRequest) Reset() {
 	*x = IngestRequest{}
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[1]
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -158,7 +46,7 @@ func (x *IngestRequest) String() string {
 func (*IngestRequest) ProtoMessage() {}
 
 func (x *IngestRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[1]
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -216,6 +104,7 @@ func (x *IngestRequest) ClearCollectionId() {
 type IngestRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The collection to insert the datapoints into.
 	CollectionId *v1.ID
 	// The datapoints to insert. The values here are encoded protobuf messages. The type of the message is determined
 	// by the type of the dataset that the specified collection belongs to.
@@ -250,7 +139,7 @@ type IngestResponse struct {
 
 func (x *IngestResponse) Reset() {
 	*x = IngestResponse{}
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[2]
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -262,7 +151,7 @@ func (x *IngestResponse) String() string {
 func (*IngestResponse) ProtoMessage() {}
 
 func (x *IngestResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[2]
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -311,8 +200,11 @@ func (x *IngestResponse) SetDatapointIds(v []*v1.ID) {
 type IngestResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	NumCreated   int64
-	NumExisting  int64
+	// The number of datapoints that were created.
+	NumCreated int64
+	// The number of datapoints that were ignored because they already existed.
+	NumExisting int64
+	// The ids of the datapoints in the same order as the datapoints in the request.
 	DatapointIds []*v1.ID
 }
 
@@ -337,7 +229,7 @@ type DeleteRequest struct {
 
 func (x *DeleteRequest) Reset() {
 	*x = DeleteRequest{}
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[3]
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -349,7 +241,7 @@ func (x *DeleteRequest) String() string {
 func (*DeleteRequest) ProtoMessage() {}
 
 func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[3]
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -421,7 +313,7 @@ type DeleteResponse struct {
 
 func (x *DeleteResponse) Reset() {
 	*x = DeleteResponse{}
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[4]
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -433,7 +325,7 @@ func (x *DeleteResponse) String() string {
 func (*DeleteResponse) ProtoMessage() {}
 
 func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[4]
+	mi := &file_datasets_v1_data_ingestion_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -458,6 +350,7 @@ func (x *DeleteResponse) SetNumDeleted(v int64) {
 type DeleteResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The number of datapoints that were deleted.
 	NumDeleted int64
 }
 
@@ -473,25 +366,19 @@ var File_datasets_v1_data_ingestion_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_data_ingestion_proto_rawDesc = "" +
 	"\n" +
-	" datasets/v1/data_ingestion.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\x13tilebox/v1/id.proto\"\xae\x01\n" +
-	"\x17IngestDatapointsRequest\x123\n" +
-	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x127\n" +
-	"\n" +
-	"datapoints\x18\x02 \x01(\v2\x17.datasets.v1.DatapointsR\n" +
-	"datapoints\x12%\n" +
-	"\x0eallow_existing\x18\x03 \x01(\bR\rallowExisting\"\x83\x01\n" +
-	"\rIngestRequest\x123\n" +
-	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x12\x16\n" +
-	"\x06values\x18\x02 \x03(\fR\x06values\x12%\n" +
+	" datasets/v1/data_ingestion.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\x13tilebox/v1/id.proto\"\x9c\x01\n" +
+	"\rIngestRequest\x12;\n" +
+	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\fcollectionId\x12'\n" +
+	"\x06values\x18\x02 \x03(\fB\x0f\xbaH\f\x92\x01\t\x10\x80@\"\x04z\x02\x10\x01R\x06values\x12%\n" +
 	"\x0eallow_existing\x18\x03 \x01(\bR\rallowExisting\"\x89\x01\n" +
 	"\x0eIngestResponse\x12\x1f\n" +
 	"\vnum_created\x18\x01 \x01(\x03R\n" +
 	"numCreated\x12!\n" +
 	"\fnum_existing\x18\x02 \x01(\x03R\vnumExisting\x123\n" +
-	"\rdatapoint_ids\x18\x03 \x03(\v2\x0e.tilebox.v1.IDR\fdatapointIds\"y\n" +
-	"\rDeleteRequest\x123\n" +
-	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\fcollectionId\x123\n" +
-	"\rdatapoint_ids\x18\x02 \x03(\v2\x0e.tilebox.v1.IDR\fdatapointIds\"1\n" +
+	"\rdatapoint_ids\x18\x03 \x03(\v2\x0e.tilebox.v1.IDR\fdatapointIds\"\x8c\x01\n" +
+	"\rDeleteRequest\x12;\n" +
+	"\rcollection_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\fcollectionId\x12>\n" +
+	"\rdatapoint_ids\x18\x02 \x03(\v2\x0e.tilebox.v1.IDB\t\xbaH\x06\x92\x01\x03\x10\x80@R\fdatapointIds\"1\n" +
 	"\x0eDeleteResponse\x12\x1f\n" +
 	"\vnum_deleted\x18\x01 \x01(\x03R\n" +
 	"numDeleted2\xa0\x01\n" +
@@ -500,32 +387,28 @@ const file_datasets_v1_data_ingestion_proto_rawDesc = "" +
 	"\x06Delete\x12\x1a.datasets.v1.DeleteRequest\x1a\x1b.datasets.v1.DeleteResponse\"\x00B\xb6\x01\n" +
 	"\x0fcom.datasets.v1B\x12DataIngestionProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_datasets_v1_data_ingestion_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_datasets_v1_data_ingestion_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_datasets_v1_data_ingestion_proto_goTypes = []any{
-	(*IngestDatapointsRequest)(nil), // 0: datasets.v1.IngestDatapointsRequest
-	(*IngestRequest)(nil),           // 1: datasets.v1.IngestRequest
-	(*IngestResponse)(nil),          // 2: datasets.v1.IngestResponse
-	(*DeleteRequest)(nil),           // 3: datasets.v1.DeleteRequest
-	(*DeleteResponse)(nil),          // 4: datasets.v1.DeleteResponse
-	(*v1.ID)(nil),                   // 5: tilebox.v1.ID
-	(*Datapoints)(nil),              // 6: datasets.v1.Datapoints
+	(*IngestRequest)(nil),  // 0: datasets.v1.IngestRequest
+	(*IngestResponse)(nil), // 1: datasets.v1.IngestResponse
+	(*DeleteRequest)(nil),  // 2: datasets.v1.DeleteRequest
+	(*DeleteResponse)(nil), // 3: datasets.v1.DeleteResponse
+	(*v1.ID)(nil),          // 4: tilebox.v1.ID
 }
 var file_datasets_v1_data_ingestion_proto_depIdxs = []int32{
-	5, // 0: datasets.v1.IngestDatapointsRequest.collection_id:type_name -> tilebox.v1.ID
-	6, // 1: datasets.v1.IngestDatapointsRequest.datapoints:type_name -> datasets.v1.Datapoints
-	5, // 2: datasets.v1.IngestRequest.collection_id:type_name -> tilebox.v1.ID
-	5, // 3: datasets.v1.IngestResponse.datapoint_ids:type_name -> tilebox.v1.ID
-	5, // 4: datasets.v1.DeleteRequest.collection_id:type_name -> tilebox.v1.ID
-	5, // 5: datasets.v1.DeleteRequest.datapoint_ids:type_name -> tilebox.v1.ID
-	1, // 6: datasets.v1.DataIngestionService.Ingest:input_type -> datasets.v1.IngestRequest
-	3, // 7: datasets.v1.DataIngestionService.Delete:input_type -> datasets.v1.DeleteRequest
-	2, // 8: datasets.v1.DataIngestionService.Ingest:output_type -> datasets.v1.IngestResponse
-	4, // 9: datasets.v1.DataIngestionService.Delete:output_type -> datasets.v1.DeleteResponse
-	8, // [8:10] is the sub-list for method output_type
-	6, // [6:8] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	4, // 0: datasets.v1.IngestRequest.collection_id:type_name -> tilebox.v1.ID
+	4, // 1: datasets.v1.IngestResponse.datapoint_ids:type_name -> tilebox.v1.ID
+	4, // 2: datasets.v1.DeleteRequest.collection_id:type_name -> tilebox.v1.ID
+	4, // 3: datasets.v1.DeleteRequest.datapoint_ids:type_name -> tilebox.v1.ID
+	0, // 4: datasets.v1.DataIngestionService.Ingest:input_type -> datasets.v1.IngestRequest
+	2, // 5: datasets.v1.DataIngestionService.Delete:input_type -> datasets.v1.DeleteRequest
+	1, // 6: datasets.v1.DataIngestionService.Ingest:output_type -> datasets.v1.IngestResponse
+	3, // 7: datasets.v1.DataIngestionService.Delete:output_type -> datasets.v1.DeleteResponse
+	6, // [6:8] is the sub-list for method output_type
+	4, // [4:6] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_data_ingestion_proto_init() }
@@ -533,14 +416,13 @@ func file_datasets_v1_data_ingestion_proto_init() {
 	if File_datasets_v1_data_ingestion_proto != nil {
 		return
 	}
-	file_datasets_v1_core_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_data_ingestion_proto_rawDesc), len(file_datasets_v1_data_ingestion_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
