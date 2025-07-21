@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -90,7 +91,9 @@ func (x *RenderDiagramRequest) ClearRenderOptions() {
 type RenderDiagramRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Diagram       string
+	// The diagram graph in the D2 syntax
+	Diagram string
+	// The options for rendering the diagram
 	RenderOptions *RenderOptions
 }
 
@@ -223,7 +226,6 @@ type RenderOptions_builder struct {
 	// The padding around the diagram
 	Padding int64
 	// Set explicitly the direction of the diagram: https://d2lang.com/tour/layouts/#direction.
-	// "up", "down", "right", "left".
 	Direction string
 }
 
@@ -307,16 +309,16 @@ var File_workflows_v1_diagram_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_diagram_proto_rawDesc = "" +
 	"\n" +
-	"\x1aworkflows/v1/diagram.proto\x12\fworkflows.v1\"t\n" +
+	"\x1aworkflows/v1/diagram.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\"t\n" +
 	"\x14RenderDiagramRequest\x12\x18\n" +
 	"\adiagram\x18\x01 \x01(\tR\adiagram\x12B\n" +
-	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\"\x9b\x01\n" +
-	"\rRenderOptions\x12\x16\n" +
-	"\x06layout\x18\x01 \x01(\tR\x06layout\x12 \n" +
+	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\"\xcc\x01\n" +
+	"\rRenderOptions\x12)\n" +
+	"\x06layout\x18\x01 \x01(\tB\x11\xbaH\x0er\fR\x05dagreR\x03elkR\x06layout\x12 \n" +
 	"\btheme_id\x18\x02 \x01(\x03B\x05\xaa\x01\x02\b\x01R\athemeId\x12\x18\n" +
 	"\asketchy\x18\x03 \x01(\bR\asketchy\x12\x18\n" +
-	"\apadding\x18\x04 \x01(\x03R\apadding\x12\x1c\n" +
-	"\tdirection\x18\x05 \x01(\tR\tdirection\"\x1b\n" +
+	"\apadding\x18\x04 \x01(\x03R\apadding\x12:\n" +
+	"\tdirection\x18\x05 \x01(\tB\x1c\xbaH\x19r\x17R\x02upR\x04downR\x05rightR\x04leftR\tdirection\"\x1b\n" +
 	"\aDiagram\x12\x10\n" +
 	"\x03svg\x18\x01 \x01(\fR\x03svg2U\n" +
 	"\x0eDiagramService\x12C\n" +

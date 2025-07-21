@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -180,7 +181,9 @@ func (x *NextTaskToRun) SetIdentifiers(v []*TaskIdentifier) {
 type NextTaskToRun_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The cluster that this task runner is running on.
 	ClusterSlug string
+	// The task identifiers that this task runner can run.
 	Identifiers []*TaskIdentifier
 }
 
@@ -277,10 +280,12 @@ func (x *ComputedTask) ClearId() {
 type ComputedTask_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The id of the task that has been computed.
 	Id *v1.ID
 	// A display name for the task that has been computed for visualization purposes.
 	// If not set, the display message specified upon task submission will be kept.
-	Display  string
+	Display string
+	// A list of sub-tasks that the just computed task spawned.
 	SubTasks []*TaskSubmission
 }
 
@@ -618,29 +623,29 @@ var File_workflows_v1_task_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_task_proto_rawDesc = "" +
 	"\n" +
-	"\x17workflows/v1/task.proto\x12\fworkflows.v1\x1a\x1egoogle/protobuf/duration.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"\xa6\x01\n" +
+	"\x17workflows/v1/task.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"\xa6\x01\n" +
 	"\x0fNextTaskRequest\x12F\n" +
 	"\rcomputed_task\x18\x01 \x01(\v2\x1a.workflows.v1.ComputedTaskB\x05\xaa\x01\x02\b\x01R\fcomputedTask\x12K\n" +
-	"\x10next_task_to_run\x18\x02 \x01(\v2\x1b.workflows.v1.NextTaskToRunB\x05\xaa\x01\x02\b\x01R\rnextTaskToRun\"r\n" +
-	"\rNextTaskToRun\x12!\n" +
-	"\fcluster_slug\x18\x01 \x01(\tR\vclusterSlug\x12>\n" +
-	"\videntifiers\x18\x02 \x03(\v2\x1c.workflows.v1.TaskIdentifierR\videntifiers\"\x83\x01\n" +
-	"\fComputedTask\x12\x1e\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x18\n" +
-	"\adisplay\x18\x02 \x01(\tR\adisplay\x129\n" +
-	"\tsub_tasks\x18\x03 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\bsubTasks\"C\n" +
+	"\x10next_task_to_run\x18\x02 \x01(\v2\x1b.workflows.v1.NextTaskToRunB\x05\xaa\x01\x02\b\x01R\rnextTaskToRun\"{\n" +
+	"\rNextTaskToRun\x12*\n" +
+	"\fcluster_slug\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vclusterSlug\x12>\n" +
+	"\videntifiers\x18\x02 \x03(\v2\x1c.workflows.v1.TaskIdentifierR\videntifiers\"\x95\x01\n" +
+	"\fComputedTask\x12&\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x18\n" +
+	"\adisplay\x18\x02 \x01(\tR\adisplay\x12C\n" +
+	"\tsub_tasks\x18\x03 \x03(\v2\x1c.workflows.v1.TaskSubmissionB\b\xbaH\x05\x92\x01\x02\x10@R\bsubTasks\"C\n" +
 	"\x10NextTaskResponse\x12/\n" +
-	"\tnext_task\x18\x01 \x01(\v2\x12.workflows.v1.TaskR\bnextTask\"u\n" +
-	"\x11TaskFailedRequest\x12'\n" +
-	"\atask_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x06taskId\x12\x18\n" +
+	"\tnext_task\x18\x01 \x01(\v2\x12.workflows.v1.TaskR\bnextTask\"}\n" +
+	"\x11TaskFailedRequest\x12/\n" +
+	"\atask_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x06taskId\x12\x18\n" +
 	"\adisplay\x18\x02 \x01(\tR\adisplay\x12\x1d\n" +
 	"\n" +
 	"cancel_job\x18\x03 \x01(\bR\tcancelJob\"B\n" +
 	"\x11TaskStateResponse\x12-\n" +
-	"\x05state\x18\x01 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\"\x86\x01\n" +
-	"\x10TaskLeaseRequest\x12'\n" +
-	"\atask_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x06taskId\x12I\n" +
-	"\x0frequested_lease\x18\x02 \x01(\v2\x19.google.protobuf.DurationB\x05\xaa\x01\x02\b\x01R\x0erequestedLease2\xf4\x01\n" +
+	"\x05state\x18\x01 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\"\x87\x01\n" +
+	"\x10TaskLeaseRequest\x12/\n" +
+	"\atask_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x06taskId\x12B\n" +
+	"\x0frequested_lease\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\x0erequestedLease2\xf4\x01\n" +
 	"\vTaskService\x12I\n" +
 	"\bNextTask\x12\x1d.workflows.v1.NextTaskRequest\x1a\x1e.workflows.v1.NextTaskResponse\x12N\n" +
 	"\n" +

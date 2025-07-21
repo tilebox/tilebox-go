@@ -7,6 +7,7 @@
 package workflowsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -630,11 +631,12 @@ func (b0 VisualizeJobRequest_builder) Build() *VisualizeJobRequest {
 
 // QueryFilters contains the filters to apply to a query.
 type QueryFilters struct {
-	state                     protoimpl.MessageState        `protogen:"opaque.v1"`
-	xxx_hidden_TemporalExtent isQueryFilters_TemporalExtent `protobuf_oneof:"temporal_extent"`
-	xxx_hidden_AutomationId   *v1.ID                        `protobuf:"bytes,3,opt,name=automation_id,json=automationId"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_TimeInterval *v1.TimeInterval       `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval"`
+	xxx_hidden_IdInterval   *v1.IDInterval         `protobuf:"bytes,2,opt,name=id_interval,json=idInterval"`
+	xxx_hidden_AutomationId *v1.ID                 `protobuf:"bytes,3,opt,name=automation_id,json=automationId"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *QueryFilters) Reset() {
@@ -664,18 +666,14 @@ func (x *QueryFilters) ProtoReflect() protoreflect.Message {
 
 func (x *QueryFilters) GetTimeInterval() *v1.TimeInterval {
 	if x != nil {
-		if x, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_TimeInterval); ok {
-			return x.TimeInterval
-		}
+		return x.xxx_hidden_TimeInterval
 	}
 	return nil
 }
 
 func (x *QueryFilters) GetIdInterval() *v1.IDInterval {
 	if x != nil {
-		if x, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_IdInterval); ok {
-			return x.IdInterval
-		}
+		return x.xxx_hidden_IdInterval
 	}
 	return nil
 }
@@ -688,46 +686,29 @@ func (x *QueryFilters) GetAutomationId() *v1.ID {
 }
 
 func (x *QueryFilters) SetTimeInterval(v *v1.TimeInterval) {
-	if v == nil {
-		x.xxx_hidden_TemporalExtent = nil
-		return
-	}
-	x.xxx_hidden_TemporalExtent = &queryFilters_TimeInterval{v}
+	x.xxx_hidden_TimeInterval = v
 }
 
 func (x *QueryFilters) SetIdInterval(v *v1.IDInterval) {
-	if v == nil {
-		x.xxx_hidden_TemporalExtent = nil
-		return
-	}
-	x.xxx_hidden_TemporalExtent = &queryFilters_IdInterval{v}
+	x.xxx_hidden_IdInterval = v
 }
 
 func (x *QueryFilters) SetAutomationId(v *v1.ID) {
 	x.xxx_hidden_AutomationId = v
 }
 
-func (x *QueryFilters) HasTemporalExtent() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_TemporalExtent != nil
-}
-
 func (x *QueryFilters) HasTimeInterval() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_TimeInterval)
-	return ok
+	return x.xxx_hidden_TimeInterval != nil
 }
 
 func (x *QueryFilters) HasIdInterval() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_IdInterval)
-	return ok
+	return x.xxx_hidden_IdInterval != nil
 }
 
 func (x *QueryFilters) HasAutomationId() bool {
@@ -737,53 +718,23 @@ func (x *QueryFilters) HasAutomationId() bool {
 	return x.xxx_hidden_AutomationId != nil
 }
 
-func (x *QueryFilters) ClearTemporalExtent() {
-	x.xxx_hidden_TemporalExtent = nil
-}
-
 func (x *QueryFilters) ClearTimeInterval() {
-	if _, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_TimeInterval); ok {
-		x.xxx_hidden_TemporalExtent = nil
-	}
+	x.xxx_hidden_TimeInterval = nil
 }
 
 func (x *QueryFilters) ClearIdInterval() {
-	if _, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_IdInterval); ok {
-		x.xxx_hidden_TemporalExtent = nil
-	}
+	x.xxx_hidden_IdInterval = nil
 }
 
 func (x *QueryFilters) ClearAutomationId() {
 	x.xxx_hidden_AutomationId = nil
 }
 
-const QueryFilters_TemporalExtent_not_set_case case_QueryFilters_TemporalExtent = 0
-const QueryFilters_TimeInterval_case case_QueryFilters_TemporalExtent = 1
-const QueryFilters_IdInterval_case case_QueryFilters_TemporalExtent = 2
-
-func (x *QueryFilters) WhichTemporalExtent() case_QueryFilters_TemporalExtent {
-	if x == nil {
-		return QueryFilters_TemporalExtent_not_set_case
-	}
-	switch x.xxx_hidden_TemporalExtent.(type) {
-	case *queryFilters_TimeInterval:
-		return QueryFilters_TimeInterval_case
-	case *queryFilters_IdInterval:
-		return QueryFilters_IdInterval_case
-	default:
-		return QueryFilters_TemporalExtent_not_set_case
-	}
-}
-
 type QueryFilters_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Either a time interval or ID interval must be set, but not both.
-
-	// Fields of oneof xxx_hidden_TemporalExtent:
 	TimeInterval *v1.TimeInterval
 	IdInterval   *v1.IDInterval
-	// -- end of xxx_hidden_TemporalExtent
 	// Filter jobs by automation id.
 	AutomationId *v1.ID
 }
@@ -792,41 +743,11 @@ func (b0 QueryFilters_builder) Build() *QueryFilters {
 	m0 := &QueryFilters{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.TimeInterval != nil {
-		x.xxx_hidden_TemporalExtent = &queryFilters_TimeInterval{b.TimeInterval}
-	}
-	if b.IdInterval != nil {
-		x.xxx_hidden_TemporalExtent = &queryFilters_IdInterval{b.IdInterval}
-	}
+	x.xxx_hidden_TimeInterval = b.TimeInterval
+	x.xxx_hidden_IdInterval = b.IdInterval
 	x.xxx_hidden_AutomationId = b.AutomationId
 	return m0
 }
-
-type case_QueryFilters_TemporalExtent protoreflect.FieldNumber
-
-func (x case_QueryFilters_TemporalExtent) String() string {
-	md := file_workflows_v1_job_proto_msgTypes[7].Descriptor()
-	if x == 0 {
-		return "not set"
-	}
-	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
-}
-
-type isQueryFilters_TemporalExtent interface {
-	isQueryFilters_TemporalExtent()
-}
-
-type queryFilters_TimeInterval struct {
-	TimeInterval *v1.TimeInterval `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval,oneof"`
-}
-
-type queryFilters_IdInterval struct {
-	IdInterval *v1.IDInterval `protobuf:"bytes,2,opt,name=id_interval,json=idInterval,oneof"`
-}
-
-func (*queryFilters_TimeInterval) isQueryFilters_TemporalExtent() {}
-
-func (*queryFilters_IdInterval) isQueryFilters_TemporalExtent() {}
 
 // QueryJobsRequest requests a list of jobs.
 type QueryJobsRequest struct {
@@ -1263,48 +1184,51 @@ var File_workflows_v1_job_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xb9\x01\n" +
-	"\x10SubmitJobRequest\x122\n" +
-	"\x05tasks\x18\x01 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\x05tasks\x12\x19\n" +
-	"\bjob_name\x18\x02 \x01(\tR\ajobName\x12!\n" +
-	"\ftrace_parent\x18\x03 \x01(\tR\vtraceParent\x123\n" +
-	"\rautomation_id\x18\x04 \x01(\v2\x0e.tilebox.v1.IDR\fautomationId\"6\n" +
-	"\rGetJobRequest\x12%\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"8\n" +
-	"\x0fRetryJobRequest\x12%\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"F\n" +
+	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xd7\x01\n" +
+	"\x10SubmitJobRequest\x12>\n" +
+	"\x05tasks\x18\x01 \x03(\v2\x1c.workflows.v1.TaskSubmissionB\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10@R\x05tasks\x12\"\n" +
+	"\bjob_name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\ajobName\x12*\n" +
+	"\ftrace_parent\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vtraceParent\x123\n" +
+	"\rautomation_id\x18\x04 \x01(\v2\x0e.tilebox.v1.IDR\fautomationId\">\n" +
+	"\rGetJobRequest\x12-\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\"@\n" +
+	"\x0fRetryJobRequest\x12-\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\"F\n" +
 	"\x10RetryJobResponse\x122\n" +
-	"\x15num_tasks_rescheduled\x18\x01 \x01(\x03R\x13numTasksRescheduled\"9\n" +
-	"\x10CancelJobRequest\x12%\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"\x13\n" +
-	"\x11CancelJobResponse\"\xe4\x01\n" +
-	"\x13VisualizeJobRequest\x12%\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\x12B\n" +
+	"\x15num_tasks_rescheduled\x18\x01 \x01(\x03R\x13numTasksRescheduled\"A\n" +
+	"\x10CancelJobRequest\x12-\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\"\x13\n" +
+	"\x11CancelJobResponse\"\xec\x01\n" +
+	"\x13VisualizeJobRequest\x12-\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x12B\n" +
 	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\x128\n" +
 	"\x05theme\x18\x03 \x01(\x0e2\".workflows.v1.WorkflowDiagramThemeR\x05theme\x12(\n" +
-	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xd9\x01\n" +
-	"\fQueryFilters\x12?\n" +
-	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalH\x00R\ftimeInterval\x129\n" +
-	"\vid_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalH\x00R\n" +
+	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xe7\x01\n" +
+	"\fQueryFilters\x12=\n" +
+	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x127\n" +
+	"\vid_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalR\n" +
 	"idInterval\x12:\n" +
-	"\rautomation_id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\fautomationIdB\x11\n" +
-	"\x0ftemporal_extent\"{\n" +
+	"\rautomation_id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\fautomationId:#\xbaH \"\x1e\n" +
+	"\rtime_interval\n" +
+	"\vid_interval\x10\x01\"{\n" +
 	"\x10QueryJobsRequest\x124\n" +
 	"\afilters\x18\x01 \x01(\v2\x1a.workflows.v1.QueryFiltersR\afilters\x121\n" +
 	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\"v\n" +
 	"\x11QueryJobsResponse\x12%\n" +
 	"\x04jobs\x18\x01 \x03(\v2\x11.workflows.v1.JobR\x04jobs\x12:\n" +
-	"\tnext_page\x18\x03 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"?\n" +
-	"\x16GetJobPrototypeRequest\x12%\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\"q\n" +
+	"\tnext_page\x18\x03 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"G\n" +
+	"\x16GetJobPrototypeRequest\x12-\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\"q\n" +
 	"\x17GetJobPrototypeResponse\x12;\n" +
 	"\n" +
 	"root_tasks\x18\x01 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\trootTasks\x12\x19\n" +
-	"\bjob_name\x18\x02 \x01(\tR\ajobName\"\xa3\x01\n" +
-	"\x0fCloneJobRequest\x12%\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x05jobId\x12N\n" +
-	"\x14root_tasks_overrides\x18\x02 \x03(\v2\x1c.workflows.v1.TaskSubmissionR\x12rootTasksOverrides\x12\x19\n" +
-	"\bjob_name\x18\x03 \x01(\tR\ajobName*\xd4\x01\n" +
+	"\bjob_name\x18\x02 \x01(\tR\ajobName\"\xc0\x01\n" +
+	"\x0fCloneJobRequest\x12-\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x12Z\n" +
+	"\x14root_tasks_overrides\x18\x02 \x03(\v2\x1c.workflows.v1.TaskSubmissionB\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10@R\x12rootTasksOverrides\x12\"\n" +
+	"\bjob_name\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\ajobName*\xd4\x01\n" +
 	"\x14WorkflowDiagramTheme\x12&\n" +
 	"\"WORKFLOW_DIAGRAM_THEME_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cWORKFLOW_DIAGRAM_THEME_LIGHT\x10\x01\x12\x1f\n" +
@@ -1399,10 +1323,6 @@ func file_workflows_v1_job_proto_init() {
 	}
 	file_workflows_v1_core_proto_init()
 	file_workflows_v1_diagram_proto_init()
-	file_workflows_v1_job_proto_msgTypes[7].OneofWrappers = []any{
-		(*queryFilters_TimeInterval)(nil),
-		(*queryFilters_IdInterval)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
