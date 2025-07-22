@@ -187,15 +187,12 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 			return
 		}
 
-		filters := &datasetsv1.QueryFilters{}
-		if timeInterval != nil {
-			filters.SetTimeInterval(timeInterval)
-		} else {
-			filters.SetDatapointInterval(datapointInterval)
-		}
+		filters := datasetsv1.QueryFilters_builder{
+			TimeInterval:      timeInterval,
+			DatapointInterval: datapointInterval,
+		}.Build()
 
-		geometry := cfg.spatialExtent
-		if geometry != nil {
+		if cfg.spatialExtent != nil {
 			spatialExtent, err := cfg.spatialExtent.ToProtoSpatialFilter()
 			if err != nil {
 				yield(nil, err)

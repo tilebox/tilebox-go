@@ -493,9 +493,12 @@ func (x *DatapointMetadata) ClearId() {
 type DatapointMetadata_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	EventTime     *timestamppb.Timestamp
+	// The time the message was received by the on-board computer.
+	EventTime *timestamppb.Timestamp
+	// The time the message was ingested by Tilebox.
 	IngestionTime *timestamppb.Timestamp
-	Id            *string
+	// The external id of the datapoint.
+	Id *string
 }
 
 func (b0 DatapointMetadata_builder) Build() *DatapointMetadata {
@@ -511,91 +514,6 @@ func (b0 DatapointMetadata_builder) Build() *DatapointMetadata {
 	return m0
 }
 
-// Datapoints is a list of datapoints in a Tilebox dataset, with all data points sharing the same type.
-type Datapoints struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Meta *[]*DatapointMetadata  `protobuf:"bytes,1,rep,name=meta"`
-	xxx_hidden_Data *RepeatedAny           `protobuf:"bytes,2,opt,name=data"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *Datapoints) Reset() {
-	*x = Datapoints{}
-	mi := &file_datasets_v1_core_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Datapoints) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Datapoints) ProtoMessage() {}
-
-func (x *Datapoints) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *Datapoints) GetMeta() []*DatapointMetadata {
-	if x != nil {
-		if x.xxx_hidden_Meta != nil {
-			return *x.xxx_hidden_Meta
-		}
-	}
-	return nil
-}
-
-func (x *Datapoints) GetData() *RepeatedAny {
-	if x != nil {
-		return x.xxx_hidden_Data
-	}
-	return nil
-}
-
-func (x *Datapoints) SetMeta(v []*DatapointMetadata) {
-	x.xxx_hidden_Meta = &v
-}
-
-func (x *Datapoints) SetData(v *RepeatedAny) {
-	x.xxx_hidden_Data = v
-}
-
-func (x *Datapoints) HasData() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Data != nil
-}
-
-func (x *Datapoints) ClearData() {
-	x.xxx_hidden_Data = nil
-}
-
-type Datapoints_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	Meta []*DatapointMetadata
-	Data *RepeatedAny
-}
-
-func (b0 Datapoints_builder) Build() *Datapoints {
-	m0 := &Datapoints{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Meta = &b.Meta
-	x.xxx_hidden_Data = b.Data
-	return m0
-}
-
 // DatapointPage is a single page of data points of a Tilebox dataset, such as it is returned by a ForInterval query
 type DatapointPage struct {
 	state               protoimpl.MessageState `protogen:"opaque.v1"`
@@ -608,7 +526,7 @@ type DatapointPage struct {
 
 func (x *DatapointPage) Reset() {
 	*x = DatapointPage{}
-	mi := &file_datasets_v1_core_proto_msgTypes[5]
+	mi := &file_datasets_v1_core_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +538,7 @@ func (x *DatapointPage) String() string {
 func (*DatapointPage) ProtoMessage() {}
 
 func (x *DatapointPage) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[5]
+	mi := &file_datasets_v1_core_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -691,8 +609,11 @@ func (x *DatapointPage) ClearNextPage() {
 type DatapointPage_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Meta     []*DatapointMetadata
-	Data     *RepeatedAny
+	// A metadata for a datapoint.
+	Meta []*DatapointMetadata
+	// The datapoints.
+	Data *RepeatedAny
+	// The pagination parameters for the next page.
 	NextPage *LegacyPagination
 }
 
@@ -717,7 +638,7 @@ type Datapoint struct {
 
 func (x *Datapoint) Reset() {
 	*x = Datapoint{}
-	mi := &file_datasets_v1_core_proto_msgTypes[6]
+	mi := &file_datasets_v1_core_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -729,7 +650,7 @@ func (x *Datapoint) String() string {
 func (*Datapoint) ProtoMessage() {}
 
 func (x *Datapoint) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[6]
+	mi := &file_datasets_v1_core_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -787,7 +708,9 @@ func (x *Datapoint) ClearData() {
 type Datapoint_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// A metadata for a datapoint.
 	Meta *DatapointMetadata
+	// The data.
 	Data *Any
 }
 
@@ -812,7 +735,7 @@ type Collection struct {
 
 func (x *Collection) Reset() {
 	*x = Collection{}
-	mi := &file_datasets_v1_core_proto_msgTypes[7]
+	mi := &file_datasets_v1_core_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -824,7 +747,7 @@ func (x *Collection) String() string {
 func (*Collection) ProtoMessage() {}
 
 func (x *Collection) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[7]
+	mi := &file_datasets_v1_core_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -882,6 +805,7 @@ func (x *Collection) ClearId() {
 type Collection_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// Here for backwards compatibility, to be removed in the future.
 	LegacyId string
 	Name     string
 	Id       *v1.ID
@@ -911,7 +835,7 @@ type CollectionInfo struct {
 
 func (x *CollectionInfo) Reset() {
 	*x = CollectionInfo{}
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
+	mi := &file_datasets_v1_core_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -923,7 +847,7 @@ func (x *CollectionInfo) String() string {
 func (*CollectionInfo) ProtoMessage() {}
 
 func (x *CollectionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
+	mi := &file_datasets_v1_core_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1005,9 +929,11 @@ func (x *CollectionInfo) ClearCount() {
 type CollectionInfo_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Collection   *Collection
+	Collection *Collection
+	// The time interval for which data is available.
 	Availability *v1.TimeInterval
-	Count        *uint64
+	// Number of entries in the dataset.
+	Count *uint64
 }
 
 func (b0 CollectionInfo_builder) Build() *CollectionInfo {
@@ -1033,7 +959,7 @@ type CollectionInfos struct {
 
 func (x *CollectionInfos) Reset() {
 	*x = CollectionInfos{}
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1045,7 +971,7 @@ func (x *CollectionInfos) String() string {
 func (*CollectionInfos) ProtoMessage() {}
 
 func (x *CollectionInfos) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1104,7 +1030,7 @@ type Dataset struct {
 
 func (x *Dataset) Reset() {
 	*x = Dataset{}
-	mi := &file_datasets_v1_core_proto_msgTypes[10]
+	mi := &file_datasets_v1_core_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1116,7 +1042,7 @@ func (x *Dataset) String() string {
 func (*Dataset) ProtoMessage() {}
 
 func (x *Dataset) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[10]
+	mi := &file_datasets_v1_core_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1354,7 +1280,7 @@ type DatasetGroup struct {
 
 func (x *DatasetGroup) Reset() {
 	*x = DatasetGroup{}
-	mi := &file_datasets_v1_core_proto_msgTypes[11]
+	mi := &file_datasets_v1_core_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1366,7 +1292,7 @@ func (x *DatasetGroup) String() string {
 func (*DatasetGroup) ProtoMessage() {}
 
 func (x *DatasetGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[11]
+	mi := &file_datasets_v1_core_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1499,11 +1425,7 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\n" +
 	"event_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\teventTime\x12A\n" +
 	"\x0eingestion_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\ringestionTime\x12\x15\n" +
-	"\x02id\x18\x03 \x01(\tB\x05\xaa\x01\x02\b\x01R\x02id\"n\n" +
-	"\n" +
-	"Datapoints\x122\n" +
-	"\x04meta\x18\x01 \x03(\v2\x1e.datasets.v1.DatapointMetadataR\x04meta\x12,\n" +
-	"\x04data\x18\x02 \x01(\v2\x18.datasets.v1.RepeatedAnyR\x04data\"\xb4\x01\n" +
+	"\x02id\x18\x03 \x01(\tB\x05\xaa\x01\x02\b\x01R\x02id\"\xb4\x01\n" +
 	"\rDatapointPage\x122\n" +
 	"\x04meta\x18\x01 \x03(\v2\x1e.datasets.v1.DatapointMetadataR\x04meta\x12,\n" +
 	"\x04data\x18\x02 \x01(\v2\x18.datasets.v1.RepeatedAnyR\x04data\x12A\n" +
@@ -1560,7 +1482,7 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\x0fcom.datasets.v1B\tCoreProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_datasets_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_datasets_v1_core_proto_goTypes = []any{
 	(DatasetPermission)(0),        // 0: datasets.v1.DatasetPermission
 	(Visibility)(0),               // 1: datasets.v1.Visibility
@@ -1568,45 +1490,42 @@ var file_datasets_v1_core_proto_goTypes = []any{
 	(*Any)(nil),                   // 3: datasets.v1.Any
 	(*RepeatedAny)(nil),           // 4: datasets.v1.RepeatedAny
 	(*DatapointMetadata)(nil),     // 5: datasets.v1.DatapointMetadata
-	(*Datapoints)(nil),            // 6: datasets.v1.Datapoints
-	(*DatapointPage)(nil),         // 7: datasets.v1.DatapointPage
-	(*Datapoint)(nil),             // 8: datasets.v1.Datapoint
-	(*Collection)(nil),            // 9: datasets.v1.Collection
-	(*CollectionInfo)(nil),        // 10: datasets.v1.CollectionInfo
-	(*CollectionInfos)(nil),       // 11: datasets.v1.CollectionInfos
-	(*Dataset)(nil),               // 12: datasets.v1.Dataset
-	(*DatasetGroup)(nil),          // 13: datasets.v1.DatasetGroup
-	(*timestamppb.Timestamp)(nil), // 14: google.protobuf.Timestamp
-	(*v1.ID)(nil),                 // 15: tilebox.v1.ID
-	(*v1.TimeInterval)(nil),       // 16: tilebox.v1.TimeInterval
-	(*AnnotatedType)(nil),         // 17: datasets.v1.AnnotatedType
+	(*DatapointPage)(nil),         // 6: datasets.v1.DatapointPage
+	(*Datapoint)(nil),             // 7: datasets.v1.Datapoint
+	(*Collection)(nil),            // 8: datasets.v1.Collection
+	(*CollectionInfo)(nil),        // 9: datasets.v1.CollectionInfo
+	(*CollectionInfos)(nil),       // 10: datasets.v1.CollectionInfos
+	(*Dataset)(nil),               // 11: datasets.v1.Dataset
+	(*DatasetGroup)(nil),          // 12: datasets.v1.DatasetGroup
+	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
+	(*v1.ID)(nil),                 // 14: tilebox.v1.ID
+	(*v1.TimeInterval)(nil),       // 15: tilebox.v1.TimeInterval
+	(*AnnotatedType)(nil),         // 16: datasets.v1.AnnotatedType
 }
 var file_datasets_v1_core_proto_depIdxs = []int32{
-	14, // 0: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
-	14, // 1: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
-	5,  // 2: datasets.v1.Datapoints.meta:type_name -> datasets.v1.DatapointMetadata
-	4,  // 3: datasets.v1.Datapoints.data:type_name -> datasets.v1.RepeatedAny
-	5,  // 4: datasets.v1.DatapointPage.meta:type_name -> datasets.v1.DatapointMetadata
-	4,  // 5: datasets.v1.DatapointPage.data:type_name -> datasets.v1.RepeatedAny
-	2,  // 6: datasets.v1.DatapointPage.next_page:type_name -> datasets.v1.LegacyPagination
-	5,  // 7: datasets.v1.Datapoint.meta:type_name -> datasets.v1.DatapointMetadata
-	3,  // 8: datasets.v1.Datapoint.data:type_name -> datasets.v1.Any
-	15, // 9: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
-	9,  // 10: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
-	16, // 11: datasets.v1.CollectionInfo.availability:type_name -> tilebox.v1.TimeInterval
-	10, // 12: datasets.v1.CollectionInfos.data:type_name -> datasets.v1.CollectionInfo
-	15, // 13: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
-	15, // 14: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
-	17, // 15: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
-	0,  // 16: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
-	1,  // 17: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
-	15, // 18: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
-	15, // 19: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
-	20, // [20:20] is the sub-list for method output_type
-	20, // [20:20] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	13, // 0: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
+	13, // 1: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
+	5,  // 2: datasets.v1.DatapointPage.meta:type_name -> datasets.v1.DatapointMetadata
+	4,  // 3: datasets.v1.DatapointPage.data:type_name -> datasets.v1.RepeatedAny
+	2,  // 4: datasets.v1.DatapointPage.next_page:type_name -> datasets.v1.LegacyPagination
+	5,  // 5: datasets.v1.Datapoint.meta:type_name -> datasets.v1.DatapointMetadata
+	3,  // 6: datasets.v1.Datapoint.data:type_name -> datasets.v1.Any
+	14, // 7: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
+	8,  // 8: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
+	15, // 9: datasets.v1.CollectionInfo.availability:type_name -> tilebox.v1.TimeInterval
+	9,  // 10: datasets.v1.CollectionInfos.data:type_name -> datasets.v1.CollectionInfo
+	14, // 11: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
+	14, // 12: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
+	16, // 13: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
+	0,  // 14: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
+	1,  // 15: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
+	14, // 16: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
+	14, // 17: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_core_proto_init() }
@@ -1621,7 +1540,7 @@ func file_datasets_v1_core_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_core_proto_rawDesc), len(file_datasets_v1_core_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   12,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

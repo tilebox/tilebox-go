@@ -7,6 +7,7 @@
 package tileboxv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -388,7 +389,7 @@ var File_tilebox_v1_query_proto protoreflect.FileDescriptor
 const file_tilebox_v1_query_proto_rawDesc = "" +
 	"\n" +
 	"\x16tilebox/v1/query.proto\x12\n" +
-	"tilebox.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xce\x01\n" +
+	"tilebox.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xce\x01\n" +
 	"\fTimeInterval\x129\n" +
 	"\n" +
 	"start_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tstartTime\x125\n" +
@@ -400,10 +401,10 @@ const file_tilebox_v1_query_proto_rawDesc = "" +
 	"\bstart_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\astartId\x12%\n" +
 	"\x06end_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x05endId\x12'\n" +
 	"\x0fstart_exclusive\x18\x03 \x01(\bR\x0estartExclusive\x12#\n" +
-	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"g\n" +
+	"\rend_inclusive\x18\x04 \x01(\bR\fendInclusive\"n\n" +
 	"\n" +
-	"Pagination\x12\x1b\n" +
-	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12<\n" +
+	"Pagination\x12\"\n" +
+	"\x05limit\x18\x01 \x01(\x03B\f\xbaH\x04\"\x02(\x01\xaa\x01\x02\b\x01R\x05limit\x12<\n" +
 	"\x0estarting_after\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\rstartingAfterB\xa7\x01\n" +
 	"\x0ecom.tilebox.v1B\n" +
 	"QueryProtoP\x01Z;github.com/tilebox/tilebox-go/protogen/tilebox/v1;tileboxv1\xa2\x02\x03TXX\xaa\x02\n" +

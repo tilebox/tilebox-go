@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -207,6 +208,7 @@ type GetDatasetRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// slug of the dataset to be returned, e.g. "open_data.copernicus.sentinel1_sar"
+	// it must contain at least one group and one dataset code name separated by a "."
 	Slug string
 	// or alternatively a dataset id
 	Id *v1.ID
@@ -941,20 +943,22 @@ var File_datasets_v1_datasets_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\n" +
-	"\x1adatasets/v1/datasets.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\x1edatasets/v1/dataset_type.proto\x1a\x13tilebox/v1/id.proto\"\x8f\x01\n" +
-	"\x14CreateDatasetRequest\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12,\n" +
-	"\x04type\x18\x02 \x01(\v2\x18.datasets.v1.DatasetTypeR\x04type\x12\x18\n" +
-	"\asummary\x18\x03 \x01(\tR\asummary\x12\x1b\n" +
-	"\tcode_name\x18\x04 \x01(\tR\bcodeName\"G\n" +
-	"\x11GetDatasetRequest\x12\x12\n" +
-	"\x04slug\x18\x01 \x01(\tR\x04slug\x12\x1e\n" +
-	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id\"\x92\x01\n" +
-	"\x14UpdateDatasetRequest\x12\x1e\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12,\n" +
-	"\x04type\x18\x03 \x01(\v2\x18.datasets.v1.DatasetTypeR\x04type\x12\x18\n" +
-	"\asummary\x18\x04 \x01(\tR\asummary\"t\n" +
+	"\x1adatasets/v1/datasets.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\x16datasets/v1/core.proto\x1a\x1edatasets/v1/dataset_type.proto\x1a\x13tilebox/v1/id.proto\"\xb2\x01\n" +
+	"\x14CreateDatasetRequest\x12\x1b\n" +
+	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x124\n" +
+	"\x04type\x18\x02 \x01(\v2\x18.datasets.v1.DatasetTypeB\x06\xbaH\x03\xc8\x01\x01R\x04type\x12!\n" +
+	"\asummary\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\asummary\x12$\n" +
+	"\tcode_name\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bcodeName\"~\n" +
+	"\x11GetDatasetRequest\x126\n" +
+	"\x04slug\x18\x01 \x01(\tB\"\xbaH\x1fr\x1d2\x1b^[a-z0-9_]+(\\.[a-z0-9_]+)+$R\x04slug\x12\x1e\n" +
+	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id:\x11\xbaH\x0e\"\f\n" +
+	"\x04slug\n" +
+	"\x02id\x10\x01\"\xb4\x01\n" +
+	"\x14UpdateDatasetRequest\x12&\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1b\n" +
+	"\x04name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x124\n" +
+	"\x04type\x18\x03 \x01(\v2\x18.datasets.v1.DatasetTypeB\x06\xbaH\x03\xc8\x01\x01R\x04type\x12!\n" +
+	"\asummary\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\asummary\"t\n" +
 	"\n" +
 	"ClientInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
@@ -962,12 +966,12 @@ const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\bpackages\x18\x03 \x03(\v2\x14.datasets.v1.PackageR\bpackages\"7\n" +
 	"\aPackage\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\"c\n" +
-	"\x1fUpdateDatasetDescriptionRequest\x12\x1e\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\"6\n" +
-	"\x14DeleteDatasetRequest\x12\x1e\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\"1\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\"k\n" +
+	"\x1fUpdateDatasetDescriptionRequest\x12&\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\">\n" +
+	"\x14DeleteDatasetRequest\x12&\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\"1\n" +
 	"\x15DeleteDatasetResponse\x12\x18\n" +
 	"\atrashed\x18\x01 \x01(\bR\atrashed\"O\n" +
 	"\x13ListDatasetsRequest\x128\n" +

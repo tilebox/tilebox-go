@@ -7,6 +7,7 @@
 package datasetsv1
 
 import (
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -25,9 +26,12 @@ const (
 type SpatialFilterMode int32
 
 const (
-	SpatialFilterMode_SPATIAL_FILTER_MODE_UNSPECIFIED SpatialFilterMode = 0 // Unspecified spatial filter mode, will default to intersects.
-	SpatialFilterMode_SPATIAL_FILTER_MODE_INTERSECTS  SpatialFilterMode = 1 // Any geometry that intersects the filter geometry is included.
-	SpatialFilterMode_SPATIAL_FILTER_MODE_CONTAINS    SpatialFilterMode = 2 // Only geometries fully contained within the filter geometry are included.
+	// Unspecified spatial filter mode, will default to intersects.
+	SpatialFilterMode_SPATIAL_FILTER_MODE_UNSPECIFIED SpatialFilterMode = 0
+	// Any geometry that intersects the filter geometry is included.
+	SpatialFilterMode_SPATIAL_FILTER_MODE_INTERSECTS SpatialFilterMode = 1
+	// Only geometries fully contained within the filter geometry are included.
+	SpatialFilterMode_SPATIAL_FILTER_MODE_CONTAINS SpatialFilterMode = 2
 )
 
 // Enum value maps for SpatialFilterMode.
@@ -71,9 +75,12 @@ func (x SpatialFilterMode) Number() protoreflect.EnumNumber {
 type SpatialCoordinateSystem int32
 
 const (
-	SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_UNSPECIFIED SpatialCoordinateSystem = 0 // Unspecified coordinate system, will default to cartesian.
-	SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_CARTESIAN   SpatialCoordinateSystem = 1 // Cartesian (lat/lon) coordinate system
-	SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_SPHERICAL   SpatialCoordinateSystem = 2 // Spherical (x/y/z) coordinate system
+	// Unspecified coordinate system, will default to cartesian.
+	SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_UNSPECIFIED SpatialCoordinateSystem = 0
+	// Cartesian (lat/lon) coordinate system
+	SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_CARTESIAN SpatialCoordinateSystem = 1
+	// Spherical (x/y/z) coordinate system
+	SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_SPHERICAL SpatialCoordinateSystem = 2
 )
 
 // Enum value maps for SpatialCoordinateSystem.
@@ -253,12 +260,17 @@ func (x *GetDatasetForIntervalRequest) ClearPage() {
 type GetDatasetForIntervalRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The collection id.
 	CollectionId string
 	// Either time interval or datapoint interval must be set, but not both.
-	TimeInterval      *v1.TimeInterval
+	// The time interval for which data is requested.
+	TimeInterval *v1.TimeInterval
+	// The datapoint interval for which data is requested.
 	DatapointInterval *v1.IDInterval
-	Page              *LegacyPagination
-	SkipData          bool
+	// The pagination parameters for this request.
+	Page *LegacyPagination
+	// If true, the datapoint data is not returned.
+	SkipData bool
 	// If true, the datapoint metadata is not returned.
 	// If both skip_data and skip_meta are true,
 	// the response will only consist of a list of datapoint ids without any additional data or metadata.
@@ -350,9 +362,12 @@ func (x *GetDatapointByIdRequest) SetSkipData(v bool) {
 type GetDatapointByIdRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// The collection id.
 	CollectionId string
-	Id           string
-	SkipData     bool
+	// The id of the requested data point.
+	Id string
+	// If true, only the datapoint metadata is returned.
+	SkipData bool
 }
 
 func (b0 GetDatapointByIdRequest_builder) Build() *GetDatapointByIdRequest {
@@ -449,9 +464,12 @@ func (x *QueryByIDRequest) ClearId() {
 type QueryByIDRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// collection ids to query.
 	CollectionIds []*v1.ID
-	Id            *v1.ID
-	SkipData      bool
+	// The id of the requested data point.
+	Id *v1.ID
+	// If true, only the datapoint metadata is returned.
+	SkipData bool
 }
 
 func (b0 QueryByIDRequest_builder) Build() *QueryByIDRequest {
@@ -466,11 +484,12 @@ func (b0 QueryByIDRequest_builder) Build() *QueryByIDRequest {
 
 // QueryFilters contains the filters to apply to a query.
 type QueryFilters struct {
-	state                     protoimpl.MessageState        `protogen:"opaque.v1"`
-	xxx_hidden_TemporalExtent isQueryFilters_TemporalExtent `protobuf_oneof:"temporal_extent"`
-	xxx_hidden_SpatialExtent  *SpatialFilter                `protobuf:"bytes,3,opt,name=spatial_extent,json=spatialExtent"`
-	unknownFields             protoimpl.UnknownFields
-	sizeCache                 protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_TimeInterval      *v1.TimeInterval       `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval"`
+	xxx_hidden_DatapointInterval *v1.IDInterval         `protobuf:"bytes,2,opt,name=datapoint_interval,json=datapointInterval"`
+	xxx_hidden_SpatialExtent     *SpatialFilter         `protobuf:"bytes,3,opt,name=spatial_extent,json=spatialExtent"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *QueryFilters) Reset() {
@@ -500,18 +519,14 @@ func (x *QueryFilters) ProtoReflect() protoreflect.Message {
 
 func (x *QueryFilters) GetTimeInterval() *v1.TimeInterval {
 	if x != nil {
-		if x, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_TimeInterval); ok {
-			return x.TimeInterval
-		}
+		return x.xxx_hidden_TimeInterval
 	}
 	return nil
 }
 
 func (x *QueryFilters) GetDatapointInterval() *v1.IDInterval {
 	if x != nil {
-		if x, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_DatapointInterval); ok {
-			return x.DatapointInterval
-		}
+		return x.xxx_hidden_DatapointInterval
 	}
 	return nil
 }
@@ -524,46 +539,29 @@ func (x *QueryFilters) GetSpatialExtent() *SpatialFilter {
 }
 
 func (x *QueryFilters) SetTimeInterval(v *v1.TimeInterval) {
-	if v == nil {
-		x.xxx_hidden_TemporalExtent = nil
-		return
-	}
-	x.xxx_hidden_TemporalExtent = &queryFilters_TimeInterval{v}
+	x.xxx_hidden_TimeInterval = v
 }
 
 func (x *QueryFilters) SetDatapointInterval(v *v1.IDInterval) {
-	if v == nil {
-		x.xxx_hidden_TemporalExtent = nil
-		return
-	}
-	x.xxx_hidden_TemporalExtent = &queryFilters_DatapointInterval{v}
+	x.xxx_hidden_DatapointInterval = v
 }
 
 func (x *QueryFilters) SetSpatialExtent(v *SpatialFilter) {
 	x.xxx_hidden_SpatialExtent = v
 }
 
-func (x *QueryFilters) HasTemporalExtent() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_TemporalExtent != nil
-}
-
 func (x *QueryFilters) HasTimeInterval() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_TimeInterval)
-	return ok
+	return x.xxx_hidden_TimeInterval != nil
 }
 
 func (x *QueryFilters) HasDatapointInterval() bool {
 	if x == nil {
 		return false
 	}
-	_, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_DatapointInterval)
-	return ok
+	return x.xxx_hidden_DatapointInterval != nil
 }
 
 func (x *QueryFilters) HasSpatialExtent() bool {
@@ -573,95 +571,35 @@ func (x *QueryFilters) HasSpatialExtent() bool {
 	return x.xxx_hidden_SpatialExtent != nil
 }
 
-func (x *QueryFilters) ClearTemporalExtent() {
-	x.xxx_hidden_TemporalExtent = nil
-}
-
 func (x *QueryFilters) ClearTimeInterval() {
-	if _, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_TimeInterval); ok {
-		x.xxx_hidden_TemporalExtent = nil
-	}
+	x.xxx_hidden_TimeInterval = nil
 }
 
 func (x *QueryFilters) ClearDatapointInterval() {
-	if _, ok := x.xxx_hidden_TemporalExtent.(*queryFilters_DatapointInterval); ok {
-		x.xxx_hidden_TemporalExtent = nil
-	}
+	x.xxx_hidden_DatapointInterval = nil
 }
 
 func (x *QueryFilters) ClearSpatialExtent() {
 	x.xxx_hidden_SpatialExtent = nil
 }
 
-const QueryFilters_TemporalExtent_not_set_case case_QueryFilters_TemporalExtent = 0
-const QueryFilters_TimeInterval_case case_QueryFilters_TemporalExtent = 1
-const QueryFilters_DatapointInterval_case case_QueryFilters_TemporalExtent = 2
-
-func (x *QueryFilters) WhichTemporalExtent() case_QueryFilters_TemporalExtent {
-	if x == nil {
-		return QueryFilters_TemporalExtent_not_set_case
-	}
-	switch x.xxx_hidden_TemporalExtent.(type) {
-	case *queryFilters_TimeInterval:
-		return QueryFilters_TimeInterval_case
-	case *queryFilters_DatapointInterval:
-		return QueryFilters_DatapointInterval_case
-	default:
-		return QueryFilters_TemporalExtent_not_set_case
-	}
-}
-
 type QueryFilters_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Either a time interval or datapoint interval must be set, but not both.
-
-	// Fields of oneof xxx_hidden_TemporalExtent:
 	TimeInterval      *v1.TimeInterval
 	DatapointInterval *v1.IDInterval
-	// -- end of xxx_hidden_TemporalExtent
-	SpatialExtent *SpatialFilter
+	SpatialExtent     *SpatialFilter
 }
 
 func (b0 QueryFilters_builder) Build() *QueryFilters {
 	m0 := &QueryFilters{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.TimeInterval != nil {
-		x.xxx_hidden_TemporalExtent = &queryFilters_TimeInterval{b.TimeInterval}
-	}
-	if b.DatapointInterval != nil {
-		x.xxx_hidden_TemporalExtent = &queryFilters_DatapointInterval{b.DatapointInterval}
-	}
+	x.xxx_hidden_TimeInterval = b.TimeInterval
+	x.xxx_hidden_DatapointInterval = b.DatapointInterval
 	x.xxx_hidden_SpatialExtent = b.SpatialExtent
 	return m0
 }
-
-type case_QueryFilters_TemporalExtent protoreflect.FieldNumber
-
-func (x case_QueryFilters_TemporalExtent) String() string {
-	md := file_datasets_v1_data_access_proto_msgTypes[3].Descriptor()
-	if x == 0 {
-		return "not set"
-	}
-	return protoimpl.X.MessageFieldStringOf(md, protoreflect.FieldNumber(x))
-}
-
-type isQueryFilters_TemporalExtent interface {
-	isQueryFilters_TemporalExtent()
-}
-
-type queryFilters_TimeInterval struct {
-	TimeInterval *v1.TimeInterval `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval,oneof"`
-}
-
-type queryFilters_DatapointInterval struct {
-	DatapointInterval *v1.IDInterval `protobuf:"bytes,2,opt,name=datapoint_interval,json=datapointInterval,oneof"`
-}
-
-func (*queryFilters_TimeInterval) isQueryFilters_TemporalExtent() {}
-
-func (*queryFilters_DatapointInterval) isQueryFilters_TemporalExtent() {}
 
 // SpatialFilter defines a spatial filter operation as part of a query.
 type SpatialFilter struct {
@@ -745,8 +683,11 @@ func (x *SpatialFilter) ClearGeometry() {
 type SpatialFilter_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Geometry         *Geometry
-	Mode             SpatialFilterMode
+	// The geometry to filter by.
+	Geometry *Geometry
+	// Whether to filter by intersection or containment.
+	Mode SpatialFilterMode
+	// Coordinate system in which to perform geometry calculations.
 	CoordinateSystem SpatialCoordinateSystem
 }
 
@@ -867,10 +808,14 @@ func (x *QueryRequest) ClearPage() {
 type QueryRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// collection ids to query.
 	CollectionIds []*v1.ID
-	Filters       *QueryFilters
-	Page          *v1.Pagination
-	SkipData      bool
+	// Filters to apply to the query.
+	Filters *QueryFilters
+	// The pagination parameters for this request.
+	Page *v1.Pagination
+	// If true, only datapoint metadata, such as id, time and ingestion_time are returned.
+	SkipData bool
 }
 
 func (b0 QueryRequest_builder) Build() *QueryRequest {
@@ -965,7 +910,9 @@ func (x *QueryResultPage) ClearNextPage() {
 type QueryResultPage_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Data     *RepeatedAny
+	// The datapoints.
+	Data *RepeatedAny
+	// The pagination parameters for the next page.
 	NextPage *v1.Pagination
 }
 
@@ -982,7 +929,7 @@ var File_datasets_v1_data_access_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\n" +
-	"\x1ddatasets/v1/data_access.proto\x12\vdatasets.v1\x1a\x16datasets/v1/core.proto\x1a\"datasets/v1/well_known_types.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"\xbd\x02\n" +
+	"\x1ddatasets/v1/data_access.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\x16datasets/v1/core.proto\x1a\"datasets/v1/well_known_types.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"\xbd\x02\n" +
 	"\x1cGetDatasetForIntervalRequest\x12#\n" +
 	"\rcollection_id\x18\x01 \x01(\tR\fcollectionId\x12=\n" +
 	"\rtime_interval\x18\x02 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x12E\n" +
@@ -993,22 +940,25 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\x17GetDatapointByIdRequest\x12#\n" +
 	"\rcollection_id\x18\x01 \x01(\tR\fcollectionId\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\tR\x02id\x12\x1b\n" +
-	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\x86\x01\n" +
-	"\x10QueryByIDRequest\x125\n" +
-	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDR\rcollectionIds\x12\x1e\n" +
-	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1b\n" +
-	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\xee\x01\n" +
-	"\fQueryFilters\x12?\n" +
-	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalH\x00R\ftimeInterval\x12G\n" +
-	"\x12datapoint_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalH\x00R\x11datapointInterval\x12A\n" +
-	"\x0espatial_extent\x18\x03 \x01(\v2\x1a.datasets.v1.SpatialFilterR\rspatialExtentB\x11\n" +
-	"\x0ftemporal_extent\"\xc9\x01\n" +
-	"\rSpatialFilter\x121\n" +
-	"\bgeometry\x18\x01 \x01(\v2\x15.datasets.v1.GeometryR\bgeometry\x122\n" +
-	"\x04mode\x18\x02 \x01(\x0e2\x1e.datasets.v1.SpatialFilterModeR\x04mode\x12Q\n" +
-	"\x11coordinate_system\x18\x03 \x01(\x0e2$.datasets.v1.SpatialCoordinateSystemR\x10coordinateSystem\"\xca\x01\n" +
-	"\fQueryRequest\x125\n" +
-	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDR\rcollectionIds\x123\n" +
+	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\x9a\x01\n" +
+	"\x10QueryByIDRequest\x12A\n" +
+	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDB\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10dR\rcollectionIds\x12&\n" +
+	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1b\n" +
+	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\x83\x02\n" +
+	"\fQueryFilters\x12=\n" +
+	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x12E\n" +
+	"\x12datapoint_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalR\x11datapointInterval\x12A\n" +
+	"\x0espatial_extent\x18\x03 \x01(\v2\x1a.datasets.v1.SpatialFilterR\rspatialExtent:*\xbaH'\"%\n" +
+	"\rtime_interval\n" +
+	"\x12datapoint_interval\x10\x01\"\xe5\x01\n" +
+	"\rSpatialFilter\x129\n" +
+	"\bgeometry\x18\x01 \x01(\v2\x15.datasets.v1.GeometryB\x06\xbaH\x03\xc8\x01\x01R\bgeometry\x12<\n" +
+	"\x04mode\x18\x02 \x01(\x0e2\x1e.datasets.v1.SpatialFilterModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04mode\x12[\n" +
+	"\x11coordinate_system\x18\x03 \x01(\x0e2$.datasets.v1.SpatialCoordinateSystemB\b\xbaH\x05\x82\x01\x02\x10\x01R\x10coordinateSystem\"\xd6\x01\n" +
+	"\fQueryRequest\x12A\n" +
+	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDB\n" +
+	"\xbaH\a\x92\x01\x04\b\x01\x10dR\rcollectionIds\x123\n" +
 	"\afilters\x18\x02 \x01(\v2\x19.datasets.v1.QueryFiltersR\afilters\x121\n" +
 	"\x04page\x18\x03 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12\x1b\n" +
 	"\tskip_data\x18\x04 \x01(\bR\bskipData\"{\n" +
@@ -1092,10 +1042,6 @@ func file_datasets_v1_data_access_proto_init() {
 	}
 	file_datasets_v1_core_proto_init()
 	file_datasets_v1_well_known_types_proto_init()
-	file_datasets_v1_data_access_proto_msgTypes[3].OneofWrappers = []any{
-		(*queryFilters_TimeInterval)(nil),
-		(*queryFilters_DatapointInterval)(nil),
-	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
