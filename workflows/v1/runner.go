@@ -169,21 +169,21 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 		}
 
 		if work != nil && work.GetNextTask() != nil { // we have a task to execute
-			task2 := work.GetNextTask()
-			if isEmpty(task2.GetId()) {
+			task := work.GetNextTask()
+			if isEmpty(task.GetId()) {
 				t.logger.ErrorContext(ctx, "got a task without an ID - skipping to the next task")
 				work = nil
 				continue
 			}
-			if task2.GetRetryCount() > 0 {
-				t.logger.DebugContext(ctx, "retrying task", slog.String("task_id", task2.GetId().AsUUID().String()), slog.Int64("retry_count", task2.GetRetryCount()))
+			if task.GetRetryCount() > 0 {
+				t.logger.DebugContext(ctx, "retrying task", slog.String("task_id", task.GetId().AsUUID().String()), slog.Int64("retry_count", task.GetRetryCount()))
 			}
-			executionContext, errTask := t.executeTask(ctx, task2)
+			executionContext, errTask := t.executeTask(ctx, task)
 			stopExecution := false
 			if errTask == nil { // in case we got no error, let's mark the task as computed and get the next one
 				computedTask := workflowsv1.ComputedTask_builder{
-					Id:       task2.GetId(),
-					Display:  task2.GetDisplay(),
+					Id:       task.GetId(),
+					Display:  task.GetDisplay(),
 					SubTasks: nil,
 				}.Build()
 				if executionContext != nil && len(executionContext.Subtasks) > 0 {
@@ -221,7 +221,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				}
 			} else { // errTask != nil
 				// the error itself is already logged in executeTask, so we just need to report the task as failed
-				err := t.taskFailed(ctx, ctxSignal, task2.GetId().AsUUID(), errTask, task2.GetDisplay())
+				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay())
 				if err != nil {
 					if !errors.Is(err, context.Canceled) {
 						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", slog.Any("error", err))
