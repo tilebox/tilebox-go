@@ -3,6 +3,9 @@ package workflows
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"log/slog"
+	"os"
 	"testing"
 	"time"
 
@@ -663,4 +666,87 @@ func TestSubmitSubtasks(t *testing.T) {
 			}
 		})
 	}
+}
+
+type cacheKey string
+
+const fibonacciCacheCtxKey cacheKey = "x-fibonacci-test-workflow-cache"
+
+type FibonacciTask struct {
+	N int
+}
+
+func (t *FibonacciTask) Identifier() TaskIdentifier {
+	return NewTaskIdentifier("tilebox.com/fibonacci/FibonacciTask", "v1.0")
+}
+
+func (t *FibonacciTask) Execute(ctx context.Context) error {
+	cache := ctx.Value(fibonacciCacheCtxKey).(map[string]int)
+
+	key := fmt.Sprintf("fib_%d", t.N)
+	_, ok := cache[key]
+	if ok {
+		// result already cached and computed, so nothing to do
+		return nil
+	}
+	if t.N <= 2 { // base cases: fib(1) = 1, fib(2) = 1
+		cache[key] = 1
+	} else {
+		fibMinus1And2, err := SubmitSubtasks(ctx, []Task{&FibonacciTask{N: t.N - 1}, &FibonacciTask{N: t.N - 2}})
+		if err != nil {
+			return err
+		}
+
+		_, err = SubmitSubtask(ctx, &SumResultTask{N: t.N}, subtask.WithDependencies(fibMinus1And2...))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+type SumResultTask struct {
+	N int
+}
+
+func (t *SumResultTask) Identifier() TaskIdentifier {
+	return NewTaskIdentifier("tilebox.com/fibonacci/SumResultTask", "v1.0")
+}
+
+func (t *SumResultTask) Execute(ctx context.Context) error {
+	cache := ctx.Value(fibonacciCacheCtxKey).(map[string]int)
+	key := fmt.Sprintf("fib_%d", t.N)
+	// calculate and store the result
+	cache[key] = cache[fmt.Sprintf("fib_%d", t.N-1)] + cache[fmt.Sprintf("fib_%d", t.N-2)]
+	return nil
+}
+
+func TestRunnerFibonacciWorkflow(t *testing.T) {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
+	client := NewReplayClient(t, "fibonacci_workflow.json")
+
+	ctx := context.Background()
+	cache := make(map[string]int)
+	ctx = context.WithValue(ctx, fibonacciCacheCtxKey, cache)
+
+	runner, err := client.NewTaskRunner(ctx)
+	require.NoError(t, err, "failed to create task runner")
+
+	err = runner.RegisterTasks(&FibonacciTask{}, &SumResultTask{})
+	require.NoError(t, err, "failed to register task")
+
+	_, err = client.Jobs.Submit(ctx, "fibonacci", []Task{&FibonacciTask{N: 7}})
+	require.NoError(t, err, "failed to submit job")
+
+	runner.RunAll(ctx)
+
+	// make sure all results are computed
+	assert.Equal(t, 13, cache["fib_7"])
+	assert.Equal(t, 8, cache["fib_6"])
+	assert.Equal(t, 5, cache["fib_5"])
+	assert.Equal(t, 3, cache["fib_4"])
+	assert.Equal(t, 2, cache["fib_3"])
+	assert.Equal(t, 1, cache["fib_2"])
+	assert.Equal(t, 1, cache["fib_1"])
 }

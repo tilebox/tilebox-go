@@ -15,6 +15,7 @@ import (
 
 	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	"github.com/tilebox/tilebox-go/internal/span"
 	"github.com/tilebox/tilebox-go/observability"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
@@ -32,8 +33,15 @@ type contextKeyTaskExecutionType string
 const contextKeyTaskExecution contextKeyTaskExecutionType = "x-tilebox-task-execution-object"
 
 const (
-	pollingInterval = 5 * time.Second
-	jitterInterval  = 5 * time.Second
+	// A maximum idling duration, as a safeguard to avoid way too long sleep times in case the suggested idling duration is
+	// ever too long. 5 minutes should be plenty of time to wait.
+	maxIdlingDuration = 5 * time.Minute
+	// A minimum idling duration, as a safeguard to avoid too short sleep times in case the suggested idling duration is ever too short.
+	minIdlingDuration = 1 * time.Millisecond
+
+	// Fallback polling interval and jitter in case the workflows API fails to respond with a suggested idling duration
+	fallbackPollingInterval = 5 * time.Second
+	fallbackJitterInterval  = 5 * time.Second
 )
 
 // TaskRunner executes tasks.
@@ -143,10 +151,11 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 		}.Build())
 	}
 
-	var task *workflowsv1.Task
+	// the work we got as response from our last NextTask request, either a task to execute or an idling response
+	var work *workflowsv1.NextTaskResponse
 
 	for {
-		if task == nil { // if we don't have a task, let's try work-stealing one
+		if work == nil || work.GetNextTask() == nil { // if we don't have a task, let's try work-stealing one
 			taskResponse, err := t.service.NextTask(ctx,
 				nil,
 				workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build(),
@@ -155,22 +164,26 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				t.logger.ErrorContext(ctx, "failed to work-steal a task", slog.Any("error", err))
 				// return  // should we even try again, or just stop here?
 			} else {
-				task = taskResponse.GetNextTask()
+				work = taskResponse
 			}
 		}
 
-		if task != nil { // we have a task to execute
-			if isEmpty(task.GetId()) {
+		if work != nil && work.GetNextTask() != nil { // we have a task to execute
+			task2 := work.GetNextTask()
+			if isEmpty(task2.GetId()) {
 				t.logger.ErrorContext(ctx, "got a task without an ID - skipping to the next task")
-				task = nil
+				work = nil
 				continue
 			}
-			executionContext, errTask := t.executeTask(ctx, task)
+			if task2.GetRetryCount() > 0 {
+				t.logger.DebugContext(ctx, "retrying task", slog.String("task_id", task2.GetId().AsUUID().String()), slog.Int64("retry_count", task2.GetRetryCount()))
+			}
+			executionContext, errTask := t.executeTask(ctx, task2)
 			stopExecution := false
 			if errTask == nil { // in case we got no error, let's mark the task as computed and get the next one
 				computedTask := workflowsv1.ComputedTask_builder{
-					Id:       task.GetId(),
-					Display:  task.GetDisplay(),
+					Id:       task2.GetId(),
+					Display:  task2.GetDisplay(),
 					SubTasks: nil,
 				}.Build()
 				if executionContext != nil && len(executionContext.Subtasks) > 0 {
@@ -179,7 +192,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				nextTaskToRun := workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build()
 				select {
 				case <-ctxSignal.Done():
-					// if we got a context cancellation, don't request a new task
+					// if we got an interrupt signal, don't request a new task
 					nextTaskToRun = nil
 					stopExecution = true
 				case <-ctx.Done():
@@ -190,14 +203,14 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				}
 
 				var err error
-				task, err = retry.DoWithData(
-					func() (*workflowsv1.Task, error) {
+				work, err = retry.DoWithData(
+					func() (*workflowsv1.NextTaskResponse, error) {
 						taskResponse, err := t.service.NextTask(ctx, computedTask, nextTaskToRun)
 						if err != nil {
 							t.logger.ErrorContext(ctx, "failed to mark task as computed, retrying", slog.Any("error", err))
 							return nil, err
 						}
-						return taskResponse.GetNextTask(), nil
+						return taskResponse, nil
 					}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
 				)
 				if err != nil {
@@ -208,28 +221,36 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				}
 			} else { // errTask != nil
 				// the error itself is already logged in executeTask, so we just need to report the task as failed
-				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay())
+				err := t.taskFailed(ctx, ctxSignal, task2.GetId().AsUUID(), errTask, task2.GetDisplay())
 				if err != nil {
 					if !errors.Is(err, context.Canceled) {
 						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", slog.Any("error", err))
 					}
 					return // we got a cancellation signal, so let's just stop here
 				}
-				task = nil // reported a task failure, let's work-steal again
+				work = nil // reported a task failure, let's work-steal again
 			}
 			if stopExecution {
 				return
 			}
 		} else {
 			// if we didn't get a task, let's wait for a bit and try work-stealing again
-			t.logger.DebugContext(ctx, "no task to run")
+			t.logger.DebugContext(ctx, "no task to run, idling")
 
 			if stopWhenIdling {
 				return
 			}
 
+			idlingDuration := fallbackPollingInterval + rand.N(fallbackJitterInterval)
+			if work != nil && work.GetIdling().GetSuggestedIdlingDuration() != nil {
+				idlingDuration = work.GetIdling().GetSuggestedIdlingDuration().AsDuration()
+				idlingDuration = lo.Clamp(idlingDuration, minIdlingDuration, maxIdlingDuration)
+			} else {
+				t.logger.DebugContext(ctx, "Didn't receive a task to run, nor an idling response, but runner is not shutting down. Falling back to a default idling period.", slog.Duration("fallback_idling_duration", idlingDuration))
+			}
+
 			// instead of time.Sleep we set a timer and select on it, so we still can catch signals like SIGINT
-			timer := time.NewTimer(pollingInterval + rand.N(jitterInterval))
+			timer := time.NewTimer(idlingDuration)
 			select {
 			case <-ctxSignal.Done():
 				timer.Stop() // stop the timer before returning, avoids a memory leak
