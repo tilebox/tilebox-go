@@ -141,8 +141,9 @@ func newClientConfig(options []ClientOption) *clientConfig {
 			cfg.httpClient = grpc.RetryHTTPClient()
 		} else { // we connect to a unix socket
 			address := cfg.url // we copy the url to a temporary variable so that we can modify cfg.url after
-			dial := func(context.Context, string, string) (net.Conn, error) {
-				return net.Dial("unix", address)
+			dial := func(ctx context.Context, _ string, _ string) (net.Conn, error) {
+				var d net.Dialer
+				return d.DialContext(ctx, "unix", address)
 			}
 			transport := &http.Transport{DialContext: dial}
 			cfg.httpClient = &http.Client{Transport: transport}
