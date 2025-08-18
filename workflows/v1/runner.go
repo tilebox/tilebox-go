@@ -57,7 +57,7 @@ type TaskRunner struct {
 	taskDurationMetric metric.Float64Histogram
 }
 
-func newTaskRunner(ctx context.Context, service TaskService, clusterClient ClusterClient, tracer trace.Tracer, options ...runner.Option) (*TaskRunner, error) { // FIXME
+func newTaskRunner(ctx context.Context, service TaskService, clusterClient ClusterClient, tracer trace.Tracer, options ...runner.Option) (*TaskRunner, error) {
 	opts := &runner.Options{
 		ClusterSlug:   "",
 		Logger:        slog.Default(),
