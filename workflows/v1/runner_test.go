@@ -56,6 +56,30 @@ func (t *badIdentifierTask) Identifier() TaskIdentifier {
 	return NewTaskIdentifier("", "")
 }
 
+type SampleTaskV1 struct {
+	N int
+}
+
+func (t *SampleTaskV1) Identifier() TaskIdentifier {
+	return NewTaskIdentifier("tilebox.com/sample/SampleTask", "v1.0")
+}
+
+func (t *SampleTaskV1) Execute(ctx context.Context) error {
+	return nil
+}
+
+type SampleTaskV2 struct {
+	N int
+}
+
+func (t *SampleTaskV2) Identifier() TaskIdentifier {
+	return NewTaskIdentifier("tilebox.com/sample/SampleTask", "v2.0")
+}
+
+func (t *SampleTaskV2) Execute(ctx context.Context) error {
+	return nil
+}
+
 func TestTaskRunner_RegisterTasks(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
@@ -67,7 +91,7 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		wantErr   bool
+		wantErr   string
 		wantTasks []ExecutableTask
 	}{
 		{
@@ -78,15 +102,36 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 			wantTasks: []ExecutableTask{},
 		},
 		{
-			name: "Register Tasks duplicated task",
+			name: "Register Tasks duplicated implicitly generated task identifiers",
 			args: args{
 				tasks: []ExecutableTask{
 					&testTask1{},
 					&testTask1{},
 				},
 			},
+			wantErr: "duplicate task identifier: a task 'testTask1' with version 'v0.0' is already registered",
+		},
+		{
+			name: "Register Tasks duplicated explicitly defined task identifiers",
+			args: args{
+				tasks: []ExecutableTask{
+					&SampleTaskV1{},
+					&SampleTaskV1{},
+				},
+			},
+			wantErr: "duplicate task identifier: a task 'tilebox.com/sample/SampleTask' with version 'v1.0' is already registered",
+		},
+		{
+			name: "Register Tasks duplicated identifier names with different versions",
+			args: args{
+				tasks: []ExecutableTask{
+					&SampleTaskV1{},
+					&SampleTaskV2{},
+				},
+			},
 			wantTasks: []ExecutableTask{
-				&testTask1{},
+				&SampleTaskV1{},
+				&SampleTaskV2{},
 			},
 		},
 		{
@@ -98,7 +143,7 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 					&testTask2{},
 				},
 			},
-			wantErr: true,
+			wantErr: "task name is empty",
 			wantTasks: []ExecutableTask{
 				&testTask1{},
 			},
@@ -110,9 +155,12 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 			require.NoError(t, err)
 
 			err = runner.RegisterTasks(tt.args.tasks...)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RegisterTasks() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr != "" {
+				require.ErrorContains(t, err, tt.wantErr)
+				return
 			}
+
+			require.NoError(t, err)
 
 			assert.Len(t, runner.taskDefinitions, len(tt.wantTasks))
 			for _, task := range tt.wantTasks {
