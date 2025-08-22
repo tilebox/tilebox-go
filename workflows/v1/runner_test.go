@@ -750,3 +750,48 @@ func TestRunnerFibonacciWorkflow(t *testing.T) {
 	assert.Equal(t, 1, cache["fib_2"])
 	assert.Equal(t, 1, cache["fib_1"])
 }
+
+type SampleTaskV1 struct {
+	N int
+}
+
+func (t *SampleTaskV1) Identifier() TaskIdentifier {
+	return NewTaskIdentifier("tilebox.com/sample/SampleTask", "v1.0")
+}
+
+func (t *SampleTaskV1) Execute(ctx context.Context) error {
+	return nil
+}
+
+type SampleTaskV2 struct {
+	N int
+}
+
+func (t *SampleTaskV2) Identifier() TaskIdentifier {
+	return NewTaskIdentifier("tilebox.com/sample/SampleTask", "v2.0")
+}
+
+func (t *SampleTaskV2) Execute(ctx context.Context) error {
+	return nil
+}
+
+func TestRunnerDuplicateTaskRegistration(t *testing.T) {
+	runner := &TaskRunner{
+		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
+	}
+
+	err := runner.RegisterTasks(&FibonacciTask{})
+	require.NoError(t, err)
+	err = runner.RegisterTasks(&FibonacciTask{})
+	require.ErrorContains(t, err, "duplicate task identifier: a task 'tilebox.com/fibonacci/FibonacciTask' with version 'v1.0' is already registered")
+
+	err = runner.RegisterTasks(&SampleTaskV1{})
+	require.NoError(t, err)
+	err = runner.RegisterTasks(&SampleTaskV1{})
+	require.ErrorContains(t, err, "duplicate task identifier: a task 'tilebox.com/sample/SampleTask' with version 'v1.0' is already registered")
+
+	err = runner.RegisterTasks(&SampleTaskV2{}) // same identifier, but works because of a different version
+	require.NoError(t, err)
+	err = runner.RegisterTasks(&SampleTaskV2{})
+	require.ErrorContains(t, err, "duplicate task identifier: a task 'tilebox.com/sample/SampleTask' with version 'v2.0' is already registered")
+}

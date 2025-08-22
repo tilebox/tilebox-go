@@ -101,7 +101,16 @@ func (t *TaskRunner) registerTask(task ExecutableTask) error {
 	if err != nil {
 		return err
 	}
-	t.taskDefinitions[taskIdentifier{name: identifier.Name(), version: identifier.Version()}] = task
+	key := taskIdentifier{name: identifier.Name(), version: identifier.Version()}
+	_, found := t.taskDefinitions[key]
+	if found {
+		return fmt.Errorf(
+			"duplicate task identifier: a task '%s' with version '%s' is already registered",
+			identifier.Name(),
+			identifier.Version(),
+		)
+	}
+	t.taskDefinitions[key] = task
 	return nil
 }
 
