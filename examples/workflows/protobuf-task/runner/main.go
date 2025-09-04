@@ -24,7 +24,7 @@ func main() {
 	)
 	if err != nil {
 		slog.Error("failed to register tasks", slog.Any("error", err))
-		return // exit the program if we can't register one of the tasks
+		return
 	}
 
 	taskRunner.RunForever(ctx)
