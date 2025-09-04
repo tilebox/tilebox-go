@@ -14,7 +14,7 @@ func main() {
 
 	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree",
 		[]workflows.Task{
-			&pbtask.SampleTask{ // protobuf task
+			&pbtask.SampleTask{ // regular struct task
 				Message:      "hello go runner!",
 				Depth:        8,
 				BranchFactor: 4,

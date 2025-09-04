@@ -4,7 +4,7 @@ This example uses a protobuf message to define `SpawnWorkflowTreeTask` task.
 
 The task definition is defined in [workflow.proto](../../../apis/examples/v1/workflow.proto) and the task implementation is in [example_workflow.go](tasks.go).
 
-The generated code of `workflow.proto` is in [workflow.pb.go](../../../protogen/go/examples/v1/workflow.pb.go) and can be (re-)generated using the following command:
+The generated code of `workflow.proto` is in [workflow.pb.go](../../../protogen/examples/v1/workflow.pb.go) and can be (re-)generated using the following command:
 
 ```bash
 go generate ./...
