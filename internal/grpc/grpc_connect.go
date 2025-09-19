@@ -1,8 +1,11 @@
 package grpc
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -32,6 +35,23 @@ func retryOnStatusUnavailable(ctx context.Context, resp *http.Response, err erro
 	}
 
 	if resp != nil {
+		// special handling of 429 errors from connect that are actually resource exhausted errors
+		// https://connectrpc.com/docs/protocol#error-codes
+		if resp.StatusCode == http.StatusTooManyRequests {
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return false, err
+			}
+			resp.Body = io.NopCloser(bytes.NewReader(body)) // reset body for potential future reads
+
+			var connectErr struct {
+				Code string `json:"code"`
+			}
+			if json.Unmarshal(body, &connectErr) == nil && connectErr.Code == "resource_exhausted" {
+				return false, nil // don't retry on resource exhausted errors
+			}
+		}
+
 		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
 			slog.InfoContext(ctx, "Auth client retry",
 				slog.String("status", resp.Status),
