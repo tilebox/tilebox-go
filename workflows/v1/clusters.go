@@ -15,7 +15,7 @@ import (
 type Cluster struct {
 	// Slug is the unique identifier of the cluster within the namespace.
 	Slug string
-	// Name is the display name of the cluster.
+	// Name is the label name of the cluster.
 	Name string
 	// Deletable is true when the cluster can be deleted.
 	Deletable bool

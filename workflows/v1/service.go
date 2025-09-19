@@ -239,7 +239,7 @@ func (s *jobService) QueryJobs(ctx context.Context, filters *workflowsv1.QueryFi
 
 type TaskService interface {
 	NextTask(ctx context.Context, computedTask *workflowsv1.ComputedTask, nextTaskToRun *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, error)
-	TaskFailed(ctx context.Context, taskID uuid.UUID, display string, cancelJob bool) (*workflowsv1.TaskStateResponse, error)
+	TaskFailed(ctx context.Context, taskID uuid.UUID, display string, cancelJob bool, progressUpdates []*workflowsv1.Progress) (*workflowsv1.TaskStateResponse, error)
 	ExtendTaskLease(ctx context.Context, taskID uuid.UUID, requestedLease time.Duration) (*workflowsv1.TaskLease, error)
 }
 
@@ -271,12 +271,13 @@ func (s *taskService) NextTask(ctx context.Context, computedTask *workflowsv1.Co
 	})
 }
 
-func (s *taskService) TaskFailed(ctx context.Context, taskID uuid.UUID, display string, cancelJob bool) (*workflowsv1.TaskStateResponse, error) {
+func (s *taskService) TaskFailed(ctx context.Context, taskID uuid.UUID, display string, cancelJob bool, progressUpdates []*workflowsv1.Progress) (*workflowsv1.TaskStateResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/tasks/failed", func(ctx context.Context) (*workflowsv1.TaskStateResponse, error) {
 		res, err := s.taskClient.TaskFailed(ctx, connect.NewRequest(workflowsv1.TaskFailedRequest_builder{
-			TaskId:    tileboxv1.NewUUID(taskID),
-			Display:   display,
-			CancelJob: cancelJob,
+			TaskId:          tileboxv1.NewUUID(taskID),
+			Display:         display,
+			CancelJob:       cancelJob,
+			ProgressUpdates: progressUpdates,
 		}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to mark task as failed: %w", err)

@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"reflect"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -191,12 +192,13 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 			stopExecution := false
 			if errTask == nil { // in case we got no error, let's mark the task as computed and get the next one
 				computedTask := workflowsv1.ComputedTask_builder{
-					Id:       task.GetId(),
-					Display:  task.GetDisplay(),
-					SubTasks: nil,
+					Id:              task.GetId(),
+					Display:         task.GetDisplay(),
+					SubTasks:        nil,
+					ProgressUpdates: executionContext.getProgressUpdates(),
 				}.Build()
-				if executionContext != nil && len(executionContext.Subtasks) > 0 {
-					computedTask.SetSubTasks(executionContext.Subtasks)
+				if executionContext != nil && len(executionContext.subtasks) > 0 {
+					computedTask.SetSubTasks(executionContext.subtasks)
 				}
 				nextTaskToRun := workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build()
 				select {
@@ -230,7 +232,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				}
 			} else { // errTask != nil
 				// the error itself is already logged in executeTask, so we just need to report the task as failed
-				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay())
+				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay(), executionContext.getProgressUpdates())
 				if err != nil {
 					if !errors.Is(err, context.Canceled) {
 						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", slog.Any("error", err))
@@ -273,7 +275,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 	}
 }
 
-func (t *TaskRunner) taskFailed(ctx, ctxSignal context.Context, taskID uuid.UUID, taskError error, taskDisplay string) error {
+func (t *TaskRunner) taskFailed(ctx, ctxSignal context.Context, taskID uuid.UUID, taskError error, taskDisplay string, progressUpdates []*workflowsv1.Progress) error {
 	// job output is limited to 1KB, so truncate the error message if necessary
 	errorMessage := taskError.Error()
 	if len(errorMessage) > 1024 {
@@ -287,7 +289,7 @@ func (t *TaskRunner) taskFailed(ctx, ctxSignal context.Context, taskID uuid.UUID
 
 	return retry.Do(
 		func() error {
-			_, err := t.service.TaskFailed(ctx, taskID, display, true)
+			_, err := t.service.TaskFailed(ctx, taskID, display, true, progressUpdates)
 			if err != nil {
 				t.logger.ErrorContext(ctx, "failed to report task failure", slog.Any("error", err))
 				return err
@@ -414,14 +416,38 @@ func (t *TaskRunner) extendTaskLease(ctx context.Context, service TaskService, t
 type taskExecutionContext struct {
 	CurrentTask *workflowsv1.Task
 	runner      *TaskRunner
-	Subtasks    []*workflowsv1.TaskSubmission
+
+	subtasksMutex sync.Mutex
+	subtasks      []*workflowsv1.TaskSubmission
+
+	progressMutex      sync.Mutex
+	progressIndicators map[string]*taskProgressIndicator
+}
+
+// getProgressUpdates converts the internal progress indicators into the protobuf representation we need for
+// reporting progress to the workflows API
+func (e *taskExecutionContext) getProgressUpdates() []*workflowsv1.Progress {
+	e.progressMutex.Lock()
+	defer e.progressMutex.Unlock()
+	progressUpdates := make([]*workflowsv1.Progress, 0, len(e.progressIndicators))
+	for _, progress := range e.progressIndicators {
+		progressUpdates = append(progressUpdates, workflowsv1.Progress_builder{
+			Label: progress.label,
+			Total: progress.total,
+			Done:  progress.done,
+		}.Build())
+	}
+	return progressUpdates
 }
 
 func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflowsv1.Task) context.Context {
 	return context.WithValue(ctx, contextKeyTaskExecution, &taskExecutionContext{
-		CurrentTask: task,
-		runner:      t,
-		Subtasks:    make([]*workflowsv1.TaskSubmission, 0),
+		CurrentTask:        task,
+		runner:             t,
+		subtasksMutex:      sync.Mutex{},
+		subtasks:           make([]*workflowsv1.TaskSubmission, 0),
+		progressIndicators: make(map[string]*taskProgressIndicator),
+		progressMutex:      sync.Mutex{},
 	})
 }
 
@@ -444,11 +470,11 @@ func GetCurrentCluster(ctx context.Context) (string, error) {
 	return executionContext.runner.cluster, nil
 }
 
-// SetTaskDisplay sets the display name of the current task.
+// SetTaskDisplay sets the label name of the current task.
 func SetTaskDisplay(ctx context.Context, display string) error {
 	executionContext := getTaskExecutionContext(ctx)
 	if executionContext == nil {
-		return errors.New("cannot set task display name without task execution context")
+		return errors.New("cannot set task label name without task execution context")
 	}
 	executionContext.CurrentTask.SetDisplay(display)
 	return nil
@@ -501,7 +527,7 @@ func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOpti
 	}
 
 	var dependencies []int64 //nolint:prealloc // we want to keep it nil if there are no dependencies
-	taskIndex := int64(len(executionContext.Subtasks))
+	taskIndex := int64(len(executionContext.subtasks))
 
 	for _, ft := range opts.Dependencies {
 		if ft < 0 || int64(ft) >= taskIndex {
@@ -522,7 +548,9 @@ func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOpti
 		Display:      identifier.Display(),
 	}.Build()
 
-	executionContext.Subtasks = append(executionContext.Subtasks, subtaskSubmission)
+	executionContext.subtasksMutex.Lock()
+	defer executionContext.subtasksMutex.Unlock()
+	executionContext.subtasks = append(executionContext.subtasks, subtaskSubmission)
 	return subtask.FutureTask(taskIndex), nil
 }
 
@@ -538,6 +566,80 @@ func SubmitSubtasks(ctx context.Context, tasks []Task, options ...subtask.Submit
 		futureTasks = append(futureTasks, futureTask)
 	}
 	return futureTasks, nil
+}
+
+// taskProgressIndicator is the internal struct that keeps track of the progress of a single progress indicator within
+// a task.
+type taskProgressIndicator struct {
+	label string
+	total uint64
+	done  uint64
+	mutex sync.Mutex
+}
+
+// ProgressTracker is an interface for updating the total work and completed work units for a named progress
+// indicator for a job.
+type ProgressTracker interface {
+	// Add a given amount of total work to be done to the progress indicator.
+	Add(context.Context, uint64) error
+
+	// Done marks a given amount of work as done.
+	Done(context.Context, uint64) error
+}
+
+// progressTracker is an intermediate facade struct which allows us to delay eventual errors, e.g. due to a context
+// without a taskExecutionContext to the actual calls to Add and Done, allowing for a more convenient API.
+type progressTracker struct {
+	label string
+}
+
+func (p *progressTracker) Add(ctx context.Context, n uint64) error {
+	progress, err := p.getProgressUpdate(ctx)
+	if err != nil {
+		return err
+	}
+	progress.mutex.Lock()
+	defer progress.mutex.Unlock()
+	progress.total += n
+	return nil
+}
+
+func (p *progressTracker) Done(ctx context.Context, n uint64) error {
+	progress, err := p.getProgressUpdate(ctx)
+	if err != nil {
+		return err
+	}
+	progress.mutex.Lock()
+	defer progress.mutex.Unlock()
+	progress.done += n
+	return nil
+}
+
+func (p *progressTracker) getProgressUpdate(ctx context.Context) (*taskProgressIndicator, error) {
+	executionContext := getTaskExecutionContext(ctx)
+	if executionContext == nil {
+		return nil, errors.New("cannot track progress without a task execution context")
+	}
+
+	// avoid concurrent access to the progress indicators in case multiple goroutines are used within a task
+	executionContext.progressMutex.Lock()
+	defer executionContext.progressMutex.Unlock()
+	progress, found := executionContext.progressIndicators[p.label]
+	if !found {
+		progress = &taskProgressIndicator{label: p.label, mutex: sync.Mutex{}}
+		executionContext.progressIndicators[p.label] = progress
+	}
+	return progress, nil
+}
+
+// DefaultProgress returns the default, unnamed progress indicator instance for tracking job progress.
+func DefaultProgress() ProgressTracker {
+	return &progressTracker{}
+}
+
+// Progress returns a named progress indicator instance for tracking job progress.
+func Progress(label string) ProgressTracker {
+	return &progressTracker{label: label}
 }
 
 // WithTaskSpanResult is a helper function that wraps a function with a tracing span.

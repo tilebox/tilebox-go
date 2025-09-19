@@ -35,6 +35,8 @@ type Job struct {
 	TaskSummaries []*TaskSummary
 	// AutomationID is the ID of the automation that submitted the job.
 	AutomationID uuid.UUID
+	// Progress is a list of progress indicators for the job.
+	Progress []*ProgressIndicator
 }
 
 // JobState is the state of a Job.
@@ -52,7 +54,7 @@ const (
 type TaskSummary struct {
 	// ID is the unique identifier of the task.
 	ID uuid.UUID
-	// Display is the display message of the task.
+	// Display is the label message of the task.
 	Display string
 	// State is the state of the task.
 	State TaskState
@@ -66,6 +68,12 @@ type TaskSummary struct {
 
 // TaskState is the state of a Task.
 type TaskState int32
+
+type ProgressIndicator struct {
+	Label string
+	Total uint64
+	Done  uint64
+}
 
 // TaskState values.
 const (
@@ -262,9 +270,14 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 }
 
 func protoToJob(job *workflowsv1.Job) *Job {
-	taskSummaries := make([]*TaskSummary, len(job.GetTaskSummaries()))
-	for i, taskSummary := range job.GetTaskSummaries() {
-		taskSummaries[i] = protoToTaskSummary(taskSummary)
+	taskSummaries := make([]*TaskSummary, 0, len(job.GetTaskSummaries()))
+	for _, taskSummary := range job.GetTaskSummaries() {
+		taskSummaries = append(taskSummaries, protoToTaskSummary(taskSummary))
+	}
+
+	progressIndicators := make([]*ProgressIndicator, 0, len(job.GetProgress()))
+	for _, progress := range job.GetProgress() {
+		progressIndicators = append(progressIndicators, protoToProgressIndicator(progress))
 	}
 
 	return &Job{
@@ -276,6 +289,7 @@ func protoToJob(job *workflowsv1.Job) *Job {
 		StartedAt:     job.GetStartedAt().AsTime(),
 		TaskSummaries: taskSummaries,
 		AutomationID:  job.GetAutomationId().AsUUID(),
+		Progress:      progressIndicators,
 	}
 }
 
@@ -287,6 +301,14 @@ func protoToTaskSummary(t *workflowsv1.TaskSummary) *TaskSummary {
 		ParentID:  t.GetParentId().AsUUID(),
 		StartedAt: t.GetStartedAt().AsTime(),
 		StoppedAt: t.GetStoppedAt().AsTime(),
+	}
+}
+
+func protoToProgressIndicator(p *workflowsv1.Progress) *ProgressIndicator {
+	return &ProgressIndicator{
+		Label: p.GetLabel(),
+		Total: p.GetTotal(),
+		Done:  p.GetDone(),
 	}
 }
 

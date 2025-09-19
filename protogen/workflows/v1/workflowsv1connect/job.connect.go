@@ -37,6 +37,9 @@ const (
 	JobServiceSubmitJobProcedure = "/workflows.v1.JobService/SubmitJob"
 	// JobServiceGetJobProcedure is the fully-qualified name of the JobService's GetJob RPC.
 	JobServiceGetJobProcedure = "/workflows.v1.JobService/GetJob"
+	// JobServiceGetJobProgressProcedure is the fully-qualified name of the JobService's GetJobProgress
+	// RPC.
+	JobServiceGetJobProgressProcedure = "/workflows.v1.JobService/GetJobProgress"
 	// JobServiceRetryJobProcedure is the fully-qualified name of the JobService's RetryJob RPC.
 	JobServiceRetryJobProcedure = "/workflows.v1.JobService/RetryJob"
 	// JobServiceCancelJobProcedure is the fully-qualified name of the JobService's CancelJob RPC.
@@ -56,6 +59,7 @@ const (
 type JobServiceClient interface {
 	SubmitJob(context.Context, *connect.Request[v1.SubmitJobRequest]) (*connect.Response[v1.Job], error)
 	GetJob(context.Context, *connect.Request[v1.GetJobRequest]) (*connect.Response[v1.Job], error)
+	GetJobProgress(context.Context, *connect.Request[v1.GetJobProgressRequest]) (*connect.Response[v1.Job], error)
 	RetryJob(context.Context, *connect.Request[v1.RetryJobRequest]) (*connect.Response[v1.RetryJobResponse], error)
 	CancelJob(context.Context, *connect.Request[v1.CancelJobRequest]) (*connect.Response[v1.CancelJobResponse], error)
 	VisualizeJob(context.Context, *connect.Request[v1.VisualizeJobRequest]) (*connect.Response[v1.Diagram], error)
@@ -85,6 +89,12 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			httpClient,
 			baseURL+JobServiceGetJobProcedure,
 			connect.WithSchema(jobServiceMethods.ByName("GetJob")),
+			connect.WithClientOptions(opts...),
+		),
+		getJobProgress: connect.NewClient[v1.GetJobProgressRequest, v1.Job](
+			httpClient,
+			baseURL+JobServiceGetJobProgressProcedure,
+			connect.WithSchema(jobServiceMethods.ByName("GetJobProgress")),
 			connect.WithClientOptions(opts...),
 		),
 		retryJob: connect.NewClient[v1.RetryJobRequest, v1.RetryJobResponse](
@@ -130,6 +140,7 @@ func NewJobServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 type jobServiceClient struct {
 	submitJob       *connect.Client[v1.SubmitJobRequest, v1.Job]
 	getJob          *connect.Client[v1.GetJobRequest, v1.Job]
+	getJobProgress  *connect.Client[v1.GetJobProgressRequest, v1.Job]
 	retryJob        *connect.Client[v1.RetryJobRequest, v1.RetryJobResponse]
 	cancelJob       *connect.Client[v1.CancelJobRequest, v1.CancelJobResponse]
 	visualizeJob    *connect.Client[v1.VisualizeJobRequest, v1.Diagram]
@@ -146,6 +157,11 @@ func (c *jobServiceClient) SubmitJob(ctx context.Context, req *connect.Request[v
 // GetJob calls workflows.v1.JobService.GetJob.
 func (c *jobServiceClient) GetJob(ctx context.Context, req *connect.Request[v1.GetJobRequest]) (*connect.Response[v1.Job], error) {
 	return c.getJob.CallUnary(ctx, req)
+}
+
+// GetJobProgress calls workflows.v1.JobService.GetJobProgress.
+func (c *jobServiceClient) GetJobProgress(ctx context.Context, req *connect.Request[v1.GetJobProgressRequest]) (*connect.Response[v1.Job], error) {
+	return c.getJobProgress.CallUnary(ctx, req)
 }
 
 // RetryJob calls workflows.v1.JobService.RetryJob.
@@ -182,6 +198,7 @@ func (c *jobServiceClient) CloneJob(ctx context.Context, req *connect.Request[v1
 type JobServiceHandler interface {
 	SubmitJob(context.Context, *connect.Request[v1.SubmitJobRequest]) (*connect.Response[v1.Job], error)
 	GetJob(context.Context, *connect.Request[v1.GetJobRequest]) (*connect.Response[v1.Job], error)
+	GetJobProgress(context.Context, *connect.Request[v1.GetJobProgressRequest]) (*connect.Response[v1.Job], error)
 	RetryJob(context.Context, *connect.Request[v1.RetryJobRequest]) (*connect.Response[v1.RetryJobResponse], error)
 	CancelJob(context.Context, *connect.Request[v1.CancelJobRequest]) (*connect.Response[v1.CancelJobResponse], error)
 	VisualizeJob(context.Context, *connect.Request[v1.VisualizeJobRequest]) (*connect.Response[v1.Diagram], error)
@@ -207,6 +224,12 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 		JobServiceGetJobProcedure,
 		svc.GetJob,
 		connect.WithSchema(jobServiceMethods.ByName("GetJob")),
+		connect.WithHandlerOptions(opts...),
+	)
+	jobServiceGetJobProgressHandler := connect.NewUnaryHandler(
+		JobServiceGetJobProgressProcedure,
+		svc.GetJobProgress,
+		connect.WithSchema(jobServiceMethods.ByName("GetJobProgress")),
 		connect.WithHandlerOptions(opts...),
 	)
 	jobServiceRetryJobHandler := connect.NewUnaryHandler(
@@ -251,6 +274,8 @@ func NewJobServiceHandler(svc JobServiceHandler, opts ...connect.HandlerOption) 
 			jobServiceSubmitJobHandler.ServeHTTP(w, r)
 		case JobServiceGetJobProcedure:
 			jobServiceGetJobHandler.ServeHTTP(w, r)
+		case JobServiceGetJobProgressProcedure:
+			jobServiceGetJobProgressHandler.ServeHTTP(w, r)
 		case JobServiceRetryJobProcedure:
 			jobServiceRetryJobHandler.ServeHTTP(w, r)
 		case JobServiceCancelJobProcedure:
@@ -278,6 +303,10 @@ func (UnimplementedJobServiceHandler) SubmitJob(context.Context, *connect.Reques
 
 func (UnimplementedJobServiceHandler) GetJob(context.Context, *connect.Request[v1.GetJobRequest]) (*connect.Response[v1.Job], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.JobService.GetJob is not implemented"))
+}
+
+func (UnimplementedJobServiceHandler) GetJobProgress(context.Context, *connect.Request[v1.GetJobProgressRequest]) (*connect.Response[v1.Job], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.JobService.GetJobProgress is not implemented"))
 }
 
 func (UnimplementedJobServiceHandler) RetryJob(context.Context, *connect.Request[v1.RetryJobRequest]) (*connect.Response[v1.RetryJobResponse], error) {

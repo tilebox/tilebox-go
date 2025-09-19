@@ -1,3 +1,3 @@
 package tilebox
 
-//go:generate go tool buf generate
+//go:generate buf generate
