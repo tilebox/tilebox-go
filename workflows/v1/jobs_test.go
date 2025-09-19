@@ -88,12 +88,18 @@ func Test_jobClient_Get(t *testing.T) {
 	ctx := context.Background()
 	client := NewReplayClient(t, "Job")
 
-	job, err := client.Jobs.Get(ctx, uuid.MustParse("0194ad17-bdaf-ff8e-983b-d1299fd2d235"))
+	job, err := client.Jobs.Get(ctx, uuid.MustParse("0199614b-6102-1498-815b-3cb23f72b489"))
 	require.NoError(t, err)
 
-	assert.Equal(t, "my-windows-job", job.Name)
-	assert.Equal(t, "0194ad17-bdaf-ff8e-983b-d1299fd2d235", job.ID.String())
+	assert.Equal(t, "progress-example", job.Name)
+	assert.Equal(t, "0199614b-6102-1498-815b-3cb23f72b489", job.ID.String())
 	assert.Equal(t, JobCompleted, job.State)
+	assert.Equal(t, false, job.Canceled)
+	assert.Equal(t, 6, len(job.TaskSummaries))
+	require.Len(t, job.Progress, 1)
+	assert.Equal(t, "", job.Progress[0].Label)
+	assert.Equal(t, uint64(5), job.Progress[0].Total)
+	assert.Equal(t, uint64(5), job.Progress[0].Done)
 }
 
 func Test_jobClient_Query(t *testing.T) {

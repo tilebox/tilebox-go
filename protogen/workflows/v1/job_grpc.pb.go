@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	JobService_SubmitJob_FullMethodName       = "/workflows.v1.JobService/SubmitJob"
 	JobService_GetJob_FullMethodName          = "/workflows.v1.JobService/GetJob"
+	JobService_GetJobProgress_FullMethodName  = "/workflows.v1.JobService/GetJobProgress"
 	JobService_RetryJob_FullMethodName        = "/workflows.v1.JobService/RetryJob"
 	JobService_CancelJob_FullMethodName       = "/workflows.v1.JobService/CancelJob"
 	JobService_VisualizeJob_FullMethodName    = "/workflows.v1.JobService/VisualizeJob"
@@ -37,6 +38,7 @@ const (
 type JobServiceClient interface {
 	SubmitJob(ctx context.Context, in *SubmitJobRequest, opts ...grpc.CallOption) (*Job, error)
 	GetJob(ctx context.Context, in *GetJobRequest, opts ...grpc.CallOption) (*Job, error)
+	GetJobProgress(ctx context.Context, in *GetJobProgressRequest, opts ...grpc.CallOption) (*Job, error)
 	RetryJob(ctx context.Context, in *RetryJobRequest, opts ...grpc.CallOption) (*RetryJobResponse, error)
 	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*CancelJobResponse, error)
 	VisualizeJob(ctx context.Context, in *VisualizeJobRequest, opts ...grpc.CallOption) (*Diagram, error)
@@ -67,6 +69,16 @@ func (c *jobServiceClient) GetJob(ctx context.Context, in *GetJobRequest, opts .
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Job)
 	err := c.cc.Invoke(ctx, JobService_GetJob_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) GetJobProgress(ctx context.Context, in *GetJobProgressRequest, opts ...grpc.CallOption) (*Job, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Job)
+	err := c.cc.Invoke(ctx, JobService_GetJobProgress_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -141,6 +153,7 @@ func (c *jobServiceClient) CloneJob(ctx context.Context, in *CloneJobRequest, op
 type JobServiceServer interface {
 	SubmitJob(context.Context, *SubmitJobRequest) (*Job, error)
 	GetJob(context.Context, *GetJobRequest) (*Job, error)
+	GetJobProgress(context.Context, *GetJobProgressRequest) (*Job, error)
 	RetryJob(context.Context, *RetryJobRequest) (*RetryJobResponse, error)
 	CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error)
 	VisualizeJob(context.Context, *VisualizeJobRequest) (*Diagram, error)
@@ -162,6 +175,9 @@ func (UnimplementedJobServiceServer) SubmitJob(context.Context, *SubmitJobReques
 }
 func (UnimplementedJobServiceServer) GetJob(context.Context, *GetJobRequest) (*Job, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJob not implemented")
+}
+func (UnimplementedJobServiceServer) GetJobProgress(context.Context, *GetJobProgressRequest) (*Job, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetJobProgress not implemented")
 }
 func (UnimplementedJobServiceServer) RetryJob(context.Context, *RetryJobRequest) (*RetryJobResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RetryJob not implemented")
@@ -234,6 +250,24 @@ func _JobService_GetJob_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JobServiceServer).GetJob(ctx, req.(*GetJobRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_GetJobProgress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobProgressRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).GetJobProgress(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_GetJobProgress_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).GetJobProgress(ctx, req.(*GetJobProgressRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -360,6 +394,10 @@ var JobService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetJob",
 			Handler:    _JobService_GetJob_Handler,
+		},
+		{
+			MethodName: "GetJobProgress",
+			Handler:    _JobService_GetJobProgress_Handler,
 		},
 		{
 			MethodName: "RetryJob",

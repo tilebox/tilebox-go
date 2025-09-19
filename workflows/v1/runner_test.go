@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -236,7 +237,7 @@ func (m *mockMinimalTaskService) NextTask(_ context.Context, computedTask *workf
 	}.Build(), nil
 }
 
-func (m *mockMinimalTaskService) TaskFailed(context.Context, uuid.UUID, string, bool) (*workflowsv1.TaskStateResponse, error) {
+func (m *mockMinimalTaskService) TaskFailed(context.Context, uuid.UUID, string, bool, []*workflowsv1.Progress) (*workflowsv1.TaskStateResponse, error) {
 	m.failed = true
 	return workflowsv1.TaskStateResponse_builder{
 		State: workflowsv1.TaskState_TASK_STATE_FAILED,
@@ -377,7 +378,7 @@ func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			updatedCtx := runner.withTaskExecutionContext(tt.args.ctx, tt.args.task)
 			got := getTaskExecutionContext(updatedCtx)
-			assert.Empty(t, got.Subtasks)
+			assert.Empty(t, got.subtasks)
 			assert.Equal(t, tt.args.task.GetId(), got.CurrentTask.GetId())
 		})
 	}
@@ -513,7 +514,7 @@ func TestSubmitSubtask(t *testing.T) {
 			wantFutureTask: subtask.FutureTask(0),
 		},
 		{
-			name: "Submit bad identifier Subtasks",
+			name: "Submit bad identifier subtasks",
 			args: args{
 				task: &badIdentifierTask{},
 			},
@@ -616,7 +617,7 @@ func TestSubmitSubtask(t *testing.T) {
 			te := getTaskExecutionContext(ctx)
 
 			assert.Equal(t, tt.wantFutureTask, futureTask)
-			assert.Equal(t, tt.wantSubmission, te.Subtasks[len(te.Subtasks)-1]) // last submission
+			assert.Equal(t, tt.wantSubmission, te.subtasks[len(te.subtasks)-1]) // last submission
 		})
 	}
 }
@@ -641,7 +642,7 @@ func TestSubmitSubtasks(t *testing.T) {
 		wantFutureTasks []subtask.FutureTask
 	}{
 		{
-			name: "Submit no Subtasks",
+			name: "Submit no subtasks",
 			args: args{
 				tasks: []Task{},
 			},
@@ -649,7 +650,7 @@ func TestSubmitSubtasks(t *testing.T) {
 			wantFutureTasks: []subtask.FutureTask{},
 		},
 		{
-			name: "Submit one Subtasks",
+			name: "Submit one subtasks",
 			args: args{
 				tasks: []Task{
 					&testTask1{},
@@ -668,7 +669,7 @@ func TestSubmitSubtasks(t *testing.T) {
 			wantFutureTasks: []subtask.FutureTask{0},
 		},
 		{
-			name: "Submit bad identifier Subtasks",
+			name: "Submit bad identifier subtasks",
 			args: args{
 				tasks: []Task{
 					&testTask1{},
@@ -703,14 +704,150 @@ func TestSubmitSubtasks(t *testing.T) {
 
 			te := getTaskExecutionContext(ctx)
 
-			assert.Len(t, te.Subtasks, len(tt.wantSubmissions))
+			assert.Len(t, te.subtasks, len(tt.wantSubmissions))
 			for i, task := range tt.wantSubmissions {
-				assert.Equal(t, task, te.Subtasks[i])
+				assert.Equal(t, task, te.subtasks[i])
 			}
 
 			assert.Len(t, futureTasks, len(tt.wantFutureTasks))
 			for i, task := range tt.wantFutureTasks {
 				assert.Equal(t, task, futureTasks[i])
+			}
+		})
+	}
+}
+
+func TestTrackProgress(t *testing.T) {
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
+	require.NoError(t, err)
+
+	currentTaskID := uuid.New()
+
+	type args struct {
+		label string
+		total uint64
+		done  uint64
+	}
+	tests := []struct {
+		name         string
+		args         []args
+		wantErr      bool
+		wantProgress map[string]*workflowsv1.Progress
+	}{
+		{
+			name:         "no progress updates",
+			args:         []args{},
+			wantProgress: map[string]*workflowsv1.Progress{},
+		},
+		{
+			name: "single progress indicator with single updates",
+			args: []args{
+				{label: "my progress", total: 10, done: 0},
+			},
+			wantProgress: map[string]*workflowsv1.Progress{
+				"my progress": workflowsv1.Progress_builder{Label: "my progress", Total: 10, Done: 0}.Build(),
+			},
+		},
+		{
+			name: "single progress indicator with multiple updates",
+			args: []args{
+				{label: "my progress", total: 10, done: 0},
+				{label: "my progress", total: 0, done: 2},
+				{label: "my progress", total: 0, done: 3},
+			},
+			wantProgress: map[string]*workflowsv1.Progress{
+				"my progress": workflowsv1.Progress_builder{Label: "my progress", Total: 10, Done: 5}.Build(),
+			},
+		},
+		{
+			name: "default progress indicator with multiple updates",
+			args: []args{
+				{total: 10, done: 0},
+				{total: 0, done: 2},
+				{total: 0, done: 3},
+			},
+			wantProgress: map[string]*workflowsv1.Progress{
+				"": workflowsv1.Progress_builder{Label: "", Total: 10, Done: 5}.Build(),
+			},
+		},
+		{
+			name: "multiple progress indicator with multiple updates",
+			args: []args{
+				{label: "my progress", total: 10, done: 5},
+				{total: 4, done: 2}, // default progress indicator
+				{label: "other progress", total: 2, done: 2},
+				{label: "my progress", total: 5, done: 2},
+			},
+			wantProgress: map[string]*workflowsv1.Progress{
+				"":               workflowsv1.Progress_builder{Label: "", Total: 4, Done: 2}.Build(),
+				"my progress":    workflowsv1.Progress_builder{Label: "my progress", Total: 15, Done: 7}.Build(),
+				"other progress": workflowsv1.Progress_builder{Label: "other progress", Total: 2, Done: 2}.Build(),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := runner.withTaskExecutionContext(context.Background(), workflowsv1.Task_builder{
+				Id: tileboxv1.ID_builder{Uuid: currentTaskID[:]}.Build(),
+			}.Build())
+
+			for _, progressUpdate := range tt.args {
+				var tracker ProgressTracker
+				if progressUpdate.label == "" {
+					tracker = DefaultProgress()
+				} else {
+					tracker = Progress(progressUpdate.label)
+				}
+
+				if progressUpdate.total > 0 {
+					err := tracker.Add(ctx, progressUpdate.total)
+					require.NoError(t, err, "failed to add to total progress")
+				}
+
+				// we process all the done updates one by one, and we do all of that in parallel to test goroutine safety
+				var wg sync.WaitGroup
+				errorChannel := make(chan error, 100)
+				for i := range progressUpdate.done {
+					wg.Go(func() {
+						err := tracker.Done(ctx, 1)
+						if err != nil {
+							errorChannel <- fmt.Errorf("ProgressIndicator.Done() error for update %d: %w", i, err)
+						}
+					})
+				}
+				wg.Wait()
+				errorChannel <- nil // marker for end of channel
+
+				errors := make([]error, 0)
+				for err := range errorChannel {
+					if err == nil { // end of channel marker received
+						break
+					}
+					errors = append(errors, err)
+				}
+				if len(errors) > 0 {
+					t.Errorf("received %d errors in parallel progress tracking", len(errors))
+					for _, err := range errors {
+						t.Error(err.Error())
+					}
+					return
+				}
+			}
+
+			progressIndicators := getTaskExecutionContext(ctx).getProgressUpdates()
+			require.Len(t, progressIndicators, len(tt.wantProgress))
+			for _, progress := range progressIndicators {
+				wantProgress, found := tt.wantProgress[progress.GetLabel()]
+				if !found {
+					t.Errorf("got unexpected progress indicator: %s", progress.GetLabel())
+					continue
+				}
+				assert.Equal(t, wantProgress.GetLabel(), progress.GetLabel())
+				assert.Equal(t, wantProgress.GetTotal(), progress.GetTotal())
+				assert.Equal(t, wantProgress.GetDone(), progress.GetDone())
 			}
 		})
 	}
