@@ -94,10 +94,10 @@ func Test_jobClient_Get(t *testing.T) {
 	assert.Equal(t, "progress-example", job.Name)
 	assert.Equal(t, "0199614b-6102-1498-815b-3cb23f72b489", job.ID.String())
 	assert.Equal(t, JobCompleted, job.State)
-	assert.Equal(t, false, job.Canceled)
-	assert.Equal(t, 6, len(job.TaskSummaries))
+	assert.False(t, job.Canceled)
+	assert.Len(t, job.TaskSummaries, 6)
 	require.Len(t, job.Progress, 1)
-	assert.Equal(t, "", job.Progress[0].Label)
+	assert.Empty(t, job.Progress[0].Label)
 	assert.Equal(t, uint64(5), job.Progress[0].Total)
 	assert.Equal(t, uint64(5), job.Progress[0].Done)
 }

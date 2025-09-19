@@ -12,8 +12,8 @@ type ProgressRootTask struct {
 	N int
 }
 
-// The Execute method isn't needed to submit a task but is required to run a task on a task runner.
 func (t *ProgressRootTask) Execute(ctx context.Context) error {
+	// report that 10 units of work need to be done
 	err := workflows.DefaultProgress().Add(ctx, uint64(t.N))
 	if err != nil {
 		return err
@@ -32,6 +32,7 @@ func (t *ProgressRootTask) Execute(ctx context.Context) error {
 type ProgressSubTask struct{}
 
 func (t *ProgressSubTask) Execute(ctx context.Context) error {
+	// report that one unit of work has been completed
 	err := workflows.DefaultProgress().Done(ctx, 1)
 	if err != nil {
 		return err
