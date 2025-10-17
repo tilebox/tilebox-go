@@ -43,7 +43,7 @@ func (t *SpawnWorkflowTreeTask) Identifier() workflows.TaskIdentifier {
 }
 
 func (t *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
-	if t.GetCurrentLevel() >= (t.GetDepth() - 1) {
+	if t.GetCurrentLevel() >= t.GetDepth() {
 		return nil
 	}
 
