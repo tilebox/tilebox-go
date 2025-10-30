@@ -397,7 +397,9 @@ func (t *TaskRunner) extendTaskLease(ctx context.Context, service TaskService, t
 		// double the current lease duration for the next extension
 		extension, err := service.ExtendTaskLease(ctx, taskID, 2*lease)
 		if err != nil {
-			t.logger.ErrorContext(ctx, "failed to extend task lease", slog.Any("error", err), slog.String("task_id", taskID.String()))
+			if !errors.Is(err, context.Canceled) {
+				t.logger.ErrorContext(ctx, "failed to extend task lease", slog.Any("error", err), slog.String("task_id", taskID.String()))
+			}
 			// The server probably has an internal error, but there is no point in trying to extend the lease again
 			// because it will be expired then, so let's just return
 			return
