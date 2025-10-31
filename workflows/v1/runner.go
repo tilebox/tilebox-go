@@ -26,6 +26,8 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -93,6 +95,22 @@ func newTaskRunner(ctx context.Context, service TaskService, clusterClient Clust
 		logger:             opts.Logger,
 		taskDurationMetric: taskDurationMetric,
 	}, nil
+}
+
+func (t *TaskRunner) logError(ctx context.Context, err error, msg string, args ...any) {
+	switch {
+	case errors.Is(err, context.Canceled):
+		// covers both stdlib context.Canceled and connect context canceled errors
+		return
+	case status.Code(err) == codes.Canceled:
+		// outgoing gRPC requests that are canceled produce a
+		// status.Error(codes.Canceled, "context canceled") from the google grpc library
+		return
+	}
+
+	fields := []any{slog.Any("error", err)}
+	fields = append(fields, args...)
+	t.logger.ErrorContext(ctx, msg, fields...)
 }
 
 // registerTask makes the task runner aware of a task.
@@ -171,7 +189,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build(),
 			)
 			if err != nil {
-				t.logger.ErrorContext(ctx, "failed to work-steal a task", slog.Any("error", err))
+				t.logError(ctx, err, "failed to work-steal a task")
 				// return  // should we even try again, or just stop here?
 			} else {
 				work = taskResponse
@@ -181,7 +199,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 		if work != nil && work.GetNextTask() != nil { // we have a task to execute
 			task := work.GetNextTask()
 			if isEmpty(task.GetId()) {
-				t.logger.ErrorContext(ctx, "got a task without an ID - skipping to the next task")
+				t.logError(ctx, nil, "got a task without an ID - skipping to the next task")
 				work = nil
 				continue
 			}
@@ -218,25 +236,21 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 					func() (*workflowsv1.NextTaskResponse, error) {
 						taskResponse, err := t.service.NextTask(ctx, computedTask, nextTaskToRun)
 						if err != nil {
-							t.logger.ErrorContext(ctx, "failed to mark task as computed, retrying", slog.Any("error", err))
+							t.logError(ctx, err, "failed to mark task as computed, retrying")
 							return nil, err
 						}
 						return taskResponse, nil
 					}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
 				)
 				if err != nil {
-					if !errors.Is(err, context.Canceled) {
-						t.logger.ErrorContext(ctx, "failed to retry NextTask", slog.Any("error", err))
-					}
+					t.logError(ctx, err, "failed to retry NextTask")
 					return // we got a cancellation signal, so let's just stop here
 				}
 			} else { // errTask != nil
 				// the error itself is already logged in executeTask, so we just need to report the task as failed
 				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay(), executionContext.getProgressUpdates())
 				if err != nil {
-					if !errors.Is(err, context.Canceled) {
-						t.logger.ErrorContext(ctx, "failed to retry TaskFailed", slog.Any("error", err))
-					}
+					t.logError(ctx, err, "failed to retry TaskFailed")
 					return // we got a cancellation signal, so let's just stop here
 				}
 				work = nil // reported a task failure, let's work-steal again
@@ -291,7 +305,7 @@ func (t *TaskRunner) taskFailed(ctx, ctxSignal context.Context, taskID uuid.UUID
 		func() error {
 			_, err := t.service.TaskFailed(ctx, taskID, display, true, progressUpdates)
 			if err != nil {
-				t.logger.ErrorContext(ctx, "failed to report task failure", slog.Any("error", err))
+				t.logError(ctx, err, "failed to report task failure")
 				return err
 			}
 			return nil
@@ -397,9 +411,7 @@ func (t *TaskRunner) extendTaskLease(ctx context.Context, service TaskService, t
 		// double the current lease duration for the next extension
 		extension, err := service.ExtendTaskLease(ctx, taskID, 2*lease)
 		if err != nil {
-			if !errors.Is(err, context.Canceled) {
-				t.logger.ErrorContext(ctx, "failed to extend task lease", slog.Any("error", err), slog.String("task_id", taskID.String()))
-			}
+			t.logError(ctx, err, "failed to extend task lease", slog.String("task_id", taskID.String()))
 			// The server probably has an internal error, but there is no point in trying to extend the lease again
 			// because it will be expired then, so let's just return
 			return
