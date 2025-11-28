@@ -63,10 +63,10 @@ func Test_QueryOptions(t *testing.T) {
 		{
 			name: "with automation id",
 			options: []QueryOption{
-				WithAutomationID(automationID),
+				WithAutomationIDs(automationID),
 			},
 			want: QueryOptions{
-				AutomationID: automationID,
+				AutomationIDs: []uuid.UUID{automationID},
 			},
 		},
 	}

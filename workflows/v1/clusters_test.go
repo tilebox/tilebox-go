@@ -82,7 +82,8 @@ func Test_clusterClient_List(t *testing.T) {
 	clusters, err := client.Clusters.List(ctx)
 	require.NoError(t, err)
 
-	cluster := clusters[0]
+	require.Len(t, clusters, 2)
+	cluster := clusters[1]
 	assert.Equal(t, "dev-cluster", cluster.Name)
 	assert.Equal(t, "dev-cluster-ESugE7S4cwADVK", cluster.Slug)
 }

@@ -48,17 +48,25 @@ func TestJobService_Submit(t *testing.T) {
 				Name: "test-job",
 			},
 			wantReq: workflowsv1.SubmitJobRequest_builder{
-				Tasks: []*workflowsv1.TaskSubmission{
-					workflowsv1.TaskSubmission_builder{
-						ClusterSlug: "",
-						Identifier: workflowsv1.TaskIdentifier_builder{
+				Tasks: workflowsv1.TaskSubmissions_builder{
+					TaskGroups: []*workflowsv1.TaskSubmissionGroup{
+						workflowsv1.TaskSubmissionGroup_builder{
+							Inputs:              [][]byte{[]byte("{\"ExecutableTask\":null}")},
+							IdentifierPointers:  []uint64{0},
+							ClusterSlugPointers: []uint64{0},
+							DisplayPointers:     []uint64{0},
+							MaxRetriesValues:    []int64{0},
+						}.Build(),
+					},
+					ClusterSlugLookup: []string{""},
+					IdentifierLookup: []*workflowsv1.TaskIdentifier{
+						workflowsv1.TaskIdentifier_builder{
 							Name:    "testTask1",
 							Version: "v0.0",
 						}.Build(),
-						Input:   []byte("{\"ExecutableTask\":null}"),
-						Display: "testTask1",
-					}.Build(),
-				},
+					},
+					DisplayLookup: []string{"testTask1"},
+				}.Build(),
 				JobName: "test-job",
 			}.Build(),
 		},
@@ -88,18 +96,17 @@ func Test_jobClient_Get(t *testing.T) {
 	ctx := context.Background()
 	client := NewReplayClient(t, "Job")
 
-	job, err := client.Jobs.Get(ctx, uuid.MustParse("0199614b-6102-1498-815b-3cb23f72b489"))
+	foundJob, err := client.Jobs.Get(ctx, uuid.MustParse("0199614b-6102-1498-815b-3cb23f72b489"))
 	require.NoError(t, err)
 
-	assert.Equal(t, "progress-example", job.Name)
-	assert.Equal(t, "0199614b-6102-1498-815b-3cb23f72b489", job.ID.String())
-	assert.Equal(t, JobCompleted, job.State)
-	assert.False(t, job.Canceled)
-	assert.Len(t, job.TaskSummaries, 6)
-	require.Len(t, job.Progress, 1)
-	assert.Empty(t, job.Progress[0].Label)
-	assert.Equal(t, uint64(5), job.Progress[0].Total)
-	assert.Equal(t, uint64(5), job.Progress[0].Done)
+	assert.Equal(t, "progress-example", foundJob.Name)
+	assert.Equal(t, "0199614b-6102-1498-815b-3cb23f72b489", foundJob.ID.String())
+	assert.Equal(t, job.Completed, foundJob.State)
+	assert.Len(t, foundJob.TaskSummaries, 6)
+	require.Len(t, foundJob.Progress, 1)
+	assert.Empty(t, foundJob.Progress[0].Label)
+	assert.Equal(t, uint64(5), foundJob.Progress[0].Total)
+	assert.Equal(t, uint64(5), foundJob.Progress[0].Done)
 }
 
 func Test_jobClient_Query(t *testing.T) {
@@ -112,8 +119,8 @@ func Test_jobClient_Query(t *testing.T) {
 	jobs, err := Collect(client.Jobs.Query(ctx, job.WithTemporalExtent(timeInterval)))
 	require.NoError(t, err)
 
-	job := jobs[0]
-	assert.Equal(t, "my-windows-job", job.Name)
-	assert.Equal(t, "0194ad17-bdaf-ff8e-983b-d1299fd2d235", job.ID.String())
-	assert.Equal(t, JobCompleted, job.State)
+	firstJob := jobs[0]
+	assert.Equal(t, "my-windows-job", firstJob.Name)
+	assert.Equal(t, "0194ad17-bdaf-ff8e-983b-d1299fd2d235", firstJob.ID.String())
+	assert.Equal(t, job.Completed, firstJob.State)
 }

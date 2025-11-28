@@ -212,12 +212,9 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				computedTask := workflowsv1.ComputedTask_builder{
 					Id:              task.GetId(),
 					Display:         task.GetDisplay(),
-					SubTasks:        nil,
+					SubTasks:        executionContext.getSubTasks(),
 					ProgressUpdates: executionContext.getProgressUpdates(),
 				}.Build()
-				if executionContext != nil && len(executionContext.subtasks) > 0 {
-					computedTask.SetSubTasks(executionContext.subtasks)
-				}
 				nextTaskToRun := workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build()
 				select {
 				case <-ctxSignal.Done():
@@ -432,7 +429,7 @@ type taskExecutionContext struct {
 	runner      *TaskRunner
 
 	subtasksMutex sync.Mutex
-	subtasks      []*workflowsv1.TaskSubmission
+	subtasks      []*taskSubmission
 
 	progressMutex      sync.Mutex
 	progressIndicators map[string]*taskProgressIndicator
@@ -454,12 +451,19 @@ func (e *taskExecutionContext) getProgressUpdates() []*workflowsv1.Progress {
 	return progressUpdates
 }
 
+// getSubTasks converts the internal subtask submissions into the protobuf TaskSubmissions format.
+func (e *taskExecutionContext) getSubTasks() *workflowsv1.TaskSubmissions {
+	e.subtasksMutex.Lock()
+	defer e.subtasksMutex.Unlock()
+	return mergeTasksToSubmissions(e.subtasks)
+}
+
 func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflowsv1.Task) context.Context {
 	return context.WithValue(ctx, contextKeyTaskExecution, &taskExecutionContext{
 		CurrentTask:        task,
 		runner:             t,
 		subtasksMutex:      sync.Mutex{},
-		subtasks:           make([]*workflowsv1.TaskSubmission, 0),
+		subtasks:           make([]*taskSubmission, 0),
 		progressIndicators: make(map[string]*taskProgressIndicator),
 		progressMutex:      sync.Mutex{},
 	})
@@ -550,21 +554,17 @@ func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOpti
 		dependencies = append(dependencies, int64(ft))
 	}
 
-	subtaskSubmission := workflowsv1.TaskSubmission_builder{
-		ClusterSlug: opts.ClusterSlug,
-		Identifier: workflowsv1.TaskIdentifier_builder{
-			Name:    identifier.Name(),
-			Version: identifier.Version(),
-		}.Build(),
-		Input:        subtaskInput,
-		Dependencies: dependencies,
-		MaxRetries:   opts.MaxRetries,
-		Display:      identifier.Display(),
-	}.Build()
+	sub := &taskSubmission{
+		clusterSlug:  opts.ClusterSlug,
+		identifier:   identifier,
+		input:        subtaskInput,
+		dependencies: dependencies,
+		maxRetries:   opts.MaxRetries,
+	}
 
 	executionContext.subtasksMutex.Lock()
 	defer executionContext.subtasksMutex.Unlock()
-	executionContext.subtasks = append(executionContext.subtasks, subtaskSubmission)
+	executionContext.subtasks = append(executionContext.subtasks, sub)
 	return subtask.FutureTask(taskIndex), nil
 }
 

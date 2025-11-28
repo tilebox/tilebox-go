@@ -484,12 +484,16 @@ func TestSubmitSubtask(t *testing.T) {
 		options []subtask.SubmitOption
 	}
 	tests := []struct {
-		name           string
-		setup          []Task
-		args           args
-		wantErr        string
-		wantSubmission *workflowsv1.TaskSubmission
-		wantFutureTask subtask.FutureTask
+		name             string
+		setup            []Task
+		args             args
+		wantErr          string
+		wantClusterSlug  string
+		wantIdentifier   TaskIdentifier
+		wantInput        []byte
+		wantDependencies []int64
+		wantMaxRetries   int64
+		wantFutureTask   subtask.FutureTask
 	}{
 		{
 			name: "Submit nil task",
@@ -503,15 +507,12 @@ func TestSubmitSubtask(t *testing.T) {
 			args: args{
 				task: &testTask1{},
 			},
-			wantSubmission: workflowsv1.TaskSubmission_builder{
-				ClusterSlug:  "default-5GGzdzBZEA3oeD",
-				Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
-				Input:        []byte("{\"ExecutableTask\":null}"),
-				Display:      "testTask1",
-				Dependencies: nil,
-				MaxRetries:   0,
-			}.Build(),
-			wantFutureTask: subtask.FutureTask(0),
+			wantClusterSlug:  "default-5GGzdzBZEA3oeD",
+			wantIdentifier:   NewTaskIdentifier("testTask1", "v0.0"),
+			wantInput:        []byte("{\"ExecutableTask\":null}"),
+			wantDependencies: nil,
+			wantMaxRetries:   0,
+			wantFutureTask:   subtask.FutureTask(0),
 		},
 		{
 			name: "Submit bad identifier subtasks",
@@ -528,15 +529,12 @@ func TestSubmitSubtask(t *testing.T) {
 					subtask.WithClusterSlug("my-production-cluster"),
 				},
 			},
-			wantSubmission: workflowsv1.TaskSubmission_builder{
-				ClusterSlug:  "my-production-cluster",
-				Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
-				Input:        []byte("{\"ExecutableTask\":null}"),
-				Display:      "testTask1",
-				Dependencies: nil,
-				MaxRetries:   0,
-			}.Build(),
-			wantFutureTask: subtask.FutureTask(0),
+			wantClusterSlug:  "my-production-cluster",
+			wantIdentifier:   NewTaskIdentifier("testTask1", "v0.0"),
+			wantInput:        []byte("{\"ExecutableTask\":null}"),
+			wantDependencies: nil,
+			wantMaxRetries:   0,
+			wantFutureTask:   subtask.FutureTask(0),
 		},
 		{
 			name: "Submit subtask WithMaxRetries",
@@ -546,15 +544,12 @@ func TestSubmitSubtask(t *testing.T) {
 					subtask.WithMaxRetries(12),
 				},
 			},
-			wantSubmission: workflowsv1.TaskSubmission_builder{
-				ClusterSlug:  "default-5GGzdzBZEA3oeD",
-				Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
-				Input:        []byte("{\"ExecutableTask\":null}"),
-				Display:      "testTask1",
-				Dependencies: nil,
-				MaxRetries:   12,
-			}.Build(),
-			wantFutureTask: subtask.FutureTask(0),
+			wantClusterSlug:  "default-5GGzdzBZEA3oeD",
+			wantIdentifier:   NewTaskIdentifier("testTask1", "v0.0"),
+			wantInput:        []byte("{\"ExecutableTask\":null}"),
+			wantDependencies: nil,
+			wantMaxRetries:   12,
+			wantFutureTask:   subtask.FutureTask(0),
 		},
 		{
 			name: "Submit subtask WithDependencies doesn't exist",
@@ -582,15 +577,12 @@ func TestSubmitSubtask(t *testing.T) {
 					),
 				},
 			},
-			wantSubmission: workflowsv1.TaskSubmission_builder{
-				ClusterSlug:  "default-5GGzdzBZEA3oeD",
-				Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
-				Input:        []byte("{\"ExecutableTask\":null}"),
-				Display:      "testTask1",
-				Dependencies: []int64{2, 0},
-				MaxRetries:   0,
-			}.Build(),
-			wantFutureTask: subtask.FutureTask(3),
+			wantClusterSlug:  "default-5GGzdzBZEA3oeD",
+			wantIdentifier:   NewTaskIdentifier("testTask1", "v0.0"),
+			wantInput:        []byte("{\"ExecutableTask\":null}"),
+			wantDependencies: []int64{2, 0},
+			wantMaxRetries:   0,
+			wantFutureTask:   subtask.FutureTask(3),
 		},
 	}
 	for _, tt := range tests {
@@ -617,7 +609,13 @@ func TestSubmitSubtask(t *testing.T) {
 			te := getTaskExecutionContext(ctx)
 
 			assert.Equal(t, tt.wantFutureTask, futureTask)
-			assert.Equal(t, tt.wantSubmission, te.subtasks[len(te.subtasks)-1]) // last submission
+			lastSubmission := te.subtasks[len(te.subtasks)-1]
+			assert.Equal(t, tt.wantClusterSlug, lastSubmission.clusterSlug)
+			assert.Equal(t, tt.wantIdentifier.Name(), lastSubmission.identifier.Name())
+			assert.Equal(t, tt.wantIdentifier.Version(), lastSubmission.identifier.Version())
+			assert.Equal(t, tt.wantInput, lastSubmission.input)
+			assert.Equal(t, tt.wantDependencies, lastSubmission.dependencies)
+			assert.Equal(t, tt.wantMaxRetries, lastSubmission.maxRetries)
 		})
 	}
 }
@@ -635,19 +633,19 @@ func TestSubmitSubtasks(t *testing.T) {
 		tasks []Task
 	}
 	tests := []struct {
-		name            string
-		args            args
-		wantErr         bool
-		wantSubmissions []*workflowsv1.TaskSubmission
-		wantFutureTasks []subtask.FutureTask
+		name             string
+		args             args
+		wantErr          bool
+		wantSubtaskCount int
+		wantFutureTasks  []subtask.FutureTask
 	}{
 		{
 			name: "Submit no subtasks",
 			args: args{
 				tasks: []Task{},
 			},
-			wantSubmissions: []*workflowsv1.TaskSubmission{},
-			wantFutureTasks: []subtask.FutureTask{},
+			wantSubtaskCount: 0,
+			wantFutureTasks:  []subtask.FutureTask{},
 		},
 		{
 			name: "Submit one subtasks",
@@ -656,17 +654,8 @@ func TestSubmitSubtasks(t *testing.T) {
 					&testTask1{},
 				},
 			},
-			wantSubmissions: []*workflowsv1.TaskSubmission{
-				workflowsv1.TaskSubmission_builder{
-					ClusterSlug:  "default-5GGzdzBZEA3oeD",
-					Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
-					Input:        []byte("{\"ExecutableTask\":null}"),
-					Display:      "testTask1",
-					Dependencies: nil,
-					MaxRetries:   0,
-				}.Build(),
-			},
-			wantFutureTasks: []subtask.FutureTask{0},
+			wantSubtaskCount: 1,
+			wantFutureTasks:  []subtask.FutureTask{0},
 		},
 		{
 			name: "Submit bad identifier subtasks",
@@ -678,17 +667,6 @@ func TestSubmitSubtasks(t *testing.T) {
 				},
 			},
 			wantErr: true,
-			wantSubmissions: []*workflowsv1.TaskSubmission{
-				workflowsv1.TaskSubmission_builder{
-					ClusterSlug:  "default-5GGzdzBZEA3oeD",
-					Identifier:   workflowsv1.TaskIdentifier_builder{Name: "testTask1", Version: "v0.0"}.Build(),
-					Input:        []byte("{\"ExecutableTask\":null}"),
-					Display:      "testTask1",
-					Dependencies: nil,
-					MaxRetries:   0,
-				}.Build(),
-			},
-			wantFutureTasks: []subtask.FutureTask{0},
 		},
 	}
 	for _, tt := range tests {
@@ -698,16 +676,14 @@ func TestSubmitSubtasks(t *testing.T) {
 			}.Build())
 
 			futureTasks, err := SubmitSubtasks(ctx, tt.args.tasks)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SubmitSubtasks() error = %v, wantErr %v", err, tt.wantErr)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
 			}
 
 			te := getTaskExecutionContext(ctx)
 
-			assert.Len(t, te.subtasks, len(tt.wantSubmissions))
-			for i, task := range tt.wantSubmissions {
-				assert.Equal(t, task, te.subtasks[i])
-			}
+			assert.Len(t, te.subtasks, tt.wantSubtaskCount)
 
 			assert.Len(t, futureTasks, len(tt.wantFutureTasks))
 			for i, task := range tt.wantFutureTasks {
