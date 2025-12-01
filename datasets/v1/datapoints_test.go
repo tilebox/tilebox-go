@@ -17,10 +17,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func pointer[T any](x T) *T {
-	return &x
-}
-
 func NewDatapointClient(n int) DatapointClient {
 	return &datapointClient{
 		dataIngestionService: mockDataIngestionService{},
