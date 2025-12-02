@@ -8,11 +8,9 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/tilebox/tilebox-go/datasets/v1/field"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Dataset represents a Tilebox Dataset.
@@ -48,7 +46,7 @@ type DatasetClient interface {
 	// Create creates a new dataset.
 	//
 	// Documentation: https://docs.tilebox.com/guides/datasets/create
-	Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []*DatasetField) (*Dataset, error)
+	Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []*field.Descriptor) (*Dataset, error)
 
 	// Get returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
 	Get(ctx context.Context, slug string) (*Dataset, error)
@@ -61,76 +59,6 @@ var _ DatasetClient = &datasetClient{}
 
 type datasetClient struct {
 	service DatasetService
-}
-
-// protoTypeName returns the fully qualified protobuf type name with a leading dot
-func protoTypeName(message proto.Message) *string {
-	return proto.String(fmt.Sprintf(".%s", message.ProtoReflect().Descriptor().FullName()))
-}
-
-// FieldType is the type of a field in a dataset.
-type FieldType int32
-
-// FieldType values.
-const (
-	_ FieldType = iota
-	FieldString
-	FieldBytes
-	FieldBool
-	FieldInt64
-	FieldUint64
-	FieldFloat64
-	FieldDuration
-	FieldTimestamp
-	FieldUUID
-	FieldGeometry
-)
-
-type typeInfo struct {
-	Type     descriptorpb.FieldDescriptorProto_Type
-	TypeName *string // should be nil for scalar types
-}
-
-// allTypes maps type names to their typeInfo
-// All types:
-// - protobuf scalar types
-// - Google well known types (Duration, Timestamp)
-// - Tilebox well known types
-var allTypes = map[FieldType]typeInfo{
-	FieldString: {
-		Type: descriptorpb.FieldDescriptorProto_TYPE_STRING,
-	},
-	FieldBytes: {
-		Type: descriptorpb.FieldDescriptorProto_TYPE_BYTES,
-	},
-	FieldBool: {
-		Type: descriptorpb.FieldDescriptorProto_TYPE_BOOL,
-	},
-	FieldInt64: {
-		Type: descriptorpb.FieldDescriptorProto_TYPE_INT64,
-	},
-	FieldUint64: {
-		Type: descriptorpb.FieldDescriptorProto_TYPE_UINT64,
-	},
-	FieldFloat64: {
-		Type: descriptorpb.FieldDescriptorProto_TYPE_DOUBLE,
-	},
-	FieldDuration: {
-		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
-		TypeName: protoTypeName(&durationpb.Duration{}),
-	},
-	FieldTimestamp: {
-		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
-		TypeName: protoTypeName(&timestamppb.Timestamp{}),
-	},
-	FieldUUID: {
-		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
-		TypeName: protoTypeName(&datasetsv1.UUID{}),
-	},
-	FieldGeometry: {
-		Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE,
-		TypeName: protoTypeName(&datasetsv1.Geometry{}),
-	},
 }
 
 func pointer[T any](x T) *T {
@@ -212,42 +140,7 @@ const (
 	KindSpatiotemporal             // A dataset that contains a timestamp field and a geometry field.
 )
 
-// DatasetField is a field in a dataset.
-type DatasetField struct {
-	Name         string    // The name of the field (in snake_case).
-	Type         FieldType // The data type of the field.
-	Array        bool      // If true, indicate that the field contains multiple values of the specified type.
-	Description  string    // Optional brief description of the field. Can be used to provide more context and details about the data.
-	ExampleValue string    // Optional example for this field. Can be used for documentation purposes.
-}
-
-func (f DatasetField) toProto() (*datasetsv1.Field, error) {
-	label := descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL
-	if f.Array {
-		label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
-	}
-
-	foundType, ok := allTypes[f.Type]
-	if !ok {
-		return nil, fmt.Errorf("unknown field type: %d", f.Type)
-	}
-
-	return datasetsv1.Field_builder{
-		Descriptor: &descriptorpb.FieldDescriptorProto{
-			Name:     &f.Name,
-			Type:     &foundType.Type,
-			TypeName: foundType.TypeName,
-			Label:    &label,
-		},
-		Annotation: datasetsv1.FieldAnnotation_builder{
-			Description:  f.Description,
-			ExampleValue: f.ExampleValue,
-		}.Build(),
-		Queryable: false,
-	}.Build(), nil
-}
-
-func (d datasetClient) Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []*DatasetField) (*Dataset, error) {
+func (d datasetClient) Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []*field.Descriptor) (*Dataset, error) {
 	// make sure our dataset type contains all the fixed fields for the given kind
 	requiredFields, ok := requiredFieldsPerDatasetKind[kind]
 	if !ok {
@@ -256,12 +149,8 @@ func (d datasetClient) Create(ctx context.Context, name string, kind DatasetKind
 
 	datasetFields := make([]*datasetsv1.Field, 0, len(requiredFields))
 	datasetFields = append(datasetFields, requiredFields...)
-	for _, field := range fields {
-		protoField, err := field.toProto()
-		if err != nil {
-			return nil, err
-		}
-		datasetFields = append(datasetFields, protoField)
+	for _, f := range fields {
+		datasetFields = append(datasetFields, f.ToProto())
 	}
 
 	datasetType := datasetsv1.DatasetType_builder{
