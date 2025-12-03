@@ -16,7 +16,7 @@ func Test_Descriptor(t *testing.T) {
 	}{
 		{
 			name:       "uuid",
-			descriptor: UUID("id"),
+			descriptor: UUID("id").Descriptor(),
 			want: &Descriptor{
 				name: "id",
 				info: &typeInfo{
@@ -30,7 +30,7 @@ func Test_Descriptor(t *testing.T) {
 		},
 		{
 			name:       "string with description",
-			descriptor: String("test").Description("my description"),
+			descriptor: String("test").Description("my description").Descriptor(),
 			want: &Descriptor{
 				name: "test",
 				info: &typeInfo{
@@ -44,7 +44,7 @@ func Test_Descriptor(t *testing.T) {
 		},
 		{
 			name:       "string with example value",
-			descriptor: String("test").ExampleValue("my example value"),
+			descriptor: String("test").ExampleValue("my example value").Descriptor(),
 			want: &Descriptor{
 				name: "test",
 				info: &typeInfo{
@@ -58,7 +58,7 @@ func Test_Descriptor(t *testing.T) {
 		},
 		{
 			name:       "string repeated",
-			descriptor: String("test").Repeated(),
+			descriptor: String("test").Repeated().Descriptor(),
 			want: &Descriptor{
 				name: "test",
 				info: &typeInfo{

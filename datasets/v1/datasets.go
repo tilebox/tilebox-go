@@ -43,10 +43,10 @@ func (d Dataset) String() string {
 }
 
 type DatasetClient interface {
-	// Create creates a new dataset.
+	// Create creates a new dataset and returns it.
 	//
-	// Documentation: https://docs.tilebox.com/guides/datasets/create
-	Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []*field.Descriptor) (*Dataset, error)
+	// Documentation: https://docs.tilebox.com/datasets/concepts/datasets#creating-a-dataset
+	Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []Field) (*Dataset, error)
 
 	// Get returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
 	Get(ctx context.Context, slug string) (*Dataset, error)
@@ -132,7 +132,17 @@ const (
 	KindSpatiotemporal             // A dataset that contains a timestamp field and a geometry field.
 )
 
-func (d datasetClient) Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []*field.Descriptor) (*Dataset, error) {
+// A Field interface returns a field descriptor.
+// The usage is as follows:
+//
+//	[]datasets.Field{
+//	    field.Int64("field_name"),
+//	}
+type Field interface {
+	Descriptor() *field.Descriptor
+}
+
+func (d datasetClient) Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []Field) (*Dataset, error) {
 	// make sure our dataset type contains all the fixed fields for the given kind
 	requiredFields, ok := requiredFieldsPerDatasetKind[kind]
 	if !ok {
@@ -142,7 +152,7 @@ func (d datasetClient) Create(ctx context.Context, name string, kind DatasetKind
 	datasetFields := make([]*datasetsv1.Field, 0, len(requiredFields))
 	datasetFields = append(datasetFields, requiredFields...)
 	for _, f := range fields {
-		datasetFields = append(datasetFields, f.ToProto())
+		datasetFields = append(datasetFields, f.Descriptor().ToProto())
 	}
 
 	datasetType := datasetsv1.DatasetType_builder{
