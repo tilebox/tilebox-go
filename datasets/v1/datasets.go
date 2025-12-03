@@ -118,16 +118,8 @@ var geometryField = datasetsv1.Field_builder{
 }.Build()
 
 var requiredFieldsPerDatasetKind = map[DatasetKind][]*datasetsv1.Field{
-	KindTemporal:       requiredTemporalFields(),
-	KindSpatiotemporal: requiredSpatiotemporalFields(),
-}
-
-func requiredTemporalFields() []*datasetsv1.Field {
-	return []*datasetsv1.Field{timeField, idField, ingestionTimeField}
-}
-
-func requiredSpatiotemporalFields() []*datasetsv1.Field {
-	return []*datasetsv1.Field{timeField, idField, ingestionTimeField, geometryField}
+	KindTemporal:       {timeField, idField, ingestionTimeField},
+	KindSpatiotemporal: {timeField, idField, ingestionTimeField, geometryField},
 }
 
 // DatasetKind is the kind of dataset.

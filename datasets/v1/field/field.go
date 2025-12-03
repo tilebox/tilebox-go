@@ -125,6 +125,11 @@ func Geometry(name string) *Descriptor {
 }
 
 // A Descriptor for field configuration.
+// The usage is as follows:
+//
+//	[]field.Descriptor{
+//	    field.Int64("field_name"),
+//	}
 type Descriptor struct {
 	name         string
 	info         *typeInfo
