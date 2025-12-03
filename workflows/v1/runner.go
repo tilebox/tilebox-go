@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"math/rand/v2"
 	"os/signal"
 	"reflect"
@@ -212,12 +213,9 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				computedTask := workflowsv1.ComputedTask_builder{
 					Id:              task.GetId(),
 					Display:         task.GetDisplay(),
-					SubTasks:        nil,
+					SubTasks:        executionContext.getSubTasks(),
 					ProgressUpdates: executionContext.getProgressUpdates(),
 				}.Build()
-				if executionContext != nil && len(executionContext.subtasks) > 0 {
-					computedTask.SetSubTasks(executionContext.subtasks)
-				}
 				nextTaskToRun := workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build()
 				select {
 				case <-ctxSignal.Done():
@@ -432,7 +430,7 @@ type taskExecutionContext struct {
 	runner      *TaskRunner
 
 	subtasksMutex sync.Mutex
-	subtasks      []*workflowsv1.TaskSubmission
+	subtasks      []*futureTask
 
 	progressMutex      sync.Mutex
 	progressIndicators map[string]*taskProgressIndicator
@@ -454,12 +452,19 @@ func (e *taskExecutionContext) getProgressUpdates() []*workflowsv1.Progress {
 	return progressUpdates
 }
 
+// getSubTasks converts the internal subtask submissions into the protobuf TaskSubmissions format.
+func (e *taskExecutionContext) getSubTasks() *workflowsv1.TaskSubmissions {
+	e.subtasksMutex.Lock()
+	defer e.subtasksMutex.Unlock()
+	return mergeFutureTasksToSubmissions(e.subtasks)
+}
+
 func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflowsv1.Task) context.Context {
 	return context.WithValue(ctx, contextKeyTaskExecution, &taskExecutionContext{
 		CurrentTask:        task,
 		runner:             t,
 		subtasksMutex:      sync.Mutex{},
-		subtasks:           make([]*workflowsv1.TaskSubmission, 0),
+		subtasks:           make([]*futureTask, 0),
 		progressIndicators: make(map[string]*taskProgressIndicator),
 		progressMutex:      sync.Mutex{},
 	})
@@ -540,32 +545,34 @@ func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOpti
 		return 0, fmt.Errorf("subtask has invalid task identifier: %w", err)
 	}
 
-	var dependencies []int64 //nolint:prealloc // we want to keep it nil if there are no dependencies
-	taskIndex := int64(len(executionContext.subtasks))
-
-	for _, ft := range opts.Dependencies {
-		if ft < 0 || int64(ft) >= taskIndex {
-			return 0, fmt.Errorf("invalid dependency: future task %d doesn't exist", ft)
-		}
-		dependencies = append(dependencies, int64(ft))
-	}
-
-	subtaskSubmission := workflowsv1.TaskSubmission_builder{
-		ClusterSlug: opts.ClusterSlug,
-		Identifier: workflowsv1.TaskIdentifier_builder{
-			Name:    identifier.Name(),
-			Version: identifier.Version(),
-		}.Build(),
-		Input:        subtaskInput,
-		Dependencies: dependencies,
-		MaxRetries:   opts.MaxRetries,
-		Display:      identifier.Display(),
-	}.Build()
-
 	executionContext.subtasksMutex.Lock()
 	defer executionContext.subtasksMutex.Unlock()
-	executionContext.subtasks = append(executionContext.subtasks, subtaskSubmission)
-	return subtask.FutureTask(taskIndex), nil
+	if len(executionContext.subtasks) >= math.MaxUint32 {
+		return 0, errors.New("too many subtasks")
+	}
+	newTaskIndex := uint32(len(executionContext.subtasks)) //nolint:gosec // we checked that we don't overflow
+
+	var dependencies []uint32
+	if len(opts.Dependencies) >= 1 {
+		dependencies = make([]uint32, 0, len(opts.Dependencies))
+		for _, futureTask := range opts.Dependencies {
+			if uint32(futureTask) >= newTaskIndex { // the new index is the last task, so no larger indices than that can exist
+				return 0, fmt.Errorf("invalid dependency: future task %d doesn't exist", futureTask)
+			}
+			dependencies = append(dependencies, uint32(futureTask))
+		}
+	}
+
+	sub := &futureTask{
+		clusterSlug:  opts.ClusterSlug,
+		identifier:   identifier,
+		input:        subtaskInput,
+		dependencies: dependencies,
+		maxRetries:   opts.MaxRetries,
+	}
+
+	executionContext.subtasks = append(executionContext.subtasks, sub)
+	return subtask.FutureTask(newTaskIndex), nil
 }
 
 // SubmitSubtasks submits multiple tasks to the task runner as subtask of the current task.

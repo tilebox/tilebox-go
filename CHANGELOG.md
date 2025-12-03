@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `tilebox-workflows`: Added `execution_stats` to the `Job` object to provide programmatic access to a job's execution
+  statistics.
+- `tilebox-workflows`: Added query filters to the `JobClient.query` method to filter jobs by multiple automation ids,
+  job state, and job name.
+- `tilebox-workflows`: Added additional JobState values to indicate a job's current state and progress more accurately.
+- `tilebox-workflows`: Removed the restriction of `64` subtasks per task.
+
+### Changed
+
+- `tilebox-workflows`: Switched to an updated internal `TaskSubmission` message format that allows for more efficient
+  submission of a very large number of tasks.
+
 ## [0.1.1] - 2025-10-30
 
 ### Fixed

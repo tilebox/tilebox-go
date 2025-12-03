@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
@@ -23,32 +24,19 @@ type Job struct {
 	ID uuid.UUID
 	// Name is the name of the job.
 	Name string
-	// Canceled indicates whether the job has been canceled.
-	Canceled bool
 	// State is the current state of the job.
-	State JobState
+	State job.State
 	// SubmittedAt is the time the job was submitted.
 	SubmittedAt time.Time
-	// StartedAt is the time the job started running.
-	StartedAt time.Time
 	// TaskSummaries is the task summaries of the job.
 	TaskSummaries []*TaskSummary
 	// AutomationID is the ID of the automation that submitted the job.
 	AutomationID uuid.UUID
 	// Progress is a list of progress indicators for the job.
 	Progress []*ProgressIndicator
+	// ExecutionStats contains execution statistics for the job.
+	ExecutionStats *ExecutionStats
 }
-
-// JobState is the state of a Job.
-type JobState int32
-
-// JobState values.
-const (
-	_            JobState = iota
-	JobQueued             // The job is queued and waiting to be run.
-	JobStarted            // At least one task of the job has been started.
-	JobCompleted          // All tasks of the job have been completed.
-)
 
 // TaskSummary is a summary of a task.
 type TaskSummary struct {
@@ -73,6 +61,32 @@ type ProgressIndicator struct {
 	Label string
 	Total uint64
 	Done  uint64
+}
+
+// ExecutionStats contains execution statistics for a job.
+type ExecutionStats struct {
+	// FirstTaskStartedAt is the time the first task of the job was started.
+	FirstTaskStartedAt time.Time
+	// LastTaskStoppedAt is the time the last task of the job was stopped.
+	LastTaskStoppedAt time.Time
+	// ComputeTime is the total compute time of the job, as sum of all task compute times.
+	ComputeTime time.Duration
+	// ElapsedTime is the elapsed time of the job (wall time), which is the time from first task started to last task stopped.
+	ElapsedTime time.Duration
+	// Parallelism is the parallelism factor of the job, which is the average number of tasks running at any given time.
+	Parallelism float64
+	// TotalTasks is the total number of tasks of the job.
+	TotalTasks uint64
+	// TasksByState is the number of tasks by their state.
+	TasksByState []*TaskStateCount
+}
+
+// TaskStateCount represents the count of tasks in a particular state.
+type TaskStateCount struct {
+	// State is the task state.
+	State TaskState
+	// Count is the number of tasks in this state.
+	Count uint64
 }
 
 // TaskState values.
@@ -114,8 +128,10 @@ type JobClient interface {
 	//
 	// Options:
 	//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried (Required)
-	//   - job.WithAutomationID: specifies the automation ID to filter jobs by. Only jobs submitted by the specified
+	//   - job.WithAutomationIDs: specifies the automation IDs to filter jobs by. Only jobs submitted by the specified
 	//  automation will be returned. (Optional)
+	//   - job.WithJobState: specifies the job state to filter jobs by. Only jobs with the specified state will be returned. (Optional)
+	//   - job.WithJobName: specifies the job name to filter jobs by. Only jobs with the specified name will be returned. (Optional)
 	//
 	// The jobs are lazily loaded and returned as a sequence.
 	// The output sequence can be transformed into a slice using Collect.
@@ -194,10 +210,20 @@ func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.S
 			return
 		}
 
+		automationIDs := lo.Map(opts.AutomationIDs, func(id uuid.UUID, _ int) *tileboxv1.ID {
+			return tileboxv1.NewUUID(id)
+		})
+
+		states := lo.Map(opts.States, func(state job.State, _ int) workflowsv1.JobState {
+			return workflowsv1.JobState(state)
+		})
+
 		filters := workflowsv1.QueryFilters_builder{
-			TimeInterval: timeInterval,
-			IdInterval:   idInterval,
-			AutomationId: tileboxv1.NewUUID(opts.AutomationID),
+			TimeInterval:  timeInterval,
+			IdInterval:    idInterval,
+			AutomationIds: automationIDs,
+			States:        states,
+			Name:          opts.Name,
 		}.Build()
 
 		for {
@@ -226,10 +252,10 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 		return nil, errors.New("no tasks to submit")
 	}
 
-	rootTasks := make([]*workflowsv1.TaskSubmission, 0)
+	submissions := make([]*futureTask, 0, len(tasks))
 
 	for _, task := range tasks {
-		var subtaskInput []byte
+		var input []byte
 		var err error
 
 		identifier := identifierFromTask(task)
@@ -240,56 +266,73 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 
 		taskProto, isProtobuf := task.(proto.Message)
 		if isProtobuf {
-			subtaskInput, err = proto.Marshal(taskProto)
+			input, err = proto.Marshal(taskProto)
 			if err != nil {
 				return nil, fmt.Errorf("failed to marshal protobuf task: %w", err)
 			}
 		} else {
-			subtaskInput, err = json.Marshal(task)
+			input, err = json.Marshal(task)
 			if err != nil {
 				return nil, fmt.Errorf("failed to marshal task: %w", err)
 			}
 		}
 
-		rootTasks = append(rootTasks, workflowsv1.TaskSubmission_builder{
-			ClusterSlug: clusterSlug,
-			Identifier: workflowsv1.TaskIdentifier_builder{
-				Name:    identifier.Name(),
-				Version: identifier.Version(),
-			}.Build(),
-			Input:      subtaskInput,
-			Display:    identifier.Display(),
-			MaxRetries: maxRetries,
-		}.Build())
+		submissions = append(submissions, &futureTask{
+			clusterSlug: clusterSlug,
+			identifier:  identifier,
+			input:       input,
+			maxRetries:  maxRetries,
+		})
 	}
 
 	return workflowsv1.SubmitJobRequest_builder{
-		Tasks:   rootTasks,
+		Tasks:   mergeFutureTasksToSubmissions(submissions),
 		JobName: jobName,
 	}.Build(), nil
 }
 
-func protoToJob(job *workflowsv1.Job) *Job {
-	taskSummaries := make([]*TaskSummary, 0, len(job.GetTaskSummaries()))
-	for _, taskSummary := range job.GetTaskSummaries() {
+func protoToJob(jobMessage *workflowsv1.Job) *Job {
+	taskSummaries := make([]*TaskSummary, 0, len(jobMessage.GetTaskSummaries()))
+	for _, taskSummary := range jobMessage.GetTaskSummaries() {
 		taskSummaries = append(taskSummaries, protoToTaskSummary(taskSummary))
 	}
 
-	progressIndicators := make([]*ProgressIndicator, 0, len(job.GetProgress()))
-	for _, progress := range job.GetProgress() {
+	progressIndicators := make([]*ProgressIndicator, 0, len(jobMessage.GetProgress()))
+	for _, progress := range jobMessage.GetProgress() {
 		progressIndicators = append(progressIndicators, protoToProgressIndicator(progress))
 	}
 
 	return &Job{
-		ID:            job.GetId().AsUUID(),
-		Name:          job.GetName(),
-		Canceled:      job.GetCanceled(),
-		State:         JobState(job.GetState()),
-		SubmittedAt:   job.GetSubmittedAt().AsTime(),
-		StartedAt:     job.GetStartedAt().AsTime(),
-		TaskSummaries: taskSummaries,
-		AutomationID:  job.GetAutomationId().AsUUID(),
-		Progress:      progressIndicators,
+		ID:             jobMessage.GetId().AsUUID(),
+		Name:           jobMessage.GetName(),
+		State:          job.State(jobMessage.GetState()),
+		SubmittedAt:    jobMessage.GetSubmittedAt().AsTime(),
+		TaskSummaries:  taskSummaries,
+		AutomationID:   jobMessage.GetAutomationId().AsUUID(),
+		Progress:       progressIndicators,
+		ExecutionStats: protoToExecutionStats(jobMessage.GetExecutionStats()),
+	}
+}
+
+func protoToExecutionStats(es *workflowsv1.ExecutionStats) *ExecutionStats {
+	if es == nil {
+		return nil
+	}
+	tasksByState := make([]*TaskStateCount, 0, len(es.GetTasksByState()))
+	for _, tsc := range es.GetTasksByState() {
+		tasksByState = append(tasksByState, &TaskStateCount{
+			State: TaskState(tsc.GetState()),
+			Count: tsc.GetCount(),
+		})
+	}
+	return &ExecutionStats{
+		FirstTaskStartedAt: es.GetFirstTaskStartedAt().AsTime(),
+		LastTaskStoppedAt:  es.GetLastTaskStoppedAt().AsTime(),
+		ComputeTime:        es.GetComputeTime().AsDuration(),
+		ElapsedTime:        es.GetElapsedTime().AsDuration(),
+		Parallelism:        es.GetParallelism(),
+		TotalTasks:         es.GetTotalTasks(),
+		TasksByState:       tasksByState,
 	}
 }
 

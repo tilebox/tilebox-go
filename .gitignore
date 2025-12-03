@@ -10,3 +10,6 @@ scratch
 
 # Added by goreleaser init:
 dist/
+
+# Binary
+examples/workflows/helloworld/runner/runner
