@@ -491,9 +491,9 @@ func TestSubmitSubtask(t *testing.T) {
 		wantClusterSlug  string
 		wantIdentifier   TaskIdentifier
 		wantInput        []byte
-		wantDependencies []int64
+		wantDependencies []uint32
 		wantMaxRetries   int64
-		wantFutureTask   subtask.FutureTask
+		wantTaskIndex    subtask.FutureTask
 	}{
 		{
 			name: "Submit nil task",
@@ -512,7 +512,7 @@ func TestSubmitSubtask(t *testing.T) {
 			wantInput:        []byte("{\"ExecutableTask\":null}"),
 			wantDependencies: nil,
 			wantMaxRetries:   0,
-			wantFutureTask:   subtask.FutureTask(0),
+			wantTaskIndex:    subtask.FutureTask(0),
 		},
 		{
 			name: "Submit bad identifier subtasks",
@@ -534,7 +534,7 @@ func TestSubmitSubtask(t *testing.T) {
 			wantInput:        []byte("{\"ExecutableTask\":null}"),
 			wantDependencies: nil,
 			wantMaxRetries:   0,
-			wantFutureTask:   subtask.FutureTask(0),
+			wantTaskIndex:    subtask.FutureTask(0),
 		},
 		{
 			name: "Submit subtask WithMaxRetries",
@@ -549,7 +549,7 @@ func TestSubmitSubtask(t *testing.T) {
 			wantInput:        []byte("{\"ExecutableTask\":null}"),
 			wantDependencies: nil,
 			wantMaxRetries:   12,
-			wantFutureTask:   subtask.FutureTask(0),
+			wantTaskIndex:    subtask.FutureTask(0),
 		},
 		{
 			name: "Submit subtask WithDependencies doesn't exist",
@@ -580,9 +580,9 @@ func TestSubmitSubtask(t *testing.T) {
 			wantClusterSlug:  "default-5GGzdzBZEA3oeD",
 			wantIdentifier:   NewTaskIdentifier("testTask1", "v0.0"),
 			wantInput:        []byte("{\"ExecutableTask\":null}"),
-			wantDependencies: []int64{2, 0},
+			wantDependencies: []uint32{2, 0},
 			wantMaxRetries:   0,
-			wantFutureTask:   subtask.FutureTask(3),
+			wantTaskIndex:    subtask.FutureTask(3),
 		},
 	}
 	for _, tt := range tests {
@@ -608,7 +608,7 @@ func TestSubmitSubtask(t *testing.T) {
 
 			te := getTaskExecutionContext(ctx)
 
-			assert.Equal(t, tt.wantFutureTask, futureTask)
+			assert.Equal(t, tt.wantTaskIndex, futureTask)
 			lastSubmission := te.subtasks[len(te.subtasks)-1]
 			assert.Equal(t, tt.wantClusterSlug, lastSubmission.clusterSlug)
 			assert.Equal(t, tt.wantIdentifier.Name(), lastSubmission.identifier.Name())

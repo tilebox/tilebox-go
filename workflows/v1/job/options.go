@@ -53,11 +53,9 @@ const (
 // QueryOptions contains the configuration for a Query request.
 type QueryOptions struct {
 	TemporalExtent query.TemporalExtent
-	// AutomationID is kept for backward compatibility. Use AutomationIDs instead.
-	AutomationID  uuid.UUID
-	AutomationIDs []uuid.UUID
-	States        []State
-	Name          string
+	AutomationIDs  []uuid.UUID
+	States         []State
+	Name           string
 }
 
 type QueryOption func(*QueryOptions)

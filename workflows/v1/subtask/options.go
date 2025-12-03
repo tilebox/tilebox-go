@@ -2,7 +2,7 @@ package subtask // import "github.com/tilebox/tilebox-go/workflows/v1/subtask"
 
 import "fmt"
 
-type FutureTask int64
+type FutureTask uint32
 
 func (ft FutureTask) String() string {
 	return fmt.Sprintf("FutureTask(%d)", ft)

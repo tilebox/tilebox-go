@@ -14,7 +14,10 @@ func main() {
 
 	job, err := client.Jobs.Submit(ctx, "mapreduce-example",
 		[]workflows.Task{
-			&mapreduce.RootTask{},
+			&mapreduce.RootTask{
+				NumMapTasks:    100,
+				NumReduceTasks: 8,
+			},
 		},
 	)
 	if err != nil {

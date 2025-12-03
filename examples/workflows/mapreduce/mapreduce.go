@@ -3,30 +3,23 @@ package mapreduce
 import (
 	"context"
 	"log/slog"
-	"time"
 
 	"github.com/tilebox/tilebox-go/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/subtask"
 )
 
-const (
-	NumMapTasks    = 180
-	NumReduceTasks = 10
-)
-
 // RootTask is the entry point that spawns all map and reduce tasks.
-// It creates 180 map tasks and 10 reduce tasks, where each reduce task
-// depends on all map tasks completing first.
-type RootTask struct{}
+type RootTask struct {
+	NumMapTasks    int
+	NumReduceTasks int
+}
 
 func (t *RootTask) Execute(ctx context.Context) error {
 	slog.Info("Starting MapReduce job")
 
-	mapTasks := make([]workflows.Task, NumMapTasks)
-	for i := range NumMapTasks {
-		mapTasks[i] = &MapTask{
-			PartitionIndex: i,
-		}
+	mapTasks := make([]workflows.Task, t.NumMapTasks)
+	for i := range t.NumMapTasks {
+		mapTasks[i] = &MapTask{Index: i}
 	}
 
 	mapFutures, err := workflows.SubmitSubtasks(ctx, mapTasks)
@@ -39,7 +32,7 @@ func (t *RootTask) Execute(ctx context.Context) error {
 	mapProgress := workflows.Progress("map")
 	_ = mapProgress.Add(ctx, uint64(len(mapFutures)))
 
-	for i := range NumReduceTasks {
+	for i := range t.NumReduceTasks {
 		_, err := workflows.SubmitSubtask(ctx, &ReduceTask{
 			ReducerIndex: i,
 		}, subtask.WithDependencies(mapFutures...))
@@ -48,40 +41,32 @@ func (t *RootTask) Execute(ctx context.Context) error {
 		}
 	}
 
-	slog.Info("Submitted reduce tasks", slog.Int("count", NumReduceTasks))
+	slog.Info("Submitted reduce tasks", slog.Int("count", t.NumReduceTasks))
 
 	reduceProgress := workflows.Progress("reduce")
-	_ = reduceProgress.Add(ctx, NumReduceTasks)
+	_ = reduceProgress.Add(ctx, uint64(t.NumReduceTasks))
 
 	return nil
 }
 
-// MapTask processes a single partition of the input data.
+// MapTask processes a single item of input data.
 type MapTask struct {
-	PartitionIndex int
+	Index int
 }
 
 func (t *MapTask) Execute(ctx context.Context) error {
-	slog.Info("Executing map task", slog.Int("partition", t.PartitionIndex))
-
-	time.Sleep(10 * time.Millisecond)
-
-	progress := workflows.Progress("map")
-	_ = progress.Done(ctx, 1)
+	slog.Info("Executing map task", slog.Int("index", t.Index))
+	_ = workflows.Progress("map").Done(ctx, 1)
 	return nil
 }
 
-// ReduceTask aggregates results from all map tasks.
+// ReduceTask aggregates results from map tasks.
 type ReduceTask struct {
 	ReducerIndex int
 }
 
 func (t *ReduceTask) Execute(ctx context.Context) error {
-	slog.Info("Executing reduce task", slog.Int("reducer", t.ReducerIndex))
-
-	time.Sleep(10 * time.Millisecond)
-
-	progress := workflows.Progress("reduce")
-	_ = progress.Done(ctx, 1)
+	slog.Info("Executing reduce task", slog.Int("reducer_index", t.ReducerIndex))
+	_ = workflows.Progress("reduce").Done(ctx, 1)
 	return nil
 }

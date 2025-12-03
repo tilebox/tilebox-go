@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/samber/lo"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
@@ -209,18 +210,13 @@ func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.S
 			return
 		}
 
-		var automationIDs []*tileboxv1.ID
-		if opts.AutomationID != uuid.Nil {
-			automationIDs = append(automationIDs, tileboxv1.NewUUID(opts.AutomationID))
-		}
-		for _, id := range opts.AutomationIDs {
-			automationIDs = append(automationIDs, tileboxv1.NewUUID(id))
-		}
+		automationIDs := lo.Map(opts.AutomationIDs, func(id uuid.UUID, _ int) *tileboxv1.ID {
+			return tileboxv1.NewUUID(id)
+		})
 
-		var states []workflowsv1.JobState
-		for _, state := range opts.States {
-			states = append(states, workflowsv1.JobState(int32(state)))
-		}
+		states := lo.Map(opts.States, func(state job.State, _ int) workflowsv1.JobState {
+			return workflowsv1.JobState(state)
+		})
 
 		filters := workflowsv1.QueryFilters_builder{
 			TimeInterval:  timeInterval,
@@ -256,7 +252,7 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 		return nil, errors.New("no tasks to submit")
 	}
 
-	submissions := make([]*taskSubmission, 0, len(tasks))
+	submissions := make([]*futureTask, 0, len(tasks))
 
 	for _, task := range tasks {
 		var input []byte
@@ -281,7 +277,7 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 			}
 		}
 
-		submissions = append(submissions, &taskSubmission{
+		submissions = append(submissions, &futureTask{
 			clusterSlug: clusterSlug,
 			identifier:  identifier,
 			input:       input,
@@ -290,7 +286,7 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 	}
 
 	return workflowsv1.SubmitJobRequest_builder{
-		Tasks:   mergeTasksToSubmissions(submissions),
+		Tasks:   mergeFutureTasksToSubmissions(submissions),
 		JobName: jobName,
 	}.Build(), nil
 }

@@ -6,16 +6,16 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/samber/lo"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 )
 
-// taskSubmission represents a prepared task ready for submission.
-// It contains all the data needed to submit a task in the grouped format.
-type taskSubmission struct {
+// futureTask represents a prepared task ready for submission.
+type futureTask struct {
 	clusterSlug  string
 	identifier   TaskIdentifier
 	input        []byte
-	dependencies []int64
+	dependencies []uint32
 	maxRetries   int64
 }
 
@@ -24,6 +24,15 @@ type taskSubmission struct {
 type taskGroupKey struct {
 	dependencies uint64
 	dependants   uint64
+}
+
+type taskSubmissionGroup struct {
+	dependenciesOnOtherGroups []uint32
+	inputs                    [][]byte
+	identifierPointers        []uint64
+	clusterSlugPointers       []uint64
+	displayPointers           []uint64
+	maxRetriesValues          []int64
 }
 
 // comparableIntSetKey returns a hash key for a set of integers.
@@ -44,7 +53,7 @@ func comparableIntSetKey(values ...uint32) uint64 {
 	return xxhash.Sum64(bin)
 }
 
-// fastIndexLookup provides O(1) lookup for unique values while preserving insertion order.
+// fastIndexLookup provides O(1) index lookup for unique values in a slice while preserving insertion order.
 type fastIndexLookup[K comparable] struct {
 	values  []K
 	indices map[K]uint64
@@ -67,142 +76,94 @@ func (l *fastIndexLookup[K]) appendIfUnique(value K) uint64 {
 	return newIndex
 }
 
-// mergeTasksToSubmissions converts a slice of taskSubmission to the TaskSubmissions protobuf format.
+// mergeFutureTasksToSubmissions converts a slice of futureTask to the TaskSubmissions protobuf format.
 // Tasks are grouped by their dependencies and dependants to optimize serialization.
-func mergeTasksToSubmissions(submissions []*taskSubmission) *workflowsv1.TaskSubmissions {
+func mergeFutureTasksToSubmissions(submissions []*futureTask) *workflowsv1.TaskSubmissions {
 	if len(submissions) == 0 {
 		return nil
 	}
 
-	n := len(submissions)
-
 	// Build dependency and dependant graphs
-	deps := make([][]uint32, n)
-	dependants := make([][]uint32, n)
+	dependants := make([][]uint32, len(submissions)) // reverse graph relationship of dependencies
 
-	for i, sub := range submissions {
-		for _, d := range sub.dependencies {
-			di := uint32(d) //nolint:gosec // dependencies are validated to be in bounds
-			deps[i] = append(deps[i], di)
-			dependants[di] = append(dependants[di], uint32(i)) //nolint:gosec // index i is within bounds
+	for i := range uint32(len(submissions)) { //nolint:gosec // we validate len(submissions) doesn't overflow uint32
+		for _, dependency := range submissions[i].dependencies {
+			dependants[dependency] = append(dependants[dependency], i)
 		}
 	}
 
 	// Group tasks by their (dependencies, dependants) key
 	groupKeys := newFastIndexLookup[taskGroupKey]()
-	taskToGroup := make([]uint32, n)
-	groupTasks := make([][]int, 0)
+	groups := make([]*taskSubmissionGroup, 0)
 
-	for i := range submissions {
-		key := taskGroupKey{
-			dependencies: comparableIntSetKey(deps[i]...),
+	// we keep track of which task ends up in which group, so we can convert task dependencies to group dependencies
+	taskIndexToGroupIndex := make([]uint32, 0, len(submissions))
+
+	for i := range uint32(len(submissions)) { //nolint:gosec // we validate len(submissions) doesn't overflow uint32
+		groupKey := taskGroupKey{
+			dependencies: comparableIntSetKey(submissions[i].dependencies...),
 			dependants:   comparableIntSetKey(dependants[i]...),
 		}
-		groupIndex := groupKeys.appendIfUnique(key)
-		if groupIndex == uint64(len(groupTasks)) {
-			groupTasks = append(groupTasks, nil)
+		groupIndex := groupKeys.appendIfUnique(groupKey)
+		if groupIndex == uint64(len(groups)) { // it was a new unique group
+			groups = append(groups, &taskSubmissionGroup{
+				dependenciesOnOtherGroups: submissions[i].dependencies,
+			})
 		}
-		taskToGroup[i] = uint32(groupIndex) //nolint:gosec // groupIndex is bounded by number of tasks
-		groupTasks[groupIndex] = append(groupTasks[groupIndex], i)
+		taskIndexToGroupIndex = append(taskIndexToGroupIndex, uint32(groupIndex)) //nolint:gosec // groupIndex is <= len(submissions) so it's safe
 	}
 
-	// Compute group-level dependencies
-	groupDeps := make([][]uint32, len(groupTasks))
-	for groupIndex, tasks := range groupTasks {
-		depSet := mapset.NewSet[uint32]()
-		for _, taskIndex := range tasks {
-			for _, depTask := range deps[taskIndex] {
-				depGroup := taskToGroup[depTask]
-				if depGroup == uint32(groupIndex) { //nolint:gosec // groupIndex is bounded
-					continue // skip self-dependency within group
-				}
-				depSet.Add(depGroup)
-			}
+	// Now convert our dependencies from task dependencies to group dependencies
+	for _, group := range groups {
+		if len(group.dependenciesOnOtherGroups) == 0 {
+			group.dependenciesOnOtherGroups = nil // group has no dependencies, so set to nil (rather than empty []uint32)
+			continue
 		}
-		if depSet.Cardinality() > 0 {
-			sortedDeps := depSet.ToSlice()
-			slices.Sort(sortedDeps)
-			groupDeps[groupIndex] = sortedDeps
+		uniqueGroupDependencies := mapset.NewSet[uint32]()
+		for _, dependencyTaskIndex := range group.dependenciesOnOtherGroups {
+			uniqueGroupDependencies.Add(taskIndexToGroupIndex[dependencyTaskIndex])
 		}
-		// leave groupDeps[groupIndex] as nil if there are no dependencies
+		group.dependenciesOnOtherGroups = uniqueGroupDependencies.ToSlice()
+		slices.Sort(group.dependenciesOnOtherGroups)
 	}
 
-	// Build lookup tables and task groups
-	clusterSlugLookup := []string{}
-	clusterSlugIndex := make(map[string]uint64)
-	identifierLookup := []TaskIdentifier{}
-	identifierIndex := make(map[string]uint64)
-	displayLookup := []string{}
-	displayIndex := make(map[string]uint64)
+	clusterSlugs := newFastIndexLookup[string]()
+	identifiers := newFastIndexLookup[TaskIdentifier]()
+	displays := newFastIndexLookup[string]()
 
-	taskGroups := make([]*workflowsv1.TaskSubmissionGroup, 0, len(groupTasks))
+	for i, submission := range submissions {
+		groupIndex := taskIndexToGroupIndex[i]
+		group := groups[groupIndex]
 
-	for groupIndex, tasks := range groupTasks {
-		inputs := make([][]byte, 0, len(tasks))
-		identifierPointers := make([]uint64, 0, len(tasks))
-		clusterPointers := make([]uint64, 0, len(tasks))
-		displayPointers := make([]uint64, 0, len(tasks))
-		maxRetriesValues := make([]int64, 0, len(tasks))
-
-		for _, taskIndex := range tasks {
-			submission := submissions[taskIndex]
-
-			// clusterSlug
-			clusterLookupIndex, ok := clusterSlugIndex[submission.clusterSlug]
-			if !ok {
-				clusterLookupIndex = uint64(len(clusterSlugLookup))
-				clusterSlugLookup = append(clusterSlugLookup, submission.clusterSlug)
-				clusterSlugIndex[submission.clusterSlug] = clusterLookupIndex
-			}
-
-			// identifier
-			identifierKey := submission.identifier.Name() + "@" + submission.identifier.Version()
-			identifierLookupIndex, ok := identifierIndex[identifierKey]
-			if !ok {
-				identifierLookupIndex = uint64(len(identifierLookup))
-				identifierLookup = append(identifierLookup, submission.identifier)
-				identifierIndex[identifierKey] = identifierLookupIndex
-			}
-
-			// display
-			display := submission.identifier.Display()
-			displayLookupIndex, ok := displayIndex[display]
-			if !ok {
-				displayLookupIndex = uint64(len(displayLookup))
-				displayLookup = append(displayLookup, display)
-				displayIndex[display] = displayLookupIndex
-			}
-
-			inputs = append(inputs, submission.input)
-			identifierPointers = append(identifierPointers, identifierLookupIndex)
-			clusterPointers = append(clusterPointers, clusterLookupIndex)
-			displayPointers = append(displayPointers, displayLookupIndex)
-			maxRetriesValues = append(maxRetriesValues, submission.maxRetries)
-		}
-
-		taskGroups = append(taskGroups, workflowsv1.TaskSubmissionGroup_builder{
-			DependenciesOnOtherGroups: groupDeps[groupIndex],
-			Inputs:                    inputs,
-			IdentifierPointers:        identifierPointers,
-			ClusterSlugPointers:       clusterPointers,
-			DisplayPointers:           displayPointers,
-			MaxRetriesValues:          maxRetriesValues,
-		}.Build())
+		group.inputs = append(group.inputs, submission.input)
+		group.identifierPointers = append(group.identifierPointers, identifiers.appendIfUnique(submission.identifier))
+		group.clusterSlugPointers = append(group.clusterSlugPointers, clusterSlugs.appendIfUnique(submission.clusterSlug))
+		group.displayPointers = append(group.displayPointers, displays.appendIfUnique(submission.identifier.Display()))
+		group.maxRetriesValues = append(group.maxRetriesValues, submission.maxRetries)
 	}
 
-	// Convert TaskIdentifier to protobuf format
-	protoIdentifiers := make([]*workflowsv1.TaskIdentifier, len(identifierLookup))
-	for i, id := range identifierLookup {
-		protoIdentifiers[i] = workflowsv1.TaskIdentifier_builder{
+	groupsProto := lo.Map(groups, func(group *taskSubmissionGroup, _ int) *workflowsv1.TaskSubmissionGroup {
+		return workflowsv1.TaskSubmissionGroup_builder{
+			DependenciesOnOtherGroups: group.dependenciesOnOtherGroups,
+			Inputs:                    group.inputs,
+			IdentifierPointers:        group.identifierPointers,
+			ClusterSlugPointers:       group.clusterSlugPointers,
+			DisplayPointers:           group.displayPointers,
+			MaxRetriesValues:          group.maxRetriesValues,
+		}.Build()
+	})
+
+	protoIdentifiers := lo.Map(identifiers.values, func(id TaskIdentifier, _ int) *workflowsv1.TaskIdentifier {
+		return workflowsv1.TaskIdentifier_builder{
 			Name:    id.Name(),
 			Version: id.Version(),
 		}.Build()
-	}
+	})
 
 	return workflowsv1.TaskSubmissions_builder{
-		TaskGroups:        taskGroups,
-		ClusterSlugLookup: clusterSlugLookup,
+		TaskGroups:        groupsProto,
+		ClusterSlugLookup: clusterSlugs.values,
 		IdentifierLookup:  protoIdentifiers,
-		DisplayLookup:     displayLookup,
+		DisplayLookup:     displays.values,
 	}.Build()
 }

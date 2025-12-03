@@ -63,10 +63,10 @@ func TestComparableIntSetKey(t *testing.T) {
 	}
 }
 
-func TestMergeTasksToSubmissions(t *testing.T) {
+func TestMergeFutureTasksToSubmissions(t *testing.T) {
 	tests := []struct {
 		name        string
-		submissions []*taskSubmission
+		submissions []*futureTask
 		validate    func(t *testing.T, result *workflowsv1.TaskSubmissions)
 	}{
 		{
@@ -78,14 +78,14 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 		},
 		{
 			name:        "empty slice returns nil",
-			submissions: []*taskSubmission{},
+			submissions: []*futureTask{},
 			validate: func(t *testing.T, result *workflowsv1.TaskSubmissions) {
 				assert.Nil(t, result)
 			},
 		},
 		{
 			name: "single task",
-			submissions: []*taskSubmission{
+			submissions: []*futureTask{
 				{
 					clusterSlug:  "cluster1",
 					identifier:   NewTaskIdentifier("TaskA", "v1.0"),
@@ -99,7 +99,7 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 				assert.Len(t, result.GetTaskGroups(), 1)
 
 				group := result.GetTaskGroups()[0]
-				assert.Nil(t, group.GetDependenciesOnOtherGroups())
+				assert.Empty(t, group.GetDependenciesOnOtherGroups())
 				assert.Equal(t, [][]byte{[]byte("payload")}, group.GetInputs())
 				assert.Equal(t, []uint64{0}, group.GetIdentifierPointers())
 				assert.Equal(t, []uint64{0}, group.GetClusterSlugPointers())
@@ -115,7 +115,7 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 		},
 		{
 			name: "multiple independent tasks",
-			submissions: []*taskSubmission{
+			submissions: []*futureTask{
 				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskA", "v1.0"), input: []byte("input1"), dependencies: nil, maxRetries: 0},
 				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskA", "v1.0"), input: []byte("input2"), dependencies: nil, maxRetries: 0},
 				{clusterSlug: "other", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("input3"), dependencies: nil, maxRetries: 1},
@@ -126,7 +126,7 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 				assert.Len(t, result.GetTaskGroups(), 1)
 
 				group := result.GetTaskGroups()[0]
-				assert.Nil(t, group.GetDependenciesOnOtherGroups())
+				assert.Empty(t, group.GetDependenciesOnOtherGroups())
 				assert.Len(t, group.GetInputs(), 3)
 				assert.Equal(t, [][]byte{[]byte("input1"), []byte("input2"), []byte("input3")}, group.GetInputs())
 
@@ -150,7 +150,7 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 			// task_4 (index 5): no deps
 			// task_5 (index 6): depends on tasks_2 (2,3)
 			name: "with dependencies",
-			submissions: []*taskSubmission{
+			submissions: []*futureTask{
 				// tasks_1
 				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskA", "v1.0"), input: []byte("task0"), dependencies: nil},
 				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskA", "v1.0"), input: []byte("task1"), dependencies: nil},
@@ -158,11 +158,11 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskA", "v1.0"), input: []byte("task2"), dependencies: nil},
 				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskA", "v1.0"), input: []byte("task3"), dependencies: nil},
 				// task_3 depends on tasks_1
-				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("task4"), dependencies: []int64{0, 1}},
+				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("task4"), dependencies: []uint32{0, 1}},
 				// task_4 no deps
 				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("task5"), dependencies: nil},
 				// task_5 depends on tasks_2
-				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("task6"), dependencies: []int64{2, 3}},
+				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("task6"), dependencies: []uint32{2, 3}},
 			},
 			validate: func(t *testing.T, result *workflowsv1.TaskSubmissions) {
 				require.NotNil(t, result)
@@ -171,11 +171,11 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 				assert.Len(t, result.GetTaskGroups(), 5)
 
 				// Group 0: tasks_1 (indices 0,1) - no deps, dependants are {4}
-				assert.Nil(t, result.GetTaskGroups()[0].GetDependenciesOnOtherGroups())
+				assert.Empty(t, result.GetTaskGroups()[0].GetDependenciesOnOtherGroups())
 				assert.Equal(t, [][]byte{[]byte("task0"), []byte("task1")}, result.GetTaskGroups()[0].GetInputs())
 
 				// Group 1: tasks_2 (indices 2,3) - no deps, dependants are {6}
-				assert.Nil(t, result.GetTaskGroups()[1].GetDependenciesOnOtherGroups())
+				assert.Empty(t, result.GetTaskGroups()[1].GetDependenciesOnOtherGroups())
 				assert.Equal(t, [][]byte{[]byte("task2"), []byte("task3")}, result.GetTaskGroups()[1].GetInputs())
 
 				// Group 2: task_3 (index 4) - depends on group 0
@@ -183,7 +183,7 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 				assert.Equal(t, [][]byte{[]byte("task4")}, result.GetTaskGroups()[2].GetInputs())
 
 				// Group 3: task_4 (index 5) - no deps, no dependants
-				assert.Nil(t, result.GetTaskGroups()[3].GetDependenciesOnOtherGroups())
+				assert.Empty(t, result.GetTaskGroups()[3].GetDependenciesOnOtherGroups())
 				assert.Equal(t, [][]byte{[]byte("task5")}, result.GetTaskGroups()[3].GetInputs())
 
 				// Group 4: task_5 (index 6) - depends on group 1
@@ -200,17 +200,17 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 			//        |                |
 			//   task_c_left(2)   task_c_right(4)
 			name: "two separate branches",
-			submissions: []*taskSubmission{
+			submissions: []*futureTask{
 				// task_a (index 0)
 				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskA", "v1.0"), input: []byte("a"), dependencies: nil},
 				// task_b_left (index 1) depends on task_a
-				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("b_left"), dependencies: []int64{0}},
+				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("b_left"), dependencies: []uint32{0}},
 				// task_c_left (index 2) depends on task_b_left
-				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("c_left"), dependencies: []int64{1}},
+				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("c_left"), dependencies: []uint32{1}},
 				// task_b_right (index 3) depends on task_a
-				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("b_right"), dependencies: []int64{0}},
+				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("b_right"), dependencies: []uint32{0}},
 				// task_c_right (index 4) depends on task_b_right
-				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("c_right"), dependencies: []int64{3}},
+				{clusterSlug: "test", identifier: NewTaskIdentifier("TaskB", "v1.0"), input: []byte("c_right"), dependencies: []uint32{3}},
 			},
 			validate: func(t *testing.T, result *workflowsv1.TaskSubmissions) {
 				require.NotNil(t, result)
@@ -219,7 +219,7 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 				assert.Len(t, result.GetTaskGroups(), 5)
 
 				// Group 0: task_a - no deps
-				assert.Nil(t, result.GetTaskGroups()[0].GetDependenciesOnOtherGroups())
+				assert.Empty(t, result.GetTaskGroups()[0].GetDependenciesOnOtherGroups())
 				assert.Equal(t, [][]byte{[]byte("a")}, result.GetTaskGroups()[0].GetInputs())
 
 				// Group 1: task_b_left - depends on group 0
@@ -242,20 +242,20 @@ func TestMergeTasksToSubmissions(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result := mergeTasksToSubmissions(tt.submissions)
+			result := mergeFutureTasksToSubmissions(tt.submissions)
 			tt.validate(t, result)
 		})
 	}
 }
 
-// TestMergeTasksToSubmissions_ManyTasks mirrors Python test: test_merge_future_tasks_to_submissions_many_tasks
-func TestMergeTasksToSubmissions_ManyTasks(t *testing.T) {
+// TestMergeFutureTasksToSubmissions_ManyTasks mirrors Python test: test_merge_future_tasks_to_submissions_many_tasks
+func TestMergeFutureTasksToSubmissions_ManyTasks(t *testing.T) {
 	n := 100
-	submissions := make([]*taskSubmission, 0, n*2)
+	submissions := make([]*futureTask, 0, n*2)
 
 	// tasks_1: n tasks with no dependencies
 	for i := range n {
-		submissions = append(submissions, &taskSubmission{
+		submissions = append(submissions, &futureTask{
 			clusterSlug:  "test",
 			identifier:   NewTaskIdentifier("TaskA", "v1.0"),
 			input:        []byte{byte(i)},
@@ -264,12 +264,12 @@ func TestMergeTasksToSubmissions_ManyTasks(t *testing.T) {
 	}
 
 	// tasks_2: n tasks that all depend on all of tasks_1
-	deps := make([]int64, n)
+	deps := make([]uint32, n)
 	for i := range n {
-		deps[i] = int64(i)
+		deps[i] = uint32(i) //nolint:gosec
 	}
 	for i := range n {
-		submissions = append(submissions, &taskSubmission{
+		submissions = append(submissions, &futureTask{
 			clusterSlug:  "test",
 			identifier:   NewTaskIdentifier("TaskB", "v1.0"),
 			input:        []byte{byte(n + i)},
@@ -277,45 +277,45 @@ func TestMergeTasksToSubmissions_ManyTasks(t *testing.T) {
 		})
 	}
 
-	result := mergeTasksToSubmissions(submissions)
+	result := mergeFutureTasksToSubmissions(submissions)
 
 	require.NotNil(t, result)
 	// All tasks_1 share same deps (none) and same dependants (all of tasks_2), so they merge into one group
 	// All tasks_2 share same deps (all of tasks_1) and same dependants (none), so they merge into one group
 	assert.Len(t, result.GetTaskGroups(), 2)
 
-	assert.Nil(t, result.GetTaskGroups()[0].GetDependenciesOnOtherGroups())
+	assert.Empty(t, result.GetTaskGroups()[0].GetDependenciesOnOtherGroups())
 	assert.Len(t, result.GetTaskGroups()[0].GetInputs(), n)
 
 	assert.Equal(t, []uint32{0}, result.GetTaskGroups()[1].GetDependenciesOnOtherGroups())
 	assert.Len(t, result.GetTaskGroups()[1].GetInputs(), n)
 }
 
-// TestMergeTasksToSubmissions_ManyNonMergeableDependencyGroups mirrors Python test:
+// TestMergeFutureTasksToSubmissions_ManyNonMergeableDependencyGroups mirrors Python test:
 // test_merge_future_tasks_to_submissions_many_non_mergeable_dependency_groups
-func TestMergeTasksToSubmissions_ManyNonMergeableDependencyGroups(t *testing.T) {
+func TestMergeFutureTasksToSubmissions_ManyNonMergeableDependencyGroups(t *testing.T) {
 	n := 100
-	submissions := make([]*taskSubmission, 0, n*2)
+	submissions := make([]*futureTask, 0, n*2)
 
 	// For each i, create task_1[i] with no deps, then task_2[i] that depends only on task_1[i]
 	for i := range n {
 		// task_1[i]
-		submissions = append(submissions, &taskSubmission{
+		submissions = append(submissions, &futureTask{
 			clusterSlug:  "test",
 			identifier:   NewTaskIdentifier("TaskA", "v1.0"),
 			input:        []byte{byte(i)},
 			dependencies: nil,
 		})
 		// task_2[i] depends on task_1[i]
-		submissions = append(submissions, &taskSubmission{
+		submissions = append(submissions, &futureTask{
 			clusterSlug:  "test",
 			identifier:   NewTaskIdentifier("TaskB", "v1.0"),
 			input:        []byte{byte(n + i)},
-			dependencies: []int64{int64(i * 2)}, // task_1[i] is at index i*2
+			dependencies: []uint32{uint32(i * 2)}, //nolint:gosec // task_1[i] is at index i*2
 		})
 	}
 
-	result := mergeTasksToSubmissions(submissions)
+	result := mergeFutureTasksToSubmissions(submissions)
 
 	require.NotNil(t, result)
 	// Each pair has unique (deps, dependants), so no merging possible

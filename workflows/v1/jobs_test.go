@@ -83,11 +83,17 @@ func TestJobService_Submit(t *testing.T) {
 
 			assert.Equal(t, tt.want.Name, got.Name)
 
-			// Verify the submitted request
+			// verify the request was sent
 			assert.Len(t, service.reqs, 1)
-			assert.Equal(t, tt.wantReq.GetTasks(), service.reqs[0].GetTasks())
+
 			assert.Equal(t, tt.wantReq.GetJobName(), service.reqs[0].GetJobName())
-			// We don't compare traceparent because it's generated randomly
+			// we don't compare traceparent because it's generated randomly
+
+			taskSubmissions := service.reqs[0].GetTasks()
+			assert.Equal(t, tt.wantReq.GetTasks().GetTaskGroups(), taskSubmissions.GetTaskGroups())
+			assert.Equal(t, tt.wantReq.GetTasks().GetClusterSlugLookup(), taskSubmissions.GetClusterSlugLookup())
+			assert.Equal(t, tt.wantReq.GetTasks().GetIdentifierLookup(), taskSubmissions.GetIdentifierLookup())
+			assert.Equal(t, tt.wantReq.GetTasks().GetDisplayLookup(), taskSubmissions.GetDisplayLookup())
 		})
 	}
 }
