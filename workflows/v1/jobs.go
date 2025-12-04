@@ -130,7 +130,7 @@ type JobClient interface {
 	//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried (Required)
 	//   - job.WithAutomationIDs: specifies the automation IDs to filter jobs by. Only jobs submitted by the specified
 	//  automation will be returned. (Optional)
-	//   - job.WithJobState: specifies the job state to filter jobs by. Only jobs with the specified state will be returned. (Optional)
+	//   - job.WithJobStates: specifies the job state to filter jobs by. Only jobs with the specified state will be returned. (Optional)
 	//   - job.WithJobName: specifies the job name to filter jobs by. Only jobs with the specified name will be returned. (Optional)
 	//
 	// The jobs are lazily loaded and returned as a sequence.

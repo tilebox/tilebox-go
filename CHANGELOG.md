@@ -7,14 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-12-04
+
 ### Added
 
-- `tilebox-workflows`: Added `execution_stats` to the `Job` object to provide programmatic access to a job's execution
+- `workflows`: Added `ExecutionStats` to the `Job` object to provide programmatic access to a job's execution
   statistics.
-- `tilebox-workflows`: Added query filters to the `JobClient.query` method to filter jobs by multiple automation ids,
+- `workflows`: Added query filters to the `client.Jobs.Query` method to filter jobs by multiple automation ids,
   job state, and job name.
-- `tilebox-workflows`: Added additional JobState values to indicate a job's current state and progress more accurately.
-- `tilebox-workflows`: Removed the restriction of `64` subtasks per task.
+- `workflows`: Added additional `job.State` values to indicate a job's current state and progress more accurately.
+- `workflows`: Removed the restriction of `64` subtasks per task.
 - `datasets`: Added `client.Datasets.Create()` method to create a new dataset.
 
 ### Changed
@@ -37,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/tilebox/tilebox-go/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/tilebox/tilebox-go/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/tilebox/tilebox-go/releases/tag/v0.1.0

@@ -18,6 +18,15 @@ func Test_Options(t *testing.T) {
 		want    Options
 	}{
 		{
+			name: "with cluster slug",
+			options: []Option{
+				WithClusterSlug("slug"),
+			},
+			want: Options{
+				ClusterSlug: "slug",
+			},
+		},
+		{
 			name: "with logger",
 			options: []Option{
 				WithRunnerLogger(logger),
