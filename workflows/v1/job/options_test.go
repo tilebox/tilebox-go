@@ -24,6 +24,15 @@ func Test_SubmitJobOptions(t *testing.T) {
 				MaxRetries: 7,
 			},
 		},
+		{
+			name: "with cluster slug",
+			options: []SubmitOption{
+				WithClusterSlug("slug"),
+			},
+			want: SubmitOptions{
+				ClusterSlug: "slug",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -39,6 +48,7 @@ func Test_SubmitJobOptions(t *testing.T) {
 func Test_QueryOptions(t *testing.T) {
 	now := time.Now()
 	automationID := uuid.New()
+	anotherAutomationID := uuid.New()
 
 	tests := []struct {
 		name    string
@@ -64,9 +74,29 @@ func Test_QueryOptions(t *testing.T) {
 			name: "with automation id",
 			options: []QueryOption{
 				WithAutomationIDs(automationID),
+				WithAutomationIDs(anotherAutomationID),
 			},
 			want: QueryOptions{
-				AutomationIDs: []uuid.UUID{automationID},
+				AutomationIDs: []uuid.UUID{automationID, anotherAutomationID},
+			},
+		},
+		{
+			name: "with job states",
+			options: []QueryOption{
+				WithJobStates(Submitted, Running),
+				WithJobStates(Started),
+			},
+			want: QueryOptions{
+				States: []State{Submitted, Running, Started},
+			},
+		},
+		{
+			name: "with job name",
+			options: []QueryOption{
+				WithJobName("my-job"),
+			},
+			want: QueryOptions{
+				Name: "my-job",
 			},
 		},
 	}
