@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   job state, and job name.
 - `tilebox-workflows`: Added additional JobState values to indicate a job's current state and progress more accurately.
 - `tilebox-workflows`: Removed the restriction of `64` subtasks per task.
+- `datasets`: Added `client.Datasets.Create()` method to create a new dataset.
 
 ### Changed
 
