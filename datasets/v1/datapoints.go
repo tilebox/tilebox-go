@@ -360,19 +360,14 @@ func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, 
 
 	for i := 0; i < len(datapointIDs); i += deleteChunkSize {
 		chunk := datapointIDs[i:min(i+deleteChunkSize, len(datapointIDs))]
-		chunkNumDeleted, err := d.DeleteIDs(ctx, collectionID, chunk)
+		response, err := d.dataIngestionService.Delete(ctx, collectionID, chunk)
 		if err != nil {
 			return 0, err
 		}
-		numDeleted += chunkNumDeleted
+		numDeleted += response.GetNumDeleted()
 	}
 
-	response, err := d.dataIngestionService.Delete(ctx, collectionID, datapointIDs)
-	if err != nil {
-		return 0, err
-	}
-
-	return response.GetNumDeleted(), nil
+	return numDeleted, nil
 }
 
 // CollectAs converts a sequence of bytes into a slice of proto.Message.
