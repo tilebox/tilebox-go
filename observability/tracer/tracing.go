@@ -25,7 +25,7 @@ func NewOtelSpanProcessor(ctx context.Context, options ...Option) (trace.SpanPro
 		option(opts)
 	}
 
-	var exporterOptions []otlptracehttp.Option
+	exporterOptions := make([]otlptracehttp.Option, 0, 2)
 	if opts.Endpoint != "" {
 		exporterOptions = append(exporterOptions, otlptracehttp.WithEndpointURL(opts.Endpoint))
 	}
@@ -56,12 +56,11 @@ func NewOtelProviderWithProcessors(otelService *observability.Service, processor
 		semconv.ServiceVersionKey.String(otelService.Version),
 	)
 
-	opts := []trace.TracerProviderOption{
-		trace.WithResource(rs),
-		// Ensure all traces are sampled. It a good default when generating little data (< 100 traces per second).
-		// https://opentelemetry.io/docs/concepts/sampling/#when-not-to-sample
-		trace.WithSampler(trace.AlwaysSample()),
-	}
+	opts := make([]trace.TracerProviderOption, 0, len(processors)+2)
+	opts = append(opts, trace.WithResource(rs))
+	// Ensure all traces are sampled. It a good default when generating little data (< 100 traces per second).
+	// https://opentelemetry.io/docs/concepts/sampling/#when-not-to-sample
+	opts = append(opts, trace.WithSampler(trace.AlwaysSample()))
 
 	for _, processor := range processors {
 		opts = append(opts, trace.WithSpanProcessor(processor))
@@ -112,7 +111,8 @@ func NewAxiomProvider(ctx context.Context, otelService *observability.Service, d
 		"X-Axiom-Dataset": dataset,
 	}
 
-	opts := []Option{WithEndpointURL(axiomTracesEndpoint), WithHeaders(headers)}
+	opts := make([]Option, 0, len(options)+2)
+	opts = append(opts, WithEndpointURL(axiomTracesEndpoint), WithHeaders(headers))
 	opts = append(opts, options...)
 
 	return NewOtelProvider(ctx, otelService, opts...)

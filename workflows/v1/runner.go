@@ -98,42 +98,6 @@ func newTaskRunner(ctx context.Context, service TaskService, clusterClient Clust
 	}, nil
 }
 
-func (t *TaskRunner) logError(ctx context.Context, err error, msg string, args ...any) {
-	switch {
-	case errors.Is(err, context.Canceled):
-		// covers both stdlib context.Canceled and connect context canceled errors
-		return
-	case status.Code(err) == codes.Canceled:
-		// outgoing gRPC requests that are canceled produce a
-		// status.Error(codes.Canceled, "context canceled") from the google grpc library
-		return
-	}
-
-	fields := []any{slog.Any("error", err)}
-	fields = append(fields, args...)
-	t.logger.ErrorContext(ctx, msg, fields...)
-}
-
-// registerTask makes the task runner aware of a task.
-func (t *TaskRunner) registerTask(task ExecutableTask) error {
-	identifier := identifierFromTask(task)
-	err := ValidateIdentifier(identifier)
-	if err != nil {
-		return err
-	}
-	key := taskIdentifier{name: identifier.Name(), version: identifier.Version()}
-	_, found := t.taskDefinitions[key]
-	if found {
-		return fmt.Errorf(
-			"duplicate task identifier: a task '%s' with version '%s' is already registered",
-			identifier.Name(),
-			identifier.Version(),
-		)
-	}
-	t.taskDefinitions[key] = task
-	return nil
-}
-
 // GetRegisteredTask returns the task with the given identifier.
 func (t *TaskRunner) GetRegisteredTask(identifier TaskIdentifier) (ExecutableTask, bool) {
 	registeredTask, found := t.taskDefinitions[taskIdentifier{name: identifier.Name(), version: identifier.Version()}]
@@ -170,7 +134,7 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 	ctxSignal, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP, syscall.SIGQUIT)
 	defer stop()
 
-	identifiers := make([]*workflowsv1.TaskIdentifier, 0)
+	identifiers := make([]*workflowsv1.TaskIdentifier, 0, len(t.taskDefinitions))
 
 	for _, task := range t.taskDefinitions {
 		identifier := identifierFromTask(task)
@@ -423,6 +387,43 @@ func (t *TaskRunner) extendTaskLease(ctx context.Context, service TaskService, t
 		lease = extension.GetLease().AsDuration()
 		wait = extension.GetRecommendedWaitUntilNextExtension().AsDuration()
 	}
+}
+
+func (t *TaskRunner) logError(ctx context.Context, err error, msg string, args ...any) {
+	switch {
+	case errors.Is(err, context.Canceled):
+		// covers both stdlib context.Canceled and connect context canceled errors
+		return
+	case status.Code(err) == codes.Canceled:
+		// outgoing gRPC requests that are canceled produce a
+		// status.Error(codes.Canceled, "context canceled") from the google grpc library
+		return
+	}
+
+	fields := make([]any, 0, len(args)+1)
+	fields = append(fields, slog.Any("error", err))
+	fields = append(fields, args...)
+	t.logger.ErrorContext(ctx, msg, fields...)
+}
+
+// registerTask makes the task runner aware of a task.
+func (t *TaskRunner) registerTask(task ExecutableTask) error {
+	identifier := identifierFromTask(task)
+	err := ValidateIdentifier(identifier)
+	if err != nil {
+		return err
+	}
+	key := taskIdentifier{name: identifier.Name(), version: identifier.Version()}
+	_, found := t.taskDefinitions[key]
+	if found {
+		return fmt.Errorf(
+			"duplicate task identifier: a task '%s' with version '%s' is already registered",
+			identifier.Name(),
+			identifier.Version(),
+		)
+	}
+	t.taskDefinitions[key] = task
+	return nil
 }
 
 type taskExecutionContext struct {

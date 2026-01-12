@@ -16,7 +16,8 @@ import (
 )
 
 type DatasetService interface {
-	CreateDataset(ctx context.Context, name string, datasetType *datasetsv1.DatasetType, summary string, codeName string) (*datasetsv1.Dataset, error)
+	CreateDataset(ctx context.Context, name string, datasetType *datasetsv1.DatasetType, codeName string) (*datasetsv1.Dataset, error)
+	UpdateDataset(ctx context.Context, id uuid.UUID, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error)
 	GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error)
 	ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error)
 }
@@ -35,18 +36,32 @@ func newDatasetsService(datasetClient datasetsv1connect.DatasetServiceClient, tr
 	}
 }
 
-func (s *datasetService) CreateDataset(ctx context.Context, name string, datasetType *datasetsv1.DatasetType, summary string, codeName string) (*datasetsv1.Dataset, error) {
+func (s *datasetService) CreateDataset(ctx context.Context, name string, datasetType *datasetsv1.DatasetType, codeName string) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/create", func(ctx context.Context) (*datasetsv1.Dataset, error) {
 		res, err := s.datasetClient.CreateDataset(ctx, connect.NewRequest(
 			datasetsv1.CreateDatasetRequest_builder{
 				Name:     name,
 				Type:     datasetType,
-				Summary:  summary,
 				CodeName: codeName,
 			}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create dataset: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *datasetService) UpdateDataset(ctx context.Context, id uuid.UUID, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/update", func(ctx context.Context) (*datasetsv1.Dataset, error) {
+		res, err := s.datasetClient.UpdateDataset(ctx, connect.NewRequest(datasetsv1.UpdateDatasetRequest_builder{
+			Id:   tileboxv1.NewUUID(id),
+			Name: name,
+			Type: datasetType,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to update dataset: %w", err)
 		}
 
 		return res.Msg, nil

@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tilebox/tilebox-go/datasets/v1/field"
 	"github.com/tilebox/tilebox-go/internal/grpc"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 	"pgregory.net/rapid"
@@ -119,4 +120,56 @@ func TestClient_Datasets_Get(t *testing.T) {
 
 	assert.Equal(t, "ERS SAR Granules", dataset.Name)
 	assert.Equal(t, "49f17988-9f1c-446e-be2a-f949875b8274", dataset.ID.String())
+}
+
+func TestClient_Datasets_CreateOrUpdate(t *testing.T) {
+	ctx := context.Background()
+	client := NewReplayClient(t, "dataset_create_or_update")
+
+	// create
+	dataset, err := client.Datasets.CreateOrUpdate(ctx,
+		KindSpatiotemporal,
+		"Test Dataset",
+		"test_dataset",
+		[]Field{
+			field.String("test_field").Description("Test field").ExampleValue("test value"),
+		},
+	)
+	require.NoError(t, err)
+
+	assert.Equal(t, "Test Dataset", dataset.Name)
+	require.Len(t, dataset.Type.GetDescriptorSet().GetFile(), 1)
+	require.Len(t, dataset.Type.GetDescriptorSet().GetFile()[0].GetMessageType(), 1)
+	messageType := dataset.Type.GetDescriptorSet().GetFile()[0].GetMessageType()[0]
+	assert.Equal(t, "TestDataset", messageType.GetName())
+	require.Len(t, messageType.GetField(), 5)
+	assert.Equal(t, "time", messageType.GetField()[0].GetName())
+	assert.Equal(t, "id", messageType.GetField()[1].GetName())
+	assert.Equal(t, "ingestion_time", messageType.GetField()[2].GetName())
+	assert.Equal(t, "geometry", messageType.GetField()[3].GetName())
+	assert.Equal(t, "test_field", messageType.GetField()[4].GetName())
+
+	// update
+	dataset, err = client.Datasets.CreateOrUpdate(ctx,
+		KindSpatiotemporal,
+		"Updated Test Dataset",
+		"test_dataset",
+		[]Field{
+			field.String("test_field").Description("Test field").ExampleValue("test value"),
+			field.Int64("updated_field").Description("Updated field").ExampleValue("12"),
+		},
+	)
+	require.NoError(t, err)
+
+	assert.Equal(t, "Updated Test Dataset", dataset.Name)
+	require.Len(t, dataset.Type.GetDescriptorSet().GetFile(), 1)
+	require.Len(t, dataset.Type.GetDescriptorSet().GetFile()[0].GetMessageType(), 1)
+	messageType = dataset.Type.GetDescriptorSet().GetFile()[0].GetMessageType()[0]
+	require.Len(t, messageType.GetField(), 6)
+	assert.Equal(t, "time", messageType.GetField()[0].GetName())
+	assert.Equal(t, "id", messageType.GetField()[1].GetName())
+	assert.Equal(t, "ingestion_time", messageType.GetField()[2].GetName())
+	assert.Equal(t, "geometry", messageType.GetField()[3].GetName())
+	assert.Equal(t, "test_field", messageType.GetField()[4].GetName())
+	assert.Equal(t, "updated_field", messageType.GetField()[5].GetName())
 }
