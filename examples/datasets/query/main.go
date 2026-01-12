@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"log/slog"
 	"time"
 
@@ -23,13 +22,15 @@ func main() {
 	// Select a dataset
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
 	if err != nil {
-		log.Fatalf("Failed to get dataset: %v", err)
+		slog.Error("Failed to get dataset", slog.Any("error", err))
+		return
 	}
 
 	// Select a collection
 	collection, err := client.Collections.Get(ctx, dataset.ID, "S2A_S2MSI1C")
 	if err != nil {
-		log.Fatalf("Failed to get collection: %v", err)
+		slog.Error("Failed to get collection", slog.Any("error", err))
+		return
 	}
 
 	// Select a temporal extent
@@ -51,7 +52,8 @@ func main() {
 		datasets.WithSpatialExtent(area),
 	)
 	if err != nil {
-		log.Fatalf("Failed to query datapoints: %v", err)
+		slog.Error("Failed to query datapoints", slog.Any("error", err))
+		return
 	}
 
 	slog.Info("Found datapoints over Colorado in March 2025", slog.Int("count", len(foundDatapoints)))

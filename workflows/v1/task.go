@@ -53,7 +53,7 @@ func (t taskIdentifier) String() string {
 
 // Task is the interface for a task that can be submitted to the workflow service.
 // It doesn't need to be identifiable or executable, but it can be both.
-type Task interface{}
+type Task any
 
 // ExplicitlyIdentifiableTask is the interface for a task that provides a user-defined task identifier.
 // The identifier is used to uniquely identify the task and specify its version. If a task is not an
@@ -114,7 +114,7 @@ func parseVersion(version string) (int64, int64, error) {
 
 // getStructName returns the struct name of a task. If the task is a pointer, the name of the pointed-to type is returned.
 // This function is used to generate a default identifier name for a task if it doesn't provide an explicit identifier.
-func getStructName(task interface{}) string {
+func getStructName(task any) string {
 	t := reflect.TypeOf(task)
 	if t.Kind() == reflect.Pointer {
 		return t.Elem().Name()

@@ -15,6 +15,7 @@ import (
 
 type mockJobService struct {
 	JobService
+
 	reqs []*workflowsv1.SubmitJobRequest
 }
 

@@ -35,8 +35,9 @@ func (m mockDataIngestionService) Ingest(_ context.Context, _ uuid.UUID, datapoi
 }
 
 type mockDataAccessService struct {
-	n int
 	DataAccessService
+
+	n int
 }
 
 func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *tileboxv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
@@ -293,9 +294,9 @@ func Test_datapointClient_Query(t *testing.T) {
 }
 
 type mockService struct {
-	data [][]byte
-
 	DatapointClient
+
+	data [][]byte
 }
 
 func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
@@ -357,7 +358,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	b.Run("Marshal and no reflection", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
-			datapoints := make([]*examplesv1.Sentinel2Msi, 0)
+			datapoints := make([]*examplesv1.Sentinel2Msi, 0, 1000)
 			for datapoint, err := range data {
 				if err != nil {
 					b.Fatalf("failed to load datapoint: %v", err)
@@ -376,7 +377,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	b.Run("No marshal and no reflection", func(b *testing.B) {
 		for range b.N {
 			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
-			datapoints := make([][]byte, 0)
+			datapoints := make([][]byte, 0, 1000)
 			for datapoint, err := range data {
 				if err != nil {
 					b.Fatalf("failed to load datapoint: %v", err)

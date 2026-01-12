@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/datasets/v1/field"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
@@ -43,12 +44,14 @@ func (d Dataset) String() string {
 }
 
 type DatasetClient interface {
-	// Create creates a new dataset and returns it.
+	// CreateOrUpdate creates a new dataset with the given name and codeName, or updates the schema of an existing dataset by adding new fields.
+	// If the dataset is empty, the schema can also be altered in a backwards incompatible way, by removing fields or changing their type.
+	// Otherwise, any attempt to such an update operation will result in an error.
 	//
 	// Documentation: https://docs.tilebox.com/datasets/concepts/datasets#creating-a-dataset
-	Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []Field) (*Dataset, error)
+	CreateOrUpdate(ctx context.Context, kind DatasetKind, name string, codeName string, fields []Field) (*Dataset, error)
 
-	// Get returns a dataset by its slug, e.g. "open_data.copernicus.sentinel1_sar".
+	// Get returns a dataset by its full slug, e.g. "open_data.copernicus.sentinel1_sar".
 	Get(ctx context.Context, slug string) (*Dataset, error)
 
 	// List returns a list of all available datasets.
@@ -142,7 +145,10 @@ type Field interface {
 	Descriptor() *field.Descriptor
 }
 
-func (d datasetClient) Create(ctx context.Context, name string, kind DatasetKind, codeName string, description string, fields []Field) (*Dataset, error) {
+// CreateOrUpdate creates a new dataset with the given name and codeName, or updates the schema of an existing dataset by adding new fields.
+// If the dataset is empty, the schema can also be altered in a backwards incompatible way, by removing fields or changing their type.
+// Otherwise, any attempt to such an update operation will result in an error.
+func (d datasetClient) CreateOrUpdate(ctx context.Context, kind DatasetKind, name string, codeName string, fields []Field) (*Dataset, error) {
 	// make sure our dataset type contains all the fixed fields for the given kind
 	requiredFields, ok := requiredFieldsPerDatasetKind[kind]
 	if !ok {
@@ -160,9 +166,23 @@ func (d datasetClient) Create(ctx context.Context, name string, kind DatasetKind
 		Fields: datasetFields,
 	}.Build()
 
-	response, err := d.service.CreateDataset(ctx, name, datasetType, description, codeName)
+	// check whether the dataset already exists, in which case we update it
+	existingDataset, err := d.service.GetDataset(ctx, codeName)
 	if err != nil {
-		return nil, err
+		if connect.CodeOf(err) == connect.CodeNotFound {
+			response, err := d.service.CreateDataset(ctx, name, datasetType, codeName)
+			if err != nil {
+				return nil, fmt.Errorf("failed to create dataset: %w", err)
+			}
+			return protoToDataset(response), nil
+		}
+		return nil, fmt.Errorf("failed to create dataset: failed to check for existing dataset: %w", err)
+	}
+
+	// we found an existing dataset, so let's update it
+	response, err := d.service.UpdateDataset(ctx, existingDataset.GetId().AsUUID(), name, datasetType)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update dataset: %w", err)
 	}
 
 	return protoToDataset(response), nil

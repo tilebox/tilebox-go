@@ -62,9 +62,8 @@ func NewLoggingProviderWithProcessors(otelService *observability.Service, proces
 		semconv.ServiceVersionKey.String(otelService.Version),
 	)
 
-	opts := []log.LoggerProviderOption{
-		log.WithResource(rs),
-	}
+	opts := make([]log.LoggerProviderOption, 0, len(processors)+1)
+	opts = append(opts, log.WithResource(rs))
 
 	for _, processor := range processors {
 		opts = append(opts, log.WithProcessor(processor))
@@ -174,7 +173,8 @@ func NewAxiomHandler(ctx context.Context, otelService *observability.Service, da
 		"X-Axiom-Dataset": dataset,
 	}
 
-	opts := []Option{WithEndpointURL(axiomLogsEndpoint), WithHeaders(headers)}
+	opts := make([]Option, 0, len(options)+2)
+	opts = append(opts, WithEndpointURL(axiomLogsEndpoint), WithHeaders(headers))
 	opts = append(opts, options...)
 
 	return NewOtelHandler(ctx, otelService, opts...)
