@@ -17,8 +17,8 @@ func main() {
 	// Create a dataset
 	dataset, err := client.Datasets.CreateOrUpdate(ctx,
 		datasets.KindSpatiotemporal,
-		"Personal Landsat-8 catalog",
 		"my_landsat8_oli_tirs",
+		"Personal Landsat-8 catalog",
 		[]datasets.Field{
 			field.String("granule_name").Description("The name of the Earth View Granule").ExampleValue("LC08_L1GT_037077_20220830_20220910_02_T2"),
 			field.String("platform").Description("Landsat satellite number.").ExampleValue("LANDSAT_8"),
@@ -34,8 +34,8 @@ func main() {
 	// Add a field to the dataset
 	dataset, err = client.Datasets.CreateOrUpdate(ctx,
 		datasets.KindSpatiotemporal,
-		"Personal Landsat-8 catalog",
 		"my_landsat8_oli_tirs",
+		"Personal Landsat-8 catalog",
 		[]datasets.Field{
 			field.String("granule_name").Description("The name of the Earth View Granule").ExampleValue("LC08_L1GT_037077_20220830_20220910_02_T2"),
 			field.String("platform").Description("Landsat satellite number.").ExampleValue("LANDSAT_8"),

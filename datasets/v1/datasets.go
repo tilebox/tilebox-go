@@ -49,7 +49,7 @@ type DatasetClient interface {
 	// Otherwise, any attempt to such an update operation will result in an error.
 	//
 	// Documentation: https://docs.tilebox.com/datasets/concepts/datasets#creating-a-dataset
-	CreateOrUpdate(ctx context.Context, kind DatasetKind, name string, codeName string, fields []Field) (*Dataset, error)
+	CreateOrUpdate(ctx context.Context, kind DatasetKind, codeName string, name string, fields []Field) (*Dataset, error)
 
 	// Get returns a dataset by its full slug, e.g. "open_data.copernicus.sentinel1_sar".
 	Get(ctx context.Context, slug string) (*Dataset, error)
@@ -148,7 +148,7 @@ type Field interface {
 // CreateOrUpdate creates a new dataset with the given name and codeName, or updates the schema of an existing dataset by adding new fields.
 // If the dataset is empty, the schema can also be altered in a backwards incompatible way, by removing fields or changing their type.
 // Otherwise, any attempt to such an update operation will result in an error.
-func (d datasetClient) CreateOrUpdate(ctx context.Context, kind DatasetKind, name string, codeName string, fields []Field) (*Dataset, error) {
+func (d datasetClient) CreateOrUpdate(ctx context.Context, kind DatasetKind, codeName string, name string, fields []Field) (*Dataset, error) {
 	// make sure our dataset type contains all the fixed fields for the given kind
 	requiredFields, ok := requiredFieldsPerDatasetKind[kind]
 	if !ok {
@@ -170,7 +170,7 @@ func (d datasetClient) CreateOrUpdate(ctx context.Context, kind DatasetKind, nam
 	existingDataset, err := d.service.GetDataset(ctx, codeName)
 	if err != nil {
 		if connect.CodeOf(err) == connect.CodeNotFound {
-			response, err := d.service.CreateDataset(ctx, name, datasetType, codeName)
+			response, err := d.service.CreateDataset(ctx, codeName, name, datasetType)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create dataset: %w", err)
 			}

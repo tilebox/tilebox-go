@@ -16,7 +16,7 @@ import (
 )
 
 type DatasetService interface {
-	CreateDataset(ctx context.Context, name string, datasetType *datasetsv1.DatasetType, codeName string) (*datasetsv1.Dataset, error)
+	CreateDataset(ctx context.Context, codeName string, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error)
 	UpdateDataset(ctx context.Context, id uuid.UUID, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error)
 	GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error)
 	ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error)
@@ -36,13 +36,13 @@ func newDatasetsService(datasetClient datasetsv1connect.DatasetServiceClient, tr
 	}
 }
 
-func (s *datasetService) CreateDataset(ctx context.Context, name string, datasetType *datasetsv1.DatasetType, codeName string) (*datasetsv1.Dataset, error) {
+func (s *datasetService) CreateDataset(ctx context.Context, codeName string, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/create", func(ctx context.Context) (*datasetsv1.Dataset, error) {
 		res, err := s.datasetClient.CreateDataset(ctx, connect.NewRequest(
 			datasetsv1.CreateDatasetRequest_builder{
+				CodeName: codeName,
 				Name:     name,
 				Type:     datasetType,
-				CodeName: codeName,
 			}.Build(),
 		))
 		if err != nil {

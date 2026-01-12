@@ -129,8 +129,8 @@ func TestClient_Datasets_CreateOrUpdate(t *testing.T) {
 	// create
 	dataset, err := client.Datasets.CreateOrUpdate(ctx,
 		KindSpatiotemporal,
-		"Test Dataset",
 		"test_dataset",
+		"Test Dataset",
 		[]Field{
 			field.String("test_field").Description("Test field").ExampleValue("test value"),
 		},
@@ -152,8 +152,8 @@ func TestClient_Datasets_CreateOrUpdate(t *testing.T) {
 	// update
 	dataset, err = client.Datasets.CreateOrUpdate(ctx,
 		KindSpatiotemporal,
-		"Updated Test Dataset",
 		"test_dataset",
+		"Updated Test Dataset",
 		[]Field{
 			field.String("test_field").Description("Test field").ExampleValue("test value"),
 			field.Int64("updated_field").Description("Updated field").ExampleValue("12"),
