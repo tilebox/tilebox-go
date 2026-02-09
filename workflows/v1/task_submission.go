@@ -17,6 +17,7 @@ type futureTask struct {
 	input        []byte
 	dependencies []uint32
 	maxRetries   int64
+	optional     bool
 }
 
 // taskGroupKey is used to group tasks by their dependencies and dependants.
@@ -33,6 +34,7 @@ type taskSubmissionGroup struct {
 	clusterSlugPointers       []uint64
 	displayPointers           []uint64
 	maxRetriesValues          []int64
+	optionalValues            []bool
 }
 
 // comparableIntSetKey returns a hash key for a set of integers.
@@ -140,6 +142,7 @@ func mergeFutureTasksToSubmissions(submissions []*futureTask) *workflowsv1.TaskS
 		group.clusterSlugPointers = append(group.clusterSlugPointers, clusterSlugs.appendIfUnique(submission.clusterSlug))
 		group.displayPointers = append(group.displayPointers, displays.appendIfUnique(submission.identifier.Display()))
 		group.maxRetriesValues = append(group.maxRetriesValues, submission.maxRetries)
+		group.optionalValues = append(group.optionalValues, submission.optional)
 	}
 
 	groupsProto := lo.Map(groups, func(group *taskSubmissionGroup, _ int) *workflowsv1.TaskSubmissionGroup {
@@ -150,6 +153,7 @@ func mergeFutureTasksToSubmissions(submissions []*futureTask) *workflowsv1.TaskS
 			ClusterSlugPointers:       group.clusterSlugPointers,
 			DisplayPointers:           group.displayPointers,
 			MaxRetriesValues:          group.maxRetriesValues,
+			OptionalValues:            group.optionalValues,
 		}.Build()
 	})
 

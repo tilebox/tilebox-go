@@ -949,66 +949,6 @@ func (b0 CollectionInfo_builder) Build() *CollectionInfo {
 	return m0
 }
 
-// CollectionInfos contains a list of CollectionInfo messages.
-type CollectionInfos struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Data *[]*CollectionInfo     `protobuf:"bytes,1,rep,name=data"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *CollectionInfos) Reset() {
-	*x = CollectionInfos{}
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CollectionInfos) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CollectionInfos) ProtoMessage() {}
-
-func (x *CollectionInfos) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *CollectionInfos) GetData() []*CollectionInfo {
-	if x != nil {
-		if x.xxx_hidden_Data != nil {
-			return *x.xxx_hidden_Data
-		}
-	}
-	return nil
-}
-
-func (x *CollectionInfos) SetData(v []*CollectionInfo) {
-	x.xxx_hidden_Data = &v
-}
-
-type CollectionInfos_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	Data []*CollectionInfo
-}
-
-func (b0 CollectionInfos_builder) Build() *CollectionInfos {
-	m0 := &CollectionInfos{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Data = &b.Data
-	return m0
-}
-
 // Dataset contains information about a single dataset
 type Dataset struct {
 	state                   protoimpl.MessageState `protogen:"opaque.v1"`
@@ -1031,7 +971,7 @@ type Dataset struct {
 
 func (x *Dataset) Reset() {
 	*x = Dataset{}
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1043,7 +983,7 @@ func (x *Dataset) String() string {
 func (*Dataset) ProtoMessage() {}
 
 func (x *Dataset) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1297,7 +1237,7 @@ type DatasetGroup struct {
 
 func (x *DatasetGroup) Reset() {
 	*x = DatasetGroup{}
-	mi := &file_datasets_v1_core_proto_msgTypes[10]
+	mi := &file_datasets_v1_core_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1309,7 +1249,7 @@ func (x *DatasetGroup) String() string {
 func (*DatasetGroup) ProtoMessage() {}
 
 func (x *DatasetGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[10]
+	mi := &file_datasets_v1_core_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1460,9 +1400,7 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"collection\x18\x01 \x01(\v2\x17.datasets.v1.CollectionR\n" +
 	"collection\x12C\n" +
 	"\favailability\x18\x02 \x01(\v2\x18.tilebox.v1.TimeIntervalB\x05\xaa\x01\x02\b\x01R\favailability\x12\x1b\n" +
-	"\x05count\x18\x03 \x01(\x04B\x05\xaa\x01\x02\b\x01R\x05count\"B\n" +
-	"\x0fCollectionInfos\x12/\n" +
-	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\"\xf8\x03\n" +
+	"\x05count\x18\x03 \x01(\x04B\x05\xaa\x01\x02\b\x01R\x05count\"\xf8\x03\n" +
 	"\aDataset\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12)\n" +
 	"\bgroup_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\agroupId\x12.\n" +
@@ -1500,7 +1438,7 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\x0fcom.datasets.v1B\tCoreProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_datasets_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_datasets_v1_core_proto_goTypes = []any{
 	(DatasetPermission)(0),        // 0: datasets.v1.DatasetPermission
 	(Visibility)(0),               // 1: datasets.v1.Visibility
@@ -1512,39 +1450,37 @@ var file_datasets_v1_core_proto_goTypes = []any{
 	(*Datapoint)(nil),             // 7: datasets.v1.Datapoint
 	(*Collection)(nil),            // 8: datasets.v1.Collection
 	(*CollectionInfo)(nil),        // 9: datasets.v1.CollectionInfo
-	(*CollectionInfos)(nil),       // 10: datasets.v1.CollectionInfos
-	(*Dataset)(nil),               // 11: datasets.v1.Dataset
-	(*DatasetGroup)(nil),          // 12: datasets.v1.DatasetGroup
-	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
-	(*v1.ID)(nil),                 // 14: tilebox.v1.ID
-	(*v1.TimeInterval)(nil),       // 15: tilebox.v1.TimeInterval
-	(*AnnotatedType)(nil),         // 16: datasets.v1.AnnotatedType
+	(*Dataset)(nil),               // 10: datasets.v1.Dataset
+	(*DatasetGroup)(nil),          // 11: datasets.v1.DatasetGroup
+	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
+	(*v1.ID)(nil),                 // 13: tilebox.v1.ID
+	(*v1.TimeInterval)(nil),       // 14: tilebox.v1.TimeInterval
+	(*AnnotatedType)(nil),         // 15: datasets.v1.AnnotatedType
 }
 var file_datasets_v1_core_proto_depIdxs = []int32{
-	13, // 0: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
-	13, // 1: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
+	12, // 0: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
+	12, // 1: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
 	5,  // 2: datasets.v1.DatapointPage.meta:type_name -> datasets.v1.DatapointMetadata
 	4,  // 3: datasets.v1.DatapointPage.data:type_name -> datasets.v1.RepeatedAny
 	2,  // 4: datasets.v1.DatapointPage.next_page:type_name -> datasets.v1.LegacyPagination
 	5,  // 5: datasets.v1.Datapoint.meta:type_name -> datasets.v1.DatapointMetadata
 	3,  // 6: datasets.v1.Datapoint.data:type_name -> datasets.v1.Any
-	14, // 7: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
+	13, // 7: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
 	8,  // 8: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
-	15, // 9: datasets.v1.CollectionInfo.availability:type_name -> tilebox.v1.TimeInterval
-	9,  // 10: datasets.v1.CollectionInfos.data:type_name -> datasets.v1.CollectionInfo
-	14, // 11: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
-	14, // 12: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
-	16, // 13: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
-	0,  // 14: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
-	1,  // 15: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
-	9,  // 16: datasets.v1.Dataset.collections:type_name -> datasets.v1.CollectionInfo
-	14, // 17: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
-	14, // 18: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
-	19, // [19:19] is the sub-list for method output_type
-	19, // [19:19] is the sub-list for method input_type
-	19, // [19:19] is the sub-list for extension type_name
-	19, // [19:19] is the sub-list for extension extendee
-	0,  // [0:19] is the sub-list for field type_name
+	14, // 9: datasets.v1.CollectionInfo.availability:type_name -> tilebox.v1.TimeInterval
+	13, // 10: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
+	13, // 11: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
+	15, // 12: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
+	0,  // 13: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
+	1,  // 14: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
+	9,  // 15: datasets.v1.Dataset.collections:type_name -> datasets.v1.CollectionInfo
+	13, // 16: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
+	13, // 17: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_core_proto_init() }
@@ -1559,7 +1495,7 @@ func file_datasets_v1_core_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_core_proto_rawDesc), len(file_datasets_v1_core_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   11,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

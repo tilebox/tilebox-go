@@ -52,7 +52,7 @@ type CollectionServiceClient interface {
 	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
 	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
 	DeleteCollection(context.Context, *connect.Request[v1.DeleteCollectionRequest]) (*connect.Response[v1.DeleteCollectionResponse], error)
-	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error)
+	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.ListCollectionsResponse], error)
 }
 
 // NewCollectionServiceClient constructs a client for the datasets.v1.CollectionService service. By
@@ -84,7 +84,7 @@ func NewCollectionServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(collectionServiceMethods.ByName("DeleteCollection")),
 			connect.WithClientOptions(opts...),
 		),
-		listCollections: connect.NewClient[v1.ListCollectionsRequest, v1.CollectionInfos](
+		listCollections: connect.NewClient[v1.ListCollectionsRequest, v1.ListCollectionsResponse](
 			httpClient,
 			baseURL+CollectionServiceListCollectionsProcedure,
 			connect.WithSchema(collectionServiceMethods.ByName("ListCollections")),
@@ -98,7 +98,7 @@ type collectionServiceClient struct {
 	createCollection    *connect.Client[v1.CreateCollectionRequest, v1.CollectionInfo]
 	getCollectionByName *connect.Client[v1.GetCollectionByNameRequest, v1.CollectionInfo]
 	deleteCollection    *connect.Client[v1.DeleteCollectionRequest, v1.DeleteCollectionResponse]
-	listCollections     *connect.Client[v1.ListCollectionsRequest, v1.CollectionInfos]
+	listCollections     *connect.Client[v1.ListCollectionsRequest, v1.ListCollectionsResponse]
 }
 
 // CreateCollection calls datasets.v1.CollectionService.CreateCollection.
@@ -117,7 +117,7 @@ func (c *collectionServiceClient) DeleteCollection(ctx context.Context, req *con
 }
 
 // ListCollections calls datasets.v1.CollectionService.ListCollections.
-func (c *collectionServiceClient) ListCollections(ctx context.Context, req *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error) {
+func (c *collectionServiceClient) ListCollections(ctx context.Context, req *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.ListCollectionsResponse], error) {
 	return c.listCollections.CallUnary(ctx, req)
 }
 
@@ -126,7 +126,7 @@ type CollectionServiceHandler interface {
 	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
 	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
 	DeleteCollection(context.Context, *connect.Request[v1.DeleteCollectionRequest]) (*connect.Response[v1.DeleteCollectionResponse], error)
-	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error)
+	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.ListCollectionsResponse], error)
 }
 
 // NewCollectionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -191,6 +191,6 @@ func (UnimplementedCollectionServiceHandler) DeleteCollection(context.Context, *
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.DeleteCollection is not implemented"))
 }
 
-func (UnimplementedCollectionServiceHandler) ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.CollectionInfos], error) {
+func (UnimplementedCollectionServiceHandler) ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.ListCollectionsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.ListCollections is not implemented"))
 }

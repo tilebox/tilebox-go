@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `workflows`: Added `WithOptional` option to `workflows.SubmitSubtask` to mark a subtask as optional.
+
 ### Changed
 
 - `datasets`: Changed `client.Datasets.Create()` to `client.Datasets.CreateOrUpdate()`.

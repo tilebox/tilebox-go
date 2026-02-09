@@ -463,6 +463,118 @@ func (b0 ListCollectionsRequest_builder) Build() *ListCollectionsRequest {
 	return m0
 }
 
+// ListCollectionsResponse is the response to ListCollectionsRequest.
+// It contains a list of collections for the requested dataset, as well as
+// some organization level metadata about the number of collections the organization owns
+// and the maximum number of collections it can own.
+type ListCollectionsResponse struct {
+	state                              protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Data                    *[]*CollectionInfo     `protobuf:"bytes,1,rep,name=data"`
+	xxx_hidden_OwnedCollections        int64                  `protobuf:"varint,2,opt,name=owned_collections,json=ownedCollections"`
+	xxx_hidden_MaximumOwnedCollections int64                  `protobuf:"varint,3,opt,name=maximum_owned_collections,json=maximumOwnedCollections"`
+	XXX_raceDetectHookData             protoimpl.RaceDetectHookData
+	XXX_presence                       [1]uint32
+	unknownFields                      protoimpl.UnknownFields
+	sizeCache                          protoimpl.SizeCache
+}
+
+func (x *ListCollectionsResponse) Reset() {
+	*x = ListCollectionsResponse{}
+	mi := &file_datasets_v1_collections_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListCollectionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListCollectionsResponse) ProtoMessage() {}
+
+func (x *ListCollectionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_datasets_v1_collections_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ListCollectionsResponse) GetData() []*CollectionInfo {
+	if x != nil {
+		if x.xxx_hidden_Data != nil {
+			return *x.xxx_hidden_Data
+		}
+	}
+	return nil
+}
+
+func (x *ListCollectionsResponse) GetOwnedCollections() int64 {
+	if x != nil {
+		return x.xxx_hidden_OwnedCollections
+	}
+	return 0
+}
+
+func (x *ListCollectionsResponse) GetMaximumOwnedCollections() int64 {
+	if x != nil {
+		return x.xxx_hidden_MaximumOwnedCollections
+	}
+	return 0
+}
+
+func (x *ListCollectionsResponse) SetData(v []*CollectionInfo) {
+	x.xxx_hidden_Data = &v
+}
+
+func (x *ListCollectionsResponse) SetOwnedCollections(v int64) {
+	x.xxx_hidden_OwnedCollections = v
+}
+
+func (x *ListCollectionsResponse) SetMaximumOwnedCollections(v int64) {
+	x.xxx_hidden_MaximumOwnedCollections = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *ListCollectionsResponse) HasMaximumOwnedCollections() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *ListCollectionsResponse) ClearMaximumOwnedCollections() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_MaximumOwnedCollections = 0
+}
+
+type ListCollectionsResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// List of collections in the dataset.
+	Data []*CollectionInfo
+	// Number of collections in all datasets that the users organization is the owner of
+	OwnedCollections int64
+	// Maximum number of collections that can be created and therefore owned by the organization. Nil means unlimited.
+	MaximumOwnedCollections *int64
+}
+
+func (b0 ListCollectionsResponse_builder) Build() *ListCollectionsResponse {
+	m0 := &ListCollectionsResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Data = &b.Data
+	x.xxx_hidden_OwnedCollections = b.OwnedCollections
+	if b.MaximumOwnedCollections != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_MaximumOwnedCollections = *b.MaximumOwnedCollections
+	}
+	return m0
+}
+
 var File_datasets_v1_collections_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_collections_proto_rawDesc = "" +
@@ -489,44 +601,49 @@ const file_datasets_v1_collections_proto_rawDesc = "" +
 	"dataset_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\tdatasetId\x12+\n" +
 	"\x11with_availability\x18\x02 \x01(\bR\x10withAvailability\x12\x1d\n" +
 	"\n" +
-	"with_count\x18\x03 \x01(\bR\twithCount2\x86\x03\n" +
+	"with_count\x18\x03 \x01(\bR\twithCount\"\xba\x01\n" +
+	"\x17ListCollectionsResponse\x12/\n" +
+	"\x04data\x18\x01 \x03(\v2\x1b.datasets.v1.CollectionInfoR\x04data\x12+\n" +
+	"\x11owned_collections\x18\x02 \x01(\x03R\x10ownedCollections\x12A\n" +
+	"\x19maximum_owned_collections\x18\x03 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x17maximumOwnedCollections2\x8e\x03\n" +
 	"\x11CollectionService\x12W\n" +
 	"\x10CreateCollection\x12$.datasets.v1.CreateCollectionRequest\x1a\x1b.datasets.v1.CollectionInfo\"\x00\x12]\n" +
 	"\x13GetCollectionByName\x12'.datasets.v1.GetCollectionByNameRequest\x1a\x1b.datasets.v1.CollectionInfo\"\x00\x12a\n" +
-	"\x10DeleteCollection\x12$.datasets.v1.DeleteCollectionRequest\x1a%.datasets.v1.DeleteCollectionResponse\"\x00\x12V\n" +
-	"\x0fListCollections\x12#.datasets.v1.ListCollectionsRequest\x1a\x1c.datasets.v1.CollectionInfos\"\x00B\xb4\x01\n" +
+	"\x10DeleteCollection\x12$.datasets.v1.DeleteCollectionRequest\x1a%.datasets.v1.DeleteCollectionResponse\"\x00\x12^\n" +
+	"\x0fListCollections\x12#.datasets.v1.ListCollectionsRequest\x1a$.datasets.v1.ListCollectionsResponse\"\x00B\xb4\x01\n" +
 	"\x0fcom.datasets.v1B\x10CollectionsProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_datasets_v1_collections_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_datasets_v1_collections_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_datasets_v1_collections_proto_goTypes = []any{
 	(*CreateCollectionRequest)(nil),    // 0: datasets.v1.CreateCollectionRequest
 	(*GetCollectionByNameRequest)(nil), // 1: datasets.v1.GetCollectionByNameRequest
 	(*DeleteCollectionRequest)(nil),    // 2: datasets.v1.DeleteCollectionRequest
 	(*DeleteCollectionResponse)(nil),   // 3: datasets.v1.DeleteCollectionResponse
 	(*ListCollectionsRequest)(nil),     // 4: datasets.v1.ListCollectionsRequest
-	(*v1.ID)(nil),                      // 5: tilebox.v1.ID
-	(*CollectionInfo)(nil),             // 6: datasets.v1.CollectionInfo
-	(*CollectionInfos)(nil),            // 7: datasets.v1.CollectionInfos
+	(*ListCollectionsResponse)(nil),    // 5: datasets.v1.ListCollectionsResponse
+	(*v1.ID)(nil),                      // 6: tilebox.v1.ID
+	(*CollectionInfo)(nil),             // 7: datasets.v1.CollectionInfo
 }
 var file_datasets_v1_collections_proto_depIdxs = []int32{
-	5, // 0: datasets.v1.CreateCollectionRequest.dataset_id:type_name -> tilebox.v1.ID
-	5, // 1: datasets.v1.GetCollectionByNameRequest.dataset_id:type_name -> tilebox.v1.ID
-	5, // 2: datasets.v1.DeleteCollectionRequest.collection_id:type_name -> tilebox.v1.ID
-	5, // 3: datasets.v1.DeleteCollectionRequest.dataset_id:type_name -> tilebox.v1.ID
-	5, // 4: datasets.v1.ListCollectionsRequest.dataset_id:type_name -> tilebox.v1.ID
-	0, // 5: datasets.v1.CollectionService.CreateCollection:input_type -> datasets.v1.CreateCollectionRequest
-	1, // 6: datasets.v1.CollectionService.GetCollectionByName:input_type -> datasets.v1.GetCollectionByNameRequest
-	2, // 7: datasets.v1.CollectionService.DeleteCollection:input_type -> datasets.v1.DeleteCollectionRequest
-	4, // 8: datasets.v1.CollectionService.ListCollections:input_type -> datasets.v1.ListCollectionsRequest
-	6, // 9: datasets.v1.CollectionService.CreateCollection:output_type -> datasets.v1.CollectionInfo
-	6, // 10: datasets.v1.CollectionService.GetCollectionByName:output_type -> datasets.v1.CollectionInfo
-	3, // 11: datasets.v1.CollectionService.DeleteCollection:output_type -> datasets.v1.DeleteCollectionResponse
-	7, // 12: datasets.v1.CollectionService.ListCollections:output_type -> datasets.v1.CollectionInfos
-	9, // [9:13] is the sub-list for method output_type
-	5, // [5:9] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	6,  // 0: datasets.v1.CreateCollectionRequest.dataset_id:type_name -> tilebox.v1.ID
+	6,  // 1: datasets.v1.GetCollectionByNameRequest.dataset_id:type_name -> tilebox.v1.ID
+	6,  // 2: datasets.v1.DeleteCollectionRequest.collection_id:type_name -> tilebox.v1.ID
+	6,  // 3: datasets.v1.DeleteCollectionRequest.dataset_id:type_name -> tilebox.v1.ID
+	6,  // 4: datasets.v1.ListCollectionsRequest.dataset_id:type_name -> tilebox.v1.ID
+	7,  // 5: datasets.v1.ListCollectionsResponse.data:type_name -> datasets.v1.CollectionInfo
+	0,  // 6: datasets.v1.CollectionService.CreateCollection:input_type -> datasets.v1.CreateCollectionRequest
+	1,  // 7: datasets.v1.CollectionService.GetCollectionByName:input_type -> datasets.v1.GetCollectionByNameRequest
+	2,  // 8: datasets.v1.CollectionService.DeleteCollection:input_type -> datasets.v1.DeleteCollectionRequest
+	4,  // 9: datasets.v1.CollectionService.ListCollections:input_type -> datasets.v1.ListCollectionsRequest
+	7,  // 10: datasets.v1.CollectionService.CreateCollection:output_type -> datasets.v1.CollectionInfo
+	7,  // 11: datasets.v1.CollectionService.GetCollectionByName:output_type -> datasets.v1.CollectionInfo
+	3,  // 12: datasets.v1.CollectionService.DeleteCollection:output_type -> datasets.v1.DeleteCollectionResponse
+	5,  // 13: datasets.v1.CollectionService.ListCollections:output_type -> datasets.v1.ListCollectionsResponse
+	10, // [10:14] is the sub-list for method output_type
+	6,  // [6:10] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_collections_proto_init() }
@@ -541,7 +658,7 @@ func file_datasets_v1_collections_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_collections_proto_rawDesc), len(file_datasets_v1_collections_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
