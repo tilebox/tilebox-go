@@ -153,6 +153,11 @@ const (
 	TaskState_TASK_STATE_COMPUTED TaskState = 3
 	// The task has failed.
 	TaskState_TASK_STATE_FAILED TaskState = 4
+	// The task has been skipped, because it was in an optional subbranch and one of its sibling tasks in the same
+	// branch has failed.
+	TaskState_TASK_STATE_SKIPPED TaskState = 5
+	// The task has failed, but was optional.
+	TaskState_TASK_STATE_FAILED_OPTIONAL TaskState = 6
 )
 
 // Enum value maps for TaskState.
@@ -163,13 +168,17 @@ var (
 		2: "TASK_STATE_RUNNING",
 		3: "TASK_STATE_COMPUTED",
 		4: "TASK_STATE_FAILED",
+		5: "TASK_STATE_SKIPPED",
+		6: "TASK_STATE_FAILED_OPTIONAL",
 	}
 	TaskState_value = map[string]int32{
-		"TASK_STATE_UNSPECIFIED": 0,
-		"TASK_STATE_QUEUED":      1,
-		"TASK_STATE_RUNNING":     2,
-		"TASK_STATE_COMPUTED":    3,
-		"TASK_STATE_FAILED":      4,
+		"TASK_STATE_UNSPECIFIED":     0,
+		"TASK_STATE_QUEUED":          1,
+		"TASK_STATE_RUNNING":         2,
+		"TASK_STATE_COMPUTED":        3,
+		"TASK_STATE_FAILED":          4,
+		"TASK_STATE_SKIPPED":         5,
+		"TASK_STATE_FAILED_OPTIONAL": 6,
 	}
 )
 
@@ -1807,6 +1816,7 @@ type TaskSubmissionGroup struct {
 	xxx_hidden_ClusterSlugPointers       []uint64               `protobuf:"varint,4,rep,packed,name=cluster_slug_pointers,json=clusterSlugPointers"`
 	xxx_hidden_DisplayPointers           []uint64               `protobuf:"varint,5,rep,packed,name=display_pointers,json=displayPointers"`
 	xxx_hidden_MaxRetriesValues          []int64                `protobuf:"varint,6,rep,packed,name=max_retries_values,json=maxRetriesValues"`
+	xxx_hidden_OptionalValues            []bool                 `protobuf:"varint,7,rep,packed,name=optional_values,json=optionalValues"`
 	unknownFields                        protoimpl.UnknownFields
 	sizeCache                            protoimpl.SizeCache
 }
@@ -1878,6 +1888,13 @@ func (x *TaskSubmissionGroup) GetMaxRetriesValues() []int64 {
 	return nil
 }
 
+func (x *TaskSubmissionGroup) GetOptionalValues() []bool {
+	if x != nil {
+		return x.xxx_hidden_OptionalValues
+	}
+	return nil
+}
+
 func (x *TaskSubmissionGroup) SetDependenciesOnOtherGroups(v []uint32) {
 	x.xxx_hidden_DependenciesOnOtherGroups = v
 }
@@ -1902,6 +1919,10 @@ func (x *TaskSubmissionGroup) SetMaxRetriesValues(v []int64) {
 	x.xxx_hidden_MaxRetriesValues = v
 }
 
+func (x *TaskSubmissionGroup) SetOptionalValues(v []bool) {
+	x.xxx_hidden_OptionalValues = v
+}
+
 type TaskSubmissionGroup_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -1923,6 +1944,8 @@ type TaskSubmissionGroup_builder struct {
 	DisplayPointers []uint64
 	// The maximum number of retries for each task. Not a pointer to a lookup table, since we just inline the values.
 	MaxRetriesValues []int64
+	// Flag indicating whether each task is optional. Not a pointer to a lookup table, since we just inline the values.
+	OptionalValues []bool
 }
 
 func (b0 TaskSubmissionGroup_builder) Build() *TaskSubmissionGroup {
@@ -1935,6 +1958,7 @@ func (b0 TaskSubmissionGroup_builder) Build() *TaskSubmissionGroup {
 	x.xxx_hidden_ClusterSlugPointers = b.ClusterSlugPointers
 	x.xxx_hidden_DisplayPointers = b.DisplayPointers
 	x.xxx_hidden_MaxRetriesValues = b.MaxRetriesValues
+	x.xxx_hidden_OptionalValues = b.OptionalValues
 	return m0
 }
 
@@ -2036,11 +2060,11 @@ var File_workflows_v1_core_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"^\n" +
+	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"d\n" +
 	"\aCluster\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12!\n" +
 	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12\x1c\n" +
-	"\tdeletable\x18\x04 \x01(\bR\tdeletable\"\xe5\x04\n" +
+	"\tdeletable\x18\x04 \x01(\bR\tdeletableJ\x04\b\x01\x10\x02\"\xe5\x04\n" +
 	"\x03Job\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -2119,18 +2143,20 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"taskGroups\x12.\n" +
 	"\x13cluster_slug_lookup\x18\x02 \x03(\tR\x11clusterSlugLookup\x12I\n" +
 	"\x11identifier_lookup\x18\x03 \x03(\v2\x1c.workflows.v1.TaskIdentifierR\x10identifierLookup\x123\n" +
-	"\x0edisplay_lookup\x18\x04 \x03(\tB\f\xbaH\t\x92\x01\x06\"\x04r\x02\x10\x01R\rdisplayLookup\"\xe4\a\n" +
+	"\x0edisplay_lookup\x18\x04 \x03(\tB\f\xbaH\t\x92\x01\x06\"\x04r\x02\x10\x01R\rdisplayLookup\"\xd2\t\n" +
 	"\x13TaskSubmissionGroup\x12?\n" +
 	"\x1cdependencies_on_other_groups\x18\x01 \x03(\rR\x19dependenciesOnOtherGroups\x12'\n" +
 	"\x06inputs\x18\x02 \x03(\fB\x0f\xbaH\f\x92\x01\t\b\x01\"\x05z\x03\x18\x80\x10R\x06inputs\x12/\n" +
 	"\x13identifier_pointers\x18\x03 \x03(\x04R\x12identifierPointers\x122\n" +
 	"\x15cluster_slug_pointers\x18\x04 \x03(\x04R\x13clusterSlugPointers\x12)\n" +
 	"\x10display_pointers\x18\x05 \x03(\x04R\x0fdisplayPointers\x12,\n" +
-	"\x12max_retries_values\x18\x06 \x03(\x03R\x10maxRetriesValues:\xa4\x05\xbaH\xa0\x05\x1a\xa6\x01\n" +
+	"\x12max_retries_values\x18\x06 \x03(\x03R\x10maxRetriesValues\x12'\n" +
+	"\x0foptional_values\x18\a \x03(\bR\x0eoptionalValues:\xe9\x06\xbaH\xe5\x06\x1a\xa6\x01\n" +
 	",task_submission_group.identifiers_size_match\x12?The number of inputs must match the number of task identifiers.\x1a5this.inputs.size() == this.identifier_pointers.size()\x1a\xa7\x01\n" +
 	".task_submission_group.cluster_slugs_size_match\x12<The number of cluster slugs must match the number of inputs.\x1a7this.inputs.size() == this.cluster_slug_pointers.size()\x1a\xa0\x01\n" +
 	")task_submission_group.displays_size_match\x12?The number of display pointers must match the number of inputs.\x1a2this.inputs.size() == this.display_pointers.size()\x1a\xa7\x01\n" +
-	",task_submission_group.max_retries_size_match\x12AThe number of max_retries_values must match the number of inputs.\x1a4this.inputs.size() == this.max_retries_values.size()\"\xa9\x01\n" +
+	",task_submission_group.max_retries_size_match\x12AThe number of max_retries_values must match the number of inputs.\x1a4this.inputs.size() == this.max_retries_values.size()\x1a\xc2\x01\n" +
+	")task_submission_group.optional_size_match\x12>The number of optional values must match the number of inputs.\x1aUthis.optional_values.size() == 0 || this.inputs.size() == this.optional_values.size()\"\xa9\x01\n" +
 	"\tTaskLease\x12/\n" +
 	"\x05lease\x18\x01 \x01(\v2\x19.google.protobuf.DurationR\x05lease\x12k\n" +
 	"%recommended_wait_until_next_extension\x18\x02 \x01(\v2\x19.google.protobuf.DurationR!recommendedWaitUntilNextExtension*\x8d\x01\n" +
@@ -2146,13 +2172,15 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x11JOB_STATE_STARTED\x10\x03\x12\x17\n" +
 	"\x13JOB_STATE_COMPLETED\x10\x04\x12\x14\n" +
 	"\x10JOB_STATE_FAILED\x10\x05\x12\x16\n" +
-	"\x12JOB_STATE_CANCELED\x10\x06*\x86\x01\n" +
+	"\x12JOB_STATE_CANCELED\x10\x06*\xbe\x01\n" +
 	"\tTaskState\x12\x1a\n" +
 	"\x16TASK_STATE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11TASK_STATE_QUEUED\x10\x01\x12\x16\n" +
 	"\x12TASK_STATE_RUNNING\x10\x02\x12\x17\n" +
 	"\x13TASK_STATE_COMPUTED\x10\x03\x12\x15\n" +
-	"\x11TASK_STATE_FAILED\x10\x04B\xb4\x01\n" +
+	"\x11TASK_STATE_FAILED\x10\x04\x12\x16\n" +
+	"\x12TASK_STATE_SKIPPED\x10\x05\x12\x1e\n" +
+	"\x1aTASK_STATE_FAILED_OPTIONAL\x10\x06B\xb4\x01\n" +
 	"\x10com.workflows.v1B\tCoreProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_workflows_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 3)

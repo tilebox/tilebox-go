@@ -518,13 +518,13 @@ func (b0 NextTaskResponse_builder) Build() *NextTaskResponse {
 
 // TaskFailedRequest is the request for marking a task as failed.
 type TaskFailedRequest struct {
-	state                      protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_TaskId          *v1.ID                 `protobuf:"bytes,1,opt,name=task_id,json=taskId"`
-	xxx_hidden_Display         string                 `protobuf:"bytes,2,opt,name=display"`
-	xxx_hidden_CancelJob       bool                   `protobuf:"varint,3,opt,name=cancel_job,json=cancelJob"`
-	xxx_hidden_ProgressUpdates *[]*Progress           `protobuf:"bytes,4,rep,name=progress_updates,json=progressUpdates"`
-	unknownFields              protoimpl.UnknownFields
-	sizeCache                  protoimpl.SizeCache
+	state                       protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_TaskId           *v1.ID                 `protobuf:"bytes,1,opt,name=task_id,json=taskId"`
+	xxx_hidden_Display          string                 `protobuf:"bytes,2,opt,name=display"`
+	xxx_hidden_WasWorkflowError bool                   `protobuf:"varint,3,opt,name=was_workflow_error,json=wasWorkflowError"`
+	xxx_hidden_ProgressUpdates  *[]*Progress           `protobuf:"bytes,4,rep,name=progress_updates,json=progressUpdates"`
+	unknownFields               protoimpl.UnknownFields
+	sizeCache                   protoimpl.SizeCache
 }
 
 func (x *TaskFailedRequest) Reset() {
@@ -566,9 +566,9 @@ func (x *TaskFailedRequest) GetDisplay() string {
 	return ""
 }
 
-func (x *TaskFailedRequest) GetCancelJob() bool {
+func (x *TaskFailedRequest) GetWasWorkflowError() bool {
 	if x != nil {
-		return x.xxx_hidden_CancelJob
+		return x.xxx_hidden_WasWorkflowError
 	}
 	return false
 }
@@ -590,8 +590,8 @@ func (x *TaskFailedRequest) SetDisplay(v string) {
 	x.xxx_hidden_Display = v
 }
 
-func (x *TaskFailedRequest) SetCancelJob(v bool) {
-	x.xxx_hidden_CancelJob = v
+func (x *TaskFailedRequest) SetWasWorkflowError(v bool) {
+	x.xxx_hidden_WasWorkflowError = v
 }
 
 func (x *TaskFailedRequest) SetProgressUpdates(v []*Progress) {
@@ -616,8 +616,10 @@ type TaskFailedRequest_builder struct {
 	TaskId *v1.ID
 	// A display name for the task that has failed for visualization purposes.
 	Display string
-	// Whether to cancel the job that the task belongs to.
-	CancelJob bool
+	// Whether the failure was caused by the workflow itself, as opposed to a failure in the task runner
+	// (e.g. a requested runner shutdown). If the task failure was not a workflow error, it won't be marked as failed,
+	// but will instead be QUEUED again. Since the task didn't actually fail, this does not count as a retry.
+	WasWorkflowError bool
 	// A list of progress updates that the failed task wants to report. Even if a task fails, it could
 	// still have made some progress before failing, and we want to reflect that progress.
 	// Since progress updates are idempotent, retrying the task and getting the same progress update again
@@ -631,7 +633,7 @@ func (b0 TaskFailedRequest_builder) Build() *TaskFailedRequest {
 	_, _ = b, x
 	x.xxx_hidden_TaskId = b.TaskId
 	x.xxx_hidden_Display = b.Display
-	x.xxx_hidden_CancelJob = b.CancelJob
+	x.xxx_hidden_WasWorkflowError = b.WasWorkflowError
 	x.xxx_hidden_ProgressUpdates = &b.ProgressUpdates
 	return m0
 }
@@ -812,12 +814,11 @@ const file_workflows_v1_task_proto_rawDesc = "" +
 	"\tnext_task\x18\x01 \x01(\v2\x12.workflows.v1.TaskR\bnextTask\x124\n" +
 	"\x06idling\x18\x02 \x01(\v2\x1c.workflows.v1.IdlingResponseR\x06idling:\x18\xbaH\x15\"\x13\n" +
 	"\tnext_task\n" +
-	"\x06idling\"\xc0\x01\n" +
+	"\x06idling\"\xcf\x01\n" +
 	"\x11TaskFailedRequest\x12/\n" +
 	"\atask_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x06taskId\x12\x18\n" +
-	"\adisplay\x18\x02 \x01(\tR\adisplay\x12\x1d\n" +
-	"\n" +
-	"cancel_job\x18\x03 \x01(\bR\tcancelJob\x12A\n" +
+	"\adisplay\x18\x02 \x01(\tR\adisplay\x12,\n" +
+	"\x12was_workflow_error\x18\x03 \x01(\bR\x10wasWorkflowError\x12A\n" +
 	"\x10progress_updates\x18\x04 \x03(\v2\x16.workflows.v1.ProgressR\x0fprogressUpdates\"B\n" +
 	"\x11TaskStateResponse\x12-\n" +
 	"\x05state\x18\x01 \x01(\x0e2\x17.workflows.v1.TaskStateR\x05state\"\x87\x01\n" +

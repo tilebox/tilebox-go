@@ -516,6 +516,7 @@ func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOpti
 		Dependencies: nil,
 		ClusterSlug:  executionContext.runner.cluster,
 		MaxRetries:   0,
+		Optional:     false,
 	}
 	for _, option := range options {
 		option(opts)
@@ -570,6 +571,7 @@ func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOpti
 		input:        subtaskInput,
 		dependencies: dependencies,
 		maxRetries:   opts.MaxRetries,
+		optional:     opts.Optional,
 	}
 
 	executionContext.subtasks = append(executionContext.subtasks, sub)

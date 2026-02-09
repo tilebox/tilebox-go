@@ -123,7 +123,7 @@ type CollectionService interface {
 	CreateCollection(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
 	GetCollectionByName(ctx context.Context, datasetID uuid.UUID, collectionName string) (*datasetsv1.CollectionInfo, error)
 	DeleteCollection(ctx context.Context, datasetID uuid.UUID, collectionID uuid.UUID) error
-	ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.CollectionInfos, error)
+	ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.ListCollectionsResponse, error)
 }
 
 var _ CollectionService = &collectionService{}
@@ -190,8 +190,8 @@ func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid
 	})
 }
 
-func (s *collectionService) ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.CollectionInfos, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.CollectionInfos, error) {
+func (s *collectionService) ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.ListCollectionsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.ListCollectionsResponse, error) {
 		res, err := s.collectionClient.ListCollections(ctx, connect.NewRequest(
 			datasetsv1.ListCollectionsRequest_builder{
 				DatasetId:        tileboxv1.NewUUID(datasetID),

@@ -739,6 +739,7 @@ type QueryFilters struct {
 	xxx_hidden_AutomationIds *[]*v1.ID              `protobuf:"bytes,3,rep,name=automation_ids,json=automationIds"`
 	xxx_hidden_States        []JobState             `protobuf:"varint,4,rep,packed,name=states,enum=workflows.v1.JobState"`
 	xxx_hidden_Name          string                 `protobuf:"bytes,5,opt,name=name"`
+	xxx_hidden_TaskStates    []TaskState            `protobuf:"varint,6,rep,packed,name=task_states,json=taskStates,enum=workflows.v1.TaskState"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -805,6 +806,13 @@ func (x *QueryFilters) GetName() string {
 	return ""
 }
 
+func (x *QueryFilters) GetTaskStates() []TaskState {
+	if x != nil {
+		return x.xxx_hidden_TaskStates
+	}
+	return nil
+}
+
 func (x *QueryFilters) SetTimeInterval(v *v1.TimeInterval) {
 	x.xxx_hidden_TimeInterval = v
 }
@@ -823,6 +831,10 @@ func (x *QueryFilters) SetStates(v []JobState) {
 
 func (x *QueryFilters) SetName(v string) {
 	x.xxx_hidden_Name = v
+}
+
+func (x *QueryFilters) SetTaskStates(v []TaskState) {
+	x.xxx_hidden_TaskStates = v
 }
 
 func (x *QueryFilters) HasTimeInterval() bool {
@@ -856,7 +868,10 @@ type QueryFilters_builder struct {
 	AutomationIds []*v1.ID
 	// Filter jobs by states.
 	States []JobState
-	Name   string
+	// Filter jobs by name.
+	Name string
+	// Filter jobs by their tasks (whether they have tasks in a certain state).
+	TaskStates []TaskState
 }
 
 func (b0 QueryFilters_builder) Build() *QueryFilters {
@@ -868,6 +883,7 @@ func (b0 QueryFilters_builder) Build() *QueryFilters {
 	x.xxx_hidden_AutomationIds = &b.AutomationIds
 	x.xxx_hidden_States = b.States
 	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_TaskStates = b.TaskStates
 	return m0
 }
 
@@ -1329,14 +1345,16 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x12B\n" +
 	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\x128\n" +
 	"\x05theme\x18\x03 \x01(\x0e2\".workflows.v1.WorkflowDiagramThemeR\x05theme\x12(\n" +
-	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xaf\x02\n" +
+	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xe9\x02\n" +
 	"\fQueryFilters\x12=\n" +
 	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x127\n" +
 	"\vid_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalR\n" +
 	"idInterval\x125\n" +
 	"\x0eautomation_ids\x18\x03 \x03(\v2\x0e.tilebox.v1.IDR\rautomationIds\x12.\n" +
 	"\x06states\x18\x04 \x03(\x0e2\x16.workflows.v1.JobStateR\x06states\x12\x1b\n" +
-	"\x04name\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x18dR\x04name:#\xbaH \"\x1e\n" +
+	"\x04name\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x18dR\x04name\x128\n" +
+	"\vtask_states\x18\x06 \x03(\x0e2\x17.workflows.v1.TaskStateR\n" +
+	"taskStates:#\xbaH \"\x1e\n" +
 	"\rtime_interval\n" +
 	"\vid_interval\x10\x01\"{\n" +
 	"\x10QueryJobsRequest\x124\n" +
@@ -1400,9 +1418,10 @@ var file_workflows_v1_job_proto_goTypes = []any{
 	(*v1.TimeInterval)(nil),         // 19: tilebox.v1.TimeInterval
 	(*v1.IDInterval)(nil),           // 20: tilebox.v1.IDInterval
 	(JobState)(0),                   // 21: workflows.v1.JobState
-	(*v1.Pagination)(nil),           // 22: tilebox.v1.Pagination
-	(*Job)(nil),                     // 23: workflows.v1.Job
-	(*Diagram)(nil),                 // 24: workflows.v1.Diagram
+	(TaskState)(0),                  // 22: workflows.v1.TaskState
+	(*v1.Pagination)(nil),           // 23: tilebox.v1.Pagination
+	(*Job)(nil),                     // 24: workflows.v1.Job
+	(*Diagram)(nil),                 // 25: workflows.v1.Diagram
 }
 var file_workflows_v1_job_proto_depIdxs = []int32{
 	15, // 0: workflows.v1.SubmitJobRequest.tasks:type_name -> workflows.v1.TaskSubmissions
@@ -1419,37 +1438,38 @@ var file_workflows_v1_job_proto_depIdxs = []int32{
 	20, // 11: workflows.v1.QueryFilters.id_interval:type_name -> tilebox.v1.IDInterval
 	16, // 12: workflows.v1.QueryFilters.automation_ids:type_name -> tilebox.v1.ID
 	21, // 13: workflows.v1.QueryFilters.states:type_name -> workflows.v1.JobState
-	9,  // 14: workflows.v1.QueryJobsRequest.filters:type_name -> workflows.v1.QueryFilters
-	22, // 15: workflows.v1.QueryJobsRequest.page:type_name -> tilebox.v1.Pagination
-	23, // 16: workflows.v1.QueryJobsResponse.jobs:type_name -> workflows.v1.Job
-	22, // 17: workflows.v1.QueryJobsResponse.next_page:type_name -> tilebox.v1.Pagination
-	16, // 18: workflows.v1.GetJobPrototypeRequest.job_id:type_name -> tilebox.v1.ID
-	17, // 19: workflows.v1.GetJobPrototypeResponse.root_tasks:type_name -> workflows.v1.SingleTaskSubmission
-	16, // 20: workflows.v1.CloneJobRequest.job_id:type_name -> tilebox.v1.ID
-	17, // 21: workflows.v1.CloneJobRequest.root_tasks_overrides:type_name -> workflows.v1.SingleTaskSubmission
-	1,  // 22: workflows.v1.JobService.SubmitJob:input_type -> workflows.v1.SubmitJobRequest
-	2,  // 23: workflows.v1.JobService.GetJob:input_type -> workflows.v1.GetJobRequest
-	3,  // 24: workflows.v1.JobService.GetJobProgress:input_type -> workflows.v1.GetJobProgressRequest
-	4,  // 25: workflows.v1.JobService.RetryJob:input_type -> workflows.v1.RetryJobRequest
-	6,  // 26: workflows.v1.JobService.CancelJob:input_type -> workflows.v1.CancelJobRequest
-	8,  // 27: workflows.v1.JobService.VisualizeJob:input_type -> workflows.v1.VisualizeJobRequest
-	10, // 28: workflows.v1.JobService.QueryJobs:input_type -> workflows.v1.QueryJobsRequest
-	12, // 29: workflows.v1.JobService.GetJobPrototype:input_type -> workflows.v1.GetJobPrototypeRequest
-	14, // 30: workflows.v1.JobService.CloneJob:input_type -> workflows.v1.CloneJobRequest
-	23, // 31: workflows.v1.JobService.SubmitJob:output_type -> workflows.v1.Job
-	23, // 32: workflows.v1.JobService.GetJob:output_type -> workflows.v1.Job
-	23, // 33: workflows.v1.JobService.GetJobProgress:output_type -> workflows.v1.Job
-	5,  // 34: workflows.v1.JobService.RetryJob:output_type -> workflows.v1.RetryJobResponse
-	7,  // 35: workflows.v1.JobService.CancelJob:output_type -> workflows.v1.CancelJobResponse
-	24, // 36: workflows.v1.JobService.VisualizeJob:output_type -> workflows.v1.Diagram
-	11, // 37: workflows.v1.JobService.QueryJobs:output_type -> workflows.v1.QueryJobsResponse
-	13, // 38: workflows.v1.JobService.GetJobPrototype:output_type -> workflows.v1.GetJobPrototypeResponse
-	23, // 39: workflows.v1.JobService.CloneJob:output_type -> workflows.v1.Job
-	31, // [31:40] is the sub-list for method output_type
-	22, // [22:31] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	22, // 14: workflows.v1.QueryFilters.task_states:type_name -> workflows.v1.TaskState
+	9,  // 15: workflows.v1.QueryJobsRequest.filters:type_name -> workflows.v1.QueryFilters
+	23, // 16: workflows.v1.QueryJobsRequest.page:type_name -> tilebox.v1.Pagination
+	24, // 17: workflows.v1.QueryJobsResponse.jobs:type_name -> workflows.v1.Job
+	23, // 18: workflows.v1.QueryJobsResponse.next_page:type_name -> tilebox.v1.Pagination
+	16, // 19: workflows.v1.GetJobPrototypeRequest.job_id:type_name -> tilebox.v1.ID
+	17, // 20: workflows.v1.GetJobPrototypeResponse.root_tasks:type_name -> workflows.v1.SingleTaskSubmission
+	16, // 21: workflows.v1.CloneJobRequest.job_id:type_name -> tilebox.v1.ID
+	17, // 22: workflows.v1.CloneJobRequest.root_tasks_overrides:type_name -> workflows.v1.SingleTaskSubmission
+	1,  // 23: workflows.v1.JobService.SubmitJob:input_type -> workflows.v1.SubmitJobRequest
+	2,  // 24: workflows.v1.JobService.GetJob:input_type -> workflows.v1.GetJobRequest
+	3,  // 25: workflows.v1.JobService.GetJobProgress:input_type -> workflows.v1.GetJobProgressRequest
+	4,  // 26: workflows.v1.JobService.RetryJob:input_type -> workflows.v1.RetryJobRequest
+	6,  // 27: workflows.v1.JobService.CancelJob:input_type -> workflows.v1.CancelJobRequest
+	8,  // 28: workflows.v1.JobService.VisualizeJob:input_type -> workflows.v1.VisualizeJobRequest
+	10, // 29: workflows.v1.JobService.QueryJobs:input_type -> workflows.v1.QueryJobsRequest
+	12, // 30: workflows.v1.JobService.GetJobPrototype:input_type -> workflows.v1.GetJobPrototypeRequest
+	14, // 31: workflows.v1.JobService.CloneJob:input_type -> workflows.v1.CloneJobRequest
+	24, // 32: workflows.v1.JobService.SubmitJob:output_type -> workflows.v1.Job
+	24, // 33: workflows.v1.JobService.GetJob:output_type -> workflows.v1.Job
+	24, // 34: workflows.v1.JobService.GetJobProgress:output_type -> workflows.v1.Job
+	5,  // 35: workflows.v1.JobService.RetryJob:output_type -> workflows.v1.RetryJobResponse
+	7,  // 36: workflows.v1.JobService.CancelJob:output_type -> workflows.v1.CancelJobResponse
+	25, // 37: workflows.v1.JobService.VisualizeJob:output_type -> workflows.v1.Diagram
+	11, // 38: workflows.v1.JobService.QueryJobs:output_type -> workflows.v1.QueryJobsResponse
+	13, // 39: workflows.v1.JobService.GetJobPrototype:output_type -> workflows.v1.GetJobPrototypeResponse
+	24, // 40: workflows.v1.JobService.CloneJob:output_type -> workflows.v1.Job
+	32, // [32:41] is the sub-list for method output_type
+	23, // [23:32] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_job_proto_init() }

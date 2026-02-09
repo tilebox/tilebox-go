@@ -13,6 +13,7 @@ type SubmitOptions struct {
 	Dependencies []FutureTask
 	ClusterSlug  string
 	MaxRetries   int64
+	Optional     bool
 }
 
 // SubmitOption is an interface for configuring a SubmitSubtask request.
@@ -40,5 +41,14 @@ func WithClusterSlug(clusterSlug string) SubmitOption {
 func WithMaxRetries(maxRetries int64) SubmitOption {
 	return func(cfg *SubmitOptions) {
 		cfg.MaxRetries = maxRetries
+	}
+}
+
+// WithOptional sets the task as optional.
+//
+// Defaults to false.
+func WithOptional() SubmitOption {
+	return func(cfg *SubmitOptions) {
+		cfg.Optional = true
 	}
 }
