@@ -57,6 +57,7 @@ func TestJobService_Submit(t *testing.T) {
 							ClusterSlugPointers: []uint64{0},
 							DisplayPointers:     []uint64{0},
 							MaxRetriesValues:    []int64{0},
+							OptionalValues:      []bool{false},
 						}.Build(),
 					},
 					ClusterSlugLookup: []string{""},
