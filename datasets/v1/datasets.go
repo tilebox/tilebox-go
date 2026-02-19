@@ -180,7 +180,7 @@ func (d datasetClient) CreateOrUpdate(ctx context.Context, kind DatasetKind, cod
 	}
 
 	// we found an existing dataset, so let's update it
-	response, err := d.service.UpdateDataset(ctx, existingDataset.GetId().AsUUID(), name, datasetType)
+	response, err := d.service.UpdateDataset(ctx, existingDataset.GetId().AsUUID(), codeName, name, datasetType)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update dataset: %w", err)
 	}
