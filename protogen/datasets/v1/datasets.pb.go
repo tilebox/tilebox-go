@@ -24,13 +24,14 @@ const (
 
 // CreateDatasetRequest is used to create a new dataset.
 type CreateDatasetRequest struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name     string                 `protobuf:"bytes,1,opt,name=name"`
-	xxx_hidden_Type     *DatasetType           `protobuf:"bytes,2,opt,name=type"`
-	xxx_hidden_Summary  string                 `protobuf:"bytes,3,opt,name=summary"`
-	xxx_hidden_CodeName string                 `protobuf:"bytes,4,opt,name=code_name,json=codeName"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name"`
+	xxx_hidden_Type        *DatasetType           `protobuf:"bytes,2,opt,name=type"`
+	xxx_hidden_Summary     string                 `protobuf:"bytes,3,opt,name=summary"`
+	xxx_hidden_CodeName    string                 `protobuf:"bytes,4,opt,name=code_name,json=codeName"`
+	xxx_hidden_Description string                 `protobuf:"bytes,5,opt,name=description"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
 }
 
 func (x *CreateDatasetRequest) Reset() {
@@ -86,6 +87,13 @@ func (x *CreateDatasetRequest) GetCodeName() string {
 	return ""
 }
 
+func (x *CreateDatasetRequest) GetDescription() string {
+	if x != nil {
+		return x.xxx_hidden_Description
+	}
+	return ""
+}
+
 func (x *CreateDatasetRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -100,6 +108,10 @@ func (x *CreateDatasetRequest) SetSummary(v string) {
 
 func (x *CreateDatasetRequest) SetCodeName(v string) {
 	x.xxx_hidden_CodeName = v
+}
+
+func (x *CreateDatasetRequest) SetDescription(v string) {
+	x.xxx_hidden_Description = v
 }
 
 func (x *CreateDatasetRequest) HasType() bool {
@@ -124,6 +136,8 @@ type CreateDatasetRequest_builder struct {
 	Summary string
 	// normalized snake case name of the dataset to create.
 	CodeName string
+	// optional description of the dataset, in markdown format
+	Description string
 }
 
 func (b0 CreateDatasetRequest_builder) Build() *CreateDatasetRequest {
@@ -134,6 +148,7 @@ func (b0 CreateDatasetRequest_builder) Build() *CreateDatasetRequest {
 	x.xxx_hidden_Type = b.Type
 	x.xxx_hidden_Summary = b.Summary
 	x.xxx_hidden_CodeName = b.CodeName
+	x.xxx_hidden_Description = b.Description
 	return m0
 }
 
@@ -223,13 +238,16 @@ func (b0 GetDatasetRequest_builder) Build() *GetDatasetRequest {
 	return m0
 }
 
-// UpdateDatasetRequest is used to update a dataset.
+// UpdateDatasetRequest updates a dataset, by updating all fields that are set to their new values.
+// If a field is not set, it will not be updated.
 type UpdateDatasetRequest struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Id          *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_Name        string                 `protobuf:"bytes,2,opt,name=name"`
+	xxx_hidden_Name        *string                `protobuf:"bytes,2,opt,name=name"`
 	xxx_hidden_Type        *DatasetType           `protobuf:"bytes,3,opt,name=type"`
 	xxx_hidden_Summary     *string                `protobuf:"bytes,4,opt,name=summary"`
+	xxx_hidden_CodeName    *string                `protobuf:"bytes,5,opt,name=code_name,json=codeName"`
+	xxx_hidden_Description *string                `protobuf:"bytes,6,opt,name=description"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -270,7 +288,10 @@ func (x *UpdateDatasetRequest) GetId() *v1.ID {
 
 func (x *UpdateDatasetRequest) GetName() string {
 	if x != nil {
-		return x.xxx_hidden_Name
+		if x.xxx_hidden_Name != nil {
+			return *x.xxx_hidden_Name
+		}
+		return ""
 	}
 	return ""
 }
@@ -292,12 +313,33 @@ func (x *UpdateDatasetRequest) GetSummary() string {
 	return ""
 }
 
+func (x *UpdateDatasetRequest) GetCodeName() string {
+	if x != nil {
+		if x.xxx_hidden_CodeName != nil {
+			return *x.xxx_hidden_CodeName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *UpdateDatasetRequest) GetDescription() string {
+	if x != nil {
+		if x.xxx_hidden_Description != nil {
+			return *x.xxx_hidden_Description
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *UpdateDatasetRequest) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
 func (x *UpdateDatasetRequest) SetName(v string) {
-	x.xxx_hidden_Name = v
+	x.xxx_hidden_Name = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
 }
 
 func (x *UpdateDatasetRequest) SetType(v *DatasetType) {
@@ -306,7 +348,17 @@ func (x *UpdateDatasetRequest) SetType(v *DatasetType) {
 
 func (x *UpdateDatasetRequest) SetSummary(v string) {
 	x.xxx_hidden_Summary = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 6)
+}
+
+func (x *UpdateDatasetRequest) SetCodeName(v string) {
+	x.xxx_hidden_CodeName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
+}
+
+func (x *UpdateDatasetRequest) SetDescription(v string) {
+	x.xxx_hidden_Description = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 6)
 }
 
 func (x *UpdateDatasetRequest) HasId() bool {
@@ -314,6 +366,13 @@ func (x *UpdateDatasetRequest) HasId() bool {
 		return false
 	}
 	return x.xxx_hidden_Id != nil
+}
+
+func (x *UpdateDatasetRequest) HasName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
 func (x *UpdateDatasetRequest) HasType() bool {
@@ -330,8 +389,27 @@ func (x *UpdateDatasetRequest) HasSummary() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
+func (x *UpdateDatasetRequest) HasCodeName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
+func (x *UpdateDatasetRequest) HasDescription() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
+}
+
 func (x *UpdateDatasetRequest) ClearId() {
 	x.xxx_hidden_Id = nil
+}
+
+func (x *UpdateDatasetRequest) ClearName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Name = nil
 }
 
 func (x *UpdateDatasetRequest) ClearType() {
@@ -343,17 +421,31 @@ func (x *UpdateDatasetRequest) ClearSummary() {
 	x.xxx_hidden_Summary = nil
 }
 
+func (x *UpdateDatasetRequest) ClearCodeName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_CodeName = nil
+}
+
+func (x *UpdateDatasetRequest) ClearDescription() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 5)
+	x.xxx_hidden_Description = nil
+}
+
 type UpdateDatasetRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// id of the dataset to update.
 	Id *v1.ID
 	// updated name of the dataset.
-	Name string
+	Name *string
 	// updated type of the dataset.
 	Type *DatasetType
 	// updated summary of the dataset.
 	Summary *string
+	// updated code name of the dataset.
+	CodeName *string
+	// updated description of the dataset, in markdown format
+	Description *string
 }
 
 func (b0 UpdateDatasetRequest_builder) Build() *UpdateDatasetRequest {
@@ -361,11 +453,22 @@ func (b0 UpdateDatasetRequest_builder) Build() *UpdateDatasetRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Id = b.Id
-	x.xxx_hidden_Name = b.Name
+	if b.Name != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 6)
+		x.xxx_hidden_Name = b.Name
+	}
 	x.xxx_hidden_Type = b.Type
 	if b.Summary != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 6)
 		x.xxx_hidden_Summary = b.Summary
+	}
+	if b.CodeName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
+		x.xxx_hidden_CodeName = b.CodeName
+	}
+	if b.Description != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 6)
+		x.xxx_hidden_Description = b.Description
 	}
 	return m0
 }
@@ -535,91 +638,6 @@ func (b0 Package_builder) Build() *Package {
 	return m0
 }
 
-// UpdateDatasetDescriptionRequest is used to update a dataset description
-type UpdateDatasetDescriptionRequest struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id          *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_Description string                 `protobuf:"bytes,2,opt,name=description"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *UpdateDatasetDescriptionRequest) Reset() {
-	*x = UpdateDatasetDescriptionRequest{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *UpdateDatasetDescriptionRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*UpdateDatasetDescriptionRequest) ProtoMessage() {}
-
-func (x *UpdateDatasetDescriptionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *UpdateDatasetDescriptionRequest) GetId() *v1.ID {
-	if x != nil {
-		return x.xxx_hidden_Id
-	}
-	return nil
-}
-
-func (x *UpdateDatasetDescriptionRequest) GetDescription() string {
-	if x != nil {
-		return x.xxx_hidden_Description
-	}
-	return ""
-}
-
-func (x *UpdateDatasetDescriptionRequest) SetId(v *v1.ID) {
-	x.xxx_hidden_Id = v
-}
-
-func (x *UpdateDatasetDescriptionRequest) SetDescription(v string) {
-	x.xxx_hidden_Description = v
-}
-
-func (x *UpdateDatasetDescriptionRequest) HasId() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Id != nil
-}
-
-func (x *UpdateDatasetDescriptionRequest) ClearId() {
-	x.xxx_hidden_Id = nil
-}
-
-type UpdateDatasetDescriptionRequest_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// dataset id
-	Id *v1.ID
-	// description of the dataset, in markdown format
-	Description string
-}
-
-func (b0 UpdateDatasetDescriptionRequest_builder) Build() *UpdateDatasetDescriptionRequest {
-	m0 := &UpdateDatasetDescriptionRequest{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Id = b.Id
-	x.xxx_hidden_Description = b.Description
-	return m0
-}
-
 // DeleteDatasetRequest is used to delete a dataset
 type DeleteDatasetRequest struct {
 	state         protoimpl.MessageState `protogen:"opaque.v1"`
@@ -630,7 +648,7 @@ type DeleteDatasetRequest struct {
 
 func (x *DeleteDatasetRequest) Reset() {
 	*x = DeleteDatasetRequest{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[6]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -642,7 +660,7 @@ func (x *DeleteDatasetRequest) String() string {
 func (*DeleteDatasetRequest) ProtoMessage() {}
 
 func (x *DeleteDatasetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[6]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -700,7 +718,7 @@ type DeleteDatasetResponse struct {
 
 func (x *DeleteDatasetResponse) Reset() {
 	*x = DeleteDatasetResponse{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[7]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -712,7 +730,7 @@ func (x *DeleteDatasetResponse) String() string {
 func (*DeleteDatasetResponse) ProtoMessage() {}
 
 func (x *DeleteDatasetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[7]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -759,7 +777,7 @@ type ListDatasetsRequest struct {
 
 func (x *ListDatasetsRequest) Reset() {
 	*x = ListDatasetsRequest{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[8]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -771,7 +789,7 @@ func (x *ListDatasetsRequest) String() string {
 func (*ListDatasetsRequest) ProtoMessage() {}
 
 func (x *ListDatasetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[8]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -835,7 +853,7 @@ type ListDatasetsResponse struct {
 
 func (x *ListDatasetsResponse) Reset() {
 	*x = ListDatasetsResponse{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[9]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -847,7 +865,7 @@ func (x *ListDatasetsResponse) String() string {
 func (*ListDatasetsResponse) ProtoMessage() {}
 
 func (x *ListDatasetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[9]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -964,22 +982,25 @@ var File_datasets_v1_datasets_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\n" +
-	"\x1adatasets/v1/datasets.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\x16datasets/v1/core.proto\x1a\x1edatasets/v1/dataset_type.proto\x1a\x13tilebox/v1/id.proto\"\xa9\x01\n" +
-	"\x14CreateDatasetRequest\x12\x1b\n" +
-	"\x04name\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x124\n" +
-	"\x04type\x18\x02 \x01(\v2\x18.datasets.v1.DatasetTypeB\x06\xbaH\x03\xc8\x01\x01R\x04type\x12\x18\n" +
-	"\asummary\x18\x03 \x01(\tR\asummary\x12$\n" +
-	"\tcode_name\x18\x04 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bcodeName\"\x86\x01\n" +
+	"\x1adatasets/v1/datasets.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\x16datasets/v1/core.proto\x1a\x1edatasets/v1/dataset_type.proto\x1a\x13tilebox/v1/id.proto\"\xfe\x01\n" +
+	"\x14CreateDatasetRequest\x12 \n" +
+	"\x04name\x18\x01 \x01(\tB\f\xbaH\t\xc8\x01\x01r\x04\x10\x01\x18dR\x04name\x124\n" +
+	"\x04type\x18\x02 \x01(\v2\x18.datasets.v1.DatasetTypeB\x06\xbaH\x03\xc8\x01\x01R\x04type\x12#\n" +
+	"\asummary\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x18І\x03R\asummary\x12<\n" +
+	"\tcode_name\x18\x04 \x01(\tB\x1f\xbaH\x1c\xc8\x01\x01r\x17\x10\x01\x18d2\x11^[a-z][a-z0-9_]*$R\bcodeName\x12+\n" +
+	"\vdescription\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x18\xc0\x84=R\vdescription\"\x86\x01\n" +
 	"\x11GetDatasetRequest\x12>\n" +
 	"\x04slug\x18\x01 \x01(\tB*\xbaH'r%2#^[a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)*$R\x04slug\x12\x1e\n" +
 	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id:\x11\xbaH\x0e\"\f\n" +
 	"\x04slug\n" +
-	"\x02id\x10\x01\"\xb2\x01\n" +
+	"\x02id\x10\x01\"\xb3\x02\n" +
 	"\x14UpdateDatasetRequest\x12&\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1b\n" +
-	"\x04name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x04name\x124\n" +
-	"\x04type\x18\x03 \x01(\v2\x18.datasets.v1.DatasetTypeB\x06\xbaH\x03\xc8\x01\x01R\x04type\x12\x1f\n" +
-	"\asummary\x18\x04 \x01(\tB\x05\xaa\x01\x02\b\x01R\asummary\"t\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\"\n" +
+	"\x04name\x18\x02 \x01(\tB\x0e\xbaH\x06r\x04\x10\x01\x18d\xaa\x01\x02\b\x01R\x04name\x123\n" +
+	"\x04type\x18\x03 \x01(\v2\x18.datasets.v1.DatasetTypeB\x05\xaa\x01\x02\b\x01R\x04type\x12(\n" +
+	"\asummary\x18\x04 \x01(\tB\x0e\xbaH\x06r\x04\x18І\x03\xaa\x01\x02\b\x01R\asummary\x12>\n" +
+	"\tcode_name\x18\x05 \x01(\tB!\xbaH\x19r\x17\x10\x01\x18d2\x11^[a-z][a-z0-9_]*$\xaa\x01\x02\b\x01R\bcodeName\x120\n" +
+	"\vdescription\x18\x06 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\"t\n" +
 	"\n" +
 	"ClientInfo\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
@@ -987,10 +1008,7 @@ const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\bpackages\x18\x03 \x03(\v2\x14.datasets.v1.PackageR\bpackages\"7\n" +
 	"\aPackage\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\"k\n" +
-	"\x1fUpdateDatasetDescriptionRequest\x12&\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12 \n" +
-	"\vdescription\x18\x02 \x01(\tR\vdescription\">\n" +
+	"\aversion\x18\x02 \x01(\tR\aversion\">\n" +
 	"\x14DeleteDatasetRequest\x12&\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\"1\n" +
 	"\x15DeleteDatasetResponse\x12\x18\n" +
@@ -1003,62 +1021,57 @@ const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\x06groups\x18\x02 \x03(\v2\x19.datasets.v1.DatasetGroupR\x06groups\x12%\n" +
 	"\x0eserver_message\x18\x03 \x01(\tR\rserverMessage\x12%\n" +
 	"\x0eowned_datasets\x18\x04 \x01(\x03R\rownedDatasets\x12;\n" +
-	"\x16maximum_owned_datasets\x18\x05 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x14maximumOwnedDatasets2\x81\x04\n" +
+	"\x16maximum_owned_datasets\x18\x05 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x14maximumOwnedDatasets2\x9f\x03\n" +
 	"\x0eDatasetService\x12J\n" +
 	"\rCreateDataset\x12!.datasets.v1.CreateDatasetRequest\x1a\x14.datasets.v1.Dataset\"\x00\x12D\n" +
 	"\n" +
 	"GetDataset\x12\x1e.datasets.v1.GetDatasetRequest\x1a\x14.datasets.v1.Dataset\"\x00\x12J\n" +
-	"\rUpdateDataset\x12!.datasets.v1.UpdateDatasetRequest\x1a\x14.datasets.v1.Dataset\"\x00\x12`\n" +
-	"\x18UpdateDatasetDescription\x12,.datasets.v1.UpdateDatasetDescriptionRequest\x1a\x14.datasets.v1.Dataset\"\x00\x12X\n" +
+	"\rUpdateDataset\x12!.datasets.v1.UpdateDatasetRequest\x1a\x14.datasets.v1.Dataset\"\x00\x12X\n" +
 	"\rDeleteDataset\x12!.datasets.v1.DeleteDatasetRequest\x1a\".datasets.v1.DeleteDatasetResponse\"\x00\x12U\n" +
 	"\fListDatasets\x12 .datasets.v1.ListDatasetsRequest\x1a!.datasets.v1.ListDatasetsResponse\"\x00B\xb1\x01\n" +
 	"\x0fcom.datasets.v1B\rDatasetsProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_datasets_v1_datasets_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_datasets_v1_datasets_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_datasets_v1_datasets_proto_goTypes = []any{
-	(*CreateDatasetRequest)(nil),            // 0: datasets.v1.CreateDatasetRequest
-	(*GetDatasetRequest)(nil),               // 1: datasets.v1.GetDatasetRequest
-	(*UpdateDatasetRequest)(nil),            // 2: datasets.v1.UpdateDatasetRequest
-	(*ClientInfo)(nil),                      // 3: datasets.v1.ClientInfo
-	(*Package)(nil),                         // 4: datasets.v1.Package
-	(*UpdateDatasetDescriptionRequest)(nil), // 5: datasets.v1.UpdateDatasetDescriptionRequest
-	(*DeleteDatasetRequest)(nil),            // 6: datasets.v1.DeleteDatasetRequest
-	(*DeleteDatasetResponse)(nil),           // 7: datasets.v1.DeleteDatasetResponse
-	(*ListDatasetsRequest)(nil),             // 8: datasets.v1.ListDatasetsRequest
-	(*ListDatasetsResponse)(nil),            // 9: datasets.v1.ListDatasetsResponse
-	(*DatasetType)(nil),                     // 10: datasets.v1.DatasetType
-	(*v1.ID)(nil),                           // 11: tilebox.v1.ID
-	(*Dataset)(nil),                         // 12: datasets.v1.Dataset
-	(*DatasetGroup)(nil),                    // 13: datasets.v1.DatasetGroup
+	(*CreateDatasetRequest)(nil),  // 0: datasets.v1.CreateDatasetRequest
+	(*GetDatasetRequest)(nil),     // 1: datasets.v1.GetDatasetRequest
+	(*UpdateDatasetRequest)(nil),  // 2: datasets.v1.UpdateDatasetRequest
+	(*ClientInfo)(nil),            // 3: datasets.v1.ClientInfo
+	(*Package)(nil),               // 4: datasets.v1.Package
+	(*DeleteDatasetRequest)(nil),  // 5: datasets.v1.DeleteDatasetRequest
+	(*DeleteDatasetResponse)(nil), // 6: datasets.v1.DeleteDatasetResponse
+	(*ListDatasetsRequest)(nil),   // 7: datasets.v1.ListDatasetsRequest
+	(*ListDatasetsResponse)(nil),  // 8: datasets.v1.ListDatasetsResponse
+	(*DatasetType)(nil),           // 9: datasets.v1.DatasetType
+	(*v1.ID)(nil),                 // 10: tilebox.v1.ID
+	(*Dataset)(nil),               // 11: datasets.v1.Dataset
+	(*DatasetGroup)(nil),          // 12: datasets.v1.DatasetGroup
 }
 var file_datasets_v1_datasets_proto_depIdxs = []int32{
-	10, // 0: datasets.v1.CreateDatasetRequest.type:type_name -> datasets.v1.DatasetType
-	11, // 1: datasets.v1.GetDatasetRequest.id:type_name -> tilebox.v1.ID
-	11, // 2: datasets.v1.UpdateDatasetRequest.id:type_name -> tilebox.v1.ID
-	10, // 3: datasets.v1.UpdateDatasetRequest.type:type_name -> datasets.v1.DatasetType
+	9,  // 0: datasets.v1.CreateDatasetRequest.type:type_name -> datasets.v1.DatasetType
+	10, // 1: datasets.v1.GetDatasetRequest.id:type_name -> tilebox.v1.ID
+	10, // 2: datasets.v1.UpdateDatasetRequest.id:type_name -> tilebox.v1.ID
+	9,  // 3: datasets.v1.UpdateDatasetRequest.type:type_name -> datasets.v1.DatasetType
 	4,  // 4: datasets.v1.ClientInfo.packages:type_name -> datasets.v1.Package
-	11, // 5: datasets.v1.UpdateDatasetDescriptionRequest.id:type_name -> tilebox.v1.ID
-	11, // 6: datasets.v1.DeleteDatasetRequest.id:type_name -> tilebox.v1.ID
-	3,  // 7: datasets.v1.ListDatasetsRequest.client_info:type_name -> datasets.v1.ClientInfo
-	12, // 8: datasets.v1.ListDatasetsResponse.datasets:type_name -> datasets.v1.Dataset
-	13, // 9: datasets.v1.ListDatasetsResponse.groups:type_name -> datasets.v1.DatasetGroup
-	0,  // 10: datasets.v1.DatasetService.CreateDataset:input_type -> datasets.v1.CreateDatasetRequest
-	1,  // 11: datasets.v1.DatasetService.GetDataset:input_type -> datasets.v1.GetDatasetRequest
-	2,  // 12: datasets.v1.DatasetService.UpdateDataset:input_type -> datasets.v1.UpdateDatasetRequest
-	5,  // 13: datasets.v1.DatasetService.UpdateDatasetDescription:input_type -> datasets.v1.UpdateDatasetDescriptionRequest
-	6,  // 14: datasets.v1.DatasetService.DeleteDataset:input_type -> datasets.v1.DeleteDatasetRequest
-	8,  // 15: datasets.v1.DatasetService.ListDatasets:input_type -> datasets.v1.ListDatasetsRequest
-	12, // 16: datasets.v1.DatasetService.CreateDataset:output_type -> datasets.v1.Dataset
-	12, // 17: datasets.v1.DatasetService.GetDataset:output_type -> datasets.v1.Dataset
-	12, // 18: datasets.v1.DatasetService.UpdateDataset:output_type -> datasets.v1.Dataset
-	12, // 19: datasets.v1.DatasetService.UpdateDatasetDescription:output_type -> datasets.v1.Dataset
-	7,  // 20: datasets.v1.DatasetService.DeleteDataset:output_type -> datasets.v1.DeleteDatasetResponse
-	9,  // 21: datasets.v1.DatasetService.ListDatasets:output_type -> datasets.v1.ListDatasetsResponse
-	16, // [16:22] is the sub-list for method output_type
-	10, // [10:16] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	10, // 5: datasets.v1.DeleteDatasetRequest.id:type_name -> tilebox.v1.ID
+	3,  // 6: datasets.v1.ListDatasetsRequest.client_info:type_name -> datasets.v1.ClientInfo
+	11, // 7: datasets.v1.ListDatasetsResponse.datasets:type_name -> datasets.v1.Dataset
+	12, // 8: datasets.v1.ListDatasetsResponse.groups:type_name -> datasets.v1.DatasetGroup
+	0,  // 9: datasets.v1.DatasetService.CreateDataset:input_type -> datasets.v1.CreateDatasetRequest
+	1,  // 10: datasets.v1.DatasetService.GetDataset:input_type -> datasets.v1.GetDatasetRequest
+	2,  // 11: datasets.v1.DatasetService.UpdateDataset:input_type -> datasets.v1.UpdateDatasetRequest
+	5,  // 12: datasets.v1.DatasetService.DeleteDataset:input_type -> datasets.v1.DeleteDatasetRequest
+	7,  // 13: datasets.v1.DatasetService.ListDatasets:input_type -> datasets.v1.ListDatasetsRequest
+	11, // 14: datasets.v1.DatasetService.CreateDataset:output_type -> datasets.v1.Dataset
+	11, // 15: datasets.v1.DatasetService.GetDataset:output_type -> datasets.v1.Dataset
+	11, // 16: datasets.v1.DatasetService.UpdateDataset:output_type -> datasets.v1.Dataset
+	6,  // 17: datasets.v1.DatasetService.DeleteDataset:output_type -> datasets.v1.DeleteDatasetResponse
+	8,  // 18: datasets.v1.DatasetService.ListDatasets:output_type -> datasets.v1.ListDatasetsResponse
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_datasets_proto_init() }
@@ -1074,7 +1087,7 @@ func file_datasets_v1_datasets_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_datasets_proto_rawDesc), len(file_datasets_v1_datasets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

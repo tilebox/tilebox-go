@@ -42,9 +42,6 @@ const (
 	// DatasetServiceUpdateDatasetProcedure is the fully-qualified name of the DatasetService's
 	// UpdateDataset RPC.
 	DatasetServiceUpdateDatasetProcedure = "/datasets.v1.DatasetService/UpdateDataset"
-	// DatasetServiceUpdateDatasetDescriptionProcedure is the fully-qualified name of the
-	// DatasetService's UpdateDatasetDescription RPC.
-	DatasetServiceUpdateDatasetDescriptionProcedure = "/datasets.v1.DatasetService/UpdateDatasetDescription"
 	// DatasetServiceDeleteDatasetProcedure is the fully-qualified name of the DatasetService's
 	// DeleteDataset RPC.
 	DatasetServiceDeleteDatasetProcedure = "/datasets.v1.DatasetService/DeleteDataset"
@@ -58,7 +55,6 @@ type DatasetServiceClient interface {
 	CreateDataset(context.Context, *connect.Request[v1.CreateDatasetRequest]) (*connect.Response[v1.Dataset], error)
 	GetDataset(context.Context, *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error)
 	UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error)
-	UpdateDatasetDescription(context.Context, *connect.Request[v1.UpdateDatasetDescriptionRequest]) (*connect.Response[v1.Dataset], error)
 	DeleteDataset(context.Context, *connect.Request[v1.DeleteDatasetRequest]) (*connect.Response[v1.DeleteDatasetResponse], error)
 	ListDatasets(context.Context, *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error)
 }
@@ -92,12 +88,6 @@ func NewDatasetServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(datasetServiceMethods.ByName("UpdateDataset")),
 			connect.WithClientOptions(opts...),
 		),
-		updateDatasetDescription: connect.NewClient[v1.UpdateDatasetDescriptionRequest, v1.Dataset](
-			httpClient,
-			baseURL+DatasetServiceUpdateDatasetDescriptionProcedure,
-			connect.WithSchema(datasetServiceMethods.ByName("UpdateDatasetDescription")),
-			connect.WithClientOptions(opts...),
-		),
 		deleteDataset: connect.NewClient[v1.DeleteDatasetRequest, v1.DeleteDatasetResponse](
 			httpClient,
 			baseURL+DatasetServiceDeleteDatasetProcedure,
@@ -115,12 +105,11 @@ func NewDatasetServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 
 // datasetServiceClient implements DatasetServiceClient.
 type datasetServiceClient struct {
-	createDataset            *connect.Client[v1.CreateDatasetRequest, v1.Dataset]
-	getDataset               *connect.Client[v1.GetDatasetRequest, v1.Dataset]
-	updateDataset            *connect.Client[v1.UpdateDatasetRequest, v1.Dataset]
-	updateDatasetDescription *connect.Client[v1.UpdateDatasetDescriptionRequest, v1.Dataset]
-	deleteDataset            *connect.Client[v1.DeleteDatasetRequest, v1.DeleteDatasetResponse]
-	listDatasets             *connect.Client[v1.ListDatasetsRequest, v1.ListDatasetsResponse]
+	createDataset *connect.Client[v1.CreateDatasetRequest, v1.Dataset]
+	getDataset    *connect.Client[v1.GetDatasetRequest, v1.Dataset]
+	updateDataset *connect.Client[v1.UpdateDatasetRequest, v1.Dataset]
+	deleteDataset *connect.Client[v1.DeleteDatasetRequest, v1.DeleteDatasetResponse]
+	listDatasets  *connect.Client[v1.ListDatasetsRequest, v1.ListDatasetsResponse]
 }
 
 // CreateDataset calls datasets.v1.DatasetService.CreateDataset.
@@ -138,11 +127,6 @@ func (c *datasetServiceClient) UpdateDataset(ctx context.Context, req *connect.R
 	return c.updateDataset.CallUnary(ctx, req)
 }
 
-// UpdateDatasetDescription calls datasets.v1.DatasetService.UpdateDatasetDescription.
-func (c *datasetServiceClient) UpdateDatasetDescription(ctx context.Context, req *connect.Request[v1.UpdateDatasetDescriptionRequest]) (*connect.Response[v1.Dataset], error) {
-	return c.updateDatasetDescription.CallUnary(ctx, req)
-}
-
 // DeleteDataset calls datasets.v1.DatasetService.DeleteDataset.
 func (c *datasetServiceClient) DeleteDataset(ctx context.Context, req *connect.Request[v1.DeleteDatasetRequest]) (*connect.Response[v1.DeleteDatasetResponse], error) {
 	return c.deleteDataset.CallUnary(ctx, req)
@@ -158,7 +142,6 @@ type DatasetServiceHandler interface {
 	CreateDataset(context.Context, *connect.Request[v1.CreateDatasetRequest]) (*connect.Response[v1.Dataset], error)
 	GetDataset(context.Context, *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error)
 	UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error)
-	UpdateDatasetDescription(context.Context, *connect.Request[v1.UpdateDatasetDescriptionRequest]) (*connect.Response[v1.Dataset], error)
 	DeleteDataset(context.Context, *connect.Request[v1.DeleteDatasetRequest]) (*connect.Response[v1.DeleteDatasetResponse], error)
 	ListDatasets(context.Context, *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error)
 }
@@ -188,12 +171,6 @@ func NewDatasetServiceHandler(svc DatasetServiceHandler, opts ...connect.Handler
 		connect.WithSchema(datasetServiceMethods.ByName("UpdateDataset")),
 		connect.WithHandlerOptions(opts...),
 	)
-	datasetServiceUpdateDatasetDescriptionHandler := connect.NewUnaryHandler(
-		DatasetServiceUpdateDatasetDescriptionProcedure,
-		svc.UpdateDatasetDescription,
-		connect.WithSchema(datasetServiceMethods.ByName("UpdateDatasetDescription")),
-		connect.WithHandlerOptions(opts...),
-	)
 	datasetServiceDeleteDatasetHandler := connect.NewUnaryHandler(
 		DatasetServiceDeleteDatasetProcedure,
 		svc.DeleteDataset,
@@ -214,8 +191,6 @@ func NewDatasetServiceHandler(svc DatasetServiceHandler, opts ...connect.Handler
 			datasetServiceGetDatasetHandler.ServeHTTP(w, r)
 		case DatasetServiceUpdateDatasetProcedure:
 			datasetServiceUpdateDatasetHandler.ServeHTTP(w, r)
-		case DatasetServiceUpdateDatasetDescriptionProcedure:
-			datasetServiceUpdateDatasetDescriptionHandler.ServeHTTP(w, r)
 		case DatasetServiceDeleteDatasetProcedure:
 			datasetServiceDeleteDatasetHandler.ServeHTTP(w, r)
 		case DatasetServiceListDatasetsProcedure:
@@ -239,10 +214,6 @@ func (UnimplementedDatasetServiceHandler) GetDataset(context.Context, *connect.R
 
 func (UnimplementedDatasetServiceHandler) UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DatasetService.UpdateDataset is not implemented"))
-}
-
-func (UnimplementedDatasetServiceHandler) UpdateDatasetDescription(context.Context, *connect.Request[v1.UpdateDatasetDescriptionRequest]) (*connect.Response[v1.Dataset], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DatasetService.UpdateDatasetDescription is not implemented"))
 }
 
 func (UnimplementedDatasetServiceHandler) DeleteDataset(context.Context, *connect.Request[v1.DeleteDatasetRequest]) (*connect.Response[v1.DeleteDatasetResponse], error) {

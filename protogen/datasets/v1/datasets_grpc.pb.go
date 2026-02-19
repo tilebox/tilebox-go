@@ -19,12 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DatasetService_CreateDataset_FullMethodName            = "/datasets.v1.DatasetService/CreateDataset"
-	DatasetService_GetDataset_FullMethodName               = "/datasets.v1.DatasetService/GetDataset"
-	DatasetService_UpdateDataset_FullMethodName            = "/datasets.v1.DatasetService/UpdateDataset"
-	DatasetService_UpdateDatasetDescription_FullMethodName = "/datasets.v1.DatasetService/UpdateDatasetDescription"
-	DatasetService_DeleteDataset_FullMethodName            = "/datasets.v1.DatasetService/DeleteDataset"
-	DatasetService_ListDatasets_FullMethodName             = "/datasets.v1.DatasetService/ListDatasets"
+	DatasetService_CreateDataset_FullMethodName = "/datasets.v1.DatasetService/CreateDataset"
+	DatasetService_GetDataset_FullMethodName    = "/datasets.v1.DatasetService/GetDataset"
+	DatasetService_UpdateDataset_FullMethodName = "/datasets.v1.DatasetService/UpdateDataset"
+	DatasetService_DeleteDataset_FullMethodName = "/datasets.v1.DatasetService/DeleteDataset"
+	DatasetService_ListDatasets_FullMethodName  = "/datasets.v1.DatasetService/ListDatasets"
 )
 
 // DatasetServiceClient is the client API for DatasetService service.
@@ -36,7 +35,6 @@ type DatasetServiceClient interface {
 	CreateDataset(ctx context.Context, in *CreateDatasetRequest, opts ...grpc.CallOption) (*Dataset, error)
 	GetDataset(ctx context.Context, in *GetDatasetRequest, opts ...grpc.CallOption) (*Dataset, error)
 	UpdateDataset(ctx context.Context, in *UpdateDatasetRequest, opts ...grpc.CallOption) (*Dataset, error)
-	UpdateDatasetDescription(ctx context.Context, in *UpdateDatasetDescriptionRequest, opts ...grpc.CallOption) (*Dataset, error)
 	DeleteDataset(ctx context.Context, in *DeleteDatasetRequest, opts ...grpc.CallOption) (*DeleteDatasetResponse, error)
 	ListDatasets(ctx context.Context, in *ListDatasetsRequest, opts ...grpc.CallOption) (*ListDatasetsResponse, error)
 }
@@ -79,16 +77,6 @@ func (c *datasetServiceClient) UpdateDataset(ctx context.Context, in *UpdateData
 	return out, nil
 }
 
-func (c *datasetServiceClient) UpdateDatasetDescription(ctx context.Context, in *UpdateDatasetDescriptionRequest, opts ...grpc.CallOption) (*Dataset, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Dataset)
-	err := c.cc.Invoke(ctx, DatasetService_UpdateDatasetDescription_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *datasetServiceClient) DeleteDataset(ctx context.Context, in *DeleteDatasetRequest, opts ...grpc.CallOption) (*DeleteDatasetResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DeleteDatasetResponse)
@@ -118,7 +106,6 @@ type DatasetServiceServer interface {
 	CreateDataset(context.Context, *CreateDatasetRequest) (*Dataset, error)
 	GetDataset(context.Context, *GetDatasetRequest) (*Dataset, error)
 	UpdateDataset(context.Context, *UpdateDatasetRequest) (*Dataset, error)
-	UpdateDatasetDescription(context.Context, *UpdateDatasetDescriptionRequest) (*Dataset, error)
 	DeleteDataset(context.Context, *DeleteDatasetRequest) (*DeleteDatasetResponse, error)
 	ListDatasets(context.Context, *ListDatasetsRequest) (*ListDatasetsResponse, error)
 	mustEmbedUnimplementedDatasetServiceServer()
@@ -139,9 +126,6 @@ func (UnimplementedDatasetServiceServer) GetDataset(context.Context, *GetDataset
 }
 func (UnimplementedDatasetServiceServer) UpdateDataset(context.Context, *UpdateDatasetRequest) (*Dataset, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateDataset not implemented")
-}
-func (UnimplementedDatasetServiceServer) UpdateDatasetDescription(context.Context, *UpdateDatasetDescriptionRequest) (*Dataset, error) {
-	return nil, status.Error(codes.Unimplemented, "method UpdateDatasetDescription not implemented")
 }
 func (UnimplementedDatasetServiceServer) DeleteDataset(context.Context, *DeleteDatasetRequest) (*DeleteDatasetResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteDataset not implemented")
@@ -224,24 +208,6 @@ func _DatasetService_UpdateDataset_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DatasetService_UpdateDatasetDescription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateDatasetDescriptionRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DatasetServiceServer).UpdateDatasetDescription(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DatasetService_UpdateDatasetDescription_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DatasetServiceServer).UpdateDatasetDescription(ctx, req.(*UpdateDatasetDescriptionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _DatasetService_DeleteDataset_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteDatasetRequest)
 	if err := dec(in); err != nil {
@@ -296,10 +262,6 @@ var DatasetService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDataset",
 			Handler:    _DatasetService_UpdateDataset_Handler,
-		},
-		{
-			MethodName: "UpdateDatasetDescription",
-			Handler:    _DatasetService_UpdateDatasetDescription_Handler,
 		},
 		{
 			MethodName: "DeleteDataset",

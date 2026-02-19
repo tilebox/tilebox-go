@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-19
+
 ### Added
 
 - `workflows`: Added `WithOptional` option to `workflows.SubmitSubtask` to mark a subtask as optional.
@@ -53,7 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.3.0...HEAD
+[0.2.1]: https://github.com/tilebox/tilebox-go/compare/v0.2.0...v0.3.0
 [0.2.1]: https://github.com/tilebox/tilebox-go/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/tilebox/tilebox-go/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/tilebox/tilebox-go/compare/v0.1.0...v0.1.1
