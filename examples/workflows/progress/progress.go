@@ -9,12 +9,12 @@ import (
 )
 
 type ProgressRootTask struct {
-	N int
+	N uint64
 }
 
 func (t *ProgressRootTask) Execute(ctx context.Context) error {
 	// report that 10 units of work need to be done
-	err := workflows.DefaultProgress().Add(ctx, uint64(t.N))
+	err := workflows.DefaultProgress().Add(ctx, t.N)
 	if err != nil {
 		return err
 	}
