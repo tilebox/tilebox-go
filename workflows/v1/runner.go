@@ -210,7 +210,12 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 				}
 			} else { // errTask != nil
 				// the error itself is already logged in executeTask, so we just need to report the task as failed
-				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay(), executionContext.getProgressUpdates())
+				// even if a task failed it could have made some progress, so if that's the case, we report it
+				var progressUpdates []*workflowsv1.Progress
+				if executionContext != nil {
+					progressUpdates = executionContext.getProgressUpdates()
+				}
+				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay(), progressUpdates)
 				if err != nil {
 					t.logError(ctx, err, "failed to retry TaskFailed")
 					return // we got a cancellation signal, so let's just stop here
@@ -346,7 +351,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 
 		if err != nil {
 			log.ErrorContext(ctx, "task execution failed", slog.Any("error", err), slog.Int64("retry_attempt", task.GetRetryCount()))
-			return nil, fmt.Errorf("failed to execute task: %w", err)
+			return getTaskExecutionContext(executionContext), fmt.Errorf("failed to execute task: %w", err)
 		}
 
 		// record the time it took to run a successful task

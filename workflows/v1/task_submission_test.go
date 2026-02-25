@@ -266,7 +266,7 @@ func TestMergeFutureTasksToSubmissions_ManyTasks(t *testing.T) {
 	// tasks_2: n tasks that all depend on all of tasks_1
 	deps := make([]uint32, n)
 	for i := range n {
-		deps[i] = uint32(i) //nolint:gosec
+		deps[i] = uint32(i)
 	}
 	for i := range n {
 		submissions = append(submissions, &futureTask{
@@ -311,7 +311,7 @@ func TestMergeFutureTasksToSubmissions_ManyNonMergeableDependencyGroups(t *testi
 			clusterSlug:  "test",
 			identifier:   NewTaskIdentifier("TaskB", "v1.0"),
 			input:        []byte{byte(n + i)},
-			dependencies: []uint32{uint32(i * 2)}, //nolint:gosec // task_1[i] is at index i*2
+			dependencies: []uint32{uint32(i * 2)},
 		})
 	}
 
