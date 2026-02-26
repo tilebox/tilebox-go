@@ -25,6 +25,7 @@ import (
 	"github.com/tilebox/tilebox-go/workflows/v1/runner"
 	"github.com/tilebox/tilebox-go/workflows/v1/subtask"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/codes"
@@ -48,6 +49,76 @@ const (
 	fallbackJitterInterval  = 5 * time.Second
 )
 
+const (
+	UnitSeconds       = "s"
+	UnitDimensionless = "1"
+	UnitBytes         = "By"
+)
+
+type taskRunnerMetrics struct {
+	tasksExecutedMetric metric.Int64Counter
+	tasksComputedMetric metric.Int64Counter
+	tasksFailedMetric   metric.Int64Counter
+
+	taskInputSizeMetric         metric.Int64Histogram
+	taskExecutionDurationMetric metric.Float64Histogram
+}
+
+func newTaskRunnerMetrics(meter metric.Meter) (*taskRunnerMetrics, error) {
+	tasksExecutedMetric, err := meter.Int64Counter(
+		"task.executed.count",
+		metric.WithDescription("Number of tasks executed"),
+		metric.WithUnit(UnitDimensionless),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create task count metric: %w", err)
+	}
+
+	tasksComputedMetric, err := meter.Int64Counter(
+		"task.computed.count",
+		metric.WithDescription("Number of tasks computed"),
+		metric.WithUnit(UnitDimensionless),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create task computed metric: %w", err)
+	}
+
+	tasksFailedMetric, err := meter.Int64Counter(
+		"task.failed.count",
+		metric.WithDescription("Number of tasks failed"),
+		metric.WithUnit(UnitDimensionless),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create task failed metric: %w", err)
+	}
+
+	taskArgsSizeMetric, err := meter.Int64Histogram(
+		"task.input.size",
+		metric.WithDescription("Task arguments size"),
+		metric.WithUnit(UnitBytes),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create task input size metric: %w", err)
+	}
+
+	taskExecutionDurationMetric, err := meter.Float64Histogram(
+		"task.execution.duration",
+		metric.WithDescription("Task execution duration"),
+		metric.WithUnit(UnitSeconds),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create task duration metric: %w", err)
+	}
+
+	return &taskRunnerMetrics{
+		tasksExecutedMetric:         tasksExecutedMetric,
+		tasksComputedMetric:         tasksComputedMetric,
+		tasksFailedMetric:           tasksFailedMetric,
+		taskInputSizeMetric:         taskArgsSizeMetric,
+		taskExecutionDurationMetric: taskExecutionDurationMetric,
+	}, nil
+}
+
 // TaskRunner executes tasks.
 //
 // Documentation: https://docs.tilebox.com/workflows/concepts/task-runners
@@ -55,10 +126,10 @@ type TaskRunner struct {
 	service         TaskService
 	taskDefinitions map[taskIdentifier]ExecutableTask
 
-	cluster            string
-	tracer             trace.Tracer
-	logger             *slog.Logger
-	taskDurationMetric metric.Float64Histogram
+	cluster string
+	tracer  trace.Tracer
+	logger  *slog.Logger
+	metrics *taskRunnerMetrics
 }
 
 func newTaskRunner(ctx context.Context, service TaskService, clusterClient ClusterClient, tracer trace.Tracer, options ...runner.Option) (*TaskRunner, error) {
@@ -76,25 +147,19 @@ func newTaskRunner(ctx context.Context, service TaskService, clusterClient Clust
 		return nil, fmt.Errorf("failed to get cluster: %w", err)
 	}
 
-	meter := opts.MeterProvider.Meter(otelMeterName)
-
-	taskDurationMetric, err := meter.Float64Histogram(
-		"task.execution.duration",
-		metric.WithDescription("Task execution duration"),
-		metric.WithUnit("s"),
-	)
+	metrics, err := newTaskRunnerMetrics(opts.MeterProvider.Meter(otelMeterName))
 	if err != nil {
-		return nil, fmt.Errorf("failed to create task execution duration metric: %w", err)
+		return nil, fmt.Errorf("failed to create task runner metrics: %w", err)
 	}
 
 	return &TaskRunner{
 		service:         service,
 		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 
-		cluster:            cluster.Slug,
-		tracer:             tracer,
-		logger:             opts.Logger,
-		taskDurationMetric: taskDurationMetric,
+		cluster: cluster.Slug,
+		tracer:  tracer,
+		logger:  opts.Logger,
+		metrics: metrics,
 	}, nil
 }
 
@@ -329,6 +394,8 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 			slog.Time("start_time", beforeTime),
 		)
 
+		taskMetricAttributes := metric.WithAttributes(attribute.String("task_identifier", identifier.Name()), attribute.String("task_version", identifier.Version()))
+
 		defer func() {
 			if r := recover(); r != nil {
 				// recover from panics during task executions, so we can still report the error to the server and continue
@@ -336,26 +403,35 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 				log.ErrorContext(ctx, "task execution failed", slog.String("error", "panic"), slog.Int64("retry_attempt", task.GetRetryCount()))
 				taskExecutionContext = nil
 				err = fmt.Errorf("task panicked: %v", r)
+
+				// also instrument the panic as a failed task execution
+				t.metrics.tasksFailedMetric.Add(ctx, 1, taskMetricAttributes)
+				t.metrics.taskExecutionDurationMetric.Record(ctx, time.Since(beforeTime).Seconds(), taskMetricAttributes, metric.WithAttributes(attribute.String("state", "failed")))
 			}
 		}()
+
+		t.metrics.taskInputSizeMetric.Record(ctx, int64(len(task.GetInput())), taskMetricAttributes)
+		t.metrics.tasksExecutedMetric.Add(ctx, 1, taskMetricAttributes)
 
 		executionContext := t.withTaskExecutionContext(ctx, task)
 		err = taskStruct.Execute(executionContext)
 
 		executionTime := time.Since(beforeTime)
-
 		log = log.With(
 			slog.Duration("execution_time", executionTime),
 			slog.String("execution_time_human", roundDuration(executionTime, 2).String()),
 		)
 
 		if err != nil {
+			t.metrics.tasksFailedMetric.Add(ctx, 1, taskMetricAttributes)
+			t.metrics.taskExecutionDurationMetric.Record(ctx, executionTime.Seconds(), taskMetricAttributes, metric.WithAttributes(attribute.String("state", "failed")))
+
 			log.ErrorContext(ctx, "task execution failed", slog.Any("error", err), slog.Int64("retry_attempt", task.GetRetryCount()))
 			return getTaskExecutionContext(executionContext), fmt.Errorf("failed to execute task: %w", err)
 		}
 
-		// record the time it took to run a successful task
-		t.taskDurationMetric.Record(ctx, executionTime.Seconds())
+		t.metrics.tasksComputedMetric.Add(ctx, 1, taskMetricAttributes)
+		t.metrics.taskExecutionDurationMetric.Record(ctx, executionTime.Seconds(), taskMetricAttributes, metric.WithAttributes(attribute.String("state", "computed")))
 
 		return getTaskExecutionContext(executionContext), nil
 	})
