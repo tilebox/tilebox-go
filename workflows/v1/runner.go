@@ -97,6 +97,9 @@ func newTaskRunnerMetrics(meter metric.Meter) (*taskRunnerMetrics, error) {
 		metric.WithDescription("Task arguments size"),
 		metric.WithUnit(UnitBytes),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create task input size metric: %w", err)
+	}
 
 	taskExecutionDurationMetric, err := meter.Float64Histogram(
 		"task.execution.duration",
