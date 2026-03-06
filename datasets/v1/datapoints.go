@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/paulmach/orb"
+	"github.com/samber/lo"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	"github.com/tilebox/tilebox-go/query"
@@ -24,12 +25,13 @@ type DatapointClient interface {
 	// Example usage:
 	//
 	//	var datapoint v1.Sentinel1Sar
-	//	err = client.Datapoints.GetInto(ctx, collectionIDs, datapointID, &datapoint)
-	GetInto(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, datapoint proto.Message, options ...QueryOption) error
+	//	err = client.Datapoints.GetInto(ctx, datasetID, datapointID, &datapoint)
+	GetInto(ctx context.Context, datasetID uuid.UUID, datapointID uuid.UUID, datapoint proto.Message, options ...QueryOption) error
 
 	// Query datapoints from one or more collections of the same dataset.
 	//
 	// Options:
+	//   - WithCollections / WithCollectionIDs: specifies the collections to query. If no collections are specified, all collections of the dataset will be queried. (Optional)
 	//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
 	//   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
 	//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning required datapoint fields. (Optional)
@@ -39,7 +41,7 @@ type DatapointClient interface {
 	//
 	// Example usage:
 	//
-	//	for datapointBytes, err := range client.Datapoints.Query(ctx, collectionIDs, WithTemporalExtent(timeInterval), WithSpatialExtent(geometry)) {
+	//	for datapointBytes, err := range client.Datapoints.Query(ctx, datasetID, WithCollectionIDs(collectionID), WithTemporalExtent(timeInterval), WithSpatialExtent(geometry)) {
 	//	  if err != nil {
 	//	    // handle error
 	//	  }
@@ -51,8 +53,8 @@ type DatapointClient interface {
 	//	  // do something with the datapoint
 	//	}
 	//
-	// Documentation: https://docs.tilebox.com/datasets/query
-	Query(ctx context.Context, collectionIDs []uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error]
+	// Documentation: https://docs.tilebox.com/datasets/query/querying-data
+	Query(ctx context.Context, datasetID uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error]
 
 	// QueryInto queries datapoints from one or more collections of the same dataset into a slice of datapoints of a
 	// compatible proto.Message type.
@@ -62,8 +64,8 @@ type DatapointClient interface {
 	// Example usage:
 	//
 	//	var datapoints []*v1.Sentinel1Sar
-	//	err := client.Datapoints.QueryInto(ctx, collectionIDs, &datapoints, WithTemporalExtent(timeInterval))
-	QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error
+	//	err := client.Datapoints.QueryInto(ctx, datasetID, &datapoints, WithTemporalExtent(timeInterval))
+	QueryInto(ctx context.Context, datasetID uuid.UUID, datapoints any, options ...QueryOption) error
 
 	// Ingest datapoints into a collection.
 	//
@@ -100,6 +102,7 @@ type queryOptions struct {
 	temporalExtent query.TemporalExtent
 	spatialExtent  query.SpatialExtent
 	skipData       bool
+	collectionIDs  []uuid.UUID
 }
 
 // QueryOption is an interface for configuring a Query request.
@@ -128,6 +131,20 @@ func WithSpatialExtentFilter(spatialExtent query.SpatialExtent) QueryOption {
 	}
 }
 
+// WithCollections specifies the collections to query. If no collections are specified, all collections of the dataset will be queried.
+func WithCollections(collections ...*Collection) QueryOption {
+	return WithCollectionIDs(lo.Map(collections, func(c *Collection, _ int) uuid.UUID {
+		return c.ID
+	})...)
+}
+
+// WithCollectionIDs specifies the collection IDs to query. If no collections are specified, all collections of the dataset will be queried.
+func WithCollectionIDs(collectionIDs ...uuid.UUID) QueryOption {
+	return func(cfg *queryOptions) {
+		cfg.collectionIDs = append(cfg.collectionIDs, collectionIDs...)
+	}
+}
+
 // WithSkipData skips the data when querying datapoints.
 // It is an optional flag for omitting the actual datapoint data from the response.
 // If set, only the required datapoint fields will be returned.
@@ -139,7 +156,7 @@ func WithSkipData() QueryOption {
 	}
 }
 
-func (d datapointClient) GetInto(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, datapoint proto.Message, options ...QueryOption) error {
+func (d datapointClient) GetInto(ctx context.Context, datasetID uuid.UUID, datapointID uuid.UUID, datapoint proto.Message, options ...QueryOption) error {
 	cfg := &queryOptions{
 		skipData: false,
 	}
@@ -147,7 +164,7 @@ func (d datapointClient) GetInto(ctx context.Context, collectionIDs []uuid.UUID,
 		option(cfg)
 	}
 
-	rawDatapoint, err := d.dataAccessService.QueryByID(ctx, collectionIDs, datapointID, cfg.skipData)
+	rawDatapoint, err := d.dataAccessService.QueryByID(ctx, datasetID, cfg.collectionIDs, datapointID, cfg.skipData)
 	if err != nil {
 		return err
 	}
@@ -160,7 +177,7 @@ func (d datapointClient) GetInto(ctx context.Context, collectionIDs []uuid.UUID,
 	return nil
 }
 
-func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error] {
+func (d datapointClient) Query(ctx context.Context, datasetID uuid.UUID, options ...QueryOption) iter.Seq2[[]byte, error] {
 	cfg := &queryOptions{
 		skipData: false,
 	}
@@ -202,7 +219,7 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 		}
 
 		for {
-			datapointsMessage, err := d.dataAccessService.Query(ctx, collectionIDs, filters, page, cfg.skipData)
+			datapointsMessage, err := d.dataAccessService.Query(ctx, datasetID, cfg.collectionIDs, filters, page, cfg.skipData)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -222,7 +239,7 @@ func (d datapointClient) Query(ctx context.Context, collectionIDs []uuid.UUID, o
 	}
 }
 
-func (d datapointClient) QueryInto(ctx context.Context, collectionIDs []uuid.UUID, datapoints any, options ...QueryOption) error {
+func (d datapointClient) QueryInto(ctx context.Context, datasetID uuid.UUID, datapoints any, options ...QueryOption) error {
 	err := validateDatapoints(datapoints)
 	if err != nil {
 		return err // already a nice validation error
@@ -231,7 +248,7 @@ func (d datapointClient) QueryInto(ctx context.Context, collectionIDs []uuid.UUI
 	slice := reflect.Indirect(reflect.ValueOf(datapoints))
 	datapointType := slice.Type().Elem().Elem()
 
-	rawDatapoints, err := Collect(d.Query(ctx, collectionIDs, options...))
+	rawDatapoints, err := Collect(d.Query(ctx, datasetID, options...))
 	if err != nil {
 		return err
 	}
