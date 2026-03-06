@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-03-06
+
+### Added
+
+- `datasets`: Added `WithCollections(...)` and `WithCollectionIDs(...)` query options for datapoint queries.
+
+### Changed
+
+- `datasets`: Updated `client.Datapoints.GetInto`, `client.Datapoints.Query`, and `client.Datapoints.QueryInto` to take a `datasetID` as the primary identifier, with collection filtering now configured via query options.
+
 ## [0.3.2] - 2026-02-26
 
 ### Added
@@ -67,7 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/tilebox/tilebox-go/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/tilebox/tilebox-go/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/tilebox/tilebox-go/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/tilebox/tilebox-go/compare/v0.2.0...v0.3.0

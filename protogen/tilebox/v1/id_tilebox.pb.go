@@ -17,6 +17,9 @@ func NewUUID(id uuid.UUID) *ID {
 }
 
 func NewUUIDSlice(ids []uuid.UUID) []*ID {
+	if len(ids) == 0 {
+		return nil
+	}
 	pbIDs := make([]*ID, 0, len(ids))
 	for _, id := range ids {
 		pbIDs = append(pbIDs, NewUUID(id))

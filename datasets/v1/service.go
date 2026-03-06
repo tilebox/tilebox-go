@@ -209,8 +209,8 @@ func (s *collectionService) ListCollections(ctx context.Context, datasetID uuid.
 }
 
 type DataAccessService interface {
-	Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *tileboxv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error)
-	QueryByID(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error)
+	Query(ctx context.Context, datasetID uuid.UUID, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *tileboxv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error)
+	QueryByID(ctx context.Context, datasetID uuid.UUID, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error)
 }
 
 var _ DataAccessService = &dataAccessService{}
@@ -227,10 +227,11 @@ func newDataAccessService(dataAccessClient datasetsv1connect.DataAccessServiceCl
 	}
 }
 
-func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *tileboxv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error) {
+func (s *dataAccessService) Query(ctx context.Context, datasetID uuid.UUID, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *tileboxv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/query", func(ctx context.Context) (*datasetsv1.QueryResultPage, error) {
 		res, err := s.dataAccessClient.Query(ctx, connect.NewRequest(
 			datasetsv1.QueryRequest_builder{
+				DatasetId:     tileboxv1.NewUUID(datasetID),
 				CollectionIds: tileboxv1.NewUUIDSlice(collectionIDs),
 				Filters:       filters,
 				Page:          page,
@@ -245,10 +246,11 @@ func (s *dataAccessService) Query(ctx context.Context, collectionIDs []uuid.UUID
 	})
 }
 
-func (s *dataAccessService) QueryByID(ctx context.Context, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error) {
+func (s *dataAccessService) QueryByID(ctx context.Context, datasetID uuid.UUID, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/get", func(ctx context.Context) (*datasetsv1.Any, error) {
 		res, err := s.dataAccessClient.QueryByID(ctx, connect.NewRequest(
 			datasetsv1.QueryByIDRequest_builder{
+				DatasetId:     tileboxv1.NewUUID(datasetID),
 				CollectionIds: tileboxv1.NewUUIDSlice(collectionIDs),
 				Id:            tileboxv1.NewUUID(datapointID),
 				SkipData:      skipData,

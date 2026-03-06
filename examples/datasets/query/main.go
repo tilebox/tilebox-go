@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/wkt"
 	"github.com/tilebox/tilebox-go/datasets/v1"
@@ -46,8 +45,9 @@ func main() {
 	// Sentinel2Msi type is generated using tilebox-generate
 	var foundDatapoints []*examplesv1.Sentinel2Msi
 	err = client.Datapoints.QueryInto(ctx,
-		[]uuid.UUID{collection.ID},
+		dataset.ID,
 		&foundDatapoints,
+		datasets.WithCollections(collection),
 		datasets.WithTemporalExtent(query.NewTimeInterval(startDate, endDate)),
 		datasets.WithSpatialExtent(area),
 	)

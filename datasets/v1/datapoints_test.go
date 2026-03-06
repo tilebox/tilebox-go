@@ -40,7 +40,7 @@ type mockDataAccessService struct {
 	n int
 }
 
-func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *tileboxv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
+func (m mockDataAccessService) Query(_ context.Context, _ uuid.UUID, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *tileboxv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
 	data := make([][]byte, m.n)
 	for i := range m.n {
 		datapoint := examplesv1.Sentinel2Msi_builder{
@@ -68,6 +68,8 @@ func (m mockDataAccessService) Query(_ context.Context, _ []uuid.UUID, _ *datase
 
 func Test_QueryOptions(t *testing.T) {
 	now := time.Now()
+	collectionID1 := uuid.New()
+	collectionID2 := uuid.New()
 	colorado := orb.Polygon{
 		{{-109.05, 37.09}, {-102.06, 37.09}, {-102.06, 41.59}, {-109.05, 41.59}, {-109.05, 37.09}},
 	}
@@ -90,6 +92,27 @@ func Test_QueryOptions(t *testing.T) {
 					now,
 					now.Add(time.Hour),
 				),
+			},
+		},
+		{
+			name: "with collection ids",
+			options: []QueryOption{
+				WithCollectionIDs(collectionID1, collectionID2),
+			},
+			want: queryOptions{
+				collectionIDs: []uuid.UUID{collectionID1, collectionID2},
+			},
+		},
+		{
+			name: "with collections",
+			options: []QueryOption{
+				WithCollections(
+					&Collection{ID: collectionID1},
+					&Collection{ID: collectionID2},
+				),
+			},
+			want: queryOptions{
+				collectionIDs: []uuid.UUID{collectionID1, collectionID2},
 			},
 		},
 		{
@@ -145,7 +168,7 @@ func Test_datapointClient_GetInto(t *testing.T) {
 
 	t.Run("GetInto", func(t *testing.T) {
 		var datapoint examplesv1.Sentinel2Msi
-		err := client.Datapoints.GetInto(ctx, []uuid.UUID{collection.ID}, datapointID, &datapoint)
+		err := client.Datapoints.GetInto(ctx, dataset.ID, datapointID, &datapoint, WithCollectionIDs(collection.ID))
 		require.NoError(t, err)
 
 		assert.Equal(t, "01941f29-c650-202f-6495-c71dd2118fb1", uuid.Must(uuid.FromBytes(datapoint.GetId().GetUuid())).String())
@@ -155,7 +178,7 @@ func Test_datapointClient_GetInto(t *testing.T) {
 
 	t.Run("GetInto WithSkipData", func(t *testing.T) {
 		var datapoint examplesv1.Sentinel2Msi
-		err := client.Datapoints.GetInto(ctx, []uuid.UUID{collection.ID}, datapointID, &datapoint, WithSkipData())
+		err := client.Datapoints.GetInto(ctx, dataset.ID, datapointID, &datapoint, WithCollectionIDs(collection.ID), WithSkipData())
 		require.NoError(t, err)
 
 		assert.Equal(t, "01941f29-c650-202f-6495-c71dd2118fb1", uuid.Must(uuid.FromBytes(datapoint.GetId().GetUuid())).String())
@@ -167,6 +190,7 @@ func Test_datapointClient_QueryInto(t *testing.T) {
 	ctx := context.Background()
 	client := NewDatapointClient(10)
 
+	datasetID := uuid.New()
 	collectionID := uuid.New()
 	timeInterval := query.NewTimeInterval(time.Now(), time.Now())
 
@@ -220,7 +244,7 @@ func Test_datapointClient_QueryInto(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := client.QueryInto(ctx, []uuid.UUID{tt.args.collectionID}, tt.args.datapoints, WithTemporalExtent(tt.args.interval))
+			err := client.QueryInto(ctx, datasetID, tt.args.datapoints, WithCollectionIDs(tt.args.collectionID), WithTemporalExtent(tt.args.interval))
 			if tt.wantErr != "" {
 				// we wanted an error, let's check if we got one
 				require.Error(t, err, "expected an error, got none")
@@ -246,22 +270,53 @@ func Benchmark_QueryInto(b *testing.B) {
 	ctx := context.Background()
 	client := NewDatapointClient(1000)
 
+	datasetID := uuid.New()
 	collectionID := uuid.New()
 	timeInterval := query.NewTimeInterval(time.Now(), time.Now())
 
 	var datapoints []*examplesv1.Sentinel2Msi
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
-			err := client.QueryInto(ctx, []uuid.UUID{collectionID}, &datapoints, WithTemporalExtent(timeInterval))
+			err := client.QueryInto(ctx, datasetID, &datapoints, WithCollectionIDs(collectionID), WithTemporalExtent(timeInterval))
 			require.NoError(b, err)
 		}
 	})
 	resultQueryInto = datapoints
 }
 
-func Test_datapointClient_Query(t *testing.T) {
+func Test_datapointClient_QueryDataset(t *testing.T) {
 	ctx := context.Background()
-	client := NewReplayClient(t, "load")
+	client := NewReplayClient(t, "query")
+
+	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
+	require.NoError(t, err)
+
+	jan2025 := time.Date(2025, time.January, 1, 0, 0, 0, 0, time.UTC)
+	timeInterval := query.NewTimeInterval(jan2025, jan2025.Add(1*time.Hour))
+
+	t.Run("CollectAs", func(t *testing.T) {
+		datapoints, err := CollectAs[*examplesv1.Sentinel2Msi](client.Datapoints.Query(ctx, dataset.ID, WithTemporalExtent(timeInterval)))
+		require.NoError(t, err)
+
+		assert.Len(t, datapoints, 1459)
+		assert.Equal(t, "01941f29-c650-202f-6495-c71dd2118fb1", uuid.Must(uuid.FromBytes(datapoints[0].GetId().GetUuid())).String())
+		assert.Equal(t, "2025-01-01 00:00:19.024 +0000 UTC", datapoints[0].GetTime().AsTime().String())
+		assert.Equal(t, "S2B_MSIL1C_20250101T000019_N0511_R073_T57QWV_20250101T010340.SAFE", datapoints[0].GetGranuleName())
+	})
+
+	t.Run("CollectAs WithSkipData", func(t *testing.T) {
+		datapoints, err := CollectAs[*examplesv1.Sentinel2Msi](client.Datapoints.Query(ctx, dataset.ID, WithTemporalExtent(timeInterval), WithSkipData()))
+		require.NoError(t, err)
+
+		assert.Len(t, datapoints, 1459)
+		assert.Equal(t, "01941f29-c650-202f-6495-c71dd2118fb1", uuid.Must(uuid.FromBytes(datapoints[0].GetId().GetUuid())).String())
+		assert.Empty(t, datapoints[0].GetGranuleName())
+	})
+}
+
+func Test_datapointClient_QueryCollections(t *testing.T) {
+	ctx := context.Background()
+	client := NewReplayClient(t, "query_collections")
 
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
 	require.NoError(t, err)
@@ -274,7 +329,7 @@ func Test_datapointClient_Query(t *testing.T) {
 	timeInterval := query.NewTimeInterval(jan2025, jan2025.Add(1*time.Hour))
 
 	t.Run("CollectAs", func(t *testing.T) {
-		datapoints, err := CollectAs[*examplesv1.Sentinel2Msi](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval)))
+		datapoints, err := CollectAs[*examplesv1.Sentinel2Msi](client.Datapoints.Query(ctx, dataset.ID, WithCollectionIDs(collection.ID), WithTemporalExtent(timeInterval)))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 437)
@@ -284,7 +339,7 @@ func Test_datapointClient_Query(t *testing.T) {
 	})
 
 	t.Run("CollectAs WithSkipData", func(t *testing.T) {
-		datapoints, err := CollectAs[*examplesv1.Sentinel2Msi](client.Datapoints.Query(ctx, []uuid.UUID{collection.ID}, WithTemporalExtent(timeInterval), WithSkipData()))
+		datapoints, err := CollectAs[*examplesv1.Sentinel2Msi](client.Datapoints.Query(ctx, dataset.ID, WithCollectionIDs(collection.ID), WithTemporalExtent(timeInterval), WithSkipData()))
 		require.NoError(t, err)
 
 		assert.Len(t, datapoints, 437)
@@ -323,7 +378,7 @@ func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	}
 }
 
-func (s *mockService) Query(_ context.Context, _ []uuid.UUID, _ ...QueryOption) iter.Seq2[[]byte, error] {
+func (s *mockService) Query(_ context.Context, _ uuid.UUID, _ ...QueryOption) iter.Seq2[[]byte, error] {
 	return func(yield func([]byte, error) bool) {
 		for _, data := range s.data {
 			if !yield(data, nil) {
@@ -340,6 +395,7 @@ var result []*examplesv1.Sentinel2Msi
 // It is used to benchmark the cost of reflection and proto.Marshal inside CollectAs
 func BenchmarkCollectAs(b *testing.B) {
 	ctx := context.Background()
+	datasetID := uuid.New()                       // dummy dataset ID
 	collectionID := uuid.New()                    // dummy collection ID
 	queryInterval := query.NewEmptyTimeInterval() // dummy time interval
 
@@ -349,7 +405,7 @@ func BenchmarkCollectAs(b *testing.B) {
 	var r []*examplesv1.Sentinel2Msi // used to avoid the compiler optimizing the output
 	b.Run("CollectAs", func(b *testing.B) {
 		for range b.N {
-			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
+			data := client.Datapoints.Query(ctx, datasetID, WithCollectionIDs(collectionID), WithTemporalExtent(queryInterval))
 			r, _ = CollectAs[*examplesv1.Sentinel2Msi](data)
 		}
 	})
@@ -357,7 +413,7 @@ func BenchmarkCollectAs(b *testing.B) {
 
 	b.Run("Marshal and no reflection", func(b *testing.B) {
 		for range b.N {
-			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
+			data := client.Datapoints.Query(ctx, datasetID, WithCollectionIDs(collectionID), WithTemporalExtent(queryInterval))
 			datapoints := make([]*examplesv1.Sentinel2Msi, 0, 1000)
 			for datapoint, err := range data {
 				if err != nil {
@@ -376,7 +432,7 @@ func BenchmarkCollectAs(b *testing.B) {
 
 	b.Run("No marshal and no reflection", func(b *testing.B) {
 		for range b.N {
-			data := client.Datapoints.Query(ctx, []uuid.UUID{collectionID}, WithTemporalExtent(queryInterval))
+			data := client.Datapoints.Query(ctx, datasetID, WithCollectionIDs(collectionID), WithTemporalExtent(queryInterval))
 			datapoints := make([][]byte, 0, 1000)
 			for datapoint, err := range data {
 				if err != nil {
