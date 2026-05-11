@@ -11,6 +11,8 @@ package workflowsv1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
+	_ "go.opentelemetry.io/proto/otlp/logs/v1"
+	_ "go.opentelemetry.io/proto/otlp/trace/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -864,6 +866,7 @@ func (x *QueryFilters) ClearIdInterval() {
 type QueryFilters_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// Filter by time (or UUIDs encoding a timestamp)
 	TimeInterval *v1.TimeInterval
 	IdInterval   *v1.IDInterval
 	// Filter jobs by automations.
@@ -1324,7 +1327,7 @@ var File_workflows_v1_job_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xce\x03\n" +
+	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a&opentelemetry/proto/logs/v1/logs.proto\x1a(opentelemetry/proto/trace/v1/trace.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xce\x03\n" +
 	"\x10SubmitJobRequest\x123\n" +
 	"\x05tasks\x18\x05 \x01(\v2\x1d.workflows.v1.TaskSubmissionsR\x05tasks\x12\"\n" +
 	"\bjob_name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\ajobName\x12*\n" +
@@ -1358,7 +1361,7 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\vtask_states\x18\x06 \x03(\x0e2\x17.workflows.v1.TaskStateR\n" +
 	"taskStates:#\xbaH \"\x1e\n" +
 	"\rtime_interval\n" +
-	"\vid_interval\x10\x01\"{\n" +
+	"\vid_interval\x10\x00\"{\n" +
 	"\x10QueryJobsRequest\x124\n" +
 	"\afilters\x18\x01 \x01(\v2\x1a.workflows.v1.QueryFiltersR\afilters\x121\n" +
 	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\"v\n" +

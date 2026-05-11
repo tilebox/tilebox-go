@@ -1,13 +1,10 @@
 //
 //Core message type definitions for the Tilebox datasets API.
-//
 //Conventions:
 //- A dataset is a set of data points of the same type.
 //- A single data point (entry) is referred to in all messages as datapoint.
 //- Data points for a single dataset are grouped into collections.
-//
 //- All time fields use the google.protobuf.Timestamp message type.
-//
 //- When a wrapper message is needed to return a list of a given message type, use the pluralized message name
 //- e.g. message Collections contains a list of Collection messages.
 
@@ -23,7 +20,6 @@ import (
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -131,118 +127,6 @@ func (x Visibility) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// LegacyPagination - used for backwards compatibility, will be removed as soon as all datasets are migrated
-type LegacyPagination struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Limit         int64                  `protobuf:"varint,1,opt,name=limit"`
-	xxx_hidden_StartingAfter *string                `protobuf:"bytes,2,opt,name=starting_after,json=startingAfter"`
-	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
-	XXX_presence             [1]uint32
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
-}
-
-func (x *LegacyPagination) Reset() {
-	*x = LegacyPagination{}
-	mi := &file_datasets_v1_core_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *LegacyPagination) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*LegacyPagination) ProtoMessage() {}
-
-func (x *LegacyPagination) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *LegacyPagination) GetLimit() int64 {
-	if x != nil {
-		return x.xxx_hidden_Limit
-	}
-	return 0
-}
-
-func (x *LegacyPagination) GetStartingAfter() string {
-	if x != nil {
-		if x.xxx_hidden_StartingAfter != nil {
-			return *x.xxx_hidden_StartingAfter
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *LegacyPagination) SetLimit(v int64) {
-	x.xxx_hidden_Limit = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
-}
-
-func (x *LegacyPagination) SetStartingAfter(v string) {
-	x.xxx_hidden_StartingAfter = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
-}
-
-func (x *LegacyPagination) HasLimit() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
-}
-
-func (x *LegacyPagination) HasStartingAfter() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
-}
-
-func (x *LegacyPagination) ClearLimit() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Limit = 0
-}
-
-func (x *LegacyPagination) ClearStartingAfter() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
-	x.xxx_hidden_StartingAfter = nil
-}
-
-type LegacyPagination_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The maximum number of entries to return.
-	Limit *int64
-	// Return entries starting after this entry.
-	// This is the id of the last entry returned in the previous page as the next parameter in each paginated query.
-	StartingAfter *string
-}
-
-func (b0 LegacyPagination_builder) Build() *LegacyPagination {
-	m0 := &LegacyPagination{}
-	b, x := &b0, m0
-	_, _ = b, x
-	if b.Limit != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
-		x.xxx_hidden_Limit = *b.Limit
-	}
-	if b.StartingAfter != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
-		x.xxx_hidden_StartingAfter = b.StartingAfter
-	}
-	return m0
-}
-
 // Any is a message that can hold any other message as bytes.
 // We don't use google.protobuf.Any because we want the JSON representation of the value field to be bytes.
 type Any struct {
@@ -255,7 +139,7 @@ type Any struct {
 
 func (x *Any) Reset() {
 	*x = Any{}
-	mi := &file_datasets_v1_core_proto_msgTypes[1]
+	mi := &file_datasets_v1_core_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -267,7 +151,7 @@ func (x *Any) String() string {
 func (*Any) ProtoMessage() {}
 
 func (x *Any) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[1]
+	mi := &file_datasets_v1_core_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -332,7 +216,7 @@ type RepeatedAny struct {
 
 func (x *RepeatedAny) Reset() {
 	*x = RepeatedAny{}
-	mi := &file_datasets_v1_core_proto_msgTypes[2]
+	mi := &file_datasets_v1_core_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -344,7 +228,7 @@ func (x *RepeatedAny) String() string {
 func (*RepeatedAny) ProtoMessage() {}
 
 func (x *RepeatedAny) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[2]
+	mi := &file_datasets_v1_core_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -394,361 +278,18 @@ func (b0 RepeatedAny_builder) Build() *RepeatedAny {
 	return m0
 }
 
-// DatapointMetadata contains the metadata for a single data point.
-// legacy, only relevant for old endpoints
-type DatapointMetadata struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_EventTime     *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=event_time,json=eventTime"`
-	xxx_hidden_IngestionTime *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=ingestion_time,json=ingestionTime"`
-	xxx_hidden_Id            *string                `protobuf:"bytes,3,opt,name=id"`
-	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
-	XXX_presence             [1]uint32
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
-}
-
-func (x *DatapointMetadata) Reset() {
-	*x = DatapointMetadata{}
-	mi := &file_datasets_v1_core_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DatapointMetadata) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DatapointMetadata) ProtoMessage() {}
-
-func (x *DatapointMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *DatapointMetadata) GetEventTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.xxx_hidden_EventTime
-	}
-	return nil
-}
-
-func (x *DatapointMetadata) GetIngestionTime() *timestamppb.Timestamp {
-	if x != nil {
-		return x.xxx_hidden_IngestionTime
-	}
-	return nil
-}
-
-func (x *DatapointMetadata) GetId() string {
-	if x != nil {
-		if x.xxx_hidden_Id != nil {
-			return *x.xxx_hidden_Id
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *DatapointMetadata) SetEventTime(v *timestamppb.Timestamp) {
-	x.xxx_hidden_EventTime = v
-}
-
-func (x *DatapointMetadata) SetIngestionTime(v *timestamppb.Timestamp) {
-	x.xxx_hidden_IngestionTime = v
-}
-
-func (x *DatapointMetadata) SetId(v string) {
-	x.xxx_hidden_Id = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
-}
-
-func (x *DatapointMetadata) HasEventTime() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_EventTime != nil
-}
-
-func (x *DatapointMetadata) HasIngestionTime() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_IngestionTime != nil
-}
-
-func (x *DatapointMetadata) HasId() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
-}
-
-func (x *DatapointMetadata) ClearEventTime() {
-	x.xxx_hidden_EventTime = nil
-}
-
-func (x *DatapointMetadata) ClearIngestionTime() {
-	x.xxx_hidden_IngestionTime = nil
-}
-
-func (x *DatapointMetadata) ClearId() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_Id = nil
-}
-
-type DatapointMetadata_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The time the message was received by the on-board computer.
-	EventTime *timestamppb.Timestamp
-	// The time the message was ingested by Tilebox.
-	IngestionTime *timestamppb.Timestamp
-	// The external id of the datapoint.
-	Id *string
-}
-
-func (b0 DatapointMetadata_builder) Build() *DatapointMetadata {
-	m0 := &DatapointMetadata{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_EventTime = b.EventTime
-	x.xxx_hidden_IngestionTime = b.IngestionTime
-	if b.Id != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
-		x.xxx_hidden_Id = b.Id
-	}
-	return m0
-}
-
-// DatapointPage is a single page of data points of a Tilebox dataset, such as it is returned by a ForInterval query
-type DatapointPage struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Meta     *[]*DatapointMetadata  `protobuf:"bytes,1,rep,name=meta"`
-	xxx_hidden_Data     *RepeatedAny           `protobuf:"bytes,2,opt,name=data"`
-	xxx_hidden_NextPage *LegacyPagination      `protobuf:"bytes,3,opt,name=next_page,json=nextPage"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
-}
-
-func (x *DatapointPage) Reset() {
-	*x = DatapointPage{}
-	mi := &file_datasets_v1_core_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *DatapointPage) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DatapointPage) ProtoMessage() {}
-
-func (x *DatapointPage) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *DatapointPage) GetMeta() []*DatapointMetadata {
-	if x != nil {
-		if x.xxx_hidden_Meta != nil {
-			return *x.xxx_hidden_Meta
-		}
-	}
-	return nil
-}
-
-func (x *DatapointPage) GetData() *RepeatedAny {
-	if x != nil {
-		return x.xxx_hidden_Data
-	}
-	return nil
-}
-
-func (x *DatapointPage) GetNextPage() *LegacyPagination {
-	if x != nil {
-		return x.xxx_hidden_NextPage
-	}
-	return nil
-}
-
-func (x *DatapointPage) SetMeta(v []*DatapointMetadata) {
-	x.xxx_hidden_Meta = &v
-}
-
-func (x *DatapointPage) SetData(v *RepeatedAny) {
-	x.xxx_hidden_Data = v
-}
-
-func (x *DatapointPage) SetNextPage(v *LegacyPagination) {
-	x.xxx_hidden_NextPage = v
-}
-
-func (x *DatapointPage) HasData() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Data != nil
-}
-
-func (x *DatapointPage) HasNextPage() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_NextPage != nil
-}
-
-func (x *DatapointPage) ClearData() {
-	x.xxx_hidden_Data = nil
-}
-
-func (x *DatapointPage) ClearNextPage() {
-	x.xxx_hidden_NextPage = nil
-}
-
-type DatapointPage_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// A metadata for a datapoint.
-	Meta []*DatapointMetadata
-	// The datapoints.
-	Data *RepeatedAny
-	// The pagination parameters for the next page.
-	NextPage *LegacyPagination
-}
-
-func (b0 DatapointPage_builder) Build() *DatapointPage {
-	m0 := &DatapointPage{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Meta = &b.Meta
-	x.xxx_hidden_Data = b.Data
-	x.xxx_hidden_NextPage = b.NextPage
-	return m0
-}
-
-// Datapoint is a single datapoint in a Tilebox Dataset
-type Datapoint struct {
+// Collection contains basic information about a dataset collection
+type Collection struct {
 	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Meta *DatapointMetadata     `protobuf:"bytes,1,opt,name=meta"`
-	xxx_hidden_Data *Any                   `protobuf:"bytes,2,opt,name=data"`
+	xxx_hidden_Name string                 `protobuf:"bytes,2,opt,name=name"`
+	xxx_hidden_Id   *v1.ID                 `protobuf:"bytes,3,opt,name=id"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
 
-func (x *Datapoint) Reset() {
-	*x = Datapoint{}
-	mi := &file_datasets_v1_core_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Datapoint) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Datapoint) ProtoMessage() {}
-
-func (x *Datapoint) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *Datapoint) GetMeta() *DatapointMetadata {
-	if x != nil {
-		return x.xxx_hidden_Meta
-	}
-	return nil
-}
-
-func (x *Datapoint) GetData() *Any {
-	if x != nil {
-		return x.xxx_hidden_Data
-	}
-	return nil
-}
-
-func (x *Datapoint) SetMeta(v *DatapointMetadata) {
-	x.xxx_hidden_Meta = v
-}
-
-func (x *Datapoint) SetData(v *Any) {
-	x.xxx_hidden_Data = v
-}
-
-func (x *Datapoint) HasMeta() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Meta != nil
-}
-
-func (x *Datapoint) HasData() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Data != nil
-}
-
-func (x *Datapoint) ClearMeta() {
-	x.xxx_hidden_Meta = nil
-}
-
-func (x *Datapoint) ClearData() {
-	x.xxx_hidden_Data = nil
-}
-
-type Datapoint_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// A metadata for a datapoint.
-	Meta *DatapointMetadata
-	// The data.
-	Data *Any
-}
-
-func (b0 Datapoint_builder) Build() *Datapoint {
-	m0 := &Datapoint{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Meta = b.Meta
-	x.xxx_hidden_Data = b.Data
-	return m0
-}
-
-// Collection contains basic information about a dataset collection
-type Collection struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_LegacyId string                 `protobuf:"bytes,1,opt,name=legacy_id,json=legacyId"`
-	xxx_hidden_Name     string                 `protobuf:"bytes,2,opt,name=name"`
-	xxx_hidden_Id       *v1.ID                 `protobuf:"bytes,3,opt,name=id"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
-}
-
 func (x *Collection) Reset() {
 	*x = Collection{}
-	mi := &file_datasets_v1_core_proto_msgTypes[6]
+	mi := &file_datasets_v1_core_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -760,7 +301,7 @@ func (x *Collection) String() string {
 func (*Collection) ProtoMessage() {}
 
 func (x *Collection) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[6]
+	mi := &file_datasets_v1_core_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -769,13 +310,6 @@ func (x *Collection) ProtoReflect() protoreflect.Message {
 		return ms
 	}
 	return mi.MessageOf(x)
-}
-
-func (x *Collection) GetLegacyId() string {
-	if x != nil {
-		return x.xxx_hidden_LegacyId
-	}
-	return ""
 }
 
 func (x *Collection) GetName() string {
@@ -790,10 +324,6 @@ func (x *Collection) GetId() *v1.ID {
 		return x.xxx_hidden_Id
 	}
 	return nil
-}
-
-func (x *Collection) SetLegacyId(v string) {
-	x.xxx_hidden_LegacyId = v
 }
 
 func (x *Collection) SetName(v string) {
@@ -818,17 +348,14 @@ func (x *Collection) ClearId() {
 type Collection_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// Here for backwards compatibility, to be removed in the future.
-	LegacyId string
-	Name     string
-	Id       *v1.ID
+	Name string
+	Id   *v1.ID
 }
 
 func (b0 Collection_builder) Build() *Collection {
 	m0 := &Collection{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_LegacyId = b.LegacyId
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_Id = b.Id
 	return m0
@@ -848,7 +375,7 @@ type CollectionInfo struct {
 
 func (x *CollectionInfo) Reset() {
 	*x = CollectionInfo{}
-	mi := &file_datasets_v1_core_proto_msgTypes[7]
+	mi := &file_datasets_v1_core_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -860,7 +387,7 @@ func (x *CollectionInfo) String() string {
 func (*CollectionInfo) ProtoMessage() {}
 
 func (x *CollectionInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[7]
+	mi := &file_datasets_v1_core_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -984,7 +511,7 @@ type Dataset struct {
 
 func (x *Dataset) Reset() {
 	*x = Dataset{}
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
+	mi := &file_datasets_v1_core_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -996,7 +523,7 @@ func (x *Dataset) String() string {
 func (*Dataset) ProtoMessage() {}
 
 func (x *Dataset) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[8]
+	mi := &file_datasets_v1_core_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1250,7 +777,7 @@ type DatasetGroup struct {
 
 func (x *DatasetGroup) Reset() {
 	*x = DatasetGroup{}
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1262,7 +789,7 @@ func (x *DatasetGroup) String() string {
 func (*DatasetGroup) ProtoMessage() {}
 
 func (x *DatasetGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_core_proto_msgTypes[9]
+	mi := &file_datasets_v1_core_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1381,33 +908,17 @@ var File_datasets_v1_core_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"]\n" +
-	"\x10LegacyPagination\x12\x1b\n" +
-	"\x05limit\x18\x01 \x01(\x03B\x05\xaa\x01\x02\b\x01R\x05limit\x12,\n" +
-	"\x0estarting_after\x18\x02 \x01(\tB\x05\xaa\x01\x02\b\x01R\rstartingAfter\"6\n" +
+	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"6\n" +
 	"\x03Any\x12\x19\n" +
 	"\btype_url\x18\x01 \x01(\tR\atypeUrl\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\">\n" +
 	"\vRepeatedAny\x12\x19\n" +
 	"\btype_url\x18\x01 \x01(\tR\atypeUrl\x12\x14\n" +
-	"\x05value\x18\x02 \x03(\fR\x05value\"\xa8\x01\n" +
-	"\x11DatapointMetadata\x129\n" +
+	"\x05value\x18\x02 \x03(\fR\x05value\"F\n" +
 	"\n" +
-	"event_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\teventTime\x12A\n" +
-	"\x0eingestion_time\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\ringestionTime\x12\x15\n" +
-	"\x02id\x18\x03 \x01(\tB\x05\xaa\x01\x02\b\x01R\x02id\"\xb4\x01\n" +
-	"\rDatapointPage\x122\n" +
-	"\x04meta\x18\x01 \x03(\v2\x1e.datasets.v1.DatapointMetadataR\x04meta\x12,\n" +
-	"\x04data\x18\x02 \x01(\v2\x18.datasets.v1.RepeatedAnyR\x04data\x12A\n" +
-	"\tnext_page\x18\x03 \x01(\v2\x1d.datasets.v1.LegacyPaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"e\n" +
-	"\tDatapoint\x122\n" +
-	"\x04meta\x18\x01 \x01(\v2\x1e.datasets.v1.DatapointMetadataR\x04meta\x12$\n" +
-	"\x04data\x18\x02 \x01(\v2\x10.datasets.v1.AnyR\x04data\"]\n" +
-	"\n" +
-	"Collection\x12\x1b\n" +
-	"\tlegacy_id\x18\x01 \x01(\tR\blegacyId\x12\x12\n" +
+	"Collection\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1e\n" +
-	"\x02id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDR\x02id\"\xab\x01\n" +
+	"\x02id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDR\x02idJ\x04\b\x01\x10\x02\"\xab\x01\n" +
 	"\x0eCollectionInfo\x127\n" +
 	"\n" +
 	"collection\x18\x01 \x01(\v2\x17.datasets.v1.CollectionR\n" +
@@ -1451,49 +962,37 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"\x0fcom.datasets.v1B\tCoreProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_datasets_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_datasets_v1_core_proto_goTypes = []any{
-	(DatasetPermission)(0),        // 0: datasets.v1.DatasetPermission
-	(Visibility)(0),               // 1: datasets.v1.Visibility
-	(*LegacyPagination)(nil),      // 2: datasets.v1.LegacyPagination
-	(*Any)(nil),                   // 3: datasets.v1.Any
-	(*RepeatedAny)(nil),           // 4: datasets.v1.RepeatedAny
-	(*DatapointMetadata)(nil),     // 5: datasets.v1.DatapointMetadata
-	(*DatapointPage)(nil),         // 6: datasets.v1.DatapointPage
-	(*Datapoint)(nil),             // 7: datasets.v1.Datapoint
-	(*Collection)(nil),            // 8: datasets.v1.Collection
-	(*CollectionInfo)(nil),        // 9: datasets.v1.CollectionInfo
-	(*Dataset)(nil),               // 10: datasets.v1.Dataset
-	(*DatasetGroup)(nil),          // 11: datasets.v1.DatasetGroup
-	(*timestamppb.Timestamp)(nil), // 12: google.protobuf.Timestamp
-	(*v1.ID)(nil),                 // 13: tilebox.v1.ID
-	(*v1.TimeInterval)(nil),       // 14: tilebox.v1.TimeInterval
-	(*AnnotatedType)(nil),         // 15: datasets.v1.AnnotatedType
+	(DatasetPermission)(0),  // 0: datasets.v1.DatasetPermission
+	(Visibility)(0),         // 1: datasets.v1.Visibility
+	(*Any)(nil),             // 2: datasets.v1.Any
+	(*RepeatedAny)(nil),     // 3: datasets.v1.RepeatedAny
+	(*Collection)(nil),      // 4: datasets.v1.Collection
+	(*CollectionInfo)(nil),  // 5: datasets.v1.CollectionInfo
+	(*Dataset)(nil),         // 6: datasets.v1.Dataset
+	(*DatasetGroup)(nil),    // 7: datasets.v1.DatasetGroup
+	(*v1.ID)(nil),           // 8: tilebox.v1.ID
+	(*v1.TimeInterval)(nil), // 9: tilebox.v1.TimeInterval
+	(*AnnotatedType)(nil),   // 10: datasets.v1.AnnotatedType
 }
 var file_datasets_v1_core_proto_depIdxs = []int32{
-	12, // 0: datasets.v1.DatapointMetadata.event_time:type_name -> google.protobuf.Timestamp
-	12, // 1: datasets.v1.DatapointMetadata.ingestion_time:type_name -> google.protobuf.Timestamp
-	5,  // 2: datasets.v1.DatapointPage.meta:type_name -> datasets.v1.DatapointMetadata
-	4,  // 3: datasets.v1.DatapointPage.data:type_name -> datasets.v1.RepeatedAny
-	2,  // 4: datasets.v1.DatapointPage.next_page:type_name -> datasets.v1.LegacyPagination
-	5,  // 5: datasets.v1.Datapoint.meta:type_name -> datasets.v1.DatapointMetadata
-	3,  // 6: datasets.v1.Datapoint.data:type_name -> datasets.v1.Any
-	13, // 7: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
-	8,  // 8: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
-	14, // 9: datasets.v1.CollectionInfo.availability:type_name -> tilebox.v1.TimeInterval
-	13, // 10: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
-	13, // 11: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
-	15, // 12: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
-	0,  // 13: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
-	1,  // 14: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
-	9,  // 15: datasets.v1.Dataset.collections:type_name -> datasets.v1.CollectionInfo
-	13, // 16: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
-	13, // 17: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	8,  // 0: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
+	4,  // 1: datasets.v1.CollectionInfo.collection:type_name -> datasets.v1.Collection
+	9,  // 2: datasets.v1.CollectionInfo.availability:type_name -> tilebox.v1.TimeInterval
+	8,  // 3: datasets.v1.Dataset.id:type_name -> tilebox.v1.ID
+	8,  // 4: datasets.v1.Dataset.group_id:type_name -> tilebox.v1.ID
+	10, // 5: datasets.v1.Dataset.type:type_name -> datasets.v1.AnnotatedType
+	0,  // 6: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
+	1,  // 7: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
+	5,  // 8: datasets.v1.Dataset.collections:type_name -> datasets.v1.CollectionInfo
+	8,  // 9: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
+	8,  // 10: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_core_proto_init() }
@@ -1508,7 +1007,7 @@ func file_datasets_v1_core_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_core_proto_rawDesc), len(file_datasets_v1_core_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   10,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

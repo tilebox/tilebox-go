@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `workflows`: Added `client.Jobs.QueryLogs` and `client.Jobs.QuerySpans` to query logs and trace spans for a job, plus a telemetry query example.
+
 ## [0.4.0] - 2026-03-06
 
 ### Added

@@ -21,10 +21,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	DataAccessService_GetDatasetForInterval_FullMethodName = "/datasets.v1.DataAccessService/GetDatasetForInterval"
-	DataAccessService_GetDatapointByID_FullMethodName      = "/datasets.v1.DataAccessService/GetDatapointByID"
-	DataAccessService_QueryByID_FullMethodName             = "/datasets.v1.DataAccessService/QueryByID"
-	DataAccessService_Query_FullMethodName                 = "/datasets.v1.DataAccessService/Query"
+	DataAccessService_QueryByID_FullMethodName = "/datasets.v1.DataAccessService/QueryByID"
+	DataAccessService_Query_FullMethodName     = "/datasets.v1.DataAccessService/Query"
 )
 
 // DataAccessServiceClient is the client API for DataAccessService service.
@@ -33,10 +31,6 @@ const (
 //
 // DataAccessService provides data access and querying capabilities for Tilebox datasets.
 type DataAccessServiceClient interface {
-	// legacy endpoint, kept around for backwards compatibility with older python clients for now
-	GetDatasetForInterval(ctx context.Context, in *GetDatasetForIntervalRequest, opts ...grpc.CallOption) (*DatapointPage, error)
-	// legacy endpoint, kept around for backwards compatibility with older python clients for now
-	GetDatapointByID(ctx context.Context, in *GetDatapointByIdRequest, opts ...grpc.CallOption) (*Datapoint, error)
 	// QueryByID returns a single data point by its ID.
 	QueryByID(ctx context.Context, in *QueryByIDRequest, opts ...grpc.CallOption) (*Any, error)
 	// Query returns a list of data points matching the given query filters.
@@ -49,26 +43,6 @@ type dataAccessServiceClient struct {
 
 func NewDataAccessServiceClient(cc grpc.ClientConnInterface) DataAccessServiceClient {
 	return &dataAccessServiceClient{cc}
-}
-
-func (c *dataAccessServiceClient) GetDatasetForInterval(ctx context.Context, in *GetDatasetForIntervalRequest, opts ...grpc.CallOption) (*DatapointPage, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(DatapointPage)
-	err := c.cc.Invoke(ctx, DataAccessService_GetDatasetForInterval_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *dataAccessServiceClient) GetDatapointByID(ctx context.Context, in *GetDatapointByIdRequest, opts ...grpc.CallOption) (*Datapoint, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Datapoint)
-	err := c.cc.Invoke(ctx, DataAccessService_GetDatapointByID_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *dataAccessServiceClient) QueryByID(ctx context.Context, in *QueryByIDRequest, opts ...grpc.CallOption) (*Any, error) {
@@ -97,10 +71,6 @@ func (c *dataAccessServiceClient) Query(ctx context.Context, in *QueryRequest, o
 //
 // DataAccessService provides data access and querying capabilities for Tilebox datasets.
 type DataAccessServiceServer interface {
-	// legacy endpoint, kept around for backwards compatibility with older python clients for now
-	GetDatasetForInterval(context.Context, *GetDatasetForIntervalRequest) (*DatapointPage, error)
-	// legacy endpoint, kept around for backwards compatibility with older python clients for now
-	GetDatapointByID(context.Context, *GetDatapointByIdRequest) (*Datapoint, error)
 	// QueryByID returns a single data point by its ID.
 	QueryByID(context.Context, *QueryByIDRequest) (*Any, error)
 	// Query returns a list of data points matching the given query filters.
@@ -115,12 +85,6 @@ type DataAccessServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedDataAccessServiceServer struct{}
 
-func (UnimplementedDataAccessServiceServer) GetDatasetForInterval(context.Context, *GetDatasetForIntervalRequest) (*DatapointPage, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetDatasetForInterval not implemented")
-}
-func (UnimplementedDataAccessServiceServer) GetDatapointByID(context.Context, *GetDatapointByIdRequest) (*Datapoint, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetDatapointByID not implemented")
-}
 func (UnimplementedDataAccessServiceServer) QueryByID(context.Context, *QueryByIDRequest) (*Any, error) {
 	return nil, status.Error(codes.Unimplemented, "method QueryByID not implemented")
 }
@@ -146,42 +110,6 @@ func RegisterDataAccessServiceServer(s grpc.ServiceRegistrar, srv DataAccessServ
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&DataAccessService_ServiceDesc, srv)
-}
-
-func _DataAccessService_GetDatasetForInterval_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDatasetForIntervalRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataAccessServiceServer).GetDatasetForInterval(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataAccessService_GetDatasetForInterval_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataAccessServiceServer).GetDatasetForInterval(ctx, req.(*GetDatasetForIntervalRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _DataAccessService_GetDatapointByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetDatapointByIdRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataAccessServiceServer).GetDatapointByID(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: DataAccessService_GetDatapointByID_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataAccessServiceServer).GetDatapointByID(ctx, req.(*GetDatapointByIdRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _DataAccessService_QueryByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -227,14 +155,6 @@ var DataAccessService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "datasets.v1.DataAccessService",
 	HandlerType: (*DataAccessServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetDatasetForInterval",
-			Handler:    _DataAccessService_GetDatasetForInterval_Handler,
-		},
-		{
-			MethodName: "GetDatapointByID",
-			Handler:    _DataAccessService_GetDatapointByID_Handler,
-		},
 		{
 			MethodName: "QueryByID",
 			Handler:    _DataAccessService_QueryByID_Handler,
