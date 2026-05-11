@@ -26,7 +26,7 @@ func main() {
 		},
 	)
 	if err != nil {
-		slog.Error("Failed to create dataset", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to create dataset", slog.Any("error", err))
 		return
 	}
 	slog.InfoContext(ctx, "Created dataset", slog.String("dataset_id", dataset.ID.String()))
@@ -44,7 +44,7 @@ func main() {
 		},
 	)
 	if err != nil {
-		slog.Error("Failed to update dataset", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to update dataset", slog.Any("error", err))
 		return
 	}
 

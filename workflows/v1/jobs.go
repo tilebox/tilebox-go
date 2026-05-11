@@ -154,36 +154,36 @@ type SpanEvent struct {
 	Attributes map[string]any
 }
 
-// SortDirection specifies the sort direction for telemetry query results.
+// SortDirection specifies the sort direction for observability query results.
 type SortDirection int32
 
 // SortDirection values.
 const (
 	_ SortDirection = iota
-	// Ascending sorts telemetry query results oldest first.
+	// Ascending sorts observability query results oldest first.
 	Ascending
-	// Descending sorts telemetry query results newest first.
+	// Descending sorts observability query results newest first.
 	Descending
 )
 
-// TelemetryQueryOption contains options for querying job telemetry.
+// TelemetryQueryOption contains options for querying job observability.
 type TelemetryQueryOption struct {
-	// Limit is the maximum number of telemetry records to return.
+	// Limit is the maximum number of observability records to return.
 	// Leave unset or set to 0 to paginate through and return all records.
 	Limit int64
-	// SortDirection is the direction in which telemetry records should be sorted.
+	// SortDirection is the direction in which observability records should be sorted.
 	// Leave unset to let the server choose its default sort direction.
 	SortDirection SortDirection
 }
 
-// WithLimit limits the total number of telemetry records returned.
+// WithLimit limits the total number of observability records returned.
 //
 // Defaults to unlimited.
 func WithLimit(limit int64) TelemetryQueryOption {
 	return TelemetryQueryOption{Limit: limit}
 }
 
-// WithSortDirection sets the sort direction for telemetry query results.
+// WithSortDirection sets the sort direction for observability query results.
 //
 // Defaults to the server default.
 func WithSortDirection(direction SortDirection) TelemetryQueryOption {

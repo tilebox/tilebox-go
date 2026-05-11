@@ -7,9 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-11
+
 ### Added
 
 - `workflows`: Added `client.Jobs.QueryLogs` and `client.Jobs.QuerySpans` to query logs and trace spans for a job, plus a telemetry query example.
+- `workflows`: Added `ConfigureConsoleLogging` to enable console log output that composes with the Tilebox OpenTelemetry log exporter.
+- `workflows`: Added `WithSpan` and `WithSpanResult` helpers to start spans from the current task execution context without manually passing a tracer.
+
+### Changed
+
+- `workflows`: Correlate context-aware task logs with traces by adding `trace_id`, `span_id`, and `task_id` attributes and recording log messages as span events.
+- `examples`: Updated workflow and dataset examples to use context-aware `slog` methods.
 
 ## [0.4.0] - 2026-03-06
 
@@ -81,7 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/tilebox/tilebox-go/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/tilebox/tilebox-go/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/tilebox/tilebox-go/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/tilebox/tilebox-go/compare/v0.3.0...v0.3.1

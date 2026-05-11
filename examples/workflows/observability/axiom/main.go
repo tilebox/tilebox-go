@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
-	"github.com/tilebox/tilebox-go/examples/workflows/axiom"
 	"github.com/tilebox/tilebox-go/observability"
 	"github.com/tilebox/tilebox-go/observability/logger"
 	"github.com/tilebox/tilebox-go/observability/tracer"
@@ -13,7 +13,23 @@ import (
 )
 
 // specify a service name and version to identify the instrumenting application in traces and logs
-var service = &observability.Service{Name: "submitter", Version: "dev"}
+var service = &observability.Service{Name: "axiom-example", Version: "dev"}
+
+type MyAxiomTask struct{}
+
+func (t *MyAxiomTask) Execute(ctx context.Context) error {
+	// Start an openTelemetry tracing span that will be exported to Axiom
+	result, err := workflows.WithSpanResult(ctx, "compute", func(ctx context.Context) (int, error) {
+		return 6 * 7, nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to compute: %w", err)
+	}
+
+	// Log the result to Axiom
+	slog.InfoContext(ctx, "Computed result", slog.Int("result", result))
+	return nil
+}
 
 func main() {
 	ctx := context.Background()
@@ -24,32 +40,46 @@ func main() {
 	)
 	defer shutdownLogger(ctx)
 	if err != nil {
-		slog.Error("failed to set up axiom log handler", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to set up axiom log handler", slog.Any("error", err))
 		return
 	}
 	tileboxLogger := logger.New( // initialize a slog.Logger
 		axiomHandler, // export logs to Axiom
-		logger.NewConsoleHandler(logger.WithLevel(slog.LevelWarn)), // and additionally, export WARN and ERROR logs to stdout
 	)
 	slog.SetDefault(tileboxLogger) // all future slog calls will be forwarded to the tilebox logger
+	workflows.ConfigureConsoleLogging(slog.LevelWarn)
 
 	// Setup an OpenTelemetry trace span processor, exporting traces and spans to Axiom
 	tileboxTracerProvider, shutdown, err := tracer.NewAxiomProviderFromEnv(ctx, service)
 	defer shutdown(ctx)
 	if err != nil {
-		slog.Error("failed to set up axiom tracer provider", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to set up axiom tracer provider", slog.Any("error", err))
 		return
 	}
 	otel.SetTracerProvider(tileboxTracerProvider) // set the tilebox tracer provider as the global OTEL tracer provider
 
 	client := workflows.NewClient()
+
 	job, err := client.Jobs.Submit(ctx, "Axiom Observability",
-		[]workflows.Task{&axiom.MyAxiomTask{}},
+		[]workflows.Task{&MyAxiomTask{}},
 	)
 	if err != nil {
-		slog.Error("Failed to submit job", "error", err)
+		slog.ErrorContext(ctx, "Failed to submit job", "error", err)
 		return
 	}
 
-	slog.Info("Job submitted", slog.String("job_id", job.ID.String()))
+	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
+
+	taskRunner, err := client.NewTaskRunner(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create task runner", slog.Any("error", err))
+		return
+	}
+
+	if err := taskRunner.RegisterTasks(&MyAxiomTask{}); err != nil {
+		slog.ErrorContext(ctx, "failed to register tasks", slog.Any("error", err))
+		return
+	}
+
+	taskRunner.RunForever(ctx)
 }

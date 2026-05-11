@@ -41,6 +41,7 @@ func NewRecordClient(tb testing.TB, filename string) *Client {
 		WithURL("https://api.tilebox.com"),
 		WithAPIKey(apiKey),
 		WithHTTPClient(httpClient),
+		WithDisableTracing(),
 	)
 }
 
@@ -61,6 +62,7 @@ func NewReplayClient(tb testing.TB, filename string) *Client {
 		WithURL("https://api.tilebox.com"), // url/key doesn't matter
 		WithAPIKey("key"),
 		WithHTTPClient(httpClient),
+		WithDisableTracing(),
 	)
 }
 

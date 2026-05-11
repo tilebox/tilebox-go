@@ -2,7 +2,7 @@
 
 This example uses a protobuf message to define `SpawnWorkflowTreeTask` task.
 
-The task definition is defined in [workflow.proto](../../../apis/examples/v1/workflow.proto) and the task implementation is in [example_workflow.go](tasks.go).
+The task definition is defined in [workflow.proto](../../../apis/examples/v1/workflow.proto) and the task implementation is in [main.go](main.go).
 
 The generated code of `workflow.proto` is in [workflow.pb.go](../../../protogen/examples/v1/workflow.pb.go) and can be (re-)generated using the following command:
 
@@ -10,6 +10,10 @@ The generated code of `workflow.proto` is in [workflow.pb.go](../../../protogen/
 go generate ./...
 ```
 
-- [submitter/main.go](submitter/main.go) submits a workflow to Tilebox Workflows with a protobuf root task.
-- [runner/main.go](runner/main.go) starts a task runner that can execute both protobuf and regular struct tasks.
-- [tasks.go](tasks.go) shows the protobuf task implementation and how to submit protobuf sub-tasks.
+- [main.go](main.go) submits a workflow to Tilebox Workflows, starts a task runner to execute it, and shows the protobuf task implementation and how to submit protobuf sub-tasks.
+
+Run the example:
+
+```bash
+go run ./examples/workflows/protobuf-task
+```

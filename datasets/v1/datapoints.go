@@ -335,7 +335,7 @@ func validateDatapoints(datapoints any) error {
 	if slice.Kind() != reflect.Slice {
 		return fmt.Errorf("datapoints must be a pointer to a slice, got %v", reflect.TypeOf(datapoints))
 	}
-	if slice.Type().Elem().Kind() != reflect.Ptr {
+	if slice.Type().Elem().Kind() != reflect.Pointer {
 		return fmt.Errorf("datapoints must be a pointer to a slice of proto.Message, got %v", reflect.TypeOf(datapoints))
 	}
 	messageType := reflect.TypeFor[proto.Message]()

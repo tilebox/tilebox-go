@@ -12,6 +12,7 @@ import (
 
 func main() {
 	ctx := context.Background()
+	workflows.ConfigureConsoleLogging(slog.LevelInfo)
 	client := workflows.NewClient()
 	jobID := uuid.MustParse("019e070c-63ba-1c7e-5f1d-65be3e22d52a")
 
@@ -19,7 +20,7 @@ func main() {
 	fmt.Printf("%-8s  %-30s  %s\n", "LEVEL", "TIME", "BODY") //nolint:forbidigo // This example intentionally prints query results to stdout.
 	for logRecord, err := range client.Jobs.QueryLogs(ctx, jobID, workflows.WithSortDirection(workflows.Ascending)) {
 		if err != nil {
-			slog.Error("failed to query job logs", slog.Any("error", err))
+			slog.ErrorContext(ctx, "failed to query job logs", slog.Any("error", err))
 			return
 		}
 
@@ -35,7 +36,7 @@ func main() {
 	fmt.Printf("%-30s  %-40s  %s\n", "TIME", "SPAN NAME", "DURATION") //nolint:forbidigo // This example intentionally prints query results to stdout.
 	for span, err := range client.Jobs.QuerySpans(ctx, jobID) {
 		if err != nil {
-			slog.Error("failed to query job spans", slog.Any("error", err))
+			slog.ErrorContext(ctx, "failed to query job spans", slog.Any("error", err))
 			return
 		}
 

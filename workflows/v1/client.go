@@ -38,10 +38,13 @@ type Client struct {
 //   - environment variable TILEBOX_API_KEY as the API key
 //   - a grpc.RetryHTTPClient HTTP client
 //   - the global tracer provider
+//   - Tilebox OpenTelemetry exporters when an API key and HTTP(S) API URL are configured
 //
 // The passed options are used to override these default values and configure the returned Client appropriately.
 func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
+	configureTileboxTelemetry(context.Background(), cfg)
+
 	jobConnectClient := newConnectClient(workflowsv1connect.NewJobServiceClient, cfg)
 	telemetryConnectClient := newConnectClient(workflowsv1connect.NewTelemetryQueryServiceClient, cfg)
 	taskConnectClient := newConnectClient(workflowsv1connect.NewTaskServiceClient, cfg)
@@ -76,6 +79,7 @@ type clientConfig struct {
 	connectOptions []connect.ClientOption
 
 	tracerProvider trace.TracerProvider
+	disableTracing bool
 }
 
 // ClientOption is an interface for configuring a client. Using such options helpers is a
@@ -122,6 +126,7 @@ func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
 func WithDisableTracing() ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.tracerProvider = noop.NewTracerProvider()
+		cfg.disableTracing = true
 	}
 }
 

@@ -12,21 +12,24 @@ Head over to [Tilebox Console](https://console.tilebox.com/account/api-keys) if 
 Each example can be run using the following command:
 
 ```bash
-go run ./<example-folder>
+go run ./examples/<example-folder>
 ```
 
-For example, to run the `workflows/helloworld/submitter` example:
-x
+For example, to run the `workflows/helloworld` example:
+
 ```bash
-go run ./workflows/helloworld/submitter
+go run ./examples/workflows/helloworld
 ```
+
+Workflow examples submit a job first, then start a task runner in the same process.
 
 ## Workflows examples
 
 - [Hello world](workflows/helloworld): How to submit a task and run it.
+- [MapReduce](workflows/mapreduce): How to fan out tasks and submit dependent reduce tasks.
+- [Progress](workflows/progress): How to report workflow progress.
 - [Protobuf tasks](workflows/protobuf-task): How to use Protobuf tasks.
-- [Axiom Observability](workflows/axiom): How to set up tracing and logging for workflows using [Axiom](https://axiom.co/) observability platform.
-- [OpenTelemetry Observability](workflows/opentelemetry): How to set up tracing and logging for workflows using [OpenTelemetry](https://opentelemetry.io/).
+- [Observability](workflows/observability): How to query Tilebox workflow telemetry and export traces/logs to custom Axiom or OpenTelemetry backends.
 
 ## Datasets examples
 

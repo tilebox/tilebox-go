@@ -15,8 +15,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploghttp"
 	"go.opentelemetry.io/otel/sdk/log"
-	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
@@ -56,14 +54,8 @@ func NewOtelLogProcessor(ctx context.Context, options ...Option) (log.Processor,
 
 // NewLoggingProviderWithProcessors creates a new OpenTelemetry logger provider with the given processors.
 func NewLoggingProviderWithProcessors(otelService *observability.Service, processors ...log.Processor) *log.LoggerProvider {
-	rs := resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceNameKey.String(otelService.Name),
-		semconv.ServiceVersionKey.String(otelService.Version),
-	)
-
 	opts := make([]log.LoggerProviderOption, 0, len(processors)+1)
-	opts = append(opts, log.WithResource(rs))
+	opts = append(opts, log.WithResource(observability.NewResource(otelService)))
 
 	for _, processor := range processors {
 		opts = append(opts, log.WithProcessor(processor))
@@ -75,11 +67,34 @@ func NewLoggingProviderWithProcessors(otelService *observability.Service, proces
 // tracingAndlevelFilterHandler is a slog.Handler that filters log messages based on the configured level
 // and adds tracing information to each log record.
 type tracingAndlevelFilterHandler struct {
-	level slog.Level
-	next  slog.Handler
+	level        slog.Level
+	next         slog.Handler
+	addSpanEvent bool
 }
 
 var _ slog.Handler = &tracingAndlevelFilterHandler{}
+
+type contextSlogAttributesKeyType string
+
+const contextSlogAttributesKey contextSlogAttributesKeyType = "x-tilebox-ctx-slog-attributes"
+
+// ContextWithSlogAttributes returns a context whose log records include attrs.
+func ContextWithSlogAttributes(ctx context.Context, attributes ...slog.Attr) context.Context {
+	if len(attributes) == 0 {
+		return ctx
+	}
+
+	existing := contextAttributes(ctx)
+	contextAttributes := make([]slog.Attr, 0, len(existing)+len(attributes))
+	contextAttributes = append(contextAttributes, existing...)
+	contextAttributes = append(contextAttributes, attributes...)
+	return context.WithValue(ctx, contextSlogAttributesKey, contextAttributes)
+}
+
+func contextAttributes(ctx context.Context) []slog.Attr {
+	attrs, _ := ctx.Value(contextSlogAttributesKey).([]slog.Attr)
+	return attrs
+}
 
 // Enabled checks if a log message with the given level should be logged.
 func (h *tracingAndlevelFilterHandler) Enabled(ctx context.Context, level slog.Level) bool {
@@ -92,11 +107,26 @@ func (h *tracingAndlevelFilterHandler) Enabled(ctx context.Context, level slog.L
 
 // Handle processes a log record.
 func (h *tracingAndlevelFilterHandler) Handle(ctx context.Context, record slog.Record) error {
-	// add log info to span event
+	attrs := make([]slog.Attr, 0, 2)
+	attrs = append(attrs, contextAttributes(ctx)...)
+
+	spanContext := oteltrace.SpanContextFromContext(ctx)
+	if spanContext.IsValid() {
+		attrs = append(attrs,
+			slog.String("trace_id", spanContext.TraceID().String()),
+			slog.String("span_id", spanContext.SpanID().String()),
+		)
+	}
+
+	if len(attrs) > 0 {
+		record = record.Clone()
+		record.AddAttrs(attrs...)
+	}
+
 	span := oteltrace.SpanFromContext(ctx)
-	if span != nil && span.IsRecording() {
+	if h.addSpanEvent && span.IsRecording() {
 		eventAttrs := make([]attribute.KeyValue, 0, record.NumAttrs())
-		eventAttrs = append(eventAttrs, attribute.String(slog.MessageKey, record.Message))
+		eventAttrs = append(eventAttrs, attribute.String("body", record.Message))
 		eventAttrs = append(eventAttrs, attribute.String(slog.LevelKey, record.Level.String()))
 		eventAttrs = append(eventAttrs, attribute.String(slog.TimeKey, record.Time.Format(time.RFC3339Nano)))
 		record.Attrs(func(attr slog.Attr) bool {
@@ -108,19 +138,20 @@ func (h *tracingAndlevelFilterHandler) Handle(ctx context.Context, record slog.R
 			return true
 		})
 
-		span.AddEvent("log_record", oteltrace.WithAttributes(eventAttrs...))
+		span.AddEvent("log.message", oteltrace.WithAttributes(eventAttrs...))
 	}
+
 	return h.next.Handle(ctx, record)
 }
 
 // WithGroup creates a new handler with the given group name.
 func (h *tracingAndlevelFilterHandler) WithGroup(name string) slog.Handler {
-	return &tracingAndlevelFilterHandler{level: h.level, next: h.next.WithGroup(name)}
+	return &tracingAndlevelFilterHandler{level: h.level, next: h.next.WithGroup(name), addSpanEvent: h.addSpanEvent}
 }
 
 // WithAttrs creates a new handler with the given attributes.
 func (h *tracingAndlevelFilterHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	return &tracingAndlevelFilterHandler{level: h.level, next: h.next.WithAttrs(attrs)}
+	return &tracingAndlevelFilterHandler{level: h.level, next: h.next.WithAttrs(attrs), addSpanEvent: h.addSpanEvent}
 }
 
 func noShutdown(context.Context) {}
@@ -140,8 +171,9 @@ func NewOtelHandler(ctx context.Context, otelService *observability.Service, opt
 	loggerProvider := NewLoggingProviderWithProcessors(otelService, processor)
 
 	return &tracingAndlevelFilterHandler{
-			level: opts.Level,
-			next:  otelslog.NewHandler(otelLoggerName, otelslog.WithLoggerProvider(loggerProvider)),
+			level:        opts.Level,
+			next:         otelslog.NewHandler(otelLoggerName, otelslog.WithLoggerProvider(loggerProvider)),
+			addSpanEvent: true,
 		},
 		func(ctx context.Context) {
 			_ = loggerProvider.Shutdown(ctx)
@@ -187,7 +219,10 @@ func NewConsoleHandler(options ...Option) slog.Handler {
 		option(opts)
 	}
 
-	return tint.NewHandler(os.Stdout, &tint.Options{Level: opts.Level})
+	return &tracingAndlevelFilterHandler{
+		level: opts.Level,
+		next:  tint.NewHandler(os.Stdout, &tint.Options{Level: opts.Level}),
+	}
 }
 
 // New creates a new slog.Logger with the given handlers.

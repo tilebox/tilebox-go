@@ -19,7 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"github.com/tilebox/tilebox-go/internal/span"
-	"github.com/tilebox/tilebox-go/observability"
+	obslogger "github.com/tilebox/tilebox-go/observability/logger"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/runner"
@@ -371,7 +371,11 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 	}
 
 	return span.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (taskExecutionContext *taskExecutionContext, err error) { //nolint:nonamedreturns // needed to return a value in case of panic
-		t.logger.DebugContext(ctx, "executing task", slog.String("task", identifier.Name()), slog.String("version", identifier.Version()))
+		t.logger.DebugContext(ctx, "executing task",
+			slog.String("task_id", task.GetId().AsUUID().String()),
+			slog.String("task", identifier.Name()),
+			slog.String("version", identifier.Version()),
+		)
 		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
 
 		_, isProtobuf := taskStruct.(proto.Message)
@@ -414,6 +418,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 		t.metrics.tasksExecutedMetric.Add(ctx, 1, taskMetricAttributes)
 
 		executionContext := t.withTaskExecutionContext(ctx, task)
+		executionContext = obslogger.ContextWithSlogAttributes(executionContext, slog.String("task_id", task.GetId().AsUUID().String()))
 		err = taskStruct.Execute(executionContext)
 
 		executionTime := time.Since(beforeTime)
@@ -426,7 +431,7 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 			t.metrics.tasksFailedMetric.Add(ctx, 1, taskMetricAttributes)
 			t.metrics.taskExecutionDurationMetric.Record(ctx, executionTime.Seconds(), taskMetricAttributes, metric.WithAttributes(attribute.String("state", "failed")))
 
-			log.ErrorContext(ctx, "task execution failed", slog.Any("error", err), slog.Int64("retry_attempt", task.GetRetryCount()))
+			log.ErrorContext(executionContext, "task execution failed", slog.Any("error", err), slog.Int64("retry_attempt", task.GetRetryCount()))
 			return getTaskExecutionContext(executionContext), fmt.Errorf("failed to execute task: %w", err)
 		}
 
@@ -750,22 +755,12 @@ func Progress(label string) ProgressTracker {
 // WithTaskSpanResult is a helper function that wraps a function with a tracing span.
 // It returns the result of the function and an error if any.
 func WithTaskSpanResult[Result any](ctx context.Context, name string, f func(ctx context.Context) (Result, error)) (Result, error) {
-	executionContext := getTaskExecutionContext(ctx)
-	if executionContext == nil || executionContext.runner.tracer == nil {
-		// if we don't have a task execution context or the tracer is not configured, just run the function without creating a span
-		return f(ctx)
-	}
-	return observability.WithSpanResult(ctx, executionContext.runner.tracer, name, f)
+	return WithSpanResult(ctx, name, f)
 }
 
 // WithTaskSpan is a helper function that wraps a function with a tracing span.
 func WithTaskSpan(ctx context.Context, name string, f func(ctx context.Context) error) error {
-	executionContext := getTaskExecutionContext(ctx)
-	if executionContext == nil || executionContext.runner.tracer == nil {
-		// if we don't have a task execution context or the tracer is not configured, just run the function without creating a span
-		return f(ctx)
-	}
-	return observability.WithSpan(ctx, executionContext.runner.tracer, name, f)
+	return WithSpan(ctx, name, f)
 }
 
 var divs = []time.Duration{

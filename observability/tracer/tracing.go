@@ -9,9 +9,7 @@ import (
 
 	"github.com/tilebox/tilebox-go/observability"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.30.0"
 )
 
 const axiomTracesEndpoint = "https://api.axiom.co/v1/traces"
@@ -50,14 +48,8 @@ func NewOtelSpanProcessor(ctx context.Context, options ...Option) (trace.SpanPro
 
 // NewOtelProviderWithProcessors creates a new OpenTelemetry tracer provider with the given processors.
 func NewOtelProviderWithProcessors(otelService *observability.Service, processors ...trace.SpanProcessor) *trace.TracerProvider {
-	rs := resource.NewWithAttributes(
-		semconv.SchemaURL,
-		semconv.ServiceNameKey.String(otelService.Name),
-		semconv.ServiceVersionKey.String(otelService.Version),
-	)
-
 	opts := make([]trace.TracerProviderOption, 0, len(processors)+2)
-	opts = append(opts, trace.WithResource(rs))
+	opts = append(opts, trace.WithResource(observability.NewResource(otelService)))
 	// Ensure all traces are sampled. It a good default when generating little data (< 100 traces per second).
 	// https://opentelemetry.io/docs/concepts/sampling/#when-not-to-sample
 	opts = append(opts, trace.WithSampler(trace.AlwaysSample()))
