@@ -48,7 +48,7 @@ For examples on how to use the library, see the [examples](examples) directory.
 
 ### Writing a Task
 
-Here we define a simple task that prints "Hello World!" to the console:
+Here we define a simple task that logs "Hello World!":
 
 ```go
 package helloworld
@@ -65,8 +65,8 @@ type HelloTask struct {
 }
 
 // The Execute method isn't needed to submit a task but is required to run a task.
-func (t *HelloTask) Execute(context.Context) error {
-	slog.Info("Hello World!", "Name", t.Name)
+func (t *HelloTask) Execute(ctx context.Context) error {
+	slog.InfoContext(ctx, "Hello World!", slog.String("Name", t.Name))
 	return nil
 }
 
@@ -96,6 +96,7 @@ type HelloTask struct {
 
 func main() {
 	ctx := context.Background()
+	workflows.ConfigureConsoleLogging(slog.LevelInfo)
 	client := workflows.NewClient()
 
 	job, err := client.Jobs.Submit(ctx, "hello-world",
@@ -106,13 +107,15 @@ func main() {
 		},
 	)
 	if err != nil {
-		slog.Error("Failed to submit job", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to submit job", slog.Any("error", err))
 		return
 	}
 
-	slog.Info("Job submitted", slog.String("job_id", job.ID.String()))
+	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
 }
 ```
+
+`workflows.NewClient()` configures Tilebox OpenTelemetry export when an API key is available. `workflows.ConfigureConsoleLogging` adds console output without replacing the Tilebox exporter, so logs are written to both destinations when both are configured.
 
 ### Running a Worker
 
@@ -133,31 +136,31 @@ type HelloTask struct {
 }
 
 // The Execute method is required to run a task.
-func (t *HelloTask) Execute(context.Context) error {
-	slog.Info("Hello World!", "Name", t.Name)
+func (t *HelloTask) Execute(ctx context.Context) error {
+	slog.InfoContext(ctx, "Hello World!", slog.String("Name", t.Name))
 	return nil
 }
 
 func main() {
 	ctx := context.Background()
+	workflows.ConfigureConsoleLogging(slog.LevelInfo)
 	client := workflows.NewClient()
-	
+
 	runner, err := client.NewTaskRunner(ctx)
 	if err != nil {
-		slog.Error("failed to create task runner", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to create task runner", slog.Any("error", err))
 		return
 	}
 
 	err = runner.RegisterTasks(&HelloTask{})
 	if err != nil {
-		slog.Error("failed to register tasks", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to register tasks", slog.Any("error", err))
 		return
 	}
 
 	runner.RunForever(ctx)
 }
 ```
-
 
 ## License
 

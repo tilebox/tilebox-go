@@ -20,14 +20,14 @@ func main() {
 	// Select a dataset
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
 	if err != nil {
-		slog.Error("Failed to get dataset", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to get dataset", slog.Any("error", err))
 		return
 	}
 
 	// Create a collection
 	collection, err := client.Collections.Create(ctx, dataset.ID, "My First Collection")
 	if err != nil {
-		slog.Error("Failed to create collection", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to create collection", slog.Any("error", err))
 		return
 	}
 
@@ -47,16 +47,16 @@ func main() {
 	// Ingest datapoints
 	ingestResponse, err := client.Datapoints.Ingest(ctx, collection.ID, &datapoints, false)
 	if err != nil {
-		slog.Error("Failed to ingest datapoints", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to ingest datapoints", slog.Any("error", err))
 		return
 	}
-	slog.Info("Ingested datapoints", slog.Int64("created", ingestResponse.NumCreated))
+	slog.InfoContext(ctx, "Ingested datapoints", slog.Int64("created", ingestResponse.NumCreated))
 
 	// Delete datapoints again
 	numDeleted, err := client.Datapoints.DeleteIDs(ctx, collection.ID, ingestResponse.DatapointIDs)
 	if err != nil {
-		slog.Error("Failed to delete datapoints", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to delete datapoints", slog.Any("error", err))
 		return
 	}
-	slog.Info("Deleted datapoints", slog.Int64("deleted", numDeleted))
+	slog.InfoContext(ctx, "Deleted datapoints", slog.Int64("deleted", numDeleted))
 }

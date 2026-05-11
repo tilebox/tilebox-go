@@ -1,4 +1,4 @@
-package pbtask
+package main
 
 import (
 	"context"
@@ -60,4 +60,42 @@ func (t *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
 
 	_, err := workflows.SubmitSubtasks(ctx, subtasks)
 	return err
+}
+
+func main() {
+	ctx := context.Background()
+	workflows.ConfigureConsoleLogging(slog.LevelInfo)
+	client := workflows.NewClient()
+
+	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree",
+		[]workflows.Task{
+			&SampleTask{ // regular struct task
+				Message:      "hello go runner!",
+				Depth:        8,
+				BranchFactor: 4,
+			},
+		},
+	)
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to submit job", "error", err)
+		return
+	}
+
+	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
+
+	taskRunner, err := client.NewTaskRunner(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to create task runner", slog.Any("error", err))
+		return
+	}
+
+	if err := taskRunner.RegisterTasks(
+		&SampleTask{},            // regular struct task
+		&SpawnWorkflowTreeTask{}, // protobuf task
+	); err != nil {
+		slog.ErrorContext(ctx, "failed to register tasks", slog.Any("error", err))
+		return
+	}
+
+	taskRunner.RunForever(ctx)
 }

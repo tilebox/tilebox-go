@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
-	"github.com/tilebox/tilebox-go/examples/workflows/opentelemetry"
 	"github.com/tilebox/tilebox-go/observability"
 	"github.com/tilebox/tilebox-go/observability/logger"
 	"github.com/tilebox/tilebox-go/observability/tracer"
@@ -13,7 +13,23 @@ import (
 )
 
 // specify a service name and version to identify the instrumenting application in traces and logs
-var service = &observability.Service{Name: "task-runner", Version: "dev"}
+var service = &observability.Service{Name: "opentelemetry-example", Version: "dev"}
+
+type MyOpenTelemetryTask struct{}
+
+func (t *MyOpenTelemetryTask) Execute(ctx context.Context) error {
+	// Start an openTelemetry tracing span that will be exported to the OpenTelemetry endpoint
+	result, err := workflows.WithSpanResult(ctx, "compute", func(ctx context.Context) (int, error) {
+		return 6 * 7, nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to compute: %w", err)
+	}
+
+	// Log the result to the OpenTelemetry endpoint
+	slog.InfoContext(ctx, "Computed result", slog.Int("result", result))
+	return nil
+}
 
 func main() {
 	ctx := context.Background()
@@ -31,14 +47,14 @@ func main() {
 	)
 	defer shutdownLogger(ctx)
 	if err != nil {
-		slog.Error("failed to set up otel log handler", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to set up otel log handler", slog.Any("error", err))
 		return
 	}
 	tileboxLogger := logger.New( // initialize a slog.Logger
 		otelHandler, // export logs to the OTEL handler
-		logger.NewConsoleHandler(logger.WithLevel(slog.LevelWarn)), // and additionally, export WARN and ERROR logs to stdout
 	)
 	slog.SetDefault(tileboxLogger) // all future slog calls will be forwarded to the tilebox logger
+	workflows.ConfigureConsoleLogging(slog.LevelWarn)
 
 	// Setup an OpenTelemetry trace span processor, exporting traces and spans to an OTEL compatible trace endpoint
 	tileboxTracerProvider, shutdown, err := tracer.NewOtelProvider(ctx, service,
@@ -47,21 +63,31 @@ func main() {
 	)
 	defer shutdown(ctx)
 	if err != nil {
-		slog.Error("failed to set up otel span processor", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to set up otel span processor", slog.Any("error", err))
 		return
 	}
 	otel.SetTracerProvider(tileboxTracerProvider) // set the tilebox tracer provider as the global OTEL tracer provider
 
 	client := workflows.NewClient()
-	taskRunner, err := client.NewTaskRunner(ctx)
+
+	job, err := client.Jobs.Submit(ctx, "OpenTelemetry Observability",
+		[]workflows.Task{&MyOpenTelemetryTask{}},
+	)
 	if err != nil {
-		slog.Error("failed to create task runner", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to submit job", "error", err)
 		return
 	}
 
-	err = taskRunner.RegisterTasks(&opentelemetry.MyOpenTelemetryTask{})
+	slog.InfoContext(ctx, "Job submitted", slog.String("job_id", job.ID.String()))
+
+	taskRunner, err := client.NewTaskRunner(ctx)
 	if err != nil {
-		slog.Error("failed to register tasks", slog.Any("error", err))
+		slog.ErrorContext(ctx, "failed to create task runner", slog.Any("error", err))
+		return
+	}
+
+	if err := taskRunner.RegisterTasks(&MyOpenTelemetryTask{}); err != nil {
+		slog.ErrorContext(ctx, "failed to register tasks", slog.Any("error", err))
 		return
 	}
 

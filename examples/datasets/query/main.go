@@ -21,14 +21,14 @@ func main() {
 	// Select a dataset
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
 	if err != nil {
-		slog.Error("Failed to get dataset", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to get dataset", slog.Any("error", err))
 		return
 	}
 
 	// Select a collection
 	collection, err := client.Collections.Get(ctx, dataset.ID, "S2A_S2MSI1C")
 	if err != nil {
-		slog.Error("Failed to get collection", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to get collection", slog.Any("error", err))
 		return
 	}
 
@@ -52,13 +52,13 @@ func main() {
 		datasets.WithSpatialExtent(area),
 	)
 	if err != nil {
-		slog.Error("Failed to query datapoints", slog.Any("error", err))
+		slog.ErrorContext(ctx, "Failed to query datapoints", slog.Any("error", err))
 		return
 	}
 
-	slog.Info("Found datapoints over Colorado in March 2025", slog.Int("count", len(foundDatapoints)))
+	slog.InfoContext(ctx, "Found datapoints over Colorado in March 2025", slog.Int("count", len(foundDatapoints)))
 	if len(foundDatapoints) > 0 {
-		slog.Info("First datapoint over Colorado",
+		slog.InfoContext(ctx, "First datapoint over Colorado",
 			slog.String("id", foundDatapoints[0].GetId().AsUUID().String()),
 			slog.Time("event time", foundDatapoints[0].GetTime().AsTime()),
 			slog.Time("ingestion time", foundDatapoints[0].GetIngestionTime().AsTime()),
