@@ -43,13 +43,14 @@ type Client struct {
 func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
 	jobConnectClient := newConnectClient(workflowsv1connect.NewJobServiceClient, cfg)
+	telemetryConnectClient := newConnectClient(workflowsv1connect.NewTelemetryQueryServiceClient, cfg)
 	taskConnectClient := newConnectClient(workflowsv1connect.NewTaskServiceClient, cfg)
 	workflowConnectClient := newConnectClient(workflowsv1connect.NewWorkflowsServiceClient, cfg)
 
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
 
 	return &Client{
-		Jobs:     &jobClient{service: newJobService(jobConnectClient, tracer)},
+		Jobs:     &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
 		Clusters: &clusterClient{service: newWorkflowService(workflowConnectClient, tracer)},
 
 		taskService: newTaskService(taskConnectClient, tracer),

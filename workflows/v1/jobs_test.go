@@ -8,9 +8,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"github.com/tilebox/tilebox-go/query"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
+	commonv1 "go.opentelemetry.io/proto/otlp/common/v1"
+	logsv1 "go.opentelemetry.io/proto/otlp/logs/v1"
+	resourcev1 "go.opentelemetry.io/proto/otlp/resource/v1"
+	tracev1 "go.opentelemetry.io/proto/otlp/trace/v1"
 )
 
 type mockJobService struct {
@@ -19,12 +24,43 @@ type mockJobService struct {
 	reqs []*workflowsv1.SubmitJobRequest
 }
 
+type mockTelemetryService struct {
+	TelemetryService
+
+	logPages       []*workflowsv1.PaginatedLogsData
+	spanPages      []*workflowsv1.PaginatedSpansData
+	logPageReqs    []*tileboxv1.Pagination
+	spanPageReqs   []*tileboxv1.Pagination
+	logSortReqs    []*workflowsv1.SortDirection
+	spanSortReqs   []*workflowsv1.SortDirection
+	queryLogJobID  uuid.UUID
+	querySpanJobID uuid.UUID
+}
+
 func (m *mockJobService) SubmitJob(_ context.Context, req *workflowsv1.SubmitJobRequest) (*workflowsv1.Job, error) {
 	m.reqs = append(m.reqs, req)
 
 	return workflowsv1.Job_builder{
 		Name: req.GetJobName(),
 	}.Build(), nil
+}
+
+func (m *mockTelemetryService) QueryJobLogs(_ context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *workflowsv1.SortDirection) (*workflowsv1.PaginatedLogsData, error) {
+	m.queryLogJobID = jobID
+	m.logPageReqs = append(m.logPageReqs, page)
+	m.logSortReqs = append(m.logSortReqs, sortDirection)
+
+	pageIndex := len(m.logPageReqs) - 1
+	return m.logPages[pageIndex], nil
+}
+
+func (m *mockTelemetryService) QueryJobSpans(_ context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *workflowsv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
+	m.querySpanJobID = jobID
+	m.spanPageReqs = append(m.spanPageReqs, page)
+	m.spanSortReqs = append(m.spanSortReqs, sortDirection)
+
+	pageIndex := len(m.spanPageReqs) - 1
+	return m.spanPages[pageIndex], nil
 }
 
 func TestJobService_Submit(t *testing.T) {
@@ -131,4 +167,185 @@ func Test_jobClient_Query(t *testing.T) {
 	assert.Equal(t, "my-windows-job", firstJob.Name)
 	assert.Equal(t, "0194ad17-bdaf-ff8e-983b-d1299fd2d235", firstJob.ID.String())
 	assert.Equal(t, job.Completed, firstJob.State)
+}
+
+func Test_jobClient_QueryLogs(t *testing.T) {
+	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	nextPage := tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b"))}.Build()
+	service := &mockTelemetryService{
+		logPages: []*workflowsv1.PaginatedLogsData{
+			workflowsv1.PaginatedLogsData_builder{
+				ResourceLogs: []*logsv1.ResourceLogs{testResourceLogs("first log", 10)},
+				NextPage:     nextPage,
+			}.Build(),
+			workflowsv1.PaginatedLogsData_builder{
+				ResourceLogs: []*logsv1.ResourceLogs{testResourceLogs("second log", 20)},
+			}.Build(),
+		},
+	}
+	client := jobClient{telemetryService: service}
+
+	logs, err := Collect(client.QueryLogs(context.Background(), jobID))
+	require.NoError(t, err)
+	require.Len(t, logs, 2)
+
+	assert.Equal(t, jobID, service.queryLogJobID)
+	require.Len(t, service.logPageReqs, 2)
+	assert.Nil(t, service.logPageReqs[0])
+	assert.Equal(t, nextPage, service.logPageReqs[1])
+	assert.Equal(t, []*workflowsv1.SortDirection{nil, nil}, service.logSortReqs)
+	assert.Equal(t, "first log", logs[0].Body)
+	assert.Equal(t, 10, logs[0].SeverityNumber)
+	assert.Equal(t, "INFO", logs[0].SeverityText)
+	assert.Equal(t, "010203", logs[0].TraceID)
+	assert.Equal(t, map[string]any{"attempt": int64(3)}, logs[0].Attributes)
+	assert.Equal(t, map[string]any{"runner": "test-runner"}, logs[0].RunnerAttributes)
+}
+
+func Test_jobClient_QueryLogs_WithOptions(t *testing.T) {
+	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	nextPage := tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b"))}.Build()
+	service := &mockTelemetryService{
+		logPages: []*workflowsv1.PaginatedLogsData{
+			workflowsv1.PaginatedLogsData_builder{
+				ResourceLogs: []*logsv1.ResourceLogs{testResourceLogs("first log", 10)},
+				NextPage:     nextPage,
+			}.Build(),
+			workflowsv1.PaginatedLogsData_builder{
+				ResourceLogs: []*logsv1.ResourceLogs{testResourceLogs("second log", 20), testResourceLogs("third log", 30)},
+			}.Build(),
+		},
+	}
+	client := jobClient{telemetryService: service}
+
+	logs, err := Collect(client.QueryLogs(context.Background(), jobID, WithLimit(2), WithSortDirection(Descending)))
+	require.NoError(t, err)
+	require.Len(t, logs, 2)
+
+	require.Len(t, service.logPageReqs, 2)
+	assert.Equal(t, int64(2), service.logPageReqs[0].GetLimit())
+	assert.Nil(t, service.logPageReqs[0].GetStartingAfter())
+	assert.Equal(t, int64(1), service.logPageReqs[1].GetLimit())
+	assert.Equal(t, nextPage.GetStartingAfter(), service.logPageReqs[1].GetStartingAfter())
+	require.Len(t, service.logSortReqs, 2)
+	assert.Equal(t, workflowsv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[0])
+	assert.Equal(t, workflowsv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[1])
+	assert.Equal(t, "first log", logs[0].Body)
+	assert.Equal(t, "second log", logs[1].Body)
+}
+
+func Test_jobClient_QuerySpans(t *testing.T) {
+	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	service := &mockTelemetryService{
+		spanPages: []*workflowsv1.PaginatedSpansData{
+			workflowsv1.PaginatedSpansData_builder{
+				ResourceSpans: []*tracev1.ResourceSpans{testResourceSpans()},
+			}.Build(),
+		},
+	}
+	client := jobClient{telemetryService: service}
+
+	spans, err := Collect(client.QuerySpans(context.Background(), jobID))
+	require.NoError(t, err)
+	require.Len(t, spans, 1)
+
+	assert.Equal(t, jobID, service.querySpanJobID)
+	require.Len(t, service.spanPageReqs, 1)
+	assert.Nil(t, service.spanPageReqs[0])
+	assert.Equal(t, []*workflowsv1.SortDirection{nil}, service.spanSortReqs)
+	assert.Equal(t, "task/run", spans[0].Name)
+	assert.Equal(t, "010203", spans[0].TraceID)
+	assert.Equal(t, "040506", spans[0].SpanID)
+	assert.Equal(t, "070809", spans[0].ParentSpanID)
+	assert.Equal(t, "STATUS_CODE_ERROR", spans[0].StatusCode)
+	assert.Equal(t, "failed", spans[0].StatusMessage)
+	assert.Equal(t, 10*time.Millisecond, spans[0].Duration())
+	assert.Equal(t, map[string]any{"task": "example"}, spans[0].Attributes)
+	assert.Equal(t, map[string]any{"runner": "test-runner"}, spans[0].RunnerAttributes)
+	require.Len(t, spans[0].Events, 1)
+	assert.Equal(t, "retry", spans[0].Events[0].Name)
+	assert.Equal(t, map[string]any{"count": int64(1)}, spans[0].Events[0].Attributes)
+}
+
+func Test_jobClient_QuerySpans_WithOptions(t *testing.T) {
+	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	service := &mockTelemetryService{
+		spanPages: []*workflowsv1.PaginatedSpansData{
+			workflowsv1.PaginatedSpansData_builder{
+				ResourceSpans: []*tracev1.ResourceSpans{testResourceSpans(), testResourceSpans()},
+			}.Build(),
+		},
+	}
+	client := jobClient{telemetryService: service}
+
+	spans, err := Collect(client.QuerySpans(context.Background(), jobID, WithLimit(1), WithSortDirection(Ascending)))
+	require.NoError(t, err)
+	require.Len(t, spans, 1)
+
+	require.Len(t, service.spanPageReqs, 1)
+	assert.Equal(t, int64(1), service.spanPageReqs[0].GetLimit())
+	require.Len(t, service.spanSortReqs, 1)
+	assert.Equal(t, workflowsv1.SortDirection_SORT_DIRECTION_ASCENDING, *service.spanSortReqs[0])
+}
+
+func testResourceLogs(body string, severity logsv1.SeverityNumber) *logsv1.ResourceLogs {
+	return &logsv1.ResourceLogs{
+		Resource: &resourcev1.Resource{Attributes: []*commonv1.KeyValue{stringKeyValue("runner", "test-runner")}},
+		ScopeLogs: []*logsv1.ScopeLogs{
+			{
+				LogRecords: []*logsv1.LogRecord{
+					{
+						TimeUnixNano:   uint64(time.Unix(1, 2).UnixNano()),
+						SeverityNumber: severity,
+						SeverityText:   "INFO",
+						Body:           stringValue(body),
+						TraceId:        []byte{1, 2, 3},
+						SpanId:         []byte{4, 5, 6},
+						Attributes:     []*commonv1.KeyValue{intKeyValue("attempt", 3)},
+					},
+				},
+			},
+		},
+	}
+}
+
+func testResourceSpans() *tracev1.ResourceSpans {
+	return &tracev1.ResourceSpans{
+		Resource: &resourcev1.Resource{Attributes: []*commonv1.KeyValue{stringKeyValue("runner", "test-runner")}},
+		ScopeSpans: []*tracev1.ScopeSpans{
+			{
+				Spans: []*tracev1.Span{
+					{
+						TraceId:           []byte{1, 2, 3},
+						SpanId:            []byte{4, 5, 6},
+						ParentSpanId:      []byte{7, 8, 9},
+						Name:              "task/run",
+						StartTimeUnixNano: uint64(time.Unix(1, 0).UnixNano()),
+						EndTimeUnixNano:   uint64(time.Unix(1, int64(10*time.Millisecond)).UnixNano()),
+						Attributes:        []*commonv1.KeyValue{stringKeyValue("task", "example")},
+						Status:            &tracev1.Status{Code: tracev1.Status_STATUS_CODE_ERROR, Message: "failed"},
+						Events: []*tracev1.Span_Event{
+							{
+								TimeUnixNano: uint64(time.Unix(1, int64(5*time.Millisecond)).UnixNano()),
+								Name:         "retry",
+								Attributes:   []*commonv1.KeyValue{intKeyValue("count", 1)},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func stringKeyValue(key string, value string) *commonv1.KeyValue {
+	return &commonv1.KeyValue{Key: key, Value: stringValue(value)}
+}
+
+func intKeyValue(key string, value int64) *commonv1.KeyValue {
+	return &commonv1.KeyValue{Key: key, Value: &commonv1.AnyValue{Value: &commonv1.AnyValue_IntValue{IntValue: value}}}
+}
+
+func stringValue(value string) *commonv1.AnyValue {
+	return &commonv1.AnyValue{Value: &commonv1.AnyValue_StringValue{StringValue: value}}
 }
