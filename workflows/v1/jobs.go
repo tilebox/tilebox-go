@@ -695,6 +695,11 @@ func anyValueToGo(value *commonv1.AnyValue) any {
 }
 
 func timeFromUnixNanos(unixNanos uint64) time.Time {
+	const maxInt64 = uint64(1<<63 - 1)
+	if unixNanos > maxInt64 {
+		return time.Unix(0, int64(maxInt64)).UTC()
+	}
+
 	return time.Unix(0, int64(unixNanos)).UTC()
 }
 
