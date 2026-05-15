@@ -25,61 +25,13 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// SortDirection specifies the direction in which to sort log entries when querying logs. It can be used in combination
-// with the cursor field in TelemetryPagination to paginate through log entries in either ascending or descending order.
-type SortDirection int32
-
-const (
-	SortDirection_SORT_DIRECTION_UNSPECIFIED SortDirection = 0
-	// Sort in ascending order (oldest entries first).
-	SortDirection_SORT_DIRECTION_ASCENDING SortDirection = 1
-	// Sort in descending order (newest entries first).
-	SortDirection_SORT_DIRECTION_DESCENDING SortDirection = 2
-)
-
-// Enum value maps for SortDirection.
-var (
-	SortDirection_name = map[int32]string{
-		0: "SORT_DIRECTION_UNSPECIFIED",
-		1: "SORT_DIRECTION_ASCENDING",
-		2: "SORT_DIRECTION_DESCENDING",
-	}
-	SortDirection_value = map[string]int32{
-		"SORT_DIRECTION_UNSPECIFIED": 0,
-		"SORT_DIRECTION_ASCENDING":   1,
-		"SORT_DIRECTION_DESCENDING":  2,
-	}
-)
-
-func (x SortDirection) Enum() *SortDirection {
-	p := new(SortDirection)
-	*p = x
-	return p
-}
-
-func (x SortDirection) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (SortDirection) Descriptor() protoreflect.EnumDescriptor {
-	return file_workflows_v1_telemetry_proto_enumTypes[0].Descriptor()
-}
-
-func (SortDirection) Type() protoreflect.EnumType {
-	return &file_workflows_v1_telemetry_proto_enumTypes[0]
-}
-
-func (x SortDirection) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
 // QueryJobLogsRequest is the request message for querying logs of a specific job, in ascending or descending order,
 // with pagination support.
 type QueryJobLogsRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_JobId         *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
 	xxx_hidden_Page          *v1.Pagination         `protobuf:"bytes,2,opt,name=page"`
-	xxx_hidden_SortDirection SortDirection          `protobuf:"varint,3,opt,name=sort_direction,json=sortDirection,enum=workflows.v1.SortDirection"`
+	xxx_hidden_SortDirection v1.SortDirection       `protobuf:"varint,3,opt,name=sort_direction,json=sortDirection,enum=tilebox.v1.SortDirection"`
 	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
 	XXX_presence             [1]uint32
 	unknownFields            protoimpl.UnknownFields
@@ -125,13 +77,13 @@ func (x *QueryJobLogsRequest) GetPage() *v1.Pagination {
 	return nil
 }
 
-func (x *QueryJobLogsRequest) GetSortDirection() SortDirection {
+func (x *QueryJobLogsRequest) GetSortDirection() v1.SortDirection {
 	if x != nil {
 		if protoimpl.X.Present(&(x.XXX_presence[0]), 2) {
 			return x.xxx_hidden_SortDirection
 		}
 	}
-	return SortDirection_SORT_DIRECTION_UNSPECIFIED
+	return v1.SortDirection(0)
 }
 
 func (x *QueryJobLogsRequest) SetJobId(v *v1.ID) {
@@ -142,7 +94,7 @@ func (x *QueryJobLogsRequest) SetPage(v *v1.Pagination) {
 	x.xxx_hidden_Page = v
 }
 
-func (x *QueryJobLogsRequest) SetSortDirection(v SortDirection) {
+func (x *QueryJobLogsRequest) SetSortDirection(v v1.SortDirection) {
 	x.xxx_hidden_SortDirection = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
 }
@@ -178,7 +130,7 @@ func (x *QueryJobLogsRequest) ClearPage() {
 
 func (x *QueryJobLogsRequest) ClearSortDirection() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_SortDirection = SortDirection_SORT_DIRECTION_UNSPECIFIED
+	x.xxx_hidden_SortDirection = v1.SortDirection_SORT_DIRECTION_UNSPECIFIED
 }
 
 type QueryJobLogsRequest_builder struct {
@@ -189,7 +141,7 @@ type QueryJobLogsRequest_builder struct {
 	// The pagination parameters for this request.
 	Page *v1.Pagination
 	// The direction in which to sort log entries. If not specified, defaults to ascending order (oldest entries first).
-	SortDirection *SortDirection
+	SortDirection *v1.SortDirection
 }
 
 func (b0 QueryJobLogsRequest_builder) Build() *QueryJobLogsRequest {
@@ -211,7 +163,7 @@ type QueryLogsInIntervalRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_TimeInterval  *v1.TimeInterval       `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval"`
 	xxx_hidden_Page          *v1.Pagination         `protobuf:"bytes,2,opt,name=page"`
-	xxx_hidden_SortDirection SortDirection          `protobuf:"varint,3,opt,name=sort_direction,json=sortDirection,enum=workflows.v1.SortDirection"`
+	xxx_hidden_SortDirection v1.SortDirection       `protobuf:"varint,3,opt,name=sort_direction,json=sortDirection,enum=tilebox.v1.SortDirection"`
 	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
 	XXX_presence             [1]uint32
 	unknownFields            protoimpl.UnknownFields
@@ -257,13 +209,13 @@ func (x *QueryLogsInIntervalRequest) GetPage() *v1.Pagination {
 	return nil
 }
 
-func (x *QueryLogsInIntervalRequest) GetSortDirection() SortDirection {
+func (x *QueryLogsInIntervalRequest) GetSortDirection() v1.SortDirection {
 	if x != nil {
 		if protoimpl.X.Present(&(x.XXX_presence[0]), 2) {
 			return x.xxx_hidden_SortDirection
 		}
 	}
-	return SortDirection_SORT_DIRECTION_UNSPECIFIED
+	return v1.SortDirection(0)
 }
 
 func (x *QueryLogsInIntervalRequest) SetTimeInterval(v *v1.TimeInterval) {
@@ -274,7 +226,7 @@ func (x *QueryLogsInIntervalRequest) SetPage(v *v1.Pagination) {
 	x.xxx_hidden_Page = v
 }
 
-func (x *QueryLogsInIntervalRequest) SetSortDirection(v SortDirection) {
+func (x *QueryLogsInIntervalRequest) SetSortDirection(v v1.SortDirection) {
 	x.xxx_hidden_SortDirection = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
 }
@@ -310,7 +262,7 @@ func (x *QueryLogsInIntervalRequest) ClearPage() {
 
 func (x *QueryLogsInIntervalRequest) ClearSortDirection() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_SortDirection = SortDirection_SORT_DIRECTION_UNSPECIFIED
+	x.xxx_hidden_SortDirection = v1.SortDirection_SORT_DIRECTION_UNSPECIFIED
 }
 
 type QueryLogsInIntervalRequest_builder struct {
@@ -321,7 +273,7 @@ type QueryLogsInIntervalRequest_builder struct {
 	// The pagination parameters for this request.
 	Page *v1.Pagination
 	// The direction in which to sort log entries. If not specified, defaults to descending order (newest entries first).
-	SortDirection *SortDirection
+	SortDirection *v1.SortDirection
 }
 
 func (b0 QueryLogsInIntervalRequest_builder) Build() *QueryLogsInIntervalRequest {
@@ -431,7 +383,7 @@ type QueryJobSpansRequest struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_JobId         *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
 	xxx_hidden_Page          *v1.Pagination         `protobuf:"bytes,2,opt,name=page"`
-	xxx_hidden_SortDirection SortDirection          `protobuf:"varint,3,opt,name=sort_direction,json=sortDirection,enum=workflows.v1.SortDirection"`
+	xxx_hidden_SortDirection v1.SortDirection       `protobuf:"varint,3,opt,name=sort_direction,json=sortDirection,enum=tilebox.v1.SortDirection"`
 	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
 	XXX_presence             [1]uint32
 	unknownFields            protoimpl.UnknownFields
@@ -477,13 +429,13 @@ func (x *QueryJobSpansRequest) GetPage() *v1.Pagination {
 	return nil
 }
 
-func (x *QueryJobSpansRequest) GetSortDirection() SortDirection {
+func (x *QueryJobSpansRequest) GetSortDirection() v1.SortDirection {
 	if x != nil {
 		if protoimpl.X.Present(&(x.XXX_presence[0]), 2) {
 			return x.xxx_hidden_SortDirection
 		}
 	}
-	return SortDirection_SORT_DIRECTION_UNSPECIFIED
+	return v1.SortDirection(0)
 }
 
 func (x *QueryJobSpansRequest) SetJobId(v *v1.ID) {
@@ -494,7 +446,7 @@ func (x *QueryJobSpansRequest) SetPage(v *v1.Pagination) {
 	x.xxx_hidden_Page = v
 }
 
-func (x *QueryJobSpansRequest) SetSortDirection(v SortDirection) {
+func (x *QueryJobSpansRequest) SetSortDirection(v v1.SortDirection) {
 	x.xxx_hidden_SortDirection = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
 }
@@ -530,7 +482,7 @@ func (x *QueryJobSpansRequest) ClearPage() {
 
 func (x *QueryJobSpansRequest) ClearSortDirection() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_SortDirection = SortDirection_SORT_DIRECTION_UNSPECIFIED
+	x.xxx_hidden_SortDirection = v1.SortDirection_SORT_DIRECTION_UNSPECIFIED
 }
 
 type QueryJobSpansRequest_builder struct {
@@ -541,7 +493,7 @@ type QueryJobSpansRequest_builder struct {
 	// The pagination parameters for this request.
 	Page *v1.Pagination
 	// The direction in which to sort log entries. If not specified, defaults to ascending order (oldest entries first).
-	SortDirection *SortDirection
+	SortDirection *v1.SortDirection
 }
 
 func (b0 QueryJobSpansRequest_builder) Build() *QueryJobSpansRequest {
@@ -649,70 +601,65 @@ var File_workflows_v1_telemetry_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_telemetry_proto_rawDesc = "" +
 	"\n" +
-	"\x1cworkflows/v1/telemetry.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a&opentelemetry/proto/logs/v1/logs.proto\x1a(opentelemetry/proto/trace/v1/trace.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"\xbb\x01\n" +
+	"\x1cworkflows/v1/telemetry.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a&opentelemetry/proto/logs/v1/logs.proto\x1a(opentelemetry/proto/trace/v1/trace.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"\xb9\x01\n" +
 	"\x13QueryJobLogsRequest\x12-\n" +
 	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x121\n" +
-	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12B\n" +
-	"\x0esort_direction\x18\x03 \x01(\x0e2\x1b.workflows.v1.SortDirectionR\rsortDirection\"\xd2\x01\n" +
+	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12@\n" +
+	"\x0esort_direction\x18\x03 \x01(\x0e2\x19.tilebox.v1.SortDirectionR\rsortDirection\"\xd0\x01\n" +
 	"\x1aQueryLogsInIntervalRequest\x12=\n" +
 	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x121\n" +
-	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12B\n" +
-	"\x0esort_direction\x18\x03 \x01(\x0e2\x1b.workflows.v1.SortDirectionR\rsortDirection\"\x9f\x01\n" +
+	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12@\n" +
+	"\x0esort_direction\x18\x03 \x01(\x0e2\x19.tilebox.v1.SortDirectionR\rsortDirection\"\x9f\x01\n" +
 	"\x11PaginatedLogsData\x12N\n" +
 	"\rresource_logs\x18\x01 \x03(\v2).opentelemetry.proto.logs.v1.ResourceLogsR\fresourceLogs\x12:\n" +
-	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"\xbc\x01\n" +
+	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"\xba\x01\n" +
 	"\x14QueryJobSpansRequest\x12-\n" +
 	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x121\n" +
-	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12B\n" +
-	"\x0esort_direction\x18\x03 \x01(\x0e2\x1b.workflows.v1.SortDirectionR\rsortDirection\"\xa4\x01\n" +
+	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12@\n" +
+	"\x0esort_direction\x18\x03 \x01(\x0e2\x19.tilebox.v1.SortDirectionR\rsortDirection\"\xa4\x01\n" +
 	"\x12PaginatedSpansData\x12R\n" +
 	"\x0eresource_spans\x18\x01 \x03(\v2+.opentelemetry.proto.trace.v1.ResourceSpansR\rresourceSpans\x12:\n" +
-	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage*l\n" +
-	"\rSortDirection\x12\x1e\n" +
-	"\x1aSORT_DIRECTION_UNSPECIFIED\x10\x00\x12\x1c\n" +
-	"\x18SORT_DIRECTION_ASCENDING\x10\x01\x12\x1d\n" +
-	"\x19SORT_DIRECTION_DESCENDING\x10\x022\xa4\x02\n" +
+	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage2\xa4\x02\n" +
 	"\x15TelemetryQueryService\x12R\n" +
 	"\fQueryJobLogs\x12!.workflows.v1.QueryJobLogsRequest\x1a\x1f.workflows.v1.PaginatedLogsData\x12`\n" +
 	"\x13QueryLogsInInterval\x12(.workflows.v1.QueryLogsInIntervalRequest\x1a\x1f.workflows.v1.PaginatedLogsData\x12U\n" +
 	"\rQueryJobSpans\x12\".workflows.v1.QueryJobSpansRequest\x1a .workflows.v1.PaginatedSpansDataB\xb4\x01\n" +
 	"\x10com.workflows.v1B\x0eTelemetryProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1b\beditionsp\xe8\a"
 
-var file_workflows_v1_telemetry_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_workflows_v1_telemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_workflows_v1_telemetry_proto_goTypes = []any{
-	(SortDirection)(0),                 // 0: workflows.v1.SortDirection
-	(*QueryJobLogsRequest)(nil),        // 1: workflows.v1.QueryJobLogsRequest
-	(*QueryLogsInIntervalRequest)(nil), // 2: workflows.v1.QueryLogsInIntervalRequest
-	(*PaginatedLogsData)(nil),          // 3: workflows.v1.PaginatedLogsData
-	(*QueryJobSpansRequest)(nil),       // 4: workflows.v1.QueryJobSpansRequest
-	(*PaginatedSpansData)(nil),         // 5: workflows.v1.PaginatedSpansData
-	(*v1.ID)(nil),                      // 6: tilebox.v1.ID
-	(*v1.Pagination)(nil),              // 7: tilebox.v1.Pagination
+	(*QueryJobLogsRequest)(nil),        // 0: workflows.v1.QueryJobLogsRequest
+	(*QueryLogsInIntervalRequest)(nil), // 1: workflows.v1.QueryLogsInIntervalRequest
+	(*PaginatedLogsData)(nil),          // 2: workflows.v1.PaginatedLogsData
+	(*QueryJobSpansRequest)(nil),       // 3: workflows.v1.QueryJobSpansRequest
+	(*PaginatedSpansData)(nil),         // 4: workflows.v1.PaginatedSpansData
+	(*v1.ID)(nil),                      // 5: tilebox.v1.ID
+	(*v1.Pagination)(nil),              // 6: tilebox.v1.Pagination
+	(v1.SortDirection)(0),              // 7: tilebox.v1.SortDirection
 	(*v1.TimeInterval)(nil),            // 8: tilebox.v1.TimeInterval
 	(*v11.ResourceLogs)(nil),           // 9: opentelemetry.proto.logs.v1.ResourceLogs
 	(*v12.ResourceSpans)(nil),          // 10: opentelemetry.proto.trace.v1.ResourceSpans
 }
 var file_workflows_v1_telemetry_proto_depIdxs = []int32{
-	6,  // 0: workflows.v1.QueryJobLogsRequest.job_id:type_name -> tilebox.v1.ID
-	7,  // 1: workflows.v1.QueryJobLogsRequest.page:type_name -> tilebox.v1.Pagination
-	0,  // 2: workflows.v1.QueryJobLogsRequest.sort_direction:type_name -> workflows.v1.SortDirection
+	5,  // 0: workflows.v1.QueryJobLogsRequest.job_id:type_name -> tilebox.v1.ID
+	6,  // 1: workflows.v1.QueryJobLogsRequest.page:type_name -> tilebox.v1.Pagination
+	7,  // 2: workflows.v1.QueryJobLogsRequest.sort_direction:type_name -> tilebox.v1.SortDirection
 	8,  // 3: workflows.v1.QueryLogsInIntervalRequest.time_interval:type_name -> tilebox.v1.TimeInterval
-	7,  // 4: workflows.v1.QueryLogsInIntervalRequest.page:type_name -> tilebox.v1.Pagination
-	0,  // 5: workflows.v1.QueryLogsInIntervalRequest.sort_direction:type_name -> workflows.v1.SortDirection
+	6,  // 4: workflows.v1.QueryLogsInIntervalRequest.page:type_name -> tilebox.v1.Pagination
+	7,  // 5: workflows.v1.QueryLogsInIntervalRequest.sort_direction:type_name -> tilebox.v1.SortDirection
 	9,  // 6: workflows.v1.PaginatedLogsData.resource_logs:type_name -> opentelemetry.proto.logs.v1.ResourceLogs
-	7,  // 7: workflows.v1.PaginatedLogsData.next_page:type_name -> tilebox.v1.Pagination
-	6,  // 8: workflows.v1.QueryJobSpansRequest.job_id:type_name -> tilebox.v1.ID
-	7,  // 9: workflows.v1.QueryJobSpansRequest.page:type_name -> tilebox.v1.Pagination
-	0,  // 10: workflows.v1.QueryJobSpansRequest.sort_direction:type_name -> workflows.v1.SortDirection
+	6,  // 7: workflows.v1.PaginatedLogsData.next_page:type_name -> tilebox.v1.Pagination
+	5,  // 8: workflows.v1.QueryJobSpansRequest.job_id:type_name -> tilebox.v1.ID
+	6,  // 9: workflows.v1.QueryJobSpansRequest.page:type_name -> tilebox.v1.Pagination
+	7,  // 10: workflows.v1.QueryJobSpansRequest.sort_direction:type_name -> tilebox.v1.SortDirection
 	10, // 11: workflows.v1.PaginatedSpansData.resource_spans:type_name -> opentelemetry.proto.trace.v1.ResourceSpans
-	7,  // 12: workflows.v1.PaginatedSpansData.next_page:type_name -> tilebox.v1.Pagination
-	1,  // 13: workflows.v1.TelemetryQueryService.QueryJobLogs:input_type -> workflows.v1.QueryJobLogsRequest
-	2,  // 14: workflows.v1.TelemetryQueryService.QueryLogsInInterval:input_type -> workflows.v1.QueryLogsInIntervalRequest
-	4,  // 15: workflows.v1.TelemetryQueryService.QueryJobSpans:input_type -> workflows.v1.QueryJobSpansRequest
-	3,  // 16: workflows.v1.TelemetryQueryService.QueryJobLogs:output_type -> workflows.v1.PaginatedLogsData
-	3,  // 17: workflows.v1.TelemetryQueryService.QueryLogsInInterval:output_type -> workflows.v1.PaginatedLogsData
-	5,  // 18: workflows.v1.TelemetryQueryService.QueryJobSpans:output_type -> workflows.v1.PaginatedSpansData
+	6,  // 12: workflows.v1.PaginatedSpansData.next_page:type_name -> tilebox.v1.Pagination
+	0,  // 13: workflows.v1.TelemetryQueryService.QueryJobLogs:input_type -> workflows.v1.QueryJobLogsRequest
+	1,  // 14: workflows.v1.TelemetryQueryService.QueryLogsInInterval:input_type -> workflows.v1.QueryLogsInIntervalRequest
+	3,  // 15: workflows.v1.TelemetryQueryService.QueryJobSpans:input_type -> workflows.v1.QueryJobSpansRequest
+	2,  // 16: workflows.v1.TelemetryQueryService.QueryJobLogs:output_type -> workflows.v1.PaginatedLogsData
+	2,  // 17: workflows.v1.TelemetryQueryService.QueryLogsInInterval:output_type -> workflows.v1.PaginatedLogsData
+	4,  // 18: workflows.v1.TelemetryQueryService.QueryJobSpans:output_type -> workflows.v1.PaginatedSpansData
 	16, // [16:19] is the sub-list for method output_type
 	13, // [13:16] is the sub-list for method input_type
 	13, // [13:13] is the sub-list for extension type_name
@@ -730,14 +677,13 @@ func file_workflows_v1_telemetry_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_telemetry_proto_rawDesc), len(file_workflows_v1_telemetry_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      0,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_workflows_v1_telemetry_proto_goTypes,
 		DependencyIndexes: file_workflows_v1_telemetry_proto_depIdxs,
-		EnumInfos:         file_workflows_v1_telemetry_proto_enumTypes,
 		MessageInfos:      file_workflows_v1_telemetry_proto_msgTypes,
 	}.Build()
 	File_workflows_v1_telemetry_proto = out.File

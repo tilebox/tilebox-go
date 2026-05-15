@@ -22,6 +22,54 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// SortDirection specifies the direction in which to sort log entries when querying logs. It can be used in combination
+// with the cursor field in TelemetryPagination to paginate through log entries in either ascending or descending order.
+type SortDirection int32
+
+const (
+	SortDirection_SORT_DIRECTION_UNSPECIFIED SortDirection = 0
+	// Sort in ascending order (oldest entries first).
+	SortDirection_SORT_DIRECTION_ASCENDING SortDirection = 1
+	// Sort in descending order (newest entries first).
+	SortDirection_SORT_DIRECTION_DESCENDING SortDirection = 2
+)
+
+// Enum value maps for SortDirection.
+var (
+	SortDirection_name = map[int32]string{
+		0: "SORT_DIRECTION_UNSPECIFIED",
+		1: "SORT_DIRECTION_ASCENDING",
+		2: "SORT_DIRECTION_DESCENDING",
+	}
+	SortDirection_value = map[string]int32{
+		"SORT_DIRECTION_UNSPECIFIED": 0,
+		"SORT_DIRECTION_ASCENDING":   1,
+		"SORT_DIRECTION_DESCENDING":  2,
+	}
+)
+
+func (x SortDirection) Enum() *SortDirection {
+	p := new(SortDirection)
+	*p = x
+	return p
+}
+
+func (x SortDirection) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SortDirection) Descriptor() protoreflect.EnumDescriptor {
+	return file_tilebox_v1_query_proto_enumTypes[0].Descriptor()
+}
+
+func (SortDirection) Type() protoreflect.EnumType {
+	return &file_tilebox_v1_query_proto_enumTypes[0]
+}
+
+func (x SortDirection) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // A time interval
 type TimeInterval struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
@@ -405,26 +453,32 @@ const file_tilebox_v1_query_proto_rawDesc = "" +
 	"\n" +
 	"Pagination\x12\"\n" +
 	"\x05limit\x18\x01 \x01(\x03B\f\xbaH\x04\"\x02(\x01\xaa\x01\x02\b\x01R\x05limit\x12<\n" +
-	"\x0estarting_after\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\rstartingAfterB\xa7\x01\n" +
+	"\x0estarting_after\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\rstartingAfter*l\n" +
+	"\rSortDirection\x12\x1e\n" +
+	"\x1aSORT_DIRECTION_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18SORT_DIRECTION_ASCENDING\x10\x01\x12\x1d\n" +
+	"\x19SORT_DIRECTION_DESCENDING\x10\x02B\xa7\x01\n" +
 	"\x0ecom.tilebox.v1B\n" +
 	"QueryProtoP\x01Z;github.com/tilebox/tilebox-go/protogen/tilebox/v1;tileboxv1\xa2\x02\x03TXX\xaa\x02\n" +
 	"Tilebox.V1\xca\x02\n" +
 	"Tilebox\\V1\xe2\x02\x16Tilebox\\V1\\GPBMetadata\xea\x02\vTilebox::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
+var file_tilebox_v1_query_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_tilebox_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_tilebox_v1_query_proto_goTypes = []any{
-	(*TimeInterval)(nil),          // 0: tilebox.v1.TimeInterval
-	(*IDInterval)(nil),            // 1: tilebox.v1.IDInterval
-	(*Pagination)(nil),            // 2: tilebox.v1.Pagination
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
-	(*ID)(nil),                    // 4: tilebox.v1.ID
+	(SortDirection)(0),            // 0: tilebox.v1.SortDirection
+	(*TimeInterval)(nil),          // 1: tilebox.v1.TimeInterval
+	(*IDInterval)(nil),            // 2: tilebox.v1.IDInterval
+	(*Pagination)(nil),            // 3: tilebox.v1.Pagination
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(*ID)(nil),                    // 5: tilebox.v1.ID
 }
 var file_tilebox_v1_query_proto_depIdxs = []int32{
-	3, // 0: tilebox.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
-	3, // 1: tilebox.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
-	4, // 2: tilebox.v1.IDInterval.start_id:type_name -> tilebox.v1.ID
-	4, // 3: tilebox.v1.IDInterval.end_id:type_name -> tilebox.v1.ID
-	4, // 4: tilebox.v1.Pagination.starting_after:type_name -> tilebox.v1.ID
+	4, // 0: tilebox.v1.TimeInterval.start_time:type_name -> google.protobuf.Timestamp
+	4, // 1: tilebox.v1.TimeInterval.end_time:type_name -> google.protobuf.Timestamp
+	5, // 2: tilebox.v1.IDInterval.start_id:type_name -> tilebox.v1.ID
+	5, // 3: tilebox.v1.IDInterval.end_id:type_name -> tilebox.v1.ID
+	5, // 4: tilebox.v1.Pagination.starting_after:type_name -> tilebox.v1.ID
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -443,13 +497,14 @@ func file_tilebox_v1_query_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tilebox_v1_query_proto_rawDesc), len(file_tilebox_v1_query_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_tilebox_v1_query_proto_goTypes,
 		DependencyIndexes: file_tilebox_v1_query_proto_depIdxs,
+		EnumInfos:         file_tilebox_v1_query_proto_enumTypes,
 		MessageInfos:      file_tilebox_v1_query_proto_msgTypes,
 	}.Build()
 	File_tilebox_v1_query_proto = out.File
