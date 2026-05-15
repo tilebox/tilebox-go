@@ -56,9 +56,22 @@ type QueryOptions struct {
 	AutomationIDs  []uuid.UUID
 	States         []State
 	Name           string
+	SortDirection  SortDirection
 }
 
 type QueryOption func(*QueryOptions)
+
+// SortDirection specifies the sort direction for job query results.
+type SortDirection int32
+
+// SortDirection values.
+const (
+	_ SortDirection = iota
+	// Ascending sorts jobs oldest first.
+	Ascending
+	// Descending sorts jobs newest first.
+	Descending
+)
 
 // WithTemporalExtent specifies the time interval for which jobs should be queried.
 // Right now, a temporal extent is required for every query.
@@ -88,5 +101,14 @@ func WithJobStates(states ...State) QueryOption {
 func WithJobName(name string) QueryOption {
 	return func(cfg *QueryOptions) {
 		cfg.Name = name
+	}
+}
+
+// WithSortDirection sets the sort direction for job query results.
+//
+// Defaults to the server default.
+func WithSortDirection(direction SortDirection) QueryOption {
+	return func(cfg *QueryOptions) {
+		cfg.SortDirection = direction
 	}
 }

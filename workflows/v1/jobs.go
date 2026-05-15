@@ -233,6 +233,7 @@ type JobClient interface {
 	//  automation will be returned. (Optional)
 	//   - job.WithJobStates: specifies the job state to filter jobs by. Only jobs with the specified state will be returned. (Optional)
 	//   - job.WithJobName: specifies the job name to filter jobs by. Only jobs with the specified name will be returned. (Optional)
+	//   - job.WithSortDirection: specifies the direction to sort jobs by submission date. (Optional)
 	//
 	// The jobs are lazily loaded and returned as a sequence.
 	// The output sequence can be transformed into a slice using Collect.
@@ -322,6 +323,7 @@ func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.S
 
 	return func(yield func(*Job, error) bool) {
 		var page *tileboxv1.Pagination // nil for the first request
+		sortDirection := jobQuerySortDirectionToProto(opts.SortDirection)
 
 		// we already validated that TemporalExtent is not nil
 		timeInterval := opts.TemporalExtent.ToProtoTimeInterval()
@@ -349,7 +351,7 @@ func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.S
 		}.Build()
 
 		for {
-			jobsMessage, err := c.service.QueryJobs(ctx, filters, page)
+			jobsMessage, err := c.service.QueryJobs(ctx, filters, page, sortDirection)
 			if err != nil {
 				yield(nil, err)
 				return
@@ -574,13 +576,24 @@ func mergeTelemetryQueryOptions(options []TelemetryQueryOption) TelemetryQueryOp
 	return opts
 }
 
-func (direction SortDirection) protoSortDirection() *workflowsv1.SortDirection {
-	var protoDirection workflowsv1.SortDirection
+func jobQuerySortDirectionToProto(direction job.SortDirection) tileboxv1.SortDirection {
+	switch direction {
+	case job.Ascending:
+		return tileboxv1.SortDirection_SORT_DIRECTION_ASCENDING
+	case job.Descending:
+		return tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING
+	default:
+		return tileboxv1.SortDirection_SORT_DIRECTION_UNSPECIFIED
+	}
+}
+
+func (direction SortDirection) protoSortDirection() *tileboxv1.SortDirection {
+	var protoDirection tileboxv1.SortDirection
 	switch direction {
 	case Ascending:
-		protoDirection = workflowsv1.SortDirection_SORT_DIRECTION_ASCENDING
+		protoDirection = tileboxv1.SortDirection_SORT_DIRECTION_ASCENDING
 	case Descending:
-		protoDirection = workflowsv1.SortDirection_SORT_DIRECTION_DESCENDING
+		protoDirection = tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING
 	default:
 		return nil
 	}

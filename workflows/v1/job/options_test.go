@@ -99,6 +99,15 @@ func Test_QueryOptions(t *testing.T) {
 				Name: "my-job",
 			},
 		},
+		{
+			name: "with sort direction",
+			options: []QueryOption{
+				WithSortDirection(Descending),
+			},
+			want: QueryOptions{
+				SortDirection: Descending,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
