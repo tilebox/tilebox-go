@@ -260,6 +260,6 @@ func TestCursor(t *testing.T) {
 	assert.Equal(t, id.String(), cursor.String())
 
 	parsed, err := ParseCursor(cursor.String())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, id, parsed.StartingAfter())
 }

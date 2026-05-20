@@ -167,20 +167,16 @@ type TelemetryQueryOption interface {
 	ApplyTelemetryQueryOption(*TelemetryQueryOptions)
 }
 
-type SortDirectionOption interface {
+type sharedQueryOption interface {
 	QueryOption
 	TelemetryQueryOption
 }
 
-type LimitOption interface {
-	QueryOption
-	TelemetryQueryOption
-}
+type SortDirectionOption = sharedQueryOption
 
-type CursorOption interface {
-	QueryOption
-	TelemetryQueryOption
-}
+type LimitOption = sharedQueryOption
+
+type CursorOption = sharedQueryOption
 
 // Cursor identifies where to continue a paginated query.
 //

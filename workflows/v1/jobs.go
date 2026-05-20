@@ -412,56 +412,6 @@ func (c jobClient) QueryPage(ctx context.Context, options ...job.QueryOption) (*
 	return c.queryPage(ctx, opts)
 }
 
-func (c jobClient) queryPage(ctx context.Context, opts *job.QueryOptions) (*JobPage, error) {
-	sortDirection := jobQuerySortDirectionToProto(opts.SortDirection)
-
-	var timeInterval *tileboxv1.TimeInterval
-	var idInterval *tileboxv1.IDInterval
-	if opts.TemporalExtent != nil {
-		timeInterval = opts.TemporalExtent.ToProtoTimeInterval()
-		idInterval = opts.TemporalExtent.ToProtoIDInterval()
-
-		if timeInterval == nil && idInterval == nil {
-			return nil, errors.New("invalid temporal extent")
-		}
-	}
-
-	automationIDs := lo.Map(opts.AutomationIDs, func(id uuid.UUID, _ int) *tileboxv1.ID {
-		return tileboxv1.NewUUID(id)
-	})
-
-	states := lo.Map(opts.States, func(state job.State, _ int) workflowsv1.JobState {
-		return workflowsv1.JobState(state)
-	})
-	taskStates := lo.Map(opts.TaskStates, func(state job.TaskState, _ int) workflowsv1.TaskState {
-		return workflowsv1.TaskState(state)
-	})
-
-	filters := workflowsv1.QueryFilters_builder{
-		TimeInterval:  timeInterval,
-		IdInterval:    idInterval,
-		AutomationIds: automationIDs,
-		States:        states,
-		TaskStates:    taskStates,
-		Name:          opts.Name,
-	}.Build()
-
-	jobsMessage, err := c.service.QueryJobs(ctx, filters, paginationFromOptions(opts.Limit, opts.Cursor), sortDirection)
-	if err != nil {
-		return nil, err
-	}
-
-	jobs := make([]*Job, 0, len(jobsMessage.GetJobs()))
-	for _, jobMessage := range jobsMessage.GetJobs() {
-		jobs = append(jobs, protoToJob(jobMessage))
-	}
-
-	return &JobPage{
-		Jobs:       jobs,
-		NextCursor: cursorFromPagination(jobsMessage.GetNextPage()),
-	}, nil
-}
-
 func (c jobClient) QueryLogs(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) iter.Seq2[*LogRecord, error] {
 	opts := &job.TelemetryQueryOptions{}
 	for _, option := range options {
@@ -515,27 +465,6 @@ func (c jobClient) QueryLogsPage(ctx context.Context, jobID uuid.UUID, options .
 		option.ApplyTelemetryQueryOption(opts)
 	}
 	return c.queryLogsPage(ctx, jobID, opts)
-}
-
-func (c jobClient) queryLogsPage(ctx context.Context, jobID uuid.UUID, opts *job.TelemetryQueryOptions) (*LogPage, error) {
-	logsMessage, err := c.telemetryService.QueryJobLogs(ctx, jobID, paginationFromOptions(opts.Limit, opts.Cursor), sortDirectionToProto(opts.SortDirection))
-	if err != nil {
-		return nil, err
-	}
-
-	logs := make([]*LogRecord, 0, len(logsMessage.GetResourceLogs()))
-	for _, resourceLogs := range logsMessage.GetResourceLogs() {
-		logRecord, err := protoToLogRecord(resourceLogs)
-		if err != nil {
-			return nil, err
-		}
-		logs = append(logs, logRecord)
-	}
-
-	return &LogPage{
-		Logs:       logs,
-		NextCursor: cursorFromPagination(logsMessage.GetNextPage()),
-	}, nil
 }
 
 func (c jobClient) QuerySpans(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) iter.Seq2[*Span, error] {
@@ -611,6 +540,77 @@ func (c jobClient) querySpansPage(ctx context.Context, jobID uuid.UUID, opts *jo
 	return &SpanPage{
 		Spans:      spans,
 		NextCursor: cursorFromPagination(spansMessage.GetNextPage()),
+	}, nil
+}
+
+func (c jobClient) queryPage(ctx context.Context, opts *job.QueryOptions) (*JobPage, error) {
+	sortDirection := jobQuerySortDirectionToProto(opts.SortDirection)
+
+	var timeInterval *tileboxv1.TimeInterval
+	var idInterval *tileboxv1.IDInterval
+	if opts.TemporalExtent != nil {
+		timeInterval = opts.TemporalExtent.ToProtoTimeInterval()
+		idInterval = opts.TemporalExtent.ToProtoIDInterval()
+
+		if timeInterval == nil && idInterval == nil {
+			return nil, errors.New("invalid temporal extent")
+		}
+	}
+
+	automationIDs := lo.Map(opts.AutomationIDs, func(id uuid.UUID, _ int) *tileboxv1.ID {
+		return tileboxv1.NewUUID(id)
+	})
+
+	states := lo.Map(opts.States, func(state job.State, _ int) workflowsv1.JobState {
+		return workflowsv1.JobState(state)
+	})
+	taskStates := lo.Map(opts.TaskStates, func(state job.TaskState, _ int) workflowsv1.TaskState {
+		return workflowsv1.TaskState(state)
+	})
+
+	filters := workflowsv1.QueryFilters_builder{
+		TimeInterval:  timeInterval,
+		IdInterval:    idInterval,
+		AutomationIds: automationIDs,
+		States:        states,
+		TaskStates:    taskStates,
+		Name:          opts.Name,
+	}.Build()
+
+	jobsMessage, err := c.service.QueryJobs(ctx, filters, paginationFromOptions(opts.Limit, opts.Cursor), sortDirection)
+	if err != nil {
+		return nil, err
+	}
+
+	jobs := make([]*Job, 0, len(jobsMessage.GetJobs()))
+	for _, jobMessage := range jobsMessage.GetJobs() {
+		jobs = append(jobs, protoToJob(jobMessage))
+	}
+
+	return &JobPage{
+		Jobs:       jobs,
+		NextCursor: cursorFromPagination(jobsMessage.GetNextPage()),
+	}, nil
+}
+
+func (c jobClient) queryLogsPage(ctx context.Context, jobID uuid.UUID, opts *job.TelemetryQueryOptions) (*LogPage, error) {
+	logsMessage, err := c.telemetryService.QueryJobLogs(ctx, jobID, paginationFromOptions(opts.Limit, opts.Cursor), sortDirectionToProto(opts.SortDirection))
+	if err != nil {
+		return nil, err
+	}
+
+	logs := make([]*LogRecord, 0, len(logsMessage.GetResourceLogs()))
+	for _, resourceLogs := range logsMessage.GetResourceLogs() {
+		logRecord, err := protoToLogRecord(resourceLogs)
+		if err != nil {
+			return nil, err
+		}
+		logs = append(logs, logRecord)
+	}
+
+	return &LogPage{
+		Logs:       logs,
+		NextCursor: cursorFromPagination(logsMessage.GetNextPage()),
 	}, nil
 }
 
