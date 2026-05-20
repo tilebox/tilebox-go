@@ -154,51 +154,63 @@ type SpanEvent struct {
 	Attributes map[string]any
 }
 
-// SortDirection specifies the sort direction for observability query results.
-type SortDirection int32
-
-// SortDirection values.
-const (
-	_ SortDirection = iota
-	// Ascending sorts observability query results oldest first.
-	Ascending
-	// Descending sorts observability query results newest first.
-	Descending
-)
-
-// TelemetryQueryOption contains options for querying job observability.
-type TelemetryQueryOption struct {
-	// Limit is the maximum number of observability records to return.
-	// Leave unset or set to 0 to paginate through and return all records.
-	Limit int64
-	// SortDirection is the direction in which observability records should be sorted.
-	// Leave unset to let the server choose its default sort direction.
-	SortDirection SortDirection
+// JobPage is a single page of jobs returned by a manual page query.
+type JobPage struct {
+	// Jobs is the list of jobs in this page.
+	Jobs []*Job
+	// NextCursor can be used to request the next page. Nil means there are no more pages.
+	NextCursor *job.Cursor
 }
 
-// WithLimit limits the total number of observability records returned.
-//
-// Defaults to unlimited.
-func WithLimit(limit int64) TelemetryQueryOption {
-	return TelemetryQueryOption{Limit: limit}
+// LogPage is a single page of log records returned by a manual page query.
+type LogPage struct {
+	// Logs is the list of log records in this page.
+	Logs []*LogRecord
+	// NextCursor can be used to request the next page. Nil means there are no more pages.
+	NextCursor *job.Cursor
 }
 
-// WithSortDirection sets the sort direction for observability query results.
-//
-// Defaults to the server default.
-func WithSortDirection(direction SortDirection) TelemetryQueryOption {
-	return TelemetryQueryOption{SortDirection: direction}
+// SpanPage is a single page of spans returned by a manual page query.
+type SpanPage struct {
+	// Spans is the list of spans in this page.
+	Spans []*Span
+	// NextCursor can be used to request the next page. Nil means there are no more pages.
+	NextCursor *job.Cursor
 }
 
 // TaskState values.
 const (
-	_             TaskState = iota
-	TaskQueued              // The task is queued and waiting to be run.
-	TaskRunning             // The task is currently running on some task runner.
-	TaskComputed            // The task has been computed and the output is available.
-	TaskFailed              // The task has failed.
-	TaskCancelled           // The task has been cancelled due to user request.
+	_                  TaskState = iota
+	TaskQueued                   // The task is queued and waiting to be run.
+	TaskRunning                  // The task is currently running on some task runner.
+	TaskComputed                 // The task has been computed and the output is available.
+	TaskFailed                   // The task has failed.
+	TaskSkipped                  // The task has been skipped.
+	TaskFailedOptional           // The task has failed, but was marked as optional.
 )
+
+func (state TaskState) String() string {
+	switch state {
+	case TaskQueued:
+		return "queued"
+	case TaskRunning:
+		return "running"
+	case TaskComputed:
+		return "computed"
+	case TaskFailed:
+		return "failed"
+	case TaskSkipped:
+		return "skipped"
+	case TaskFailedOptional:
+		return "failed_optional"
+	default:
+		return "unspecified"
+	}
+}
+
+func (state TaskState) MarshalJSON() ([]byte, error) {
+	return json.Marshal(state.String())
+}
 
 type JobClient interface {
 	// Submit submits a job to a cluster.
@@ -225,39 +237,76 @@ type JobClient interface {
 	// Documentation: https://docs.tilebox.com/workflows/concepts/jobs#cancellation
 	Cancel(ctx context.Context, jobID uuid.UUID) error
 
-	// Query returns a list of all jobs within the given interval.
+	// Query returns a list of jobs matching the provided options.
 	//
 	// Options:
-	//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried (Required)
+	//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried. (Optional)
 	//   - job.WithAutomationIDs: specifies the automation IDs to filter jobs by. Only jobs submitted by the specified
 	//  automation will be returned. (Optional)
 	//   - job.WithJobStates: specifies the job state to filter jobs by. Only jobs with the specified state will be returned. (Optional)
+	//   - job.WithTaskStates: specifies task states to filter jobs by. Only jobs with at least one task in one of the
+	//     specified states will be returned. (Optional)
 	//   - job.WithJobName: specifies the job name to filter jobs by. Only jobs with the specified name will be returned. (Optional)
+	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
+	//   - job.WithLimit: limits the total number of jobs returned. Defaults to unlimited.
 	//   - job.WithSortDirection: specifies the direction to sort jobs by submission date. (Optional)
 	//
-	// The jobs are lazily loaded and returned as a sequence.
+	// Pagination is handled automatically under the hood. The jobs are lazily loaded and returned as a sequence.
 	// The output sequence can be transformed into a slice using Collect.
 	Query(ctx context.Context, options ...job.QueryOption) iter.Seq2[*Job, error]
+
+	// QueryPage returns a single page of jobs matching the provided options.
+	//
+	// Options:
+	//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried. (Optional)
+	//   - job.WithAutomationIDs: specifies the automation IDs to filter jobs by. Only jobs submitted by the specified
+	//  automation will be returned. (Optional)
+	//   - job.WithJobStates: specifies the job state to filter jobs by. Only jobs with the specified state will be returned. (Optional)
+	//   - job.WithTaskStates: specifies task states to filter jobs by. Only jobs with at least one task in one of the
+	//     specified states will be returned. (Optional)
+	//   - job.WithJobName: specifies the job name to filter jobs by. Only jobs with the specified name will be returned. (Optional)
+	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
+	//   - job.WithLimit: limits the number of jobs returned in this page. Defaults to the server default.
+	//   - job.WithSortDirection: specifies the direction to sort jobs by submission date. (Optional)
+	QueryPage(ctx context.Context, options ...job.QueryOption) (*JobPage, error)
 
 	// QueryLogs returns the logs emitted while running a job.
 	//
 	// Options:
-	//   - TelemetryQueryOption.Limit: limits the total number of records returned. Defaults to unlimited.
-	//   - TelemetryQueryOption.SortDirection: sorts records ascending or descending. Defaults to the server default.
+	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
+	//   - job.WithLimit: limits the total number of records returned. Defaults to unlimited.
+	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
 	//
-	// The logs are lazily loaded and returned as a sequence.
+	// Pagination is handled automatically under the hood. The logs are lazily loaded and returned as a sequence.
 	// The output sequence can be transformed into a slice using Collect.
-	QueryLogs(ctx context.Context, jobID uuid.UUID, options ...TelemetryQueryOption) iter.Seq2[*LogRecord, error]
+	QueryLogs(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) iter.Seq2[*LogRecord, error]
+
+	// QueryLogsPage returns a single page of logs emitted while running a job.
+	//
+	// Options:
+	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
+	//   - job.WithLimit: limits the number of records returned in this page. Defaults to the server default.
+	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
+	QueryLogsPage(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) (*LogPage, error)
 
 	// QuerySpans returns the spans emitted while running a job.
 	//
 	// Options:
-	//   - TelemetryQueryOption.Limit: limits the total number of records returned. Defaults to unlimited.
-	//   - TelemetryQueryOption.SortDirection: sorts records ascending or descending. Defaults to the server default.
+	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
+	//   - job.WithLimit: limits the total number of records returned. Defaults to unlimited.
+	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
 	//
-	// The spans are lazily loaded and returned as a sequence.
+	// Pagination is handled automatically under the hood. The spans are lazily loaded and returned as a sequence.
 	// The output sequence can be transformed into a slice using Collect.
-	QuerySpans(ctx context.Context, jobID uuid.UUID, options ...TelemetryQueryOption) iter.Seq2[*Span, error]
+	QuerySpans(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) iter.Seq2[*Span, error]
+
+	// QuerySpansPage returns a single page of spans emitted while running a job.
+	//
+	// Options:
+	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
+	//   - job.WithLimit: limits the number of records returned in this page. Defaults to the server default.
+	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
+	QuerySpansPage(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) (*SpanPage, error)
 }
 
 var _ JobClient = &jobClient{}
@@ -311,92 +360,139 @@ func (c jobClient) Cancel(ctx context.Context, jobID uuid.UUID) error {
 func (c jobClient) Query(ctx context.Context, options ...job.QueryOption) iter.Seq2[*Job, error] {
 	opts := &job.QueryOptions{}
 	for _, option := range options {
-		option(opts)
-	}
-
-	if opts.TemporalExtent == nil {
-		return func(yield func(*Job, error) bool) {
-			// right now we return an error, in the future we might want to support queries without a temporal extent
-			yield(nil, errors.New("temporal extent is required"))
-		}
+		option.ApplyQueryOption(opts)
 	}
 
 	return func(yield func(*Job, error) bool) {
-		var page *tileboxv1.Pagination // nil for the first request
-		sortDirection := jobQuerySortDirectionToProto(opts.SortDirection)
-
-		// we already validated that TemporalExtent is not nil
-		timeInterval := opts.TemporalExtent.ToProtoTimeInterval()
-		idInterval := opts.TemporalExtent.ToProtoIDInterval()
-
-		if timeInterval == nil && idInterval == nil {
-			yield(nil, errors.New("invalid temporal extent"))
-			return
-		}
-
-		automationIDs := lo.Map(opts.AutomationIDs, func(id uuid.UUID, _ int) *tileboxv1.ID {
-			return tileboxv1.NewUUID(id)
-		})
-
-		states := lo.Map(opts.States, func(state job.State, _ int) workflowsv1.JobState {
-			return workflowsv1.JobState(state)
-		})
-
-		filters := workflowsv1.QueryFilters_builder{
-			TimeInterval:  timeInterval,
-			IdInterval:    idInterval,
-			AutomationIds: automationIDs,
-			States:        states,
-			Name:          opts.Name,
-		}.Build()
+		cursor := opts.Cursor
+		remaining := opts.Limit
 
 		for {
-			jobsMessage, err := c.service.QueryJobs(ctx, filters, page, sortDirection)
+			pageOpts := *opts
+			pageOpts.Cursor = cursor
+			if opts.Limit > 0 {
+				if remaining == 0 {
+					break
+				}
+				pageOpts.Limit = remaining
+			}
+
+			jobsPage, err := c.queryPage(ctx, &pageOpts)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			for _, jobMessage := range jobsMessage.GetJobs() {
-				if !yield(protoToJob(jobMessage), nil) {
+			for _, result := range jobsPage.Jobs {
+				if opts.Limit > 0 && remaining == 0 {
 					return
+				}
+
+				if !yield(result, nil) {
+					return
+				}
+				if opts.Limit > 0 {
+					remaining--
 				}
 			}
 
-			page = jobsMessage.GetNextPage()
-			if page == nil {
+			cursor = jobsPage.NextCursor
+			if cursor == nil || (opts.Limit > 0 && remaining == 0) {
 				break
 			}
 		}
 	}
 }
 
-func (c jobClient) QueryLogs(ctx context.Context, jobID uuid.UUID, options ...TelemetryQueryOption) iter.Seq2[*LogRecord, error] {
-	opts := mergeTelemetryQueryOptions(options)
-	sortDirection := opts.SortDirection.protoSortDirection()
+func (c jobClient) QueryPage(ctx context.Context, options ...job.QueryOption) (*JobPage, error) {
+	opts := &job.QueryOptions{}
+	for _, option := range options {
+		option.ApplyQueryOption(opts)
+	}
+	return c.queryPage(ctx, opts)
+}
+
+func (c jobClient) queryPage(ctx context.Context, opts *job.QueryOptions) (*JobPage, error) {
+	sortDirection := jobQuerySortDirectionToProto(opts.SortDirection)
+
+	var timeInterval *tileboxv1.TimeInterval
+	var idInterval *tileboxv1.IDInterval
+	if opts.TemporalExtent != nil {
+		timeInterval = opts.TemporalExtent.ToProtoTimeInterval()
+		idInterval = opts.TemporalExtent.ToProtoIDInterval()
+
+		if timeInterval == nil && idInterval == nil {
+			return nil, errors.New("invalid temporal extent")
+		}
+	}
+
+	automationIDs := lo.Map(opts.AutomationIDs, func(id uuid.UUID, _ int) *tileboxv1.ID {
+		return tileboxv1.NewUUID(id)
+	})
+
+	states := lo.Map(opts.States, func(state job.State, _ int) workflowsv1.JobState {
+		return workflowsv1.JobState(state)
+	})
+	taskStates := lo.Map(opts.TaskStates, func(state job.TaskState, _ int) workflowsv1.TaskState {
+		return workflowsv1.TaskState(state)
+	})
+
+	filters := workflowsv1.QueryFilters_builder{
+		TimeInterval:  timeInterval,
+		IdInterval:    idInterval,
+		AutomationIds: automationIDs,
+		States:        states,
+		TaskStates:    taskStates,
+		Name:          opts.Name,
+	}.Build()
+
+	jobsMessage, err := c.service.QueryJobs(ctx, filters, paginationFromOptions(opts.Limit, opts.Cursor), sortDirection)
+	if err != nil {
+		return nil, err
+	}
+
+	jobs := make([]*Job, 0, len(jobsMessage.GetJobs()))
+	for _, jobMessage := range jobsMessage.GetJobs() {
+		jobs = append(jobs, protoToJob(jobMessage))
+	}
+
+	return &JobPage{
+		Jobs:       jobs,
+		NextCursor: cursorFromPagination(jobsMessage.GetNextPage()),
+	}, nil
+}
+
+func (c jobClient) QueryLogs(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) iter.Seq2[*LogRecord, error] {
+	opts := &job.TelemetryQueryOptions{}
+	for _, option := range options {
+		option.ApplyTelemetryQueryOption(opts)
+	}
 
 	return func(yield func(*LogRecord, error) bool) {
-		var page *tileboxv1.Pagination // nil for the first request
+		cursor := opts.Cursor
 		remaining := opts.Limit
 
 		for {
-			page = telemetryQueryPage(page, remaining)
-			logsMessage, err := c.telemetryService.QueryJobLogs(ctx, jobID, page, sortDirection)
+			pageOpts := *opts
+			pageOpts.Cursor = cursor
+			if opts.Limit > 0 {
+				if remaining == 0 {
+					break
+				}
+				pageOpts.Limit = remaining
+			}
+
+			logsPage, err := c.queryLogsPage(ctx, jobID, &pageOpts)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			for _, resourceLogs := range logsMessage.GetResourceLogs() {
+			for _, logRecord := range logsPage.Logs {
 				if opts.Limit > 0 && remaining == 0 {
 					return
 				}
 
-				logRecord, err := protoToLogRecord(resourceLogs)
-				if err != nil {
-					yield(nil, err)
-					return
-				}
 				if !yield(logRecord, nil) {
 					return
 				}
@@ -405,40 +501,74 @@ func (c jobClient) QueryLogs(ctx context.Context, jobID uuid.UUID, options ...Te
 				}
 			}
 
-			page = logsMessage.GetNextPage()
-			if page == nil || (opts.Limit > 0 && remaining == 0) {
+			cursor = logsPage.NextCursor
+			if cursor == nil || (opts.Limit > 0 && remaining == 0) {
 				break
 			}
 		}
 	}
 }
 
-func (c jobClient) QuerySpans(ctx context.Context, jobID uuid.UUID, options ...TelemetryQueryOption) iter.Seq2[*Span, error] {
-	opts := mergeTelemetryQueryOptions(options)
-	sortDirection := opts.SortDirection.protoSortDirection()
+func (c jobClient) QueryLogsPage(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) (*LogPage, error) {
+	opts := &job.TelemetryQueryOptions{}
+	for _, option := range options {
+		option.ApplyTelemetryQueryOption(opts)
+	}
+	return c.queryLogsPage(ctx, jobID, opts)
+}
+
+func (c jobClient) queryLogsPage(ctx context.Context, jobID uuid.UUID, opts *job.TelemetryQueryOptions) (*LogPage, error) {
+	logsMessage, err := c.telemetryService.QueryJobLogs(ctx, jobID, paginationFromOptions(opts.Limit, opts.Cursor), sortDirectionToProto(opts.SortDirection))
+	if err != nil {
+		return nil, err
+	}
+
+	logs := make([]*LogRecord, 0, len(logsMessage.GetResourceLogs()))
+	for _, resourceLogs := range logsMessage.GetResourceLogs() {
+		logRecord, err := protoToLogRecord(resourceLogs)
+		if err != nil {
+			return nil, err
+		}
+		logs = append(logs, logRecord)
+	}
+
+	return &LogPage{
+		Logs:       logs,
+		NextCursor: cursorFromPagination(logsMessage.GetNextPage()),
+	}, nil
+}
+
+func (c jobClient) QuerySpans(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) iter.Seq2[*Span, error] {
+	opts := &job.TelemetryQueryOptions{}
+	for _, option := range options {
+		option.ApplyTelemetryQueryOption(opts)
+	}
 
 	return func(yield func(*Span, error) bool) {
-		var page *tileboxv1.Pagination // nil for the first request
+		cursor := opts.Cursor
 		remaining := opts.Limit
 
 		for {
-			page = telemetryQueryPage(page, remaining)
-			spansMessage, err := c.telemetryService.QueryJobSpans(ctx, jobID, page, sortDirection)
+			pageOpts := *opts
+			pageOpts.Cursor = cursor
+			if opts.Limit > 0 {
+				if remaining == 0 {
+					break
+				}
+				pageOpts.Limit = remaining
+			}
+
+			spansPage, err := c.querySpansPage(ctx, jobID, &pageOpts)
 			if err != nil {
 				yield(nil, err)
 				return
 			}
 
-			for _, resourceSpans := range spansMessage.GetResourceSpans() {
+			for _, span := range spansPage.Spans {
 				if opts.Limit > 0 && remaining == 0 {
 					return
 				}
 
-				span, err := protoToSpan(resourceSpans)
-				if err != nil {
-					yield(nil, err)
-					return
-				}
 				if !yield(span, nil) {
 					return
 				}
@@ -447,12 +577,41 @@ func (c jobClient) QuerySpans(ctx context.Context, jobID uuid.UUID, options ...T
 				}
 			}
 
-			page = spansMessage.GetNextPage()
-			if page == nil || (opts.Limit > 0 && remaining == 0) {
+			cursor = spansPage.NextCursor
+			if cursor == nil || (opts.Limit > 0 && remaining == 0) {
 				break
 			}
 		}
 	}
+}
+
+func (c jobClient) QuerySpansPage(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) (*SpanPage, error) {
+	opts := &job.TelemetryQueryOptions{}
+	for _, option := range options {
+		option.ApplyTelemetryQueryOption(opts)
+	}
+	return c.querySpansPage(ctx, jobID, opts)
+}
+
+func (c jobClient) querySpansPage(ctx context.Context, jobID uuid.UUID, opts *job.TelemetryQueryOptions) (*SpanPage, error) {
+	spansMessage, err := c.telemetryService.QueryJobSpans(ctx, jobID, paginationFromOptions(opts.Limit, opts.Cursor), sortDirectionToProto(opts.SortDirection))
+	if err != nil {
+		return nil, err
+	}
+
+	spans := make([]*Span, 0, len(spansMessage.GetResourceSpans()))
+	for _, resourceSpans := range spansMessage.GetResourceSpans() {
+		span, err := protoToSpan(resourceSpans)
+		if err != nil {
+			return nil, err
+		}
+		spans = append(spans, span)
+	}
+
+	return &SpanPage{
+		Spans:      spans,
+		NextCursor: cursorFromPagination(spansMessage.GetNextPage()),
+	}, nil
 }
 
 func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...Task) (*workflowsv1.SubmitJobRequest, error) {
@@ -563,36 +722,20 @@ func protoToProgressIndicator(p *workflowsv1.Progress) *ProgressIndicator {
 	}
 }
 
-func mergeTelemetryQueryOptions(options []TelemetryQueryOption) TelemetryQueryOption {
-	var opts TelemetryQueryOption
-	for _, option := range options {
-		if option.Limit > 0 {
-			opts.Limit = option.Limit
-		}
-		if option.SortDirection != 0 {
-			opts.SortDirection = option.SortDirection
-		}
-	}
-	return opts
-}
-
 func jobQuerySortDirectionToProto(direction job.SortDirection) tileboxv1.SortDirection {
-	switch direction {
-	case job.Ascending:
-		return tileboxv1.SortDirection_SORT_DIRECTION_ASCENDING
-	case job.Descending:
-		return tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING
-	default:
+	protoDirection := sortDirectionToProto(direction)
+	if protoDirection == nil {
 		return tileboxv1.SortDirection_SORT_DIRECTION_UNSPECIFIED
 	}
+	return *protoDirection
 }
 
-func (direction SortDirection) protoSortDirection() *tileboxv1.SortDirection {
+func sortDirectionToProto(direction job.SortDirection) *tileboxv1.SortDirection {
 	var protoDirection tileboxv1.SortDirection
 	switch direction {
-	case Ascending:
+	case job.Ascending:
 		protoDirection = tileboxv1.SortDirection_SORT_DIRECTION_ASCENDING
-	case Descending:
+	case job.Descending:
 		protoDirection = tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING
 	default:
 		return nil
@@ -600,15 +743,33 @@ func (direction SortDirection) protoSortDirection() *tileboxv1.SortDirection {
 	return &protoDirection
 }
 
-func telemetryQueryPage(page *tileboxv1.Pagination, remaining int64) *tileboxv1.Pagination {
-	if remaining <= 0 {
-		return page
+func paginationFromOptions(limit int64, cursor *job.Cursor) *tileboxv1.Pagination {
+	if limit <= 0 && cursor == nil {
+		return nil
+	}
+
+	var startingAfter *tileboxv1.ID
+	if cursor != nil {
+		startingAfter = tileboxv1.NewUUID(cursor.StartingAfter())
+	}
+
+	if limit <= 0 {
+		return tileboxv1.Pagination_builder{
+			StartingAfter: startingAfter,
+		}.Build()
 	}
 
 	return tileboxv1.Pagination_builder{
-		Limit:         &remaining,
-		StartingAfter: page.GetStartingAfter(),
+		Limit:         &limit,
+		StartingAfter: startingAfter,
 	}.Build()
+}
+
+func cursorFromPagination(page *tileboxv1.Pagination) *job.Cursor {
+	if page == nil || page.GetStartingAfter() == nil {
+		return nil
+	}
+	return job.NewCursor(page.GetStartingAfter().AsUUID())
 }
 
 func protoToLogRecord(resourceLogs *logsv1.ResourceLogs) (*LogRecord, error) {
