@@ -162,6 +162,41 @@ func main() {
 }
 ```
 
+### Querying Job Telemetry
+
+After a job has been executed, we can query runner logs associated with it.
+
+```go
+package main
+
+import (
+	"context"
+	"log/slog"
+
+	"github.com/google/uuid"
+	"github.com/tilebox/tilebox-go/workflows/v1"
+	"github.com/tilebox/tilebox-go/workflows/v1/job"
+)
+
+func main() {
+	ctx := context.Background()
+	client := workflows.NewClient()
+	jobID := uuid.MustParse("019e070c-63ba-1c7e-5f1d-65be3e22d52a")
+
+	for logRecord, err := range client.Jobs.QueryLogs(ctx, jobID,
+		job.WithLimit(100),
+		job.WithSortDirection(job.Ascending),
+	) {
+		if err != nil {
+			slog.ErrorContext(ctx, "failed to query job logs", slog.Any("error", err))
+			return
+		}
+
+		slog.InfoContext(ctx, "job log", slog.String("body", logRecord.Body))
+	}
+}
+```
+
 ## License
 
 Distributed under the MIT License (`The MIT License`).

@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/workflows/v1"
+	"github.com/tilebox/tilebox-go/workflows/v1/job"
 )
 
 func main() {
@@ -18,7 +19,7 @@ func main() {
 
 	fmt.Println("Log messages:")                             //nolint:forbidigo // This example intentionally prints query results to stdout.
 	fmt.Printf("%-8s  %-30s  %s\n", "LEVEL", "TIME", "BODY") //nolint:forbidigo // This example intentionally prints query results to stdout.
-	for logRecord, err := range client.Jobs.QueryLogs(ctx, jobID, workflows.WithSortDirection(workflows.Ascending)) {
+	for logRecord, err := range client.Jobs.QueryLogs(ctx, jobID, job.WithSortDirection(job.Ascending)) {
 		if err != nil {
 			slog.ErrorContext(ctx, "failed to query job logs", slog.Any("error", err))
 			return

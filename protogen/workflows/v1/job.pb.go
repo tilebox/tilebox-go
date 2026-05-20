@@ -894,11 +894,12 @@ func (b0 QueryFilters_builder) Build() *QueryFilters {
 
 // QueryJobsRequest requests a list of jobs.
 type QueryJobsRequest struct {
-	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Filters *QueryFilters          `protobuf:"bytes,1,opt,name=filters"`
-	xxx_hidden_Page    *v1.Pagination         `protobuf:"bytes,2,opt,name=page"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Filters       *QueryFilters          `protobuf:"bytes,1,opt,name=filters"`
+	xxx_hidden_Page          *v1.Pagination         `protobuf:"bytes,2,opt,name=page"`
+	xxx_hidden_SortDirection v1.SortDirection       `protobuf:"varint,3,opt,name=sort_direction,json=sortDirection,enum=tilebox.v1.SortDirection"`
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *QueryJobsRequest) Reset() {
@@ -940,12 +941,23 @@ func (x *QueryJobsRequest) GetPage() *v1.Pagination {
 	return nil
 }
 
+func (x *QueryJobsRequest) GetSortDirection() v1.SortDirection {
+	if x != nil {
+		return x.xxx_hidden_SortDirection
+	}
+	return v1.SortDirection(0)
+}
+
 func (x *QueryJobsRequest) SetFilters(v *QueryFilters) {
 	x.xxx_hidden_Filters = v
 }
 
 func (x *QueryJobsRequest) SetPage(v *v1.Pagination) {
 	x.xxx_hidden_Page = v
+}
+
+func (x *QueryJobsRequest) SetSortDirection(v v1.SortDirection) {
+	x.xxx_hidden_SortDirection = v
 }
 
 func (x *QueryJobsRequest) HasFilters() bool {
@@ -977,6 +989,8 @@ type QueryJobsRequest_builder struct {
 	Filters *QueryFilters
 	// The pagination parameters for this request.
 	Page *v1.Pagination
+	// The sort order for jobs (by submission date). Defaults to descending order (newest jobs first).
+	SortDirection v1.SortDirection
 }
 
 func (b0 QueryJobsRequest_builder) Build() *QueryJobsRequest {
@@ -985,6 +999,7 @@ func (b0 QueryJobsRequest_builder) Build() *QueryJobsRequest {
 	_, _ = b, x
 	x.xxx_hidden_Filters = b.Filters
 	x.xxx_hidden_Page = b.Page
+	x.xxx_hidden_SortDirection = b.SortDirection
 	return m0
 }
 
@@ -1361,10 +1376,11 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\vtask_states\x18\x06 \x03(\x0e2\x17.workflows.v1.TaskStateR\n" +
 	"taskStates:#\xbaH \"\x1e\n" +
 	"\rtime_interval\n" +
-	"\vid_interval\x10\x00\"{\n" +
+	"\vid_interval\x10\x00\"\xbd\x01\n" +
 	"\x10QueryJobsRequest\x124\n" +
 	"\afilters\x18\x01 \x01(\v2\x1a.workflows.v1.QueryFiltersR\afilters\x121\n" +
-	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\"v\n" +
+	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12@\n" +
+	"\x0esort_direction\x18\x03 \x01(\x0e2\x19.tilebox.v1.SortDirectionR\rsortDirection\"v\n" +
 	"\x11QueryJobsResponse\x12%\n" +
 	"\x04jobs\x18\x01 \x03(\v2\x11.workflows.v1.JobR\x04jobs\x12:\n" +
 	"\tnext_page\x18\x03 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"G\n" +
@@ -1425,8 +1441,9 @@ var file_workflows_v1_job_proto_goTypes = []any{
 	(JobState)(0),                   // 21: workflows.v1.JobState
 	(TaskState)(0),                  // 22: workflows.v1.TaskState
 	(*v1.Pagination)(nil),           // 23: tilebox.v1.Pagination
-	(*Job)(nil),                     // 24: workflows.v1.Job
-	(*Diagram)(nil),                 // 25: workflows.v1.Diagram
+	(v1.SortDirection)(0),           // 24: tilebox.v1.SortDirection
+	(*Job)(nil),                     // 25: workflows.v1.Job
+	(*Diagram)(nil),                 // 26: workflows.v1.Diagram
 }
 var file_workflows_v1_job_proto_depIdxs = []int32{
 	15, // 0: workflows.v1.SubmitJobRequest.tasks:type_name -> workflows.v1.TaskSubmissions
@@ -1446,35 +1463,36 @@ var file_workflows_v1_job_proto_depIdxs = []int32{
 	22, // 14: workflows.v1.QueryFilters.task_states:type_name -> workflows.v1.TaskState
 	9,  // 15: workflows.v1.QueryJobsRequest.filters:type_name -> workflows.v1.QueryFilters
 	23, // 16: workflows.v1.QueryJobsRequest.page:type_name -> tilebox.v1.Pagination
-	24, // 17: workflows.v1.QueryJobsResponse.jobs:type_name -> workflows.v1.Job
-	23, // 18: workflows.v1.QueryJobsResponse.next_page:type_name -> tilebox.v1.Pagination
-	16, // 19: workflows.v1.GetJobPrototypeRequest.job_id:type_name -> tilebox.v1.ID
-	17, // 20: workflows.v1.GetJobPrototypeResponse.root_tasks:type_name -> workflows.v1.SingleTaskSubmission
-	16, // 21: workflows.v1.CloneJobRequest.job_id:type_name -> tilebox.v1.ID
-	17, // 22: workflows.v1.CloneJobRequest.root_tasks_overrides:type_name -> workflows.v1.SingleTaskSubmission
-	1,  // 23: workflows.v1.JobService.SubmitJob:input_type -> workflows.v1.SubmitJobRequest
-	2,  // 24: workflows.v1.JobService.GetJob:input_type -> workflows.v1.GetJobRequest
-	3,  // 25: workflows.v1.JobService.GetJobProgress:input_type -> workflows.v1.GetJobProgressRequest
-	4,  // 26: workflows.v1.JobService.RetryJob:input_type -> workflows.v1.RetryJobRequest
-	6,  // 27: workflows.v1.JobService.CancelJob:input_type -> workflows.v1.CancelJobRequest
-	8,  // 28: workflows.v1.JobService.VisualizeJob:input_type -> workflows.v1.VisualizeJobRequest
-	10, // 29: workflows.v1.JobService.QueryJobs:input_type -> workflows.v1.QueryJobsRequest
-	12, // 30: workflows.v1.JobService.GetJobPrototype:input_type -> workflows.v1.GetJobPrototypeRequest
-	14, // 31: workflows.v1.JobService.CloneJob:input_type -> workflows.v1.CloneJobRequest
-	24, // 32: workflows.v1.JobService.SubmitJob:output_type -> workflows.v1.Job
-	24, // 33: workflows.v1.JobService.GetJob:output_type -> workflows.v1.Job
-	24, // 34: workflows.v1.JobService.GetJobProgress:output_type -> workflows.v1.Job
-	5,  // 35: workflows.v1.JobService.RetryJob:output_type -> workflows.v1.RetryJobResponse
-	7,  // 36: workflows.v1.JobService.CancelJob:output_type -> workflows.v1.CancelJobResponse
-	25, // 37: workflows.v1.JobService.VisualizeJob:output_type -> workflows.v1.Diagram
-	11, // 38: workflows.v1.JobService.QueryJobs:output_type -> workflows.v1.QueryJobsResponse
-	13, // 39: workflows.v1.JobService.GetJobPrototype:output_type -> workflows.v1.GetJobPrototypeResponse
-	24, // 40: workflows.v1.JobService.CloneJob:output_type -> workflows.v1.Job
-	32, // [32:41] is the sub-list for method output_type
-	23, // [23:32] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	24, // 17: workflows.v1.QueryJobsRequest.sort_direction:type_name -> tilebox.v1.SortDirection
+	25, // 18: workflows.v1.QueryJobsResponse.jobs:type_name -> workflows.v1.Job
+	23, // 19: workflows.v1.QueryJobsResponse.next_page:type_name -> tilebox.v1.Pagination
+	16, // 20: workflows.v1.GetJobPrototypeRequest.job_id:type_name -> tilebox.v1.ID
+	17, // 21: workflows.v1.GetJobPrototypeResponse.root_tasks:type_name -> workflows.v1.SingleTaskSubmission
+	16, // 22: workflows.v1.CloneJobRequest.job_id:type_name -> tilebox.v1.ID
+	17, // 23: workflows.v1.CloneJobRequest.root_tasks_overrides:type_name -> workflows.v1.SingleTaskSubmission
+	1,  // 24: workflows.v1.JobService.SubmitJob:input_type -> workflows.v1.SubmitJobRequest
+	2,  // 25: workflows.v1.JobService.GetJob:input_type -> workflows.v1.GetJobRequest
+	3,  // 26: workflows.v1.JobService.GetJobProgress:input_type -> workflows.v1.GetJobProgressRequest
+	4,  // 27: workflows.v1.JobService.RetryJob:input_type -> workflows.v1.RetryJobRequest
+	6,  // 28: workflows.v1.JobService.CancelJob:input_type -> workflows.v1.CancelJobRequest
+	8,  // 29: workflows.v1.JobService.VisualizeJob:input_type -> workflows.v1.VisualizeJobRequest
+	10, // 30: workflows.v1.JobService.QueryJobs:input_type -> workflows.v1.QueryJobsRequest
+	12, // 31: workflows.v1.JobService.GetJobPrototype:input_type -> workflows.v1.GetJobPrototypeRequest
+	14, // 32: workflows.v1.JobService.CloneJob:input_type -> workflows.v1.CloneJobRequest
+	25, // 33: workflows.v1.JobService.SubmitJob:output_type -> workflows.v1.Job
+	25, // 34: workflows.v1.JobService.GetJob:output_type -> workflows.v1.Job
+	25, // 35: workflows.v1.JobService.GetJobProgress:output_type -> workflows.v1.Job
+	5,  // 36: workflows.v1.JobService.RetryJob:output_type -> workflows.v1.RetryJobResponse
+	7,  // 37: workflows.v1.JobService.CancelJob:output_type -> workflows.v1.CancelJobResponse
+	26, // 38: workflows.v1.JobService.VisualizeJob:output_type -> workflows.v1.Diagram
+	11, // 39: workflows.v1.JobService.QueryJobs:output_type -> workflows.v1.QueryJobsResponse
+	13, // 40: workflows.v1.JobService.GetJobPrototype:output_type -> workflows.v1.GetJobPrototypeResponse
+	25, // 41: workflows.v1.JobService.CloneJob:output_type -> workflows.v1.Job
+	33, // [33:42] is the sub-list for method output_type
+	24, // [24:33] is the sub-list for method input_type
+	24, // [24:24] is the sub-list for extension type_name
+	24, // [24:24] is the sub-list for extension extendee
+	0,  // [0:24] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_job_proto_init() }

@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -21,7 +22,11 @@ import (
 type mockJobService struct {
 	JobService
 
-	reqs []*workflowsv1.SubmitJobRequest
+	reqs          []*workflowsv1.SubmitJobRequest
+	queryPages    []*workflowsv1.QueryJobsResponse
+	queryFilters  []*workflowsv1.QueryFilters
+	queryPageReqs []*tileboxv1.Pagination
+	querySortReqs []tileboxv1.SortDirection
 }
 
 type mockTelemetryService struct {
@@ -31,8 +36,8 @@ type mockTelemetryService struct {
 	spanPages      []*workflowsv1.PaginatedSpansData
 	logPageReqs    []*tileboxv1.Pagination
 	spanPageReqs   []*tileboxv1.Pagination
-	logSortReqs    []*workflowsv1.SortDirection
-	spanSortReqs   []*workflowsv1.SortDirection
+	logSortReqs    []*tileboxv1.SortDirection
+	spanSortReqs   []*tileboxv1.SortDirection
 	queryLogJobID  uuid.UUID
 	querySpanJobID uuid.UUID
 }
@@ -45,7 +50,19 @@ func (m *mockJobService) SubmitJob(_ context.Context, req *workflowsv1.SubmitJob
 	}.Build(), nil
 }
 
-func (m *mockTelemetryService) QueryJobLogs(_ context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *workflowsv1.SortDirection) (*workflowsv1.PaginatedLogsData, error) {
+func (m *mockJobService) QueryJobs(_ context.Context, filters *workflowsv1.QueryFilters, page *tileboxv1.Pagination, sortDirection tileboxv1.SortDirection) (*workflowsv1.QueryJobsResponse, error) {
+	m.queryFilters = append(m.queryFilters, filters)
+	m.queryPageReqs = append(m.queryPageReqs, page)
+	m.querySortReqs = append(m.querySortReqs, sortDirection)
+
+	pageIndex := len(m.queryPageReqs) - 1
+	if pageIndex >= len(m.queryPages) {
+		return workflowsv1.QueryJobsResponse_builder{}.Build(), nil
+	}
+	return m.queryPages[pageIndex], nil
+}
+
+func (m *mockTelemetryService) QueryJobLogs(_ context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedLogsData, error) {
 	m.queryLogJobID = jobID
 	m.logPageReqs = append(m.logPageReqs, page)
 	m.logSortReqs = append(m.logSortReqs, sortDirection)
@@ -54,13 +71,40 @@ func (m *mockTelemetryService) QueryJobLogs(_ context.Context, jobID uuid.UUID, 
 	return m.logPages[pageIndex], nil
 }
 
-func (m *mockTelemetryService) QueryJobSpans(_ context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *workflowsv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
+func (m *mockTelemetryService) QueryJobSpans(_ context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
 	m.querySpanJobID = jobID
 	m.spanPageReqs = append(m.spanPageReqs, page)
 	m.spanSortReqs = append(m.spanSortReqs, sortDirection)
 
 	pageIndex := len(m.spanPageReqs) - 1
 	return m.spanPages[pageIndex], nil
+}
+
+func TestTaskStateString(t *testing.T) {
+	tests := []struct {
+		name  string
+		state TaskState
+		want  string
+	}{
+		{name: "queued", state: TaskQueued, want: "queued"},
+		{name: "running", state: TaskRunning, want: "running"},
+		{name: "computed", state: TaskComputed, want: "computed"},
+		{name: "failed", state: TaskFailed, want: "failed"},
+		{name: "skipped", state: TaskSkipped, want: "skipped"},
+		{name: "failed optional", state: TaskFailedOptional, want: "failed_optional"},
+		{name: "unspecified", state: 0, want: "unspecified"},
+		{name: "unknown", state: 99, want: "unspecified"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.want, test.state.String())
+
+			data, err := json.Marshal(test.state)
+			require.NoError(t, err)
+			assert.JSONEq(t, `"`+test.want+`"`, string(data))
+		})
+	}
 }
 
 func TestJobService_Submit(t *testing.T) {
@@ -169,6 +213,121 @@ func Test_jobClient_Query(t *testing.T) {
 	assert.Equal(t, job.Completed, firstJob.State)
 }
 
+func Test_jobClient_Query_WithSortDirection(t *testing.T) {
+	service := &mockJobService{}
+	client := jobClient{service: service}
+	timeInterval := query.NewTimeInterval(
+		time.Date(2024, time.February, 1, 0, 0, 0, 0, time.UTC),
+		time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC),
+	)
+
+	jobs, err := Collect(client.Query(context.Background(), job.WithTemporalExtent(timeInterval), job.WithSortDirection(job.Ascending)))
+	require.NoError(t, err)
+	assert.Empty(t, jobs)
+
+	require.Len(t, service.querySortReqs, 1)
+	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_ASCENDING, service.querySortReqs[0])
+}
+
+func Test_jobClient_Query_WithoutTemporalExtent(t *testing.T) {
+	service := &mockJobService{}
+	client := jobClient{service: service}
+
+	jobs, err := Collect(client.Query(context.Background()))
+	require.NoError(t, err)
+	assert.Empty(t, jobs)
+
+	require.Len(t, service.queryFilters, 1)
+	assert.Nil(t, service.queryFilters[0].GetTimeInterval())
+	assert.Nil(t, service.queryFilters[0].GetIdInterval())
+}
+
+func Test_jobClient_Query_WithTaskStates(t *testing.T) {
+	service := &mockJobService{}
+	client := jobClient{service: service}
+	timeInterval := query.NewTimeInterval(
+		time.Date(2024, time.February, 1, 0, 0, 0, 0, time.UTC),
+		time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC),
+	)
+
+	jobs, err := Collect(client.Query(context.Background(), job.WithTemporalExtent(timeInterval), job.WithTaskStates(job.TaskRunning, job.TaskFailed)))
+	require.NoError(t, err)
+	assert.Empty(t, jobs)
+
+	require.Len(t, service.queryFilters, 1)
+	assert.Equal(t, []workflowsv1.TaskState{workflowsv1.TaskState_TASK_STATE_RUNNING, workflowsv1.TaskState_TASK_STATE_FAILED}, service.queryFilters[0].GetTaskStates())
+}
+
+func Test_jobClient_Query_WithLimit(t *testing.T) {
+	nextPage := tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b"))}.Build()
+	service := &mockJobService{
+		queryPages: []*workflowsv1.QueryJobsResponse{
+			workflowsv1.QueryJobsResponse_builder{
+				Jobs: []*workflowsv1.Job{
+					workflowsv1.Job_builder{Name: "first", Id: tileboxv1.NewUUID(uuid.New())}.Build(),
+				},
+				NextPage: nextPage,
+			}.Build(),
+			workflowsv1.QueryJobsResponse_builder{
+				Jobs: []*workflowsv1.Job{
+					workflowsv1.Job_builder{Name: "second", Id: tileboxv1.NewUUID(uuid.New())}.Build(),
+					workflowsv1.Job_builder{Name: "third", Id: tileboxv1.NewUUID(uuid.New())}.Build(),
+				},
+			}.Build(),
+		},
+	}
+	client := jobClient{service: service}
+	timeInterval := query.NewTimeInterval(
+		time.Date(2024, time.February, 1, 0, 0, 0, 0, time.UTC),
+		time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC),
+	)
+
+	jobs, err := Collect(client.Query(context.Background(), job.WithTemporalExtent(timeInterval), job.WithLimit(2)))
+	require.NoError(t, err)
+	require.Len(t, jobs, 2)
+
+	require.Len(t, service.queryPageReqs, 2)
+	assert.Equal(t, int64(2), service.queryPageReqs[0].GetLimit())
+	assert.Nil(t, service.queryPageReqs[0].GetStartingAfter())
+	assert.Equal(t, int64(1), service.queryPageReqs[1].GetLimit())
+	assert.Equal(t, nextPage.GetStartingAfter(), service.queryPageReqs[1].GetStartingAfter())
+	assert.Equal(t, "first", jobs[0].Name)
+	assert.Equal(t, "second", jobs[1].Name)
+}
+
+func Test_jobClient_QueryPage(t *testing.T) {
+	cursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b")
+	nextCursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75c")
+	service := &mockJobService{
+		queryPages: []*workflowsv1.QueryJobsResponse{
+			workflowsv1.QueryJobsResponse_builder{
+				Jobs: []*workflowsv1.Job{
+					workflowsv1.Job_builder{Name: "first", Id: tileboxv1.NewUUID(uuid.New())}.Build(),
+				},
+				NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextCursorID)}.Build(),
+			}.Build(),
+		},
+	}
+	client := jobClient{service: service}
+	timeInterval := query.NewTimeInterval(
+		time.Date(2024, time.February, 1, 0, 0, 0, 0, time.UTC),
+		time.Date(2025, time.February, 1, 0, 0, 0, 0, time.UTC),
+	)
+
+	page, err := client.QueryPage(context.Background(), job.WithTemporalExtent(timeInterval), job.WithCursor(job.NewCursor(cursorID)), job.WithLimit(10), job.WithSortDirection(job.Descending))
+	require.NoError(t, err)
+	require.Len(t, page.Jobs, 1)
+	require.NotNil(t, page.NextCursor)
+
+	assert.Equal(t, "first", page.Jobs[0].Name)
+	assert.Equal(t, nextCursorID, page.NextCursor.StartingAfter())
+	require.Len(t, service.queryPageReqs, 1)
+	assert.Equal(t, int64(10), service.queryPageReqs[0].GetLimit())
+	assert.Equal(t, cursorID, service.queryPageReqs[0].GetStartingAfter().AsUUID())
+	require.Len(t, service.querySortReqs, 1)
+	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING, service.querySortReqs[0])
+}
+
 func Test_jobClient_QueryLogs(t *testing.T) {
 	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
 	nextPage := tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b"))}.Build()
@@ -193,7 +352,7 @@ func Test_jobClient_QueryLogs(t *testing.T) {
 	require.Len(t, service.logPageReqs, 2)
 	assert.Nil(t, service.logPageReqs[0])
 	assert.Equal(t, nextPage, service.logPageReqs[1])
-	assert.Equal(t, []*workflowsv1.SortDirection{nil, nil}, service.logSortReqs)
+	assert.Equal(t, []*tileboxv1.SortDirection{nil, nil}, service.logSortReqs)
 	assert.Equal(t, "first log", logs[0].Body)
 	assert.Equal(t, 10, logs[0].SeverityNumber)
 	assert.Equal(t, "INFO", logs[0].SeverityText)
@@ -218,7 +377,7 @@ func Test_jobClient_QueryLogs_WithOptions(t *testing.T) {
 	}
 	client := jobClient{telemetryService: service}
 
-	logs, err := Collect(client.QueryLogs(context.Background(), jobID, WithLimit(2), WithSortDirection(Descending)))
+	logs, err := Collect(client.QueryLogs(context.Background(), jobID, job.WithLimit(2), job.WithSortDirection(job.Descending)))
 	require.NoError(t, err)
 	require.Len(t, logs, 2)
 
@@ -228,10 +387,38 @@ func Test_jobClient_QueryLogs_WithOptions(t *testing.T) {
 	assert.Equal(t, int64(1), service.logPageReqs[1].GetLimit())
 	assert.Equal(t, nextPage.GetStartingAfter(), service.logPageReqs[1].GetStartingAfter())
 	require.Len(t, service.logSortReqs, 2)
-	assert.Equal(t, workflowsv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[0])
-	assert.Equal(t, workflowsv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[1])
+	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[0])
+	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[1])
 	assert.Equal(t, "first log", logs[0].Body)
 	assert.Equal(t, "second log", logs[1].Body)
+}
+
+func Test_jobClient_QueryLogsPage(t *testing.T) {
+	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	cursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b")
+	nextCursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75c")
+	service := &mockTelemetryService{
+		logPages: []*workflowsv1.PaginatedLogsData{
+			workflowsv1.PaginatedLogsData_builder{
+				ResourceLogs: []*logsv1.ResourceLogs{testResourceLogs("first log", 10)},
+				NextPage:     tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextCursorID)}.Build(),
+			}.Build(),
+		},
+	}
+	client := jobClient{telemetryService: service}
+
+	page, err := client.QueryLogsPage(context.Background(), jobID, job.WithCursor(job.NewCursor(cursorID)), job.WithLimit(10), job.WithSortDirection(job.Descending))
+	require.NoError(t, err)
+	require.Len(t, page.Logs, 1)
+	require.NotNil(t, page.NextCursor)
+
+	assert.Equal(t, "first log", page.Logs[0].Body)
+	assert.Equal(t, nextCursorID, page.NextCursor.StartingAfter())
+	require.Len(t, service.logPageReqs, 1)
+	assert.Equal(t, int64(10), service.logPageReqs[0].GetLimit())
+	assert.Equal(t, cursorID, service.logPageReqs[0].GetStartingAfter().AsUUID())
+	require.Len(t, service.logSortReqs, 1)
+	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[0])
 }
 
 func Test_jobClient_QuerySpans(t *testing.T) {
@@ -252,7 +439,7 @@ func Test_jobClient_QuerySpans(t *testing.T) {
 	assert.Equal(t, jobID, service.querySpanJobID)
 	require.Len(t, service.spanPageReqs, 1)
 	assert.Nil(t, service.spanPageReqs[0])
-	assert.Equal(t, []*workflowsv1.SortDirection{nil}, service.spanSortReqs)
+	assert.Equal(t, []*tileboxv1.SortDirection{nil}, service.spanSortReqs)
 	assert.Equal(t, "task/run", spans[0].Name)
 	assert.Equal(t, "010203", spans[0].TraceID)
 	assert.Equal(t, "040506", spans[0].SpanID)
@@ -278,14 +465,42 @@ func Test_jobClient_QuerySpans_WithOptions(t *testing.T) {
 	}
 	client := jobClient{telemetryService: service}
 
-	spans, err := Collect(client.QuerySpans(context.Background(), jobID, WithLimit(1), WithSortDirection(Ascending)))
+	spans, err := Collect(client.QuerySpans(context.Background(), jobID, job.WithLimit(1), job.WithSortDirection(job.Ascending)))
 	require.NoError(t, err)
 	require.Len(t, spans, 1)
 
 	require.Len(t, service.spanPageReqs, 1)
 	assert.Equal(t, int64(1), service.spanPageReqs[0].GetLimit())
 	require.Len(t, service.spanSortReqs, 1)
-	assert.Equal(t, workflowsv1.SortDirection_SORT_DIRECTION_ASCENDING, *service.spanSortReqs[0])
+	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_ASCENDING, *service.spanSortReqs[0])
+}
+
+func Test_jobClient_QuerySpansPage(t *testing.T) {
+	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	cursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b")
+	nextCursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75c")
+	service := &mockTelemetryService{
+		spanPages: []*workflowsv1.PaginatedSpansData{
+			workflowsv1.PaginatedSpansData_builder{
+				ResourceSpans: []*tracev1.ResourceSpans{testResourceSpans()},
+				NextPage:      tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextCursorID)}.Build(),
+			}.Build(),
+		},
+	}
+	client := jobClient{telemetryService: service}
+
+	page, err := client.QuerySpansPage(context.Background(), jobID, job.WithCursor(job.NewCursor(cursorID)), job.WithLimit(10), job.WithSortDirection(job.Ascending))
+	require.NoError(t, err)
+	require.Len(t, page.Spans, 1)
+	require.NotNil(t, page.NextCursor)
+
+	assert.Equal(t, "task/run", page.Spans[0].Name)
+	assert.Equal(t, nextCursorID, page.NextCursor.StartingAfter())
+	require.Len(t, service.spanPageReqs, 1)
+	assert.Equal(t, int64(10), service.spanPageReqs[0].GetLimit())
+	assert.Equal(t, cursorID, service.spanPageReqs[0].GetStartingAfter().AsUUID())
+	require.Len(t, service.spanSortReqs, 1)
+	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_ASCENDING, *service.spanSortReqs[0])
 }
 
 func testResourceLogs(body string, severity logsv1.SeverityNumber) *logsv1.ResourceLogs {
