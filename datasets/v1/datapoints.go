@@ -293,42 +293,6 @@ func (d datapointClient) QueryPage(ctx context.Context, datasetID uuid.UUID, opt
 	return d.queryPage(ctx, datasetID, cfg)
 }
 
-func (d datapointClient) queryPage(ctx context.Context, datasetID uuid.UUID, cfg *queryOptions) (*DatapointPage, error) {
-	if cfg.temporalExtent == nil {
-		// right now we return an error, in the future we might want to support queries without a temporal extent
-		return nil, errors.New("temporal extent is required")
-	}
-
-	timeInterval := cfg.temporalExtent.ToProtoTimeInterval()
-	datapointInterval := cfg.temporalExtent.ToProtoIDInterval()
-	if timeInterval == nil && datapointInterval == nil {
-		return nil, errors.New("invalid temporal extent")
-	}
-
-	filters := datasetsv1.QueryFilters_builder{
-		TimeInterval:      timeInterval,
-		DatapointInterval: datapointInterval,
-	}.Build()
-
-	if cfg.spatialExtent != nil {
-		spatialExtent, err := cfg.spatialExtent.ToProtoSpatialFilter()
-		if err != nil {
-			return nil, err
-		}
-		filters.SetSpatialExtent(spatialExtent)
-	}
-
-	datapointsMessage, err := d.dataAccessService.Query(ctx, datasetID, cfg.collectionIDs, filters, paginationFromOptions(cfg.limit, cfg.cursor), cfg.skipData)
-	if err != nil {
-		return nil, err
-	}
-
-	return &DatapointPage{
-		Datapoints: datapointsMessage.GetData().GetValue(),
-		NextCursor: cursorFromPagination(datapointsMessage.GetNextPage()),
-	}, nil
-}
-
 func paginationFromOptions(limit int64, cursor *Cursor) *tileboxv1.Pagination {
 	if limit <= 0 && cursor == nil {
 		return nil
@@ -504,6 +468,42 @@ func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, 
 	}
 
 	return numDeleted, nil
+}
+
+func (d datapointClient) queryPage(ctx context.Context, datasetID uuid.UUID, cfg *queryOptions) (*DatapointPage, error) {
+	if cfg.temporalExtent == nil {
+		// right now we return an error, in the future we might want to support queries without a temporal extent
+		return nil, errors.New("temporal extent is required")
+	}
+
+	timeInterval := cfg.temporalExtent.ToProtoTimeInterval()
+	datapointInterval := cfg.temporalExtent.ToProtoIDInterval()
+	if timeInterval == nil && datapointInterval == nil {
+		return nil, errors.New("invalid temporal extent")
+	}
+
+	filters := datasetsv1.QueryFilters_builder{
+		TimeInterval:      timeInterval,
+		DatapointInterval: datapointInterval,
+	}.Build()
+
+	if cfg.spatialExtent != nil {
+		spatialExtent, err := cfg.spatialExtent.ToProtoSpatialFilter()
+		if err != nil {
+			return nil, err
+		}
+		filters.SetSpatialExtent(spatialExtent)
+	}
+
+	datapointsMessage, err := d.dataAccessService.Query(ctx, datasetID, cfg.collectionIDs, filters, paginationFromOptions(cfg.limit, cfg.cursor), cfg.skipData)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DatapointPage{
+		Datapoints: datapointsMessage.GetData().GetValue(),
+		NextCursor: cursorFromPagination(datapointsMessage.GetNextPage()),
+	}, nil
 }
 
 // CollectAs converts a sequence of bytes into a slice of proto.Message.
