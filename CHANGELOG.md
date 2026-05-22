@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-05-22
+
+### Added
+
+- `datasets`: Added `client.Datasets.Create` and `client.Datasets.Update` with optional summary and markdown description options.
+- `datasets`: Added datapoint query pagination and dynamic datapoint decoding helpers for converting raw protobuf datapoints to maps.
+- `examples`: Added a dynamic dataset query example that decodes datapoints without generated Go types.
+- `workflows`: Added `client.Automations` to list and inspect automations and storage locations.
+
 ## [0.6.0] - 2026-05-20
 
 ### Added
@@ -103,7 +112,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.7.0...HEAD
+[0.6.0]: https://github.com/tilebox/tilebox-go/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/tilebox/tilebox-go/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/tilebox/tilebox-go/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/tilebox/tilebox-go/compare/v0.3.2...v0.4.0
