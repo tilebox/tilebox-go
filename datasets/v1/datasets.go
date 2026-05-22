@@ -24,7 +24,9 @@ type Dataset struct {
 	Type *datasetsv1.AnnotatedType
 	// Name is the name of the dataset.
 	Name string
-	// Description is a short description of the dataset.
+	// Summary is a short description of the dataset.
+	Summary string
+	// Description is the dataset's larger markdown documentation.
 	Description string
 	// Slug is the unique slug of the dataset.
 	Slug string
@@ -40,16 +42,61 @@ func (d Dataset) String() string {
 	case datasetsv1.DatasetKind_DATASET_KIND_UNSPECIFIED:
 	}
 
-	return fmt.Sprintf("%s [%s Dataset]: %s", d.Name, kind, d.Description)
+	return fmt.Sprintf("%s [%s Dataset]: %s", d.Name, kind, d.Summary)
+}
+
+type datasetOptions struct {
+	summary     *string
+	description *string
+}
+
+// DatasetOption configures dataset create and update requests.
+type DatasetOption func(*datasetOptions)
+
+// WithSummary sets a short dataset description.
+func WithSummary(summary string) DatasetOption {
+	return func(options *datasetOptions) {
+		options.summary = &summary
+	}
+}
+
+// WithDescription sets the dataset's larger markdown documentation.
+func WithDescription(description string) DatasetOption {
+	return func(options *datasetOptions) {
+		options.description = &description
+	}
+}
+
+func optionalString(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
+func applyDatasetOptions(options ...DatasetOption) datasetOptions {
+	var applied datasetOptions
+	for _, option := range options {
+		option(&applied)
+	}
+	return applied
 }
 
 type DatasetClient interface {
+	// Create creates a new dataset with the given name, codeName, schema kind, and custom fields.
+	//
+	// Documentation: https://docs.tilebox.com/datasets/concepts/datasets#creating-a-dataset
+	Create(ctx context.Context, kind DatasetKind, codeName string, name string, fields []Field, options ...DatasetOption) (*Dataset, error)
+
+	// Update updates an existing dataset with the given id, name, codeName, schema kind, and custom fields.
+	Update(ctx context.Context, id uuid.UUID, kind DatasetKind, codeName string, name string, fields []Field, options ...DatasetOption) (*Dataset, error)
+
 	// CreateOrUpdate creates a new dataset with the given name and codeName, or updates the schema of an existing dataset by adding new fields.
 	// If the dataset is empty, the schema can also be altered in a backwards incompatible way, by removing fields or changing their type.
 	// Otherwise, any attempt to such an update operation will result in an error.
 	//
 	// Documentation: https://docs.tilebox.com/datasets/concepts/datasets#creating-a-dataset
-	CreateOrUpdate(ctx context.Context, kind DatasetKind, codeName string, name string, fields []Field) (*Dataset, error)
+	CreateOrUpdate(ctx context.Context, kind DatasetKind, codeName string, name string, fields []Field, options ...DatasetOption) (*Dataset, error)
 
 	// Get returns a dataset by its full slug, e.g. "open_data.copernicus.sentinel1_sar".
 	Get(ctx context.Context, slug string) (*Dataset, error)
@@ -145,32 +192,68 @@ type Field interface {
 	Descriptor() *field.Descriptor
 }
 
-// CreateOrUpdate creates a new dataset with the given name and codeName, or updates the schema of an existing dataset by adding new fields.
-// If the dataset is empty, the schema can also be altered in a backwards incompatible way, by removing fields or changing their type.
-// Otherwise, any attempt to such an update operation will result in an error.
-func (d datasetClient) CreateOrUpdate(ctx context.Context, kind DatasetKind, codeName string, name string, fields []Field) (*Dataset, error) {
+func datasetType(kind DatasetKind, fields []Field) (*datasetsv1.DatasetType, error) {
 	// make sure our dataset type contains all the fixed fields for the given kind
 	requiredFields, ok := requiredFieldsPerDatasetKind[kind]
 	if !ok {
 		return nil, fmt.Errorf("unknown dataset kind: %d", kind)
 	}
 
-	datasetFields := make([]*datasetsv1.Field, 0, len(requiredFields))
+	datasetFields := make([]*datasetsv1.Field, 0, len(requiredFields)+len(fields))
 	datasetFields = append(datasetFields, requiredFields...)
 	for _, f := range fields {
 		datasetFields = append(datasetFields, f.Descriptor().ToProto())
 	}
 
-	datasetType := datasetsv1.DatasetType_builder{
+	return datasetsv1.DatasetType_builder{
 		Kind:   datasetsv1.DatasetKind(kind),
 		Fields: datasetFields,
-	}.Build()
+	}.Build(), nil
+}
+
+// Create creates a new dataset with the given name, codeName, schema kind, and custom fields.
+func (d datasetClient) Create(ctx context.Context, kind DatasetKind, codeName string, name string, fields []Field, options ...DatasetOption) (*Dataset, error) {
+	datasetType, err := datasetType(kind, fields)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := d.service.CreateDataset(ctx, codeName, name, datasetType, applyDatasetOptions(options...))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create dataset: %w", err)
+	}
+	return protoToDataset(response), nil
+}
+
+// Update updates an existing dataset with the given id, name, codeName, schema kind, and custom fields.
+func (d datasetClient) Update(ctx context.Context, id uuid.UUID, kind DatasetKind, codeName string, name string, fields []Field, options ...DatasetOption) (*Dataset, error) {
+	datasetType, err := datasetType(kind, fields)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := d.service.UpdateDataset(ctx, id, codeName, name, datasetType, applyDatasetOptions(options...))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update dataset: %w", err)
+	}
+	return protoToDataset(response), nil
+}
+
+// CreateOrUpdate creates a new dataset with the given name and codeName, or updates the schema of an existing dataset by adding new fields.
+// If the dataset is empty, the schema can also be altered in a backwards incompatible way, by removing fields or changing their type.
+// Otherwise, any attempt to such an update operation will result in an error.
+func (d datasetClient) CreateOrUpdate(ctx context.Context, kind DatasetKind, codeName string, name string, fields []Field, options ...DatasetOption) (*Dataset, error) {
+	datasetType, err := datasetType(kind, fields)
+	if err != nil {
+		return nil, err
+	}
+	datasetOptions := applyDatasetOptions(options...)
 
 	// check whether the dataset already exists, in which case we update it
 	existingDataset, err := d.service.GetDataset(ctx, codeName)
 	if err != nil {
 		if connect.CodeOf(err) == connect.CodeNotFound {
-			response, err := d.service.CreateDataset(ctx, codeName, name, datasetType)
+			response, err := d.service.CreateDataset(ctx, codeName, name, datasetType, datasetOptions)
 			if err != nil {
 				return nil, fmt.Errorf("failed to create dataset: %w", err)
 			}
@@ -180,7 +263,7 @@ func (d datasetClient) CreateOrUpdate(ctx context.Context, kind DatasetKind, cod
 	}
 
 	// we found an existing dataset, so let's update it
-	response, err := d.service.UpdateDataset(ctx, existingDataset.GetId().AsUUID(), codeName, name, datasetType)
+	response, err := d.service.UpdateDataset(ctx, existingDataset.GetId().AsUUID(), codeName, name, datasetType, datasetOptions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update dataset: %w", err)
 	}
@@ -216,7 +299,8 @@ func protoToDataset(d *datasetsv1.Dataset) *Dataset {
 		ID:          d.GetId().AsUUID(),
 		Type:        d.GetType(),
 		Name:        d.GetName(),
-		Description: d.GetSummary(),
+		Summary:     d.GetSummary(),
+		Description: d.GetDescription(),
 		Slug:        d.GetSlug(),
 	}
 }

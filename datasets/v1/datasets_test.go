@@ -78,8 +78,8 @@ func TestDataset_String(t *testing.T) {
 					rapid.Just(datasetsv1.DatasetKind_DATASET_KIND_SPATIOTEMPORAL),
 				).Draw(t, "Kind"),
 			}.Build(),
-			Name:        rapid.String().Draw(t, "Name"),
-			Description: rapid.String().Draw(t, "Description"),
+			Name:    rapid.String().Draw(t, "Name"),
+			Summary: rapid.String().Draw(t, "Summary"),
 		}
 	})
 
@@ -89,7 +89,7 @@ func TestDataset_String(t *testing.T) {
 
 		assert.Contains(t, got, input.Name)
 		assert.NotContains(t, got, input.ID.String())
-		assert.Contains(t, got, input.Description)
+		assert.Contains(t, got, input.Summary)
 
 		if input.Type.GetKind() == datasetsv1.DatasetKind_DATASET_KIND_TEMPORAL {
 			assert.Contains(t, got, "Temporal")

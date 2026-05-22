@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `datasets`: Added `client.Datasets.Create` and `client.Datasets.Update` with optional summary and markdown description options.
+- `datasets`: Added datapoint query pagination and dynamic datapoint decoding helpers for converting raw protobuf datapoints to maps.
+- `examples`: Added a dynamic dataset query example that decodes datapoints without generated Go types.
+- `workflows`: Added `client.Automations` to list and inspect automations and storage locations.
+
 ## [0.6.0] - 2026-05-20
 
 ### Added

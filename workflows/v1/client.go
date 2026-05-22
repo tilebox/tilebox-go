@@ -23,8 +23,9 @@ const (
 
 // Client is a Tilebox Workflows client.
 type Client struct {
-	Jobs     JobClient
-	Clusters ClusterClient
+	Jobs        JobClient
+	Clusters    ClusterClient
+	Automations AutomationClient
 
 	// Used by NewTaskRunner
 	taskService TaskService
@@ -49,12 +50,15 @@ func NewClient(options ...ClientOption) *Client {
 	telemetryConnectClient := newConnectClient(workflowsv1connect.NewTelemetryQueryServiceClient, cfg)
 	taskConnectClient := newConnectClient(workflowsv1connect.NewTaskServiceClient, cfg)
 	workflowConnectClient := newConnectClient(workflowsv1connect.NewWorkflowsServiceClient, cfg)
+	automationConnectClient := newConnectClient(workflowsv1connect.NewAutomationServiceClient, cfg)
 
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
+	automationService := &automationService{automationClient: automationConnectClient, tracer: tracer}
 
 	return &Client{
-		Jobs:     &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
-		Clusters: &clusterClient{service: newWorkflowService(workflowConnectClient, tracer)},
+		Jobs:        &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
+		Clusters:    &clusterClient{service: newWorkflowService(workflowConnectClient, tracer)},
+		Automations: &automationClient{service: automationService},
 
 		taskService: newTaskService(taskConnectClient, tracer),
 		tracer:      tracer,

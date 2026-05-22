@@ -16,8 +16,8 @@ import (
 )
 
 type DatasetService interface {
-	CreateDataset(ctx context.Context, codeName string, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error)
-	UpdateDataset(ctx context.Context, id uuid.UUID, codeName string, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error)
+	CreateDataset(ctx context.Context, codeName string, name string, datasetType *datasetsv1.DatasetType, options datasetOptions) (*datasetsv1.Dataset, error)
+	UpdateDataset(ctx context.Context, id uuid.UUID, codeName string, name string, datasetType *datasetsv1.DatasetType, options datasetOptions) (*datasetsv1.Dataset, error)
 	GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error)
 	ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error)
 }
@@ -36,13 +36,15 @@ func newDatasetsService(datasetClient datasetsv1connect.DatasetServiceClient, tr
 	}
 }
 
-func (s *datasetService) CreateDataset(ctx context.Context, codeName string, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error) {
+func (s *datasetService) CreateDataset(ctx context.Context, codeName string, name string, datasetType *datasetsv1.DatasetType, options datasetOptions) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/create", func(ctx context.Context) (*datasetsv1.Dataset, error) {
 		res, err := s.datasetClient.CreateDataset(ctx, connect.NewRequest(
 			datasetsv1.CreateDatasetRequest_builder{
-				CodeName: codeName,
-				Name:     name,
-				Type:     datasetType,
+				CodeName:    codeName,
+				Name:        name,
+				Type:        datasetType,
+				Summary:     optionalString(options.summary),
+				Description: optionalString(options.description),
 			}.Build(),
 		))
 		if err != nil {
@@ -53,13 +55,15 @@ func (s *datasetService) CreateDataset(ctx context.Context, codeName string, nam
 	})
 }
 
-func (s *datasetService) UpdateDataset(ctx context.Context, id uuid.UUID, codeName string, name string, datasetType *datasetsv1.DatasetType) (*datasetsv1.Dataset, error) {
+func (s *datasetService) UpdateDataset(ctx context.Context, id uuid.UUID, codeName string, name string, datasetType *datasetsv1.DatasetType, options datasetOptions) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/update", func(ctx context.Context) (*datasetsv1.Dataset, error) {
 		res, err := s.datasetClient.UpdateDataset(ctx, connect.NewRequest(datasetsv1.UpdateDatasetRequest_builder{
-			Id:       tileboxv1.NewUUID(id),
-			CodeName: &codeName,
-			Name:     &name,
-			Type:     datasetType,
+			Id:          tileboxv1.NewUUID(id),
+			CodeName:    &codeName,
+			Name:        &name,
+			Type:        datasetType,
+			Summary:     options.summary,
+			Description: options.description,
 		}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to update dataset: %w", err)

@@ -40,9 +40,16 @@ type mockDataAccessService struct {
 	n int
 }
 
-func (m mockDataAccessService) Query(_ context.Context, _ uuid.UUID, _ []uuid.UUID, _ *datasetsv1.QueryFilters, _ *tileboxv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
-	data := make([][]byte, m.n)
-	for i := range m.n {
+var mockNextCursorID = uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b")
+
+func (m mockDataAccessService) Query(_ context.Context, _ uuid.UUID, _ []uuid.UUID, _ *datasetsv1.QueryFilters, page *tileboxv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
+	count := m.n
+	if page.GetLimit() > 0 {
+		count = min(m.n, int(page.GetLimit()))
+	}
+
+	data := make([][]byte, count)
+	for i := range count {
 		datapoint := examplesv1.Sentinel2Msi_builder{
 			GranuleName:     pointer(uuid.New().String()),
 			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
@@ -58,11 +65,16 @@ func (m mockDataAccessService) Query(_ context.Context, _ uuid.UUID, _ []uuid.UU
 		data[i] = message
 	}
 
+	var nextPage *tileboxv1.Pagination
+	if page.GetLimit() > 0 && int(page.GetLimit()) < m.n {
+		nextPage = tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(mockNextCursorID)}.Build()
+	}
+
 	return datasetsv1.QueryResultPage_builder{
 		Data: datasetsv1.RepeatedAny_builder{
 			Value: data,
 		}.Build(),
-		NextPage: nil,
+		NextPage: nextPage,
 	}.Build(), nil
 }
 
@@ -70,6 +82,7 @@ func Test_QueryOptions(t *testing.T) {
 	now := time.Now()
 	collectionID1 := uuid.New()
 	collectionID2 := uuid.New()
+	cursor := NewCursor(uuid.New())
 	colorado := orb.Polygon{
 		{{-109.05, 37.09}, {-102.06, 37.09}, {-102.06, 41.59}, {-109.05, 41.59}, {-109.05, 37.09}},
 	}
@@ -142,6 +155,24 @@ func Test_QueryOptions(t *testing.T) {
 				skipData: true,
 			},
 		},
+		{
+			name: "with cursor",
+			options: []QueryOption{
+				WithCursor(cursor),
+			},
+			want: queryOptions{
+				cursor: cursor,
+			},
+		},
+		{
+			name: "with limit",
+			options: []QueryOption{
+				WithLimit(10),
+			},
+			want: queryOptions{
+				limit: 10,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -152,6 +183,18 @@ func Test_QueryOptions(t *testing.T) {
 			assert.Equal(t, tt.want, options)
 		})
 	}
+}
+
+func TestCursor(t *testing.T) {
+	id := uuid.New()
+	cursor := NewCursor(id)
+
+	assert.Equal(t, id, cursor.StartingAfter())
+	assert.Equal(t, id.String(), cursor.String())
+
+	parsed, err := ParseCursor(cursor.String())
+	require.NoError(t, err)
+	assert.Equal(t, id, parsed.StartingAfter())
 }
 
 func Test_datapointClient_GetInto(t *testing.T) {
@@ -260,6 +303,45 @@ func Test_datapointClient_QueryInto(t *testing.T) {
 			assert.NotNil(t, datapoints[0])
 		})
 	}
+}
+
+func Test_datapointClient_Query_WithLimit(t *testing.T) {
+	ctx := context.Background()
+	client := NewDatapointClient(10)
+
+	datasetID := uuid.New()
+	timeInterval := query.NewTimeInterval(time.Now(), time.Now().Add(time.Hour))
+
+	datapoints, err := Collect(client.Query(ctx, datasetID, WithTemporalExtent(timeInterval), WithLimit(2)))
+	require.NoError(t, err)
+
+	assert.Len(t, datapoints, 2)
+}
+
+func Test_datapointClient_QueryPage(t *testing.T) {
+	ctx := context.Background()
+	client := NewDatapointClient(10)
+
+	datasetID := uuid.New()
+	cursorID := uuid.New()
+	timeInterval := query.NewTimeInterval(time.Now(), time.Now().Add(time.Hour))
+
+	page, err := client.QueryPage(ctx, datasetID, WithTemporalExtent(timeInterval), WithCursor(NewCursor(cursorID)), WithLimit(3))
+	require.NoError(t, err)
+
+	assert.Len(t, page.Datapoints, 3)
+	require.NotNil(t, page.NextCursor)
+	assert.Equal(t, mockNextCursorID, page.NextCursor.StartingAfter())
+}
+
+func Test_paginationFromOptions(t *testing.T) {
+	cursorID := uuid.New()
+
+	page := paginationFromOptions(10, NewCursor(cursorID))
+
+	require.NotNil(t, page)
+	assert.Equal(t, int64(10), page.GetLimit())
+	assert.Equal(t, cursorID, page.GetStartingAfter().AsUUID())
 }
 
 // resultQueryInto is used to avoid the compiler optimizing away the benchmark output

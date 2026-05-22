@@ -412,6 +412,29 @@ type Descriptor struct {
 	repeated     bool
 }
 
+// Description can be used to provide more context and details about the data. Optional.
+func (d *Descriptor) Description(description string) *Descriptor {
+	d.description = description
+	return d
+}
+
+// ExampleValue can be used to provide an example value for documentation purposes. Optional.
+func (d *Descriptor) ExampleValue(exampleValue string) *Descriptor {
+	d.exampleValue = exampleValue
+	return d
+}
+
+// Repeated indicates that this field is an array. Defaults to false.
+func (d *Descriptor) Repeated() *Descriptor {
+	d.repeated = true
+	return d
+}
+
+// Descriptor implements the datasets.Field interface by returning itself.
+func (d *Descriptor) Descriptor() *Descriptor {
+	return d
+}
+
 func (d *Descriptor) ToProto() *datasetsv1.Field {
 	label := descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL
 	if d.repeated {
