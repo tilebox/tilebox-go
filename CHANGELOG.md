@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-05-22
+
+### Fixed
+
+- `workflows`: Fixed Windows builds by using platform-specific task runner shutdown signals.
+
 ## [0.7.0] - 2026-05-22
 
 ### Added
@@ -112,8 +118,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.7.0...HEAD
-[0.6.0]: https://github.com/tilebox/tilebox-go/compare/v0.6.0...v0.7.0
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.7.1...HEAD
+[0.7.1]: https://github.com/tilebox/tilebox-go/compare/v0.7.0...v0.7.1
+[0.7.0]: https://github.com/tilebox/tilebox-go/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/tilebox/tilebox-go/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/tilebox/tilebox-go/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/tilebox/tilebox-go/compare/v0.3.2...v0.4.0

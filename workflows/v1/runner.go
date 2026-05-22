@@ -12,7 +12,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/avast/retry-go/v4"
@@ -196,7 +195,7 @@ func (t *TaskRunner) RunAll(ctx context.Context) {
 
 func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 	// Catch signals to gracefully shutdown
-	ctxSignal, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGTSTP, syscall.SIGQUIT)
+	ctxSignal, stop := signal.NotifyContext(context.Background(), runnerShutdownSignals()...)
 	defer stop()
 
 	identifiers := make([]*workflowsv1.TaskIdentifier, 0, len(t.taskDefinitions))
