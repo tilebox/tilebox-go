@@ -21,10 +21,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WorkflowsService_CreateCluster_FullMethodName = "/workflows.v1.WorkflowsService/CreateCluster"
-	WorkflowsService_GetCluster_FullMethodName    = "/workflows.v1.WorkflowsService/GetCluster"
-	WorkflowsService_DeleteCluster_FullMethodName = "/workflows.v1.WorkflowsService/DeleteCluster"
-	WorkflowsService_ListClusters_FullMethodName  = "/workflows.v1.WorkflowsService/ListClusters"
+	WorkflowsService_CreateCluster_FullMethodName           = "/workflows.v1.WorkflowsService/CreateCluster"
+	WorkflowsService_GetCluster_FullMethodName              = "/workflows.v1.WorkflowsService/GetCluster"
+	WorkflowsService_DeleteCluster_FullMethodName           = "/workflows.v1.WorkflowsService/DeleteCluster"
+	WorkflowsService_ListClusters_FullMethodName            = "/workflows.v1.WorkflowsService/ListClusters"
+	WorkflowsService_CreateWorkflow_FullMethodName          = "/workflows.v1.WorkflowsService/CreateWorkflow"
+	WorkflowsService_ListWorkflows_FullMethodName           = "/workflows.v1.WorkflowsService/ListWorkflows"
+	WorkflowsService_GetWorkflow_FullMethodName             = "/workflows.v1.WorkflowsService/GetWorkflow"
+	WorkflowsService_PublishWorkflowRelease_FullMethodName  = "/workflows.v1.WorkflowsService/PublishWorkflowRelease"
+	WorkflowsService_DeployWorkflowRelease_FullMethodName   = "/workflows.v1.WorkflowsService/DeployWorkflowRelease"
+	WorkflowsService_UndeployWorkflowRelease_FullMethodName = "/workflows.v1.WorkflowsService/UndeployWorkflowRelease"
 )
 
 // WorkflowsServiceClient is the client API for WorkflowsService service.
@@ -37,6 +43,12 @@ type WorkflowsServiceClient interface {
 	GetCluster(ctx context.Context, in *GetClusterRequest, opts ...grpc.CallOption) (*Cluster, error)
 	DeleteCluster(ctx context.Context, in *DeleteClusterRequest, opts ...grpc.CallOption) (*DeleteClusterResponse, error)
 	ListClusters(ctx context.Context, in *ListClustersRequest, opts ...grpc.CallOption) (*ListClustersResponse, error)
+	CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*Workflow, error)
+	ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error)
+	GetWorkflow(ctx context.Context, in *GetWorkflowRequest, opts ...grpc.CallOption) (*Workflow, error)
+	PublishWorkflowRelease(ctx context.Context, in *PublishWorkflowReleaseRequest, opts ...grpc.CallOption) (*WorkflowRelease, error)
+	DeployWorkflowRelease(ctx context.Context, in *DeployWorkflowReleaseRequest, opts ...grpc.CallOption) (*DeployWorkflowReleaseResponse, error)
+	UndeployWorkflowRelease(ctx context.Context, in *UndeployWorkflowReleaseRequest, opts ...grpc.CallOption) (*UndeployWorkflowReleaseResponse, error)
 }
 
 type workflowsServiceClient struct {
@@ -87,6 +99,66 @@ func (c *workflowsServiceClient) ListClusters(ctx context.Context, in *ListClust
 	return out, nil
 }
 
+func (c *workflowsServiceClient) CreateWorkflow(ctx context.Context, in *CreateWorkflowRequest, opts ...grpc.CallOption) (*Workflow, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Workflow)
+	err := c.cc.Invoke(ctx, WorkflowsService_CreateWorkflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workflowsServiceClient) ListWorkflows(ctx context.Context, in *ListWorkflowsRequest, opts ...grpc.CallOption) (*ListWorkflowsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListWorkflowsResponse)
+	err := c.cc.Invoke(ctx, WorkflowsService_ListWorkflows_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workflowsServiceClient) GetWorkflow(ctx context.Context, in *GetWorkflowRequest, opts ...grpc.CallOption) (*Workflow, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Workflow)
+	err := c.cc.Invoke(ctx, WorkflowsService_GetWorkflow_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workflowsServiceClient) PublishWorkflowRelease(ctx context.Context, in *PublishWorkflowReleaseRequest, opts ...grpc.CallOption) (*WorkflowRelease, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WorkflowRelease)
+	err := c.cc.Invoke(ctx, WorkflowsService_PublishWorkflowRelease_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workflowsServiceClient) DeployWorkflowRelease(ctx context.Context, in *DeployWorkflowReleaseRequest, opts ...grpc.CallOption) (*DeployWorkflowReleaseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeployWorkflowReleaseResponse)
+	err := c.cc.Invoke(ctx, WorkflowsService_DeployWorkflowRelease_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workflowsServiceClient) UndeployWorkflowRelease(ctx context.Context, in *UndeployWorkflowReleaseRequest, opts ...grpc.CallOption) (*UndeployWorkflowReleaseResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UndeployWorkflowReleaseResponse)
+	err := c.cc.Invoke(ctx, WorkflowsService_UndeployWorkflowRelease_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorkflowsServiceServer is the server API for WorkflowsService service.
 // All implementations must embed UnimplementedWorkflowsServiceServer
 // for forward compatibility.
@@ -97,6 +169,12 @@ type WorkflowsServiceServer interface {
 	GetCluster(context.Context, *GetClusterRequest) (*Cluster, error)
 	DeleteCluster(context.Context, *DeleteClusterRequest) (*DeleteClusterResponse, error)
 	ListClusters(context.Context, *ListClustersRequest) (*ListClustersResponse, error)
+	CreateWorkflow(context.Context, *CreateWorkflowRequest) (*Workflow, error)
+	ListWorkflows(context.Context, *ListWorkflowsRequest) (*ListWorkflowsResponse, error)
+	GetWorkflow(context.Context, *GetWorkflowRequest) (*Workflow, error)
+	PublishWorkflowRelease(context.Context, *PublishWorkflowReleaseRequest) (*WorkflowRelease, error)
+	DeployWorkflowRelease(context.Context, *DeployWorkflowReleaseRequest) (*DeployWorkflowReleaseResponse, error)
+	UndeployWorkflowRelease(context.Context, *UndeployWorkflowReleaseRequest) (*UndeployWorkflowReleaseResponse, error)
 	mustEmbedUnimplementedWorkflowsServiceServer()
 }
 
@@ -118,6 +196,24 @@ func (UnimplementedWorkflowsServiceServer) DeleteCluster(context.Context, *Delet
 }
 func (UnimplementedWorkflowsServiceServer) ListClusters(context.Context, *ListClustersRequest) (*ListClustersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListClusters not implemented")
+}
+func (UnimplementedWorkflowsServiceServer) CreateWorkflow(context.Context, *CreateWorkflowRequest) (*Workflow, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateWorkflow not implemented")
+}
+func (UnimplementedWorkflowsServiceServer) ListWorkflows(context.Context, *ListWorkflowsRequest) (*ListWorkflowsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListWorkflows not implemented")
+}
+func (UnimplementedWorkflowsServiceServer) GetWorkflow(context.Context, *GetWorkflowRequest) (*Workflow, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetWorkflow not implemented")
+}
+func (UnimplementedWorkflowsServiceServer) PublishWorkflowRelease(context.Context, *PublishWorkflowReleaseRequest) (*WorkflowRelease, error) {
+	return nil, status.Error(codes.Unimplemented, "method PublishWorkflowRelease not implemented")
+}
+func (UnimplementedWorkflowsServiceServer) DeployWorkflowRelease(context.Context, *DeployWorkflowReleaseRequest) (*DeployWorkflowReleaseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeployWorkflowRelease not implemented")
+}
+func (UnimplementedWorkflowsServiceServer) UndeployWorkflowRelease(context.Context, *UndeployWorkflowReleaseRequest) (*UndeployWorkflowReleaseResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UndeployWorkflowRelease not implemented")
 }
 func (UnimplementedWorkflowsServiceServer) mustEmbedUnimplementedWorkflowsServiceServer() {}
 func (UnimplementedWorkflowsServiceServer) testEmbeddedByValue()                          {}
@@ -212,6 +308,114 @@ func _WorkflowsService_ListClusters_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorkflowsService_CreateWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWorkflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServiceServer).CreateWorkflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkflowsService_CreateWorkflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServiceServer).CreateWorkflow(ctx, req.(*CreateWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkflowsService_ListWorkflows_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWorkflowsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServiceServer).ListWorkflows(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkflowsService_ListWorkflows_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServiceServer).ListWorkflows(ctx, req.(*ListWorkflowsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkflowsService_GetWorkflow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetWorkflowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServiceServer).GetWorkflow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkflowsService_GetWorkflow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServiceServer).GetWorkflow(ctx, req.(*GetWorkflowRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkflowsService_PublishWorkflowRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishWorkflowReleaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServiceServer).PublishWorkflowRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkflowsService_PublishWorkflowRelease_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServiceServer).PublishWorkflowRelease(ctx, req.(*PublishWorkflowReleaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkflowsService_DeployWorkflowRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeployWorkflowReleaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServiceServer).DeployWorkflowRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkflowsService_DeployWorkflowRelease_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServiceServer).DeployWorkflowRelease(ctx, req.(*DeployWorkflowReleaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkflowsService_UndeployWorkflowRelease_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UndeployWorkflowReleaseRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServiceServer).UndeployWorkflowRelease(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkflowsService_UndeployWorkflowRelease_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServiceServer).UndeployWorkflowRelease(ctx, req.(*UndeployWorkflowReleaseRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WorkflowsService_ServiceDesc is the grpc.ServiceDesc for WorkflowsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -234,6 +438,30 @@ var WorkflowsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListClusters",
 			Handler:    _WorkflowsService_ListClusters_Handler,
+		},
+		{
+			MethodName: "CreateWorkflow",
+			Handler:    _WorkflowsService_CreateWorkflow_Handler,
+		},
+		{
+			MethodName: "ListWorkflows",
+			Handler:    _WorkflowsService_ListWorkflows_Handler,
+		},
+		{
+			MethodName: "GetWorkflow",
+			Handler:    _WorkflowsService_GetWorkflow_Handler,
+		},
+		{
+			MethodName: "PublishWorkflowRelease",
+			Handler:    _WorkflowsService_PublishWorkflowRelease_Handler,
+		},
+		{
+			MethodName: "DeployWorkflowRelease",
+			Handler:    _WorkflowsService_DeployWorkflowRelease_Handler,
+		},
+		{
+			MethodName: "UndeployWorkflowRelease",
+			Handler:    _WorkflowsService_UndeployWorkflowRelease_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

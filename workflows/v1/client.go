@@ -25,6 +25,7 @@ const (
 type Client struct {
 	Jobs        JobClient
 	Clusters    ClusterClient
+	Workflows   WorkflowClient
 	Automations AutomationClient
 
 	// Used by NewTaskRunner
@@ -53,11 +54,13 @@ func NewClient(options ...ClientOption) *Client {
 	automationConnectClient := newConnectClient(workflowsv1connect.NewAutomationServiceClient, cfg)
 
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
+	workflowService := newWorkflowService(workflowConnectClient, tracer)
 	automationService := &automationService{automationClient: automationConnectClient, tracer: tracer}
 
 	return &Client{
 		Jobs:        &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
-		Clusters:    &clusterClient{service: newWorkflowService(workflowConnectClient, tracer)},
+		Clusters:    &clusterClient{service: workflowService},
+		Workflows:   &workflowClient{service: workflowService},
 		Automations: &automationClient{service: automationService},
 
 		taskService: newTaskService(taskConnectClient, tracer),

@@ -19,6 +19,8 @@ type Cluster struct {
 	Name string
 	// Deletable is true when the cluster can be deleted.
 	Deletable bool
+	// DeployedWorkflows are the workflows currently deployed to this cluster. Each workflow contains the currently deployed release for that workflow.
+	DeployedWorkflows []*Workflow
 }
 
 type ClusterClient interface {
@@ -78,9 +80,15 @@ func (c clusterClient) List(ctx context.Context) ([]*Cluster, error) {
 }
 
 func protoToCluster(c *workflowsv1.Cluster) *Cluster {
+	deployedWorkflows := make([]*Workflow, len(c.GetDeployedReleases()))
+	for i, workflow := range c.GetDeployedReleases() {
+		deployedWorkflows[i] = protoToWorkflow(workflow)
+	}
+
 	return &Cluster{
-		Slug:      c.GetSlug(),
-		Name:      c.GetDisplayName(),
-		Deletable: c.GetDeletable(),
+		Slug:              c.GetSlug(),
+		Name:              c.GetDisplayName(),
+		Deletable:         c.GetDeletable(),
+		DeployedWorkflows: deployedWorkflows,
 	}
 }

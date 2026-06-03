@@ -206,95 +206,6 @@ func (x TaskState) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// A cluster is a grouping of tasks that are related.
-type Cluster struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Slug        string                 `protobuf:"bytes,2,opt,name=slug"`
-	xxx_hidden_DisplayName string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName"`
-	xxx_hidden_Deletable   bool                   `protobuf:"varint,4,opt,name=deletable"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *Cluster) Reset() {
-	*x = Cluster{}
-	mi := &file_workflows_v1_core_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Cluster) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Cluster) ProtoMessage() {}
-
-func (x *Cluster) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *Cluster) GetSlug() string {
-	if x != nil {
-		return x.xxx_hidden_Slug
-	}
-	return ""
-}
-
-func (x *Cluster) GetDisplayName() string {
-	if x != nil {
-		return x.xxx_hidden_DisplayName
-	}
-	return ""
-}
-
-func (x *Cluster) GetDeletable() bool {
-	if x != nil {
-		return x.xxx_hidden_Deletable
-	}
-	return false
-}
-
-func (x *Cluster) SetSlug(v string) {
-	x.xxx_hidden_Slug = v
-}
-
-func (x *Cluster) SetDisplayName(v string) {
-	x.xxx_hidden_DisplayName = v
-}
-
-func (x *Cluster) SetDeletable(v bool) {
-	x.xxx_hidden_Deletable = v
-}
-
-type Cluster_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The unique slug of the cluster within the namespace.
-	Slug string
-	// The display name of the cluster.
-	DisplayName string
-	// Where the cluster is deletable
-	Deletable bool
-}
-
-func (b0 Cluster_builder) Build() *Cluster {
-	m0 := &Cluster{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Slug = b.Slug
-	x.xxx_hidden_DisplayName = b.DisplayName
-	x.xxx_hidden_Deletable = b.Deletable
-	return m0
-}
-
 // A job is a logical grouping of tasks that are related.
 type Job struct {
 	state                     protoimpl.MessageState `protogen:"opaque.v1"`
@@ -316,7 +227,7 @@ type Job struct {
 
 func (x *Job) Reset() {
 	*x = Job{}
-	mi := &file_workflows_v1_core_proto_msgTypes[1]
+	mi := &file_workflows_v1_core_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -328,7 +239,7 @@ func (x *Job) String() string {
 func (*Job) ProtoMessage() {}
 
 func (x *Job) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[1]
+	mi := &file_workflows_v1_core_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -605,7 +516,7 @@ type ExecutionStats struct {
 
 func (x *ExecutionStats) Reset() {
 	*x = ExecutionStats{}
-	mi := &file_workflows_v1_core_proto_msgTypes[2]
+	mi := &file_workflows_v1_core_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -617,7 +528,7 @@ func (x *ExecutionStats) String() string {
 func (*ExecutionStats) ProtoMessage() {}
 
 func (x *ExecutionStats) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[2]
+	mi := &file_workflows_v1_core_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -795,7 +706,7 @@ type TaskStateCount struct {
 
 func (x *TaskStateCount) Reset() {
 	*x = TaskStateCount{}
-	mi := &file_workflows_v1_core_proto_msgTypes[3]
+	mi := &file_workflows_v1_core_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -807,7 +718,7 @@ func (x *TaskStateCount) String() string {
 func (*TaskStateCount) ProtoMessage() {}
 
 func (x *TaskStateCount) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[3]
+	mi := &file_workflows_v1_core_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -871,7 +782,7 @@ type TaskSummary struct {
 
 func (x *TaskSummary) Reset() {
 	*x = TaskSummary{}
-	mi := &file_workflows_v1_core_proto_msgTypes[4]
+	mi := &file_workflows_v1_core_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -883,7 +794,7 @@ func (x *TaskSummary) String() string {
 func (*TaskSummary) ProtoMessage() {}
 
 func (x *TaskSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[4]
+	mi := &file_workflows_v1_core_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1040,7 +951,7 @@ type Progress struct {
 
 func (x *Progress) Reset() {
 	*x = Progress{}
-	mi := &file_workflows_v1_core_proto_msgTypes[5]
+	mi := &file_workflows_v1_core_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1052,7 +963,7 @@ func (x *Progress) String() string {
 func (*Progress) ProtoMessage() {}
 
 func (x *Progress) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[5]
+	mi := &file_workflows_v1_core_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1138,7 +1049,7 @@ type Task struct {
 
 func (x *Task) Reset() {
 	*x = Task{}
-	mi := &file_workflows_v1_core_proto_msgTypes[6]
+	mi := &file_workflows_v1_core_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1150,7 +1061,7 @@ func (x *Task) String() string {
 func (*Task) ProtoMessage() {}
 
 func (x *Task) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[6]
+	mi := &file_workflows_v1_core_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1419,7 +1330,7 @@ type TaskIdentifier struct {
 
 func (x *TaskIdentifier) Reset() {
 	*x = TaskIdentifier{}
-	mi := &file_workflows_v1_core_proto_msgTypes[7]
+	mi := &file_workflows_v1_core_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1431,7 +1342,7 @@ func (x *TaskIdentifier) String() string {
 func (*TaskIdentifier) ProtoMessage() {}
 
 func (x *TaskIdentifier) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[7]
+	mi := &file_workflows_v1_core_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1479,6 +1390,66 @@ func (b0 TaskIdentifier_builder) Build() *TaskIdentifier {
 	_, _ = b, x
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_Version = b.Version
+	return m0
+}
+
+// A list of task identifiers.
+type TaskIdentifiers struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Identifiers *[]*TaskIdentifier     `protobuf:"bytes,1,rep,name=identifiers"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *TaskIdentifiers) Reset() {
+	*x = TaskIdentifiers{}
+	mi := &file_workflows_v1_core_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TaskIdentifiers) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TaskIdentifiers) ProtoMessage() {}
+
+func (x *TaskIdentifiers) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_core_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *TaskIdentifiers) GetIdentifiers() []*TaskIdentifier {
+	if x != nil {
+		if x.xxx_hidden_Identifiers != nil {
+			return *x.xxx_hidden_Identifiers
+		}
+	}
+	return nil
+}
+
+func (x *TaskIdentifiers) SetIdentifiers(v []*TaskIdentifier) {
+	x.xxx_hidden_Identifiers = &v
+}
+
+type TaskIdentifiers_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Identifiers []*TaskIdentifier
+}
+
+func (b0 TaskIdentifiers_builder) Build() *TaskIdentifiers {
+	m0 := &TaskIdentifiers{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Identifiers = &b.Identifiers
 	return m0
 }
 
@@ -2062,11 +2033,7 @@ var File_workflows_v1_core_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"d\n" +
-	"\aCluster\x12\x12\n" +
-	"\x04slug\x18\x02 \x01(\tR\x04slug\x12!\n" +
-	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12\x1c\n" +
-	"\tdeletable\x18\x04 \x01(\bR\tdeletableJ\x04\b\x01\x10\x02\"\xe5\x04\n" +
+	"\x17workflows/v1/core.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xe5\x04\n" +
 	"\x03Job\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12!\n" +
@@ -2126,7 +2093,9 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x0eTaskIdentifier\x12\x1e\n" +
 	"\x04name\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05 \x01(\x80\x02R\x04name\x122\n" +
-	"\aversion\x18\x02 \x01(\tB\x18\xbaH\x15r\x13 \x012\x0f^v(\\d+)\\.(\\d+)$R\aversion\"1\n" +
+	"\aversion\x18\x02 \x01(\tB\x18\xbaH\x15r\x13 \x012\x0f^v(\\d+)\\.(\\d+)$R\aversion\"Q\n" +
+	"\x0fTaskIdentifiers\x12>\n" +
+	"\videntifiers\x18\x01 \x03(\v2\x1c.workflows.v1.TaskIdentifierR\videntifiers\"1\n" +
 	"\x05Tasks\x12(\n" +
 	"\x05tasks\x18\x01 \x03(\v2\x12.workflows.v1.TaskR\x05tasks\"\x98\x02\n" +
 	"\x14SingleTaskSubmission\x12!\n" +
@@ -2191,14 +2160,14 @@ var file_workflows_v1_core_proto_goTypes = []any{
 	(LegacyJobState)(0),           // 0: workflows.v1.LegacyJobState
 	(JobState)(0),                 // 1: workflows.v1.JobState
 	(TaskState)(0),                // 2: workflows.v1.TaskState
-	(*Cluster)(nil),               // 3: workflows.v1.Cluster
-	(*Job)(nil),                   // 4: workflows.v1.Job
-	(*ExecutionStats)(nil),        // 5: workflows.v1.ExecutionStats
-	(*TaskStateCount)(nil),        // 6: workflows.v1.TaskStateCount
-	(*TaskSummary)(nil),           // 7: workflows.v1.TaskSummary
-	(*Progress)(nil),              // 8: workflows.v1.Progress
-	(*Task)(nil),                  // 9: workflows.v1.Task
-	(*TaskIdentifier)(nil),        // 10: workflows.v1.TaskIdentifier
+	(*Job)(nil),                   // 3: workflows.v1.Job
+	(*ExecutionStats)(nil),        // 4: workflows.v1.ExecutionStats
+	(*TaskStateCount)(nil),        // 5: workflows.v1.TaskStateCount
+	(*TaskSummary)(nil),           // 6: workflows.v1.TaskSummary
+	(*Progress)(nil),              // 7: workflows.v1.Progress
+	(*Task)(nil),                  // 8: workflows.v1.Task
+	(*TaskIdentifier)(nil),        // 9: workflows.v1.TaskIdentifier
+	(*TaskIdentifiers)(nil),       // 10: workflows.v1.TaskIdentifiers
 	(*Tasks)(nil),                 // 11: workflows.v1.Tasks
 	(*SingleTaskSubmission)(nil),  // 12: workflows.v1.SingleTaskSubmission
 	(*TaskSubmissions)(nil),       // 13: workflows.v1.TaskSubmissions
@@ -2213,16 +2182,16 @@ var file_workflows_v1_core_proto_depIdxs = []int32{
 	0,  // 1: workflows.v1.Job.legacy_state:type_name -> workflows.v1.LegacyJobState
 	17, // 2: workflows.v1.Job.submitted_at:type_name -> google.protobuf.Timestamp
 	17, // 3: workflows.v1.Job.started_at:type_name -> google.protobuf.Timestamp
-	7,  // 4: workflows.v1.Job.task_summaries:type_name -> workflows.v1.TaskSummary
+	6,  // 4: workflows.v1.Job.task_summaries:type_name -> workflows.v1.TaskSummary
 	16, // 5: workflows.v1.Job.automation_id:type_name -> tilebox.v1.ID
-	8,  // 6: workflows.v1.Job.progress:type_name -> workflows.v1.Progress
+	7,  // 6: workflows.v1.Job.progress:type_name -> workflows.v1.Progress
 	1,  // 7: workflows.v1.Job.state:type_name -> workflows.v1.JobState
-	5,  // 8: workflows.v1.Job.execution_stats:type_name -> workflows.v1.ExecutionStats
+	4,  // 8: workflows.v1.Job.execution_stats:type_name -> workflows.v1.ExecutionStats
 	17, // 9: workflows.v1.ExecutionStats.first_task_started_at:type_name -> google.protobuf.Timestamp
 	17, // 10: workflows.v1.ExecutionStats.last_task_stopped_at:type_name -> google.protobuf.Timestamp
 	18, // 11: workflows.v1.ExecutionStats.compute_time:type_name -> google.protobuf.Duration
 	18, // 12: workflows.v1.ExecutionStats.elapsed_time:type_name -> google.protobuf.Duration
-	6,  // 13: workflows.v1.ExecutionStats.tasks_by_state:type_name -> workflows.v1.TaskStateCount
+	5,  // 13: workflows.v1.ExecutionStats.tasks_by_state:type_name -> workflows.v1.TaskStateCount
 	2,  // 14: workflows.v1.TaskStateCount.state:type_name -> workflows.v1.TaskState
 	16, // 15: workflows.v1.TaskSummary.id:type_name -> tilebox.v1.ID
 	2,  // 16: workflows.v1.TaskSummary.state:type_name -> workflows.v1.TaskState
@@ -2230,23 +2199,24 @@ var file_workflows_v1_core_proto_depIdxs = []int32{
 	17, // 18: workflows.v1.TaskSummary.started_at:type_name -> google.protobuf.Timestamp
 	17, // 19: workflows.v1.TaskSummary.stopped_at:type_name -> google.protobuf.Timestamp
 	16, // 20: workflows.v1.Task.id:type_name -> tilebox.v1.ID
-	10, // 21: workflows.v1.Task.identifier:type_name -> workflows.v1.TaskIdentifier
+	9,  // 21: workflows.v1.Task.identifier:type_name -> workflows.v1.TaskIdentifier
 	2,  // 22: workflows.v1.Task.state:type_name -> workflows.v1.TaskState
-	4,  // 23: workflows.v1.Task.job:type_name -> workflows.v1.Job
+	3,  // 23: workflows.v1.Task.job:type_name -> workflows.v1.Job
 	16, // 24: workflows.v1.Task.parent_id:type_name -> tilebox.v1.ID
 	16, // 25: workflows.v1.Task.depends_on:type_name -> tilebox.v1.ID
 	15, // 26: workflows.v1.Task.lease:type_name -> workflows.v1.TaskLease
-	9,  // 27: workflows.v1.Tasks.tasks:type_name -> workflows.v1.Task
-	10, // 28: workflows.v1.SingleTaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
-	14, // 29: workflows.v1.TaskSubmissions.task_groups:type_name -> workflows.v1.TaskSubmissionGroup
-	10, // 30: workflows.v1.TaskSubmissions.identifier_lookup:type_name -> workflows.v1.TaskIdentifier
-	18, // 31: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
-	18, // 32: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
-	33, // [33:33] is the sub-list for method output_type
-	33, // [33:33] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	9,  // 27: workflows.v1.TaskIdentifiers.identifiers:type_name -> workflows.v1.TaskIdentifier
+	8,  // 28: workflows.v1.Tasks.tasks:type_name -> workflows.v1.Task
+	9,  // 29: workflows.v1.SingleTaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
+	14, // 30: workflows.v1.TaskSubmissions.task_groups:type_name -> workflows.v1.TaskSubmissionGroup
+	9,  // 31: workflows.v1.TaskSubmissions.identifier_lookup:type_name -> workflows.v1.TaskIdentifier
+	18, // 32: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
+	18, // 33: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
+	34, // [34:34] is the sub-list for method output_type
+	34, // [34:34] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_core_proto_init() }
