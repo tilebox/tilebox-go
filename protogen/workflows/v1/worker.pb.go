@@ -25,16 +25,16 @@ const (
 
 // InitializeRunnerRequest is sent by the runner to a worker runtime to discover its capabilities.
 type InitializeRunnerRequest struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_RunnerId    *v1.ID                 `protobuf:"bytes,1,opt,name=runner_id,json=runnerId"`
-	xxx_hidden_TraceParent *string                `protobuf:"bytes,2,opt,name=trace_parent,json=traceParent"`
-	xxx_hidden_Cluster     *Cluster               `protobuf:"bytes,3,opt,name=cluster"`
-	xxx_hidden_Workflow    *Workflow              `protobuf:"bytes,4,opt,name=workflow"`
-	xxx_hidden_Locations   *[]*StorageLocation    `protobuf:"bytes,5,rep,name=locations"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_RunnerId      *v1.ID                 `protobuf:"bytes,1,opt,name=runner_id,json=runnerId"`
+	xxx_hidden_TraceParent   *string                `protobuf:"bytes,2,opt,name=trace_parent,json=traceParent"`
+	xxx_hidden_Cluster       *Cluster               `protobuf:"bytes,3,opt,name=cluster"`
+	xxx_hidden_Workflow      *Workflow              `protobuf:"bytes,4,opt,name=workflow"`
+	xxx_hidden_ApiConnection *TileboxAPIConnection  `protobuf:"bytes,5,opt,name=api_connection,json=apiConnection"`
+	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
+	XXX_presence             [1]uint32
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
 }
 
 func (x *InitializeRunnerRequest) Reset() {
@@ -93,11 +93,9 @@ func (x *InitializeRunnerRequest) GetWorkflow() *Workflow {
 	return nil
 }
 
-func (x *InitializeRunnerRequest) GetLocations() []*StorageLocation {
+func (x *InitializeRunnerRequest) GetApiConnection() *TileboxAPIConnection {
 	if x != nil {
-		if x.xxx_hidden_Locations != nil {
-			return *x.xxx_hidden_Locations
-		}
+		return x.xxx_hidden_ApiConnection
 	}
 	return nil
 }
@@ -119,8 +117,8 @@ func (x *InitializeRunnerRequest) SetWorkflow(v *Workflow) {
 	x.xxx_hidden_Workflow = v
 }
 
-func (x *InitializeRunnerRequest) SetLocations(v []*StorageLocation) {
-	x.xxx_hidden_Locations = &v
+func (x *InitializeRunnerRequest) SetApiConnection(v *TileboxAPIConnection) {
+	x.xxx_hidden_ApiConnection = v
 }
 
 func (x *InitializeRunnerRequest) HasRunnerId() bool {
@@ -151,6 +149,13 @@ func (x *InitializeRunnerRequest) HasWorkflow() bool {
 	return x.xxx_hidden_Workflow != nil
 }
 
+func (x *InitializeRunnerRequest) HasApiConnection() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_ApiConnection != nil
+}
+
 func (x *InitializeRunnerRequest) ClearRunnerId() {
 	x.xxx_hidden_RunnerId = nil
 }
@@ -168,6 +173,10 @@ func (x *InitializeRunnerRequest) ClearWorkflow() {
 	x.xxx_hidden_Workflow = nil
 }
 
+func (x *InitializeRunnerRequest) ClearApiConnection() {
+	x.xxx_hidden_ApiConnection = nil
+}
+
 type InitializeRunnerRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -182,7 +191,7 @@ type InitializeRunnerRequest_builder struct {
 	// The workflow (and the release) that this worker was created from.
 	Workflow *Workflow
 	// The storage locations that the worker runtime can access, for triggered automations.
-	Locations []*StorageLocation
+	ApiConnection *TileboxAPIConnection
 }
 
 func (b0 InitializeRunnerRequest_builder) Build() *InitializeRunnerRequest {
@@ -196,7 +205,125 @@ func (b0 InitializeRunnerRequest_builder) Build() *InitializeRunnerRequest {
 	}
 	x.xxx_hidden_Cluster = b.Cluster
 	x.xxx_hidden_Workflow = b.Workflow
-	x.xxx_hidden_Locations = &b.Locations
+	x.xxx_hidden_ApiConnection = b.ApiConnection
+	return m0
+}
+
+// TileboxAPIConnection is a message containing the information needed for a worker runtime to connect to the Tilebox
+// API, to e.g. export observability data to (logs and traces). It's the credentials that the tilebox-cli locally
+// uses to connect to the Tilebox API, and is passed down to the worker runtimes so that they can also connect to the
+// Tilebox API in the same way. Since this only is done on a local machine, via a unix socket, and not in a shared
+// environment or over the internet, this is safe to do.
+type TileboxAPIConnection struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Url         *string                `protobuf:"bytes,1,opt,name=url"`
+	xxx_hidden_Token       *string                `protobuf:"bytes,2,opt,name=token"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *TileboxAPIConnection) Reset() {
+	*x = TileboxAPIConnection{}
+	mi := &file_workflows_v1_worker_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TileboxAPIConnection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TileboxAPIConnection) ProtoMessage() {}
+
+func (x *TileboxAPIConnection) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_worker_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *TileboxAPIConnection) GetUrl() string {
+	if x != nil {
+		if x.xxx_hidden_Url != nil {
+			return *x.xxx_hidden_Url
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *TileboxAPIConnection) GetToken() string {
+	if x != nil {
+		if x.xxx_hidden_Token != nil {
+			return *x.xxx_hidden_Token
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *TileboxAPIConnection) SetUrl(v string) {
+	x.xxx_hidden_Url = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+}
+
+func (x *TileboxAPIConnection) SetToken(v string) {
+	x.xxx_hidden_Token = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
+}
+
+func (x *TileboxAPIConnection) HasUrl() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *TileboxAPIConnection) HasToken() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *TileboxAPIConnection) ClearUrl() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Url = nil
+}
+
+func (x *TileboxAPIConnection) ClearToken() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Token = nil
+}
+
+type TileboxAPIConnection_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The API url to which the worker runtime can connect, to e.g. export observability data to (logs and traces).
+	Url *string
+	// The token to use for authenticating to the API.
+	Token *string
+}
+
+func (b0 TileboxAPIConnection_builder) Build() *TileboxAPIConnection {
+	m0 := &TileboxAPIConnection{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Url != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		x.xxx_hidden_Url = b.Url
+	}
+	if b.Token != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		x.xxx_hidden_Token = b.Token
+	}
 	return m0
 }
 
@@ -209,7 +336,7 @@ type InitializeRunnerResponse struct {
 
 func (x *InitializeRunnerResponse) Reset() {
 	*x = InitializeRunnerResponse{}
-	mi := &file_workflows_v1_worker_proto_msgTypes[1]
+	mi := &file_workflows_v1_worker_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -221,7 +348,7 @@ func (x *InitializeRunnerResponse) String() string {
 func (*InitializeRunnerResponse) ProtoMessage() {}
 
 func (x *InitializeRunnerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_worker_proto_msgTypes[1]
+	mi := &file_workflows_v1_worker_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -256,7 +383,7 @@ type ExecuteTaskResponse struct {
 
 func (x *ExecuteTaskResponse) Reset() {
 	*x = ExecuteTaskResponse{}
-	mi := &file_workflows_v1_worker_proto_msgTypes[2]
+	mi := &file_workflows_v1_worker_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -268,7 +395,7 @@ func (x *ExecuteTaskResponse) String() string {
 func (*ExecuteTaskResponse) ProtoMessage() {}
 
 func (x *ExecuteTaskResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_worker_proto_msgTypes[2]
+	mi := &file_workflows_v1_worker_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -345,13 +472,16 @@ var File_workflows_v1_worker_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_worker_proto_rawDesc = "" +
 	"\n" +
-	"\x19workflows/v1/worker.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13tilebox/v1/id.proto\x1a\x1dworkflows/v1/automation.proto\x1a\x17workflows/v1/core.proto\x1a\x17workflows/v1/task.proto\x1a\x1cworkflows/v1/workflows.proto\"\x8b\x02\n" +
+	"\x19workflows/v1/worker.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13tilebox/v1/id.proto\x1a\x1dworkflows/v1/automation.proto\x1a\x17workflows/v1/core.proto\x1a\x17workflows/v1/task.proto\x1a\x1cworkflows/v1/workflows.proto\"\x99\x02\n" +
 	"\x17InitializeRunnerRequest\x12+\n" +
 	"\trunner_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\brunnerId\x12!\n" +
 	"\ftrace_parent\x18\x02 \x01(\tR\vtraceParent\x12/\n" +
 	"\acluster\x18\x03 \x01(\v2\x15.workflows.v1.ClusterR\acluster\x122\n" +
-	"\bworkflow\x18\x04 \x01(\v2\x16.workflows.v1.WorkflowR\bworkflow\x12;\n" +
-	"\tlocations\x18\x05 \x03(\v2\x1d.workflows.v1.StorageLocationR\tlocations\"\x1a\n" +
+	"\bworkflow\x18\x04 \x01(\v2\x16.workflows.v1.WorkflowR\bworkflow\x12I\n" +
+	"\x0eapi_connection\x18\x05 \x01(\v2\".workflows.v1.TileboxAPIConnectionR\rapiConnection\">\n" +
+	"\x14TileboxAPIConnection\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x12\x14\n" +
+	"\x05token\x18\x02 \x01(\tR\x05token\"\x1a\n" +
 	"\x18InitializeRunnerResponse\"\xbb\x01\n" +
 	"\x13ExecuteTaskResponse\x12?\n" +
 	"\rcomputed_task\x18\x01 \x01(\v2\x1a.workflows.v1.ComputedTaskR\fcomputedTask\x12@\n" +
@@ -366,15 +496,15 @@ const file_workflows_v1_worker_proto_rawDesc = "" +
 	"\x0eShutdownWorker\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00B\xb1\x01\n" +
 	"\x10com.workflows.v1B\vWorkerProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1b\beditionsp\xe8\a"
 
-var file_workflows_v1_worker_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_workflows_v1_worker_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_workflows_v1_worker_proto_goTypes = []any{
 	(*InitializeRunnerRequest)(nil),  // 0: workflows.v1.InitializeRunnerRequest
-	(*InitializeRunnerResponse)(nil), // 1: workflows.v1.InitializeRunnerResponse
-	(*ExecuteTaskResponse)(nil),      // 2: workflows.v1.ExecuteTaskResponse
-	(*v1.ID)(nil),                    // 3: tilebox.v1.ID
-	(*Cluster)(nil),                  // 4: workflows.v1.Cluster
-	(*Workflow)(nil),                 // 5: workflows.v1.Workflow
-	(*StorageLocation)(nil),          // 6: workflows.v1.StorageLocation
+	(*TileboxAPIConnection)(nil),     // 1: workflows.v1.TileboxAPIConnection
+	(*InitializeRunnerResponse)(nil), // 2: workflows.v1.InitializeRunnerResponse
+	(*ExecuteTaskResponse)(nil),      // 3: workflows.v1.ExecuteTaskResponse
+	(*v1.ID)(nil),                    // 4: tilebox.v1.ID
+	(*Cluster)(nil),                  // 5: workflows.v1.Cluster
+	(*Workflow)(nil),                 // 6: workflows.v1.Workflow
 	(*ComputedTask)(nil),             // 7: workflows.v1.ComputedTask
 	(*TaskFailedRequest)(nil),        // 8: workflows.v1.TaskFailedRequest
 	(*emptypb.Empty)(nil),            // 9: google.protobuf.Empty
@@ -382,10 +512,10 @@ var file_workflows_v1_worker_proto_goTypes = []any{
 	(*TaskIdentifiers)(nil),          // 11: workflows.v1.TaskIdentifiers
 }
 var file_workflows_v1_worker_proto_depIdxs = []int32{
-	3,  // 0: workflows.v1.InitializeRunnerRequest.runner_id:type_name -> tilebox.v1.ID
-	4,  // 1: workflows.v1.InitializeRunnerRequest.cluster:type_name -> workflows.v1.Cluster
-	5,  // 2: workflows.v1.InitializeRunnerRequest.workflow:type_name -> workflows.v1.Workflow
-	6,  // 3: workflows.v1.InitializeRunnerRequest.locations:type_name -> workflows.v1.StorageLocation
+	4,  // 0: workflows.v1.InitializeRunnerRequest.runner_id:type_name -> tilebox.v1.ID
+	5,  // 1: workflows.v1.InitializeRunnerRequest.cluster:type_name -> workflows.v1.Cluster
+	6,  // 2: workflows.v1.InitializeRunnerRequest.workflow:type_name -> workflows.v1.Workflow
+	1,  // 3: workflows.v1.InitializeRunnerRequest.api_connection:type_name -> workflows.v1.TileboxAPIConnection
 	7,  // 4: workflows.v1.ExecuteTaskResponse.computed_task:type_name -> workflows.v1.ComputedTask
 	8,  // 5: workflows.v1.ExecuteTaskResponse.failed_task:type_name -> workflows.v1.TaskFailedRequest
 	9,  // 6: workflows.v1.WorkerService.ListRegisteredTasks:input_type -> google.protobuf.Empty
@@ -393,8 +523,8 @@ var file_workflows_v1_worker_proto_depIdxs = []int32{
 	10, // 8: workflows.v1.WorkerService.ExecuteTask:input_type -> workflows.v1.Task
 	9,  // 9: workflows.v1.WorkerService.ShutdownWorker:input_type -> google.protobuf.Empty
 	11, // 10: workflows.v1.WorkerService.ListRegisteredTasks:output_type -> workflows.v1.TaskIdentifiers
-	1,  // 11: workflows.v1.WorkerService.InitializeWorker:output_type -> workflows.v1.InitializeRunnerResponse
-	2,  // 12: workflows.v1.WorkerService.ExecuteTask:output_type -> workflows.v1.ExecuteTaskResponse
+	2,  // 11: workflows.v1.WorkerService.InitializeWorker:output_type -> workflows.v1.InitializeRunnerResponse
+	3,  // 12: workflows.v1.WorkerService.ExecuteTask:output_type -> workflows.v1.ExecuteTaskResponse
 	9,  // 13: workflows.v1.WorkerService.ShutdownWorker:output_type -> google.protobuf.Empty
 	10, // [10:14] is the sub-list for method output_type
 	6,  // [6:10] is the sub-list for method input_type
@@ -418,7 +548,7 @@ func file_workflows_v1_worker_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_worker_proto_rawDesc), len(file_workflows_v1_worker_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

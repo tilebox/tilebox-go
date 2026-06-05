@@ -91,5 +91,7 @@ func main() {
 		return
 	}
 
-	taskRunner.RunForever(ctx)
+	if err := taskRunner.RunForever(ctx); err != nil {
+		slog.ErrorContext(ctx, "task runner stopped", slog.Any("error", err))
+	}
 }

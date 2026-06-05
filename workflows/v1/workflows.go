@@ -2,6 +2,7 @@ package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -309,7 +310,7 @@ func taskIdentifiersToProto(tasks []TaskIdentifier) ([]*workflowsv1.TaskIdentifi
 
 func releaseContentToProto(content *ReleaseContent) (*workflowsv1.ReleaseContent, error) {
 	if content == nil {
-		return nil, fmt.Errorf("release content is nil")
+		return nil, errors.New("release content is nil")
 	}
 
 	tasks, err := taskIdentifiersToProto(content.Tasks)

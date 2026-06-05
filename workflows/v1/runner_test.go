@@ -214,9 +214,13 @@ func Test_isEmpty(t *testing.T) {
 
 // mockMinimalTaskService is a mock task service that returns a single next task response. after that it returns an empty response every time
 type mockMinimalTaskService struct {
-	computedTasks []*workflowsv1.ComputedTask
-	nextTask      *workflowsv1.Task
-	failed        bool
+	computedTasks          []*workflowsv1.ComputedTask
+	nextTask               *workflowsv1.Task
+	idlingDuration         time.Duration
+	failed                 bool
+	failedDisplay          string
+	failedWasWorkflowError bool
+	failedProgressUpdates  []*workflowsv1.Progress
 }
 
 var _ TaskService = &mockMinimalTaskService{}
@@ -232,13 +236,18 @@ func (m *mockMinimalTaskService) NextTask(_ context.Context, computedTask *workf
 		return resp, nil
 	}
 	// subsequent calls => no next task
-	return workflowsv1.NextTaskResponse_builder{
-		NextTask: nil,
-	}.Build(), nil
+	response := workflowsv1.NextTaskResponse_builder{}
+	if m.idlingDuration > 0 {
+		response.Idling = workflowsv1.IdlingResponse_builder{SuggestedIdlingDuration: durationpb.New(m.idlingDuration)}.Build()
+	}
+	return response.Build(), nil
 }
 
-func (m *mockMinimalTaskService) TaskFailed(context.Context, uuid.UUID, string, bool, []*workflowsv1.Progress) (*workflowsv1.TaskStateResponse, error) {
+func (m *mockMinimalTaskService) TaskFailed(_ context.Context, _ uuid.UUID, display string, wasWorkflowError bool, progressUpdates []*workflowsv1.Progress) (*workflowsv1.TaskStateResponse, error) {
 	m.failed = true
+	m.failedDisplay = display
+	m.failedWasWorkflowError = wasWorkflowError
+	m.failedProgressUpdates = progressUpdates
 	return workflowsv1.TaskStateResponse_builder{
 		State: workflowsv1.TaskState_TASK_STATE_FAILED,
 	}.Build(), nil
@@ -297,7 +306,7 @@ func TestTaskRunner_RunForever(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond) // run our one task, then stop
 	defer cancel()
-	runner.RunForever(ctx)
+	require.NoError(t, runner.RunForever(ctx))
 
 	assert.False(t, mockTaskClient.failed, "task should not have failed")
 	require.Len(t, mockTaskClient.computedTasks, 1)
@@ -339,12 +348,101 @@ func TestTaskRunner_RunAll(t *testing.T) {
 	require.NoError(t, err, "failed to register task")
 
 	// run our one task, then stop
-	runner.RunAll(context.Background())
+	require.NoError(t, runner.RunAll(context.Background()))
 
 	assert.False(t, mockTaskClient.failed, "task should not have failed")
 	require.Len(t, mockTaskClient.computedTasks, 1)
 	computedTask := mockTaskClient.computedTasks[0]
 	assert.Equal(t, mockNextTask.GetId(), computedTask.GetId())
+}
+
+func TestTaskRunner_RunForeverReportsComputedTaskOnce(t *testing.T) {
+	task := &testTaskExecute{}
+	taskInput, err := json.Marshal(task)
+	require.NoError(t, err)
+	mockNextTask := workflowsv1.Task_builder{
+		Id: tileboxv1.NewUUID(uuid.New()),
+		Identifier: workflowsv1.TaskIdentifier_builder{
+			Name:    task.Identifier().Name(),
+			Version: task.Identifier().Version(),
+		}.Build(),
+		State: workflowsv1.TaskState_TASK_STATE_RUNNING,
+		Input: taskInput,
+		Job: workflowsv1.Job_builder{
+			Id:   tileboxv1.NewUUID(uuid.New()),
+			Name: "tilebox-test-job",
+		}.Build(),
+	}.Build()
+	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask, idlingDuration: time.Millisecond}
+
+	tracer := noop.NewTracerProvider().Tracer("")
+	service := mockTaskService{}
+	mockClusterClient := clusterClient{service: &mockClusterService{}}
+	runner, err := newTaskRunner(context.Background(), service, mockClusterClient, tracer)
+	require.NoError(t, err, "failed to create task runner")
+	runner.service = mockTaskClient
+	require.NoError(t, runner.RegisterTasks(task))
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	require.NoError(t, runner.RunForever(ctx))
+
+	require.Len(t, mockTaskClient.computedTasks, 1)
+	assert.Equal(t, mockNextTask.GetId(), mockTaskClient.computedTasks[0].GetId())
+}
+
+func TestPollingTaskRunnerReportsExecutorReturnedFailedTaskAsIs(t *testing.T) {
+	taskID := uuid.New()
+	taskDisplay := "Python task"
+	mockNextTask := workflowsv1.Task_builder{
+		Id: tileboxv1.NewUUID(taskID),
+		Identifier: workflowsv1.TaskIdentifier_builder{
+			Name:    "python.Task",
+			Version: "v1.0",
+		}.Build(),
+		State:   workflowsv1.TaskState_TASK_STATE_RUNNING,
+		Display: &taskDisplay,
+		Lease: workflowsv1.TaskLease_builder{
+			Lease:                             durationpb.New(5 * time.Minute),
+			RecommendedWaitUntilNextExtension: durationpb.New(5 * time.Minute),
+		}.Build(),
+	}.Build()
+	progressUpdates := []*workflowsv1.Progress{
+		workflowsv1.Progress_builder{Label: "work", Total: 10, Done: 4}.Build(),
+	}
+	service := &mockMinimalTaskService{nextTask: mockNextTask}
+	executor := &failedResponseExecutor{
+		response: workflowsv1.ExecuteTaskResponse_builder{
+			FailedTask: workflowsv1.TaskFailedRequest_builder{
+				TaskId:           tileboxv1.NewUUID(taskID),
+				Display:          "Python classified failure",
+				WasWorkflowError: true,
+				ProgressUpdates:  progressUpdates,
+			}.Build(),
+		}.Build(),
+	}
+	runner := NewPollingTaskRunner(service, "default", executor, slog.Default())
+
+	require.NoError(t, runner.RunAll(context.Background()))
+
+	require.True(t, service.failed)
+	require.Equal(t, "Python classified failure", service.failedDisplay)
+	require.True(t, service.failedWasWorkflowError)
+	require.Equal(t, progressUpdates, service.failedProgressUpdates)
+}
+
+type failedResponseExecutor struct {
+	response *workflowsv1.ExecuteTaskResponse
+}
+
+func (e *failedResponseExecutor) TaskIdentifiers() []*workflowsv1.TaskIdentifier {
+	return []*workflowsv1.TaskIdentifier{
+		workflowsv1.TaskIdentifier_builder{Name: "python.Task", Version: "v1.0"}.Build(),
+	}
+}
+
+func (e *failedResponseExecutor) ExecuteTask(context.Context, *workflowsv1.Task) (*workflowsv1.ExecuteTaskResponse, error) {
+	return e.response, nil
 }
 
 func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
@@ -900,7 +998,7 @@ func TestRunnerFibonacciWorkflow(t *testing.T) {
 	_, err = client.Jobs.Submit(ctx, "fibonacci", []Task{&FibonacciTask{N: 7}})
 	require.NoError(t, err, "failed to submit job")
 
-	runner.RunAll(ctx)
+	require.NoError(t, runner.RunAll(ctx))
 
 	// make sure all results are computed
 	assert.Equal(t, 13, cache["fib_7"])

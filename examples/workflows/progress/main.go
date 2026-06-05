@@ -70,7 +70,10 @@ func main() {
 		return
 	}
 
-	runner.RunAll(ctx)
+	if err := runner.RunAll(ctx); err != nil {
+		slog.ErrorContext(ctx, "failed to run tasks", slog.Any("error", err))
+		return
+	}
 
 	job, err = client.Jobs.Get(ctx, job.ID) // fetch up-to-date job progress
 	if err != nil {

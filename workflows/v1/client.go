@@ -2,6 +2,8 @@ package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -33,7 +35,7 @@ type Client struct {
 	tracer      trace.Tracer
 }
 
-// NewClient creates a new Tilebox Datasets client.
+// NewClient creates a new Tilebox Workflows client.
 //
 // By default, the returned Client is configured with:
 //   - "https://api.tilebox.com" as the URL
@@ -78,6 +80,24 @@ func (c *Client) NewTaskRunner(ctx context.Context, options ...runner.Option) (*
 	return newTaskRunner(ctx, c.taskService, c.Clusters, c.tracer, options...)
 }
 
+// NewPollingTaskRunner creates a polling task runner for custom task executors.
+func (c *Client) NewPollingTaskRunner(ctx context.Context, executor TaskExecutor, options ...runner.Option) (*PollingTaskRunner, error) {
+	opts := &runner.Options{
+		ClusterSlug:   "",
+		Logger:        slog.Default(),
+		MeterProvider: otel.GetMeterProvider(),
+	}
+	for _, option := range options {
+		option(opts)
+	}
+
+	cluster, err := c.Clusters.Get(ctx, opts.ClusterSlug)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get cluster: %w", err)
+	}
+	return NewPollingTaskRunner(c.taskService, cluster.Slug, executor, opts.Logger), nil
+}
+
 // clientConfig contains the configuration for Tilebox Workflows client.
 type clientConfig struct {
 	httpClient     connect.HTTPClient
@@ -87,6 +107,7 @@ type clientConfig struct {
 
 	tracerProvider trace.TracerProvider
 	disableTracing bool
+	disableLogging bool
 }
 
 // ClientOption is an interface for configuring a client. Using such options helpers is a
@@ -134,6 +155,13 @@ func WithDisableTracing() ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.tracerProvider = noop.NewTracerProvider()
 		cfg.disableTracing = true
+	}
+}
+
+// WithDisableLogging disables Tilebox OpenTelemetry log export setup for the client.
+func WithDisableLogging() ClientOption {
+	return func(cfg *clientConfig) {
+		cfg.disableLogging = true
 	}
 }
 
