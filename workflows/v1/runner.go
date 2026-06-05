@@ -7,16 +7,12 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
-	"math/rand/v2"
 	"os/signal"
 	"reflect"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/avast/retry-go/v4"
 	"github.com/google/uuid"
-	"github.com/samber/lo"
 	"github.com/tilebox/tilebox-go/internal/span"
 	obslogger "github.com/tilebox/tilebox-go/observability/logger"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
@@ -27,8 +23,6 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -44,7 +38,7 @@ const (
 	minIdlingDuration = 1 * time.Millisecond
 
 	// Fallback polling interval and jitter in case the workflows API fails to respond with a suggested idling duration
-	fallbackPollingInterval = 5 * time.Second
+	fallbackPollingInterval = 10 * time.Second
 	fallbackJitterInterval  = 5 * time.Second
 )
 
@@ -122,6 +116,7 @@ func newTaskRunnerMetrics(meter metric.Meter) (*taskRunnerMetrics, error) {
 //
 // Documentation: https://docs.tilebox.com/workflows/concepts/task-runners
 type TaskRunner struct {
+	pollingRunner   *PollingTaskRunner
 	service         TaskService
 	taskDefinitions map[taskIdentifier]ExecutableTask
 
@@ -151,7 +146,7 @@ func newTaskRunner(ctx context.Context, service TaskService, clusterClient Clust
 		return nil, fmt.Errorf("failed to create task runner metrics: %w", err)
 	}
 
-	return &TaskRunner{
+	taskRunner := &TaskRunner{
 		service:         service,
 		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
 
@@ -159,7 +154,9 @@ func newTaskRunner(ctx context.Context, service TaskService, clusterClient Clust
 		tracer:  tracer,
 		logger:  opts.Logger,
 		metrics: metrics,
-	}, nil
+	}
+	taskRunner.pollingRunner = NewPollingTaskRunner(service, cluster.Slug, taskRunner, opts.Logger)
+	return taskRunner, nil
 }
 
 // GetRegisteredTask returns the task with the given identifier.
@@ -184,22 +181,21 @@ func isEmpty(id *tileboxv1.ID) bool {
 }
 
 // RunForever runs the task runner forever, looking for new tasks to run and polling for new tasks when idle.
-func (t *TaskRunner) RunForever(ctx context.Context) {
-	t.run(ctx, false)
+func (t *TaskRunner) RunForever(ctx context.Context) error {
+	ctxSignal, stop := signal.NotifyContext(ctx, runnerShutdownSignals()...)
+	defer stop()
+	t.pollingRunner.service = t.service
+	return t.pollingRunner.RunForever(ctxSignal)
 }
 
 // RunAll run the task runner and execute all tasks until there are no more tasks available.
-func (t *TaskRunner) RunAll(ctx context.Context) {
-	t.run(ctx, true)
+func (t *TaskRunner) RunAll(ctx context.Context) error {
+	t.pollingRunner.service = t.service
+	return t.pollingRunner.RunAll(ctx)
 }
 
-func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
-	// Catch signals to gracefully shutdown
-	ctxSignal, stop := signal.NotifyContext(context.Background(), runnerShutdownSignals()...)
-	defer stop()
-
+func (t *TaskRunner) TaskIdentifiers() []*workflowsv1.TaskIdentifier {
 	identifiers := make([]*workflowsv1.TaskIdentifier, 0, len(t.taskDefinitions))
-
 	for _, task := range t.taskDefinitions {
 		identifier := identifierFromTask(task)
 		identifiers = append(identifiers, workflowsv1.TaskIdentifier_builder{
@@ -207,156 +203,35 @@ func (t *TaskRunner) run(ctx context.Context, stopWhenIdling bool) {
 			Version: identifier.Version(),
 		}.Build())
 	}
-
-	// the work we got as response from our last NextTask request, either a task to execute or an idling response
-	var work *workflowsv1.NextTaskResponse
-
-	for {
-		if work == nil || work.GetNextTask() == nil { // if we don't have a task, let's try work-stealing one
-			taskResponse, err := t.service.NextTask(ctx,
-				nil,
-				workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build(),
-			)
-			if err != nil {
-				t.logError(ctx, err, "failed to work-steal a task")
-				// return  // should we even try again, or just stop here?
-			} else {
-				work = taskResponse
-			}
-		}
-
-		if work != nil && work.GetNextTask() != nil { // we have a task to execute
-			task := work.GetNextTask()
-			if isEmpty(task.GetId()) {
-				t.logError(ctx, nil, "got a task without an ID - skipping to the next task")
-				work = nil
-				continue
-			}
-			if task.GetRetryCount() > 0 {
-				t.logger.DebugContext(ctx, "retrying task", slog.String("task_id", task.GetId().AsUUID().String()), slog.Int64("retry_count", task.GetRetryCount()))
-			}
-			executionContext, errTask := t.executeTask(ctx, task)
-			stopExecution := false
-			if errTask == nil { // in case we got no error, let's mark the task as computed and get the next one
-				computedTask := workflowsv1.ComputedTask_builder{
-					Id:              task.GetId(),
-					Display:         task.GetDisplay(),
-					SubTasks:        executionContext.getSubTasks(),
-					ProgressUpdates: executionContext.getProgressUpdates(),
-				}.Build()
-				nextTaskToRun := workflowsv1.NextTaskToRun_builder{ClusterSlug: t.cluster, Identifiers: identifiers}.Build()
-				select {
-				case <-ctxSignal.Done():
-					// if we got an interrupt signal, don't request a new task
-					nextTaskToRun = nil
-					stopExecution = true
-				case <-ctx.Done():
-					// if we got a context cancellation, don't request a new task
-					nextTaskToRun = nil
-					stopExecution = true
-				default:
-				}
-
-				var err error
-				work, err = retry.DoWithData(
-					func() (*workflowsv1.NextTaskResponse, error) {
-						taskResponse, err := t.service.NextTask(ctx, computedTask, nextTaskToRun)
-						if err != nil {
-							t.logError(ctx, err, "failed to mark task as computed, retrying")
-							return nil, err
-						}
-						return taskResponse, nil
-					}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
-				)
-				if err != nil {
-					t.logError(ctx, err, "failed to retry NextTask")
-					return // we got a cancellation signal, so let's just stop here
-				}
-			} else { // errTask != nil
-				// the error itself is already logged in executeTask, so we just need to report the task as failed
-				// even if a task failed it could have made some progress, so if that's the case, we report it
-				var progressUpdates []*workflowsv1.Progress
-				if executionContext != nil {
-					progressUpdates = executionContext.getProgressUpdates()
-				}
-				err := t.taskFailed(ctx, ctxSignal, task.GetId().AsUUID(), errTask, task.GetDisplay(), progressUpdates)
-				if err != nil {
-					t.logError(ctx, err, "failed to retry TaskFailed")
-					return // we got a cancellation signal, so let's just stop here
-				}
-				work = nil // reported a task failure, let's work-steal again
-			}
-			if stopExecution {
-				return
-			}
-		} else {
-			// if we didn't get a task, let's wait for a bit and try work-stealing again
-			t.logger.DebugContext(ctx, "no task to run, idling")
-
-			if stopWhenIdling {
-				return
-			}
-
-			idlingDuration := fallbackPollingInterval + rand.N(fallbackJitterInterval)
-			if work != nil && work.GetIdling().GetSuggestedIdlingDuration() != nil {
-				idlingDuration = work.GetIdling().GetSuggestedIdlingDuration().AsDuration()
-				idlingDuration = lo.Clamp(idlingDuration, minIdlingDuration, maxIdlingDuration)
-			} else {
-				t.logger.DebugContext(ctx, "Didn't receive a task to run, nor an idling response, but runner is not shutting down. Falling back to a default idling period.", slog.Duration("fallback_idling_duration", idlingDuration))
-			}
-
-			// instead of time.Sleep we set a timer and select on it, so we still can catch signals like SIGINT
-			timer := time.NewTimer(idlingDuration)
-			select {
-			case <-ctxSignal.Done():
-				timer.Stop() // stop the timer before returning, avoids a memory leak
-				return       // if we got a context cancellation, let's just stop here
-			case <-ctx.Done():
-				timer.Stop() // stop the timer before returning, avoids a memory leak
-				return       // if we got a context cancellation, let's just stop here
-			case <-timer.C: // the timer expired, let's try to work-steal a task again
-			}
-		}
-	}
+	return identifiers
 }
 
-func (t *TaskRunner) taskFailed(ctx, ctxSignal context.Context, taskID uuid.UUID, taskError error, taskDisplay string, progressUpdates []*workflowsv1.Progress) error {
-	// job output is limited to 1KB, so truncate the error message if necessary
-	errorMessage := taskError.Error()
-	if len(errorMessage) > 1024 {
-		errorMessage = errorMessage[:1024]
+func (t *TaskRunner) ExecuteTask(ctx context.Context, task *workflowsv1.Task) (*workflowsv1.ExecuteTaskResponse, error) {
+	executionContext, err := t.executeTask(ctx, task)
+	if err != nil {
+		var progressUpdates []*workflowsv1.Progress
+		if executionContext != nil {
+			progressUpdates = executionContext.getProgressUpdates()
+		}
+		failedTask := workflowsv1.TaskFailedRequest_builder{
+			TaskId:           task.GetId(),
+			Display:          failedTaskDisplay(task.GetDisplay(), err),
+			WasWorkflowError: true,
+			ProgressUpdates:  progressUpdates,
+		}.Build()
+		return workflowsv1.ExecuteTaskResponse_builder{FailedTask: failedTask}.Build(), nil
 	}
 
-	display := taskDisplay
-	if errorMessage != "" {
-		display = strings.Join([]string{taskDisplay, errorMessage}, "\n")
-	}
-
-	return retry.Do(
-		func() error {
-			_, err := t.service.TaskFailed(ctx, taskID, display, true, progressUpdates)
-			if err != nil {
-				t.logError(ctx, err, "failed to report task failure")
-				return err
-			}
-			return nil
-		}, retry.Context(ctxSignal), retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
-	)
+	computedTask := workflowsv1.ComputedTask_builder{
+		Id:              task.GetId(),
+		Display:         task.GetDisplay(),
+		SubTasks:        executionContext.getSubTasks(),
+		ProgressUpdates: executionContext.getProgressUpdates(),
+	}.Build()
+	return workflowsv1.ExecuteTaskResponse_builder{ComputedTask: computedTask}.Build(), nil
 }
 
 func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*taskExecutionContext, error) {
-	// start a goroutine to extend the lease of the task continuously until the task execution is finished
-	leaseCtx, stopLeaseExtensions := context.WithCancel(ctx)
-
-	go t.extendTaskLease(
-		leaseCtx,
-		t.service,
-		task.GetId().AsUUID(),
-		task.GetLease().GetLease().AsDuration(),
-		task.GetLease().GetRecommendedWaitUntilNextExtension().AsDuration(),
-	)
-	defer stopLeaseExtensions()
-
 	// actually execute the task
 	beforeTime := time.Now().UTC()
 
@@ -443,54 +318,6 @@ func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*
 
 // extendTaskLease is a function designed to be run as a goroutine, extending the lease of a task continuously until the
 // context is cancelled, which indicates that the execution of the task is finished.
-func (t *TaskRunner) extendTaskLease(ctx context.Context, service TaskService, taskID uuid.UUID, initialLease, initialWait time.Duration) {
-	wait := initialWait
-	lease := initialLease
-	for {
-		timer := time.NewTimer(wait)
-		select {
-		case <-ctx.Done(): // if the context is cancelled, let's stop trying to extend the lease -> the task finished
-			timer.Stop() // stop the timer before returning, avoids a memory leak
-			return
-		case <-timer.C: // the timer expired, let's try to extend the lease
-		}
-		t.logger.DebugContext(ctx, "extending task lease", slog.String("task_id", taskID.String()), slog.Duration("lease", lease), slog.Duration("wait", wait))
-		// double the current lease duration for the next extension
-		extension, err := service.ExtendTaskLease(ctx, taskID, 2*lease)
-		if err != nil {
-			t.logError(ctx, err, "failed to extend task lease", slog.String("task_id", taskID.String()))
-			// The server probably has an internal error, but there is no point in trying to extend the lease again
-			// because it will be expired then, so let's just return
-			return
-		}
-		if extension.GetLease() == nil {
-			// the server did not return a lease extension, it means that there is no need in trying to extend the lease
-			t.logger.DebugContext(ctx, "task lease extension not granted", slog.String("task_id", taskID.String()))
-			return
-		}
-		// will probably be double the previous lease (since we requested that) or capped by the server at maxLeaseDuration
-		lease = extension.GetLease().AsDuration()
-		wait = extension.GetRecommendedWaitUntilNextExtension().AsDuration()
-	}
-}
-
-func (t *TaskRunner) logError(ctx context.Context, err error, msg string, args ...any) {
-	switch {
-	case errors.Is(err, context.Canceled):
-		// covers both stdlib context.Canceled and connect context canceled errors
-		return
-	case status.Code(err) == codes.Canceled:
-		// outgoing gRPC requests that are canceled produce a
-		// status.Error(codes.Canceled, "context canceled") from the google grpc library
-		return
-	}
-
-	fields := make([]any, 0, len(args)+1)
-	fields = append(fields, slog.Any("error", err))
-	fields = append(fields, args...)
-	t.logger.ErrorContext(ctx, msg, fields...)
-}
-
 // registerTask makes the task runner aware of a task.
 func (t *TaskRunner) registerTask(task ExecutableTask) error {
 	identifier := identifierFromTask(task)

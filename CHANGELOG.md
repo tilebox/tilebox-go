@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-06-05
+
+### Added
+
+- `workflows`: Added `TaskExecutor`, `PollingTaskRunner`, and `client.NewPollingTaskRunner` for custom task execution backends that need to use the Tilebox task polling protocol directly.
+
+### Changed
+
+- `workflows`: Changed `TaskRunner.RunForever` and `TaskRunner.RunAll` to return errors from the polling loop.
+
 ## [0.7.1] - 2026-05-22
 
 ### Fixed
@@ -118,7 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/tilebox/tilebox-go/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/tilebox/tilebox-go/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/tilebox/tilebox-go/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/tilebox/tilebox-go/compare/v0.5.0...v0.6.0

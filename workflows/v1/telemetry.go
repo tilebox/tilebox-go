@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -74,7 +75,9 @@ func configureTileboxTelemetry(ctx context.Context, cfg *clientConfig) {
 		cfg.tracerProvider = configureTileboxTracing(ctx, cfg)
 	}
 
-	configureTileboxLogging(ctx, cfg)
+	if !cfg.disableLogging {
+		configureTileboxLogging(ctx, cfg)
+	}
 }
 
 func configureTileboxTracing(ctx context.Context, cfg *clientConfig) trace.TracerProvider {
@@ -116,17 +119,8 @@ func configureTileboxTracing(ctx context.Context, cfg *clientConfig) trace.Trace
 }
 
 func configureTileboxLogging(ctx context.Context, cfg *clientConfig) {
-	endpoint, ok := otlpEndpointURL(cfg.url, otlpLogsPath)
-	if !ok {
-		return
-	}
-
 	tileboxLogHandlerOnce.Do(func() {
-		otelHandler, _, err := logger.NewOtelHandler(ctx, tileboxTelemetryService,
-			logger.WithEndpointURL(endpoint),
-			logger.WithHeaders(tileboxTelemetryHeaders(cfg.apiKey)),
-			logger.WithLevel(slog.LevelInfo),
-		)
+		otelHandler, _, err := NewTileboxLogHandler(ctx, cfg.url, cfg.apiKey, slog.LevelInfo)
 		if err != nil {
 			otel.Handle(fmt.Errorf("failed to configure Tilebox log exporter: %w", err))
 			return
@@ -134,6 +128,32 @@ func configureTileboxLogging(ctx context.Context, cfg *clientConfig) {
 
 		configureSlogHandler(otelHandler)
 	})
+}
+
+// NewTileboxLogHandler creates a slog handler that exports log records to the Tilebox API.
+func NewTileboxLogHandler(ctx context.Context, apiURL string, apiKey string, level slog.Level) (slog.Handler, func(context.Context), error) {
+	cleanup := func(context.Context) {}
+	if strings.TrimSpace(apiKey) == "" {
+		return nil, cleanup, errors.New("tilebox API key is required for log export")
+	}
+	if !isHTTPURL(apiURL) {
+		return nil, cleanup, fmt.Errorf("tilebox API URL must be an HTTP(S) URL for log export: %s", apiURL)
+	}
+
+	endpoint, ok := otlpEndpointURL(apiURL, otlpLogsPath)
+	if !ok {
+		return nil, cleanup, fmt.Errorf("invalid Tilebox API URL for log export: %s", apiURL)
+	}
+
+	handler, cleanup, err := logger.NewOtelHandler(ctx, tileboxTelemetryService,
+		logger.WithEndpointURL(endpoint),
+		logger.WithHeaders(tileboxTelemetryHeaders(apiKey)),
+		logger.WithLevel(level),
+	)
+	if cleanup == nil {
+		cleanup = func(context.Context) {}
+	}
+	return handler, cleanup, err
 }
 
 func configureSlogHandler(handler slog.Handler) {

@@ -356,6 +356,13 @@ type WorkflowService interface {
 	GetCluster(ctx context.Context, slug string) (*workflowsv1.Cluster, error)
 	DeleteCluster(ctx context.Context, slug string) error
 	ListClusters(ctx context.Context) (*workflowsv1.ListClustersResponse, error)
+
+	CreateWorkflow(ctx context.Context, name, description string) (*workflowsv1.Workflow, error)
+	ListWorkflows(ctx context.Context) (*workflowsv1.ListWorkflowsResponse, error)
+	GetWorkflow(ctx context.Context, slug string) (*workflowsv1.Workflow, error)
+	PublishWorkflowRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*workflowsv1.WorkflowRelease, error)
+	DeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.DeployWorkflowReleaseResponse, error)
+	UndeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.UndeployWorkflowReleaseResponse, error)
 }
 
 var _ WorkflowService = &workflowService{}
@@ -416,6 +423,94 @@ func (s *workflowService) ListClusters(ctx context.Context) (*workflowsv1.ListCl
 		res, err := s.workflowClient.ListClusters(ctx, connect.NewRequest(&workflowsv1.ListClustersRequest{}))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list clusters: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) CreateWorkflow(ctx context.Context, name, description string) (*workflowsv1.Workflow, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/create", func(ctx context.Context) (*workflowsv1.Workflow, error) {
+		res, err := s.workflowClient.CreateWorkflow(ctx, connect.NewRequest(workflowsv1.CreateWorkflowRequest_builder{
+			Name:        name,
+			Description: description,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create workflow: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) ListWorkflows(ctx context.Context) (*workflowsv1.ListWorkflowsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/list", func(ctx context.Context) (*workflowsv1.ListWorkflowsResponse, error) {
+		res, err := s.workflowClient.ListWorkflows(ctx, connect.NewRequest(&workflowsv1.ListWorkflowsRequest{}))
+		if err != nil {
+			return nil, fmt.Errorf("failed to list workflows: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) GetWorkflow(ctx context.Context, slug string) (*workflowsv1.Workflow, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/get", func(ctx context.Context) (*workflowsv1.Workflow, error) {
+		res, err := s.workflowClient.GetWorkflow(ctx, connect.NewRequest(workflowsv1.GetWorkflowRequest_builder{
+			WorkflowSlug: slug,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get workflow: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) PublishWorkflowRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*workflowsv1.WorkflowRelease, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/publish_release", func(ctx context.Context) (*workflowsv1.WorkflowRelease, error) {
+		protoContent, err := releaseContentToProto(content)
+		if err != nil {
+			return nil, err
+		}
+
+		res, err := s.workflowClient.PublishWorkflowRelease(ctx, connect.NewRequest(workflowsv1.PublishWorkflowReleaseRequest_builder{
+			WorkflowSlug: workflowSlug,
+			ArtifactId:   tileboxv1.NewUUID(artifactID),
+			Content:      protoContent,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to publish workflow release: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) DeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.DeployWorkflowReleaseResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/deploy_release", func(ctx context.Context) (*workflowsv1.DeployWorkflowReleaseResponse, error) {
+		res, err := s.workflowClient.DeployWorkflowRelease(ctx, connect.NewRequest(workflowsv1.DeployWorkflowReleaseRequest_builder{
+			WorkflowSlug: workflowSlug,
+			ReleaseId:    tileboxv1.NewUUID(releaseID),
+			ClusterSlugs: clusterSlugs,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to deploy workflow release: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) UndeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.UndeployWorkflowReleaseResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/undeploy_release", func(ctx context.Context) (*workflowsv1.UndeployWorkflowReleaseResponse, error) {
+		res, err := s.workflowClient.UndeployWorkflowRelease(ctx, connect.NewRequest(workflowsv1.UndeployWorkflowReleaseRequest_builder{
+			WorkflowSlug: workflowSlug,
+			ReleaseId:    tileboxv1.NewUUID(releaseID),
+			ClusterSlugs: clusterSlugs,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to undeploy workflow release: %w", err)
 		}
 
 		return res.Msg, nil
