@@ -70,6 +70,17 @@ func TestWorkflowClient_Get(t *testing.T) {
 	assert.Equal(t, "Agentic Workflow", workflow.Name)
 }
 
+func TestWorkflowClient_Delete(t *testing.T) {
+	ctx := context.Background()
+	service := &fakeWorkflowService{}
+	client := workflowClient{service: service}
+
+	err := client.Delete(ctx, "agentic-workflow")
+	require.NoError(t, err)
+
+	assert.Equal(t, "agentic-workflow", service.deleteWorkflowSlug)
+}
+
 func TestWorkflowClient_PublishRelease(t *testing.T) {
 	ctx := context.Background()
 	releaseID := uuid.New()
@@ -130,6 +141,19 @@ func TestWorkflowClient_PublishRelease(t *testing.T) {
 	assert.Equal(t, "my_module.my_runner:runner", release.Content.RunnerObjectPath)
 	assert.Equal(t, []string{"python", "main.py"}, release.Content.CommandOverride)
 	assert.Equal(t, createdAt, release.CreatedAt)
+}
+
+func TestWorkflowClient_UnpublishRelease(t *testing.T) {
+	ctx := context.Background()
+	releaseID := uuid.New()
+	service := &fakeWorkflowService{}
+	client := workflowClient{service: service}
+
+	err := client.UnpublishRelease(ctx, "agentic-workflow", releaseID)
+	require.NoError(t, err)
+
+	assert.Equal(t, "agentic-workflow", service.unpublishWorkflowSlug)
+	assert.Equal(t, releaseID, service.unpublishReleaseID)
 }
 
 func TestWorkflowClient_DeployRelease(t *testing.T) {
@@ -245,13 +269,17 @@ type fakeWorkflowService struct {
 	undeployWorkflowReleaseResponse *workflowsv1.UndeployWorkflowReleaseResponse
 	err                             error
 
-	createName        string
-	createDescription string
-	getSlug           string
+	createName         string
+	createDescription  string
+	getSlug            string
+	deleteWorkflowSlug string
 
 	publishWorkflowSlug string
 	publishArtifactID   uuid.UUID
 	publishContent      *ReleaseContent
+
+	unpublishWorkflowSlug string
+	unpublishReleaseID    uuid.UUID
 
 	deployWorkflowSlug string
 	deployReleaseID    uuid.UUID
@@ -293,11 +321,22 @@ func (s *fakeWorkflowService) GetWorkflow(_ context.Context, slug string) (*work
 	return s.workflow, s.err
 }
 
+func (s *fakeWorkflowService) DeleteWorkflow(_ context.Context, slug string) error {
+	s.deleteWorkflowSlug = slug
+	return s.err
+}
+
 func (s *fakeWorkflowService) PublishWorkflowRelease(_ context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*workflowsv1.WorkflowRelease, error) {
 	s.publishWorkflowSlug = workflowSlug
 	s.publishArtifactID = artifactID
 	s.publishContent = content
 	return s.workflowRelease, s.err
+}
+
+func (s *fakeWorkflowService) UnpublishWorkflowRelease(_ context.Context, workflowSlug string, releaseID uuid.UUID) error {
+	s.unpublishWorkflowSlug = workflowSlug
+	s.unpublishReleaseID = releaseID
+	return s.err
 }
 
 func (s *fakeWorkflowService) DeployWorkflowRelease(_ context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.DeployWorkflowReleaseResponse, error) {

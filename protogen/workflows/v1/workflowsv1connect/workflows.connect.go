@@ -56,9 +56,15 @@ const (
 	// WorkflowsServiceGetWorkflowProcedure is the fully-qualified name of the WorkflowsService's
 	// GetWorkflow RPC.
 	WorkflowsServiceGetWorkflowProcedure = "/workflows.v1.WorkflowsService/GetWorkflow"
+	// WorkflowsServiceDeleteWorkflowProcedure is the fully-qualified name of the WorkflowsService's
+	// DeleteWorkflow RPC.
+	WorkflowsServiceDeleteWorkflowProcedure = "/workflows.v1.WorkflowsService/DeleteWorkflow"
 	// WorkflowsServicePublishWorkflowReleaseProcedure is the fully-qualified name of the
 	// WorkflowsService's PublishWorkflowRelease RPC.
 	WorkflowsServicePublishWorkflowReleaseProcedure = "/workflows.v1.WorkflowsService/PublishWorkflowRelease"
+	// WorkflowsServiceUnpublishWorkflowReleaseProcedure is the fully-qualified name of the
+	// WorkflowsService's UnpublishWorkflowRelease RPC.
+	WorkflowsServiceUnpublishWorkflowReleaseProcedure = "/workflows.v1.WorkflowsService/UnpublishWorkflowRelease"
 	// WorkflowsServiceDeployWorkflowReleaseProcedure is the fully-qualified name of the
 	// WorkflowsService's DeployWorkflowRelease RPC.
 	WorkflowsServiceDeployWorkflowReleaseProcedure = "/workflows.v1.WorkflowsService/DeployWorkflowRelease"
@@ -76,7 +82,9 @@ type WorkflowsServiceClient interface {
 	CreateWorkflow(context.Context, *connect.Request[v1.CreateWorkflowRequest]) (*connect.Response[v1.Workflow], error)
 	ListWorkflows(context.Context, *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error)
 	GetWorkflow(context.Context, *connect.Request[v1.GetWorkflowRequest]) (*connect.Response[v1.Workflow], error)
+	DeleteWorkflow(context.Context, *connect.Request[v1.DeleteWorkflowRequest]) (*connect.Response[v1.DeleteWorkflowResponse], error)
 	PublishWorkflowRelease(context.Context, *connect.Request[v1.PublishWorkflowReleaseRequest]) (*connect.Response[v1.WorkflowRelease], error)
+	UnpublishWorkflowRelease(context.Context, *connect.Request[v1.UnpublishWorkflowReleaseRequest]) (*connect.Response[v1.UnpublishWorkflowReleaseResponse], error)
 	DeployWorkflowRelease(context.Context, *connect.Request[v1.DeployWorkflowReleaseRequest]) (*connect.Response[v1.DeployWorkflowReleaseResponse], error)
 	UndeployWorkflowRelease(context.Context, *connect.Request[v1.UndeployWorkflowReleaseRequest]) (*connect.Response[v1.UndeployWorkflowReleaseResponse], error)
 }
@@ -134,10 +142,22 @@ func NewWorkflowsServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(workflowsServiceMethods.ByName("GetWorkflow")),
 			connect.WithClientOptions(opts...),
 		),
+		deleteWorkflow: connect.NewClient[v1.DeleteWorkflowRequest, v1.DeleteWorkflowResponse](
+			httpClient,
+			baseURL+WorkflowsServiceDeleteWorkflowProcedure,
+			connect.WithSchema(workflowsServiceMethods.ByName("DeleteWorkflow")),
+			connect.WithClientOptions(opts...),
+		),
 		publishWorkflowRelease: connect.NewClient[v1.PublishWorkflowReleaseRequest, v1.WorkflowRelease](
 			httpClient,
 			baseURL+WorkflowsServicePublishWorkflowReleaseProcedure,
 			connect.WithSchema(workflowsServiceMethods.ByName("PublishWorkflowRelease")),
+			connect.WithClientOptions(opts...),
+		),
+		unpublishWorkflowRelease: connect.NewClient[v1.UnpublishWorkflowReleaseRequest, v1.UnpublishWorkflowReleaseResponse](
+			httpClient,
+			baseURL+WorkflowsServiceUnpublishWorkflowReleaseProcedure,
+			connect.WithSchema(workflowsServiceMethods.ByName("UnpublishWorkflowRelease")),
 			connect.WithClientOptions(opts...),
 		),
 		deployWorkflowRelease: connect.NewClient[v1.DeployWorkflowReleaseRequest, v1.DeployWorkflowReleaseResponse](
@@ -157,16 +177,18 @@ func NewWorkflowsServiceClient(httpClient connect.HTTPClient, baseURL string, op
 
 // workflowsServiceClient implements WorkflowsServiceClient.
 type workflowsServiceClient struct {
-	createCluster           *connect.Client[v1.CreateClusterRequest, v1.Cluster]
-	getCluster              *connect.Client[v1.GetClusterRequest, v1.Cluster]
-	deleteCluster           *connect.Client[v1.DeleteClusterRequest, v1.DeleteClusterResponse]
-	listClusters            *connect.Client[v1.ListClustersRequest, v1.ListClustersResponse]
-	createWorkflow          *connect.Client[v1.CreateWorkflowRequest, v1.Workflow]
-	listWorkflows           *connect.Client[v1.ListWorkflowsRequest, v1.ListWorkflowsResponse]
-	getWorkflow             *connect.Client[v1.GetWorkflowRequest, v1.Workflow]
-	publishWorkflowRelease  *connect.Client[v1.PublishWorkflowReleaseRequest, v1.WorkflowRelease]
-	deployWorkflowRelease   *connect.Client[v1.DeployWorkflowReleaseRequest, v1.DeployWorkflowReleaseResponse]
-	undeployWorkflowRelease *connect.Client[v1.UndeployWorkflowReleaseRequest, v1.UndeployWorkflowReleaseResponse]
+	createCluster            *connect.Client[v1.CreateClusterRequest, v1.Cluster]
+	getCluster               *connect.Client[v1.GetClusterRequest, v1.Cluster]
+	deleteCluster            *connect.Client[v1.DeleteClusterRequest, v1.DeleteClusterResponse]
+	listClusters             *connect.Client[v1.ListClustersRequest, v1.ListClustersResponse]
+	createWorkflow           *connect.Client[v1.CreateWorkflowRequest, v1.Workflow]
+	listWorkflows            *connect.Client[v1.ListWorkflowsRequest, v1.ListWorkflowsResponse]
+	getWorkflow              *connect.Client[v1.GetWorkflowRequest, v1.Workflow]
+	deleteWorkflow           *connect.Client[v1.DeleteWorkflowRequest, v1.DeleteWorkflowResponse]
+	publishWorkflowRelease   *connect.Client[v1.PublishWorkflowReleaseRequest, v1.WorkflowRelease]
+	unpublishWorkflowRelease *connect.Client[v1.UnpublishWorkflowReleaseRequest, v1.UnpublishWorkflowReleaseResponse]
+	deployWorkflowRelease    *connect.Client[v1.DeployWorkflowReleaseRequest, v1.DeployWorkflowReleaseResponse]
+	undeployWorkflowRelease  *connect.Client[v1.UndeployWorkflowReleaseRequest, v1.UndeployWorkflowReleaseResponse]
 }
 
 // CreateCluster calls workflows.v1.WorkflowsService.CreateCluster.
@@ -204,9 +226,19 @@ func (c *workflowsServiceClient) GetWorkflow(ctx context.Context, req *connect.R
 	return c.getWorkflow.CallUnary(ctx, req)
 }
 
+// DeleteWorkflow calls workflows.v1.WorkflowsService.DeleteWorkflow.
+func (c *workflowsServiceClient) DeleteWorkflow(ctx context.Context, req *connect.Request[v1.DeleteWorkflowRequest]) (*connect.Response[v1.DeleteWorkflowResponse], error) {
+	return c.deleteWorkflow.CallUnary(ctx, req)
+}
+
 // PublishWorkflowRelease calls workflows.v1.WorkflowsService.PublishWorkflowRelease.
 func (c *workflowsServiceClient) PublishWorkflowRelease(ctx context.Context, req *connect.Request[v1.PublishWorkflowReleaseRequest]) (*connect.Response[v1.WorkflowRelease], error) {
 	return c.publishWorkflowRelease.CallUnary(ctx, req)
+}
+
+// UnpublishWorkflowRelease calls workflows.v1.WorkflowsService.UnpublishWorkflowRelease.
+func (c *workflowsServiceClient) UnpublishWorkflowRelease(ctx context.Context, req *connect.Request[v1.UnpublishWorkflowReleaseRequest]) (*connect.Response[v1.UnpublishWorkflowReleaseResponse], error) {
+	return c.unpublishWorkflowRelease.CallUnary(ctx, req)
 }
 
 // DeployWorkflowRelease calls workflows.v1.WorkflowsService.DeployWorkflowRelease.
@@ -228,7 +260,9 @@ type WorkflowsServiceHandler interface {
 	CreateWorkflow(context.Context, *connect.Request[v1.CreateWorkflowRequest]) (*connect.Response[v1.Workflow], error)
 	ListWorkflows(context.Context, *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error)
 	GetWorkflow(context.Context, *connect.Request[v1.GetWorkflowRequest]) (*connect.Response[v1.Workflow], error)
+	DeleteWorkflow(context.Context, *connect.Request[v1.DeleteWorkflowRequest]) (*connect.Response[v1.DeleteWorkflowResponse], error)
 	PublishWorkflowRelease(context.Context, *connect.Request[v1.PublishWorkflowReleaseRequest]) (*connect.Response[v1.WorkflowRelease], error)
+	UnpublishWorkflowRelease(context.Context, *connect.Request[v1.UnpublishWorkflowReleaseRequest]) (*connect.Response[v1.UnpublishWorkflowReleaseResponse], error)
 	DeployWorkflowRelease(context.Context, *connect.Request[v1.DeployWorkflowReleaseRequest]) (*connect.Response[v1.DeployWorkflowReleaseResponse], error)
 	UndeployWorkflowRelease(context.Context, *connect.Request[v1.UndeployWorkflowReleaseRequest]) (*connect.Response[v1.UndeployWorkflowReleaseResponse], error)
 }
@@ -282,10 +316,22 @@ func NewWorkflowsServiceHandler(svc WorkflowsServiceHandler, opts ...connect.Han
 		connect.WithSchema(workflowsServiceMethods.ByName("GetWorkflow")),
 		connect.WithHandlerOptions(opts...),
 	)
+	workflowsServiceDeleteWorkflowHandler := connect.NewUnaryHandler(
+		WorkflowsServiceDeleteWorkflowProcedure,
+		svc.DeleteWorkflow,
+		connect.WithSchema(workflowsServiceMethods.ByName("DeleteWorkflow")),
+		connect.WithHandlerOptions(opts...),
+	)
 	workflowsServicePublishWorkflowReleaseHandler := connect.NewUnaryHandler(
 		WorkflowsServicePublishWorkflowReleaseProcedure,
 		svc.PublishWorkflowRelease,
 		connect.WithSchema(workflowsServiceMethods.ByName("PublishWorkflowRelease")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowsServiceUnpublishWorkflowReleaseHandler := connect.NewUnaryHandler(
+		WorkflowsServiceUnpublishWorkflowReleaseProcedure,
+		svc.UnpublishWorkflowRelease,
+		connect.WithSchema(workflowsServiceMethods.ByName("UnpublishWorkflowRelease")),
 		connect.WithHandlerOptions(opts...),
 	)
 	workflowsServiceDeployWorkflowReleaseHandler := connect.NewUnaryHandler(
@@ -316,8 +362,12 @@ func NewWorkflowsServiceHandler(svc WorkflowsServiceHandler, opts ...connect.Han
 			workflowsServiceListWorkflowsHandler.ServeHTTP(w, r)
 		case WorkflowsServiceGetWorkflowProcedure:
 			workflowsServiceGetWorkflowHandler.ServeHTTP(w, r)
+		case WorkflowsServiceDeleteWorkflowProcedure:
+			workflowsServiceDeleteWorkflowHandler.ServeHTTP(w, r)
 		case WorkflowsServicePublishWorkflowReleaseProcedure:
 			workflowsServicePublishWorkflowReleaseHandler.ServeHTTP(w, r)
+		case WorkflowsServiceUnpublishWorkflowReleaseProcedure:
+			workflowsServiceUnpublishWorkflowReleaseHandler.ServeHTTP(w, r)
 		case WorkflowsServiceDeployWorkflowReleaseProcedure:
 			workflowsServiceDeployWorkflowReleaseHandler.ServeHTTP(w, r)
 		case WorkflowsServiceUndeployWorkflowReleaseProcedure:
@@ -359,8 +409,16 @@ func (UnimplementedWorkflowsServiceHandler) GetWorkflow(context.Context, *connec
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkflowsService.GetWorkflow is not implemented"))
 }
 
+func (UnimplementedWorkflowsServiceHandler) DeleteWorkflow(context.Context, *connect.Request[v1.DeleteWorkflowRequest]) (*connect.Response[v1.DeleteWorkflowResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkflowsService.DeleteWorkflow is not implemented"))
+}
+
 func (UnimplementedWorkflowsServiceHandler) PublishWorkflowRelease(context.Context, *connect.Request[v1.PublishWorkflowReleaseRequest]) (*connect.Response[v1.WorkflowRelease], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkflowsService.PublishWorkflowRelease is not implemented"))
+}
+
+func (UnimplementedWorkflowsServiceHandler) UnpublishWorkflowRelease(context.Context, *connect.Request[v1.UnpublishWorkflowReleaseRequest]) (*connect.Response[v1.UnpublishWorkflowReleaseResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkflowsService.UnpublishWorkflowRelease is not implemented"))
 }
 
 func (UnimplementedWorkflowsServiceHandler) DeployWorkflowRelease(context.Context, *connect.Request[v1.DeployWorkflowReleaseRequest]) (*connect.Response[v1.DeployWorkflowReleaseResponse], error) {
