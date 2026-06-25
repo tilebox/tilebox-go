@@ -138,6 +138,16 @@ func Test_QueryOptions(t *testing.T) {
 			},
 		},
 		{
+			name: "with cluster slugs",
+			options: []QueryOption{
+				WithClusterSlugs("default", "gpu"),
+				WithClusterSlugs("batch"),
+			},
+			want: QueryOptions{
+				ClusterSlugs: []string{"default", "gpu", "batch"},
+			},
+		},
+		{
 			name: "with job states",
 			options: []QueryOption{
 				WithJobStates(Submitted, Running),

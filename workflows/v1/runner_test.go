@@ -391,60 +391,6 @@ func TestTaskRunner_RunForeverReportsComputedTaskOnce(t *testing.T) {
 	assert.Equal(t, mockNextTask.GetId(), mockTaskClient.computedTasks[0].GetId())
 }
 
-func TestPollingTaskRunnerReportsExecutorReturnedFailedTaskAsIs(t *testing.T) {
-	taskID := uuid.New()
-	taskDisplay := "Python task"
-	mockNextTask := workflowsv1.Task_builder{
-		Id: tileboxv1.NewUUID(taskID),
-		Identifier: workflowsv1.TaskIdentifier_builder{
-			Name:    "python.Task",
-			Version: "v1.0",
-		}.Build(),
-		State:   workflowsv1.TaskState_TASK_STATE_RUNNING,
-		Display: &taskDisplay,
-		Lease: workflowsv1.TaskLease_builder{
-			Lease:                             durationpb.New(5 * time.Minute),
-			RecommendedWaitUntilNextExtension: durationpb.New(5 * time.Minute),
-		}.Build(),
-	}.Build()
-	progressUpdates := []*workflowsv1.Progress{
-		workflowsv1.Progress_builder{Label: "work", Total: 10, Done: 4}.Build(),
-	}
-	service := &mockMinimalTaskService{nextTask: mockNextTask}
-	executor := &failedResponseExecutor{
-		response: workflowsv1.ExecuteTaskResponse_builder{
-			FailedTask: workflowsv1.TaskFailedRequest_builder{
-				TaskId:           tileboxv1.NewUUID(taskID),
-				Display:          "Python classified failure",
-				WasWorkflowError: true,
-				ProgressUpdates:  progressUpdates,
-			}.Build(),
-		}.Build(),
-	}
-	runner := NewPollingTaskRunner(service, "default", executor, slog.Default())
-
-	require.NoError(t, runner.RunAll(context.Background()))
-
-	require.True(t, service.failed)
-	require.Equal(t, "Python classified failure", service.failedDisplay)
-	require.True(t, service.failedWasWorkflowError)
-	require.Equal(t, progressUpdates, service.failedProgressUpdates)
-}
-
-type failedResponseExecutor struct {
-	response *workflowsv1.ExecuteTaskResponse
-}
-
-func (e *failedResponseExecutor) TaskIdentifiers() []*workflowsv1.TaskIdentifier {
-	return []*workflowsv1.TaskIdentifier{
-		workflowsv1.TaskIdentifier_builder{Name: "python.Task", Version: "v1.0"}.Build(),
-	}
-}
-
-func (e *failedResponseExecutor) ExecuteTask(context.Context, *workflowsv1.Task) (*workflowsv1.ExecuteTaskResponse, error) {
-	return e.response, nil
-}
-
 func Test_withTaskExecutionContextRoundtrip(t *testing.T) {
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}

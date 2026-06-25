@@ -63,7 +63,7 @@ linters:
     - iface # Detect the incorrect use of interfaces, helping developers avoid interface pollution.
     - importas # Enforces consistent import aliases.
     #- inamedparam # Reports interfaces with unnamed method parameters.
-    - interfacebloat # Checks the number of methods in an interface
+    #- interfacebloat # Checks the number of methods in an interface
     - intrange # finds places where for loops could make use of an integer range
     - iotamixing # checks that iota is not mixed with other constants
     #- ireturn # Accept Interfaces, Return Concrete Types

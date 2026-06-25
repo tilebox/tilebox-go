@@ -106,8 +106,14 @@ type WorkflowClient interface {
 	// Get returns a workflow by its slug.
 	Get(ctx context.Context, slug string) (*Workflow, error)
 
+	// Delete deletes a workflow by its slug.
+	Delete(ctx context.Context, slug string) error
+
 	// PublishRelease publishes a new immutable release for a workflow.
 	PublishRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*WorkflowRelease, error)
+
+	// UnpublishRelease unpublishes a workflow release.
+	UnpublishRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error
 
 	// DeployRelease deploys a workflow release to clusters.
 	DeployRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error)
@@ -155,6 +161,10 @@ func (c workflowClient) Get(ctx context.Context, slug string) (*Workflow, error)
 	return protoToWorkflow(response), nil
 }
 
+func (c workflowClient) Delete(ctx context.Context, slug string) error {
+	return c.service.DeleteWorkflow(ctx, slug)
+}
+
 func (c workflowClient) PublishRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*WorkflowRelease, error) {
 	response, err := c.service.PublishWorkflowRelease(ctx, workflowSlug, artifactID, content)
 	if err != nil {
@@ -162,6 +172,10 @@ func (c workflowClient) PublishRelease(ctx context.Context, workflowSlug string,
 	}
 
 	return protoToWorkflowRelease(response), nil
+}
+
+func (c workflowClient) UnpublishRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error {
+	return c.service.UnpublishWorkflowRelease(ctx, workflowSlug, releaseID)
 }
 
 func (c workflowClient) DeployRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error) {

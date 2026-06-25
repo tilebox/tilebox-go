@@ -126,6 +126,8 @@ type QueryOptions struct {
 	Cursor *Cursor
 	// AutomationIDs filters jobs by the automations that submitted them.
 	AutomationIDs []uuid.UUID
+	// ClusterSlugs filters jobs by the clusters they were submitted to.
+	ClusterSlugs []string
 	// States filters jobs by their states.
 	States []State
 	// TaskStates filters jobs by the states of their tasks.
@@ -261,6 +263,14 @@ func WithTemporalExtent(temporalExtent query.TemporalExtent) QueryOption {
 func WithAutomationIDs(automationIDs ...uuid.UUID) QueryOption {
 	return queryOptionFunc(func(cfg *QueryOptions) {
 		cfg.AutomationIDs = append(cfg.AutomationIDs, automationIDs...)
+	})
+}
+
+// WithClusterSlugs specifies multiple cluster slugs to filter jobs by.
+// Only jobs that have tasks on any of the specified clusters will be returned.
+func WithClusterSlugs(clusterSlugs ...string) QueryOption {
+	return queryOptionFunc(func(cfg *QueryOptions) {
+		cfg.ClusterSlugs = append(cfg.ClusterSlugs, clusterSlugs...)
 	})
 }
 

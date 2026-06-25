@@ -258,6 +258,18 @@ func Test_jobClient_Query_WithTaskStates(t *testing.T) {
 	assert.Equal(t, []workflowsv1.TaskState{workflowsv1.TaskState_TASK_STATE_RUNNING, workflowsv1.TaskState_TASK_STATE_FAILED}, service.queryFilters[0].GetTaskStates())
 }
 
+func Test_jobClient_Query_WithClusterSlugs(t *testing.T) {
+	service := &mockJobService{}
+	client := jobClient{service: service}
+
+	jobs, err := Collect(client.Query(context.Background(), job.WithClusterSlugs("default", "gpu")))
+	require.NoError(t, err)
+	assert.Empty(t, jobs)
+
+	require.Len(t, service.queryFilters, 1)
+	assert.Equal(t, []string{"default", "gpu"}, service.queryFilters[0].GetClusterSlugs())
+}
+
 func Test_jobClient_Query_WithLimit(t *testing.T) {
 	nextPage := tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b"))}.Build()
 	service := &mockJobService{
