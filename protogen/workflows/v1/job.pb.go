@@ -744,6 +744,7 @@ type QueryFilters struct {
 	xxx_hidden_States        []JobState             `protobuf:"varint,4,rep,packed,name=states,enum=workflows.v1.JobState"`
 	xxx_hidden_Name          string                 `protobuf:"bytes,5,opt,name=name"`
 	xxx_hidden_TaskStates    []TaskState            `protobuf:"varint,6,rep,packed,name=task_states,json=taskStates,enum=workflows.v1.TaskState"`
+	xxx_hidden_ClusterSlugs  []string               `protobuf:"bytes,7,rep,name=cluster_slugs,json=clusterSlugs"`
 	unknownFields            protoimpl.UnknownFields
 	sizeCache                protoimpl.SizeCache
 }
@@ -817,6 +818,13 @@ func (x *QueryFilters) GetTaskStates() []TaskState {
 	return nil
 }
 
+func (x *QueryFilters) GetClusterSlugs() []string {
+	if x != nil {
+		return x.xxx_hidden_ClusterSlugs
+	}
+	return nil
+}
+
 func (x *QueryFilters) SetTimeInterval(v *v1.TimeInterval) {
 	x.xxx_hidden_TimeInterval = v
 }
@@ -839,6 +847,10 @@ func (x *QueryFilters) SetName(v string) {
 
 func (x *QueryFilters) SetTaskStates(v []TaskState) {
 	x.xxx_hidden_TaskStates = v
+}
+
+func (x *QueryFilters) SetClusterSlugs(v []string) {
+	x.xxx_hidden_ClusterSlugs = v
 }
 
 func (x *QueryFilters) HasTimeInterval() bool {
@@ -877,6 +889,8 @@ type QueryFilters_builder struct {
 	Name string
 	// Filter jobs by their tasks (whether they have tasks in a certain state).
 	TaskStates []TaskState
+	// Filter jobs by their clusters (whether they have tasks on certain clusters).
+	ClusterSlugs []string
 }
 
 func (b0 QueryFilters_builder) Build() *QueryFilters {
@@ -889,6 +903,7 @@ func (b0 QueryFilters_builder) Build() *QueryFilters {
 	x.xxx_hidden_States = b.States
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_TaskStates = b.TaskStates
+	x.xxx_hidden_ClusterSlugs = b.ClusterSlugs
 	return m0
 }
 
@@ -1365,7 +1380,7 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x12B\n" +
 	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\x128\n" +
 	"\x05theme\x18\x03 \x01(\x0e2\".workflows.v1.WorkflowDiagramThemeR\x05theme\x12(\n" +
-	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\xe9\x02\n" +
+	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\x8e\x03\n" +
 	"\fQueryFilters\x12=\n" +
 	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x127\n" +
 	"\vid_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalR\n" +
@@ -1374,7 +1389,8 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\x06states\x18\x04 \x03(\x0e2\x16.workflows.v1.JobStateR\x06states\x12\x1b\n" +
 	"\x04name\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x18dR\x04name\x128\n" +
 	"\vtask_states\x18\x06 \x03(\x0e2\x17.workflows.v1.TaskStateR\n" +
-	"taskStates:#\xbaH \"\x1e\n" +
+	"taskStates\x12#\n" +
+	"\rcluster_slugs\x18\a \x03(\tR\fclusterSlugs:#\xbaH \"\x1e\n" +
 	"\rtime_interval\n" +
 	"\vid_interval\x10\x00\"\xbd\x01\n" +
 	"\x10QueryJobsRequest\x124\n" +

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `workflows`: Added `client.Workflows.Delete` and `client.Workflows.UnpublishRelease`.
+- `workflows`: Added `job.WithClusterSlugs(...)` to filter jobs by cluster slug (any task in that cluster).
 
 ### Fixed
 

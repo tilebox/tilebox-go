@@ -243,6 +243,8 @@ type JobClient interface {
 	//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried. (Optional)
 	//   - job.WithAutomationIDs: specifies the automation IDs to filter jobs by. Only jobs submitted by the specified
 	//  automation will be returned. (Optional)
+	//   - job.WithClusterSlugs: specifies the cluster slugs to filter jobs by. Only jobs submitted to the specified
+	//     clusters will be returned. (Optional)
 	//   - job.WithJobStates: specifies the job state to filter jobs by. Only jobs with the specified state will be returned. (Optional)
 	//   - job.WithTaskStates: specifies task states to filter jobs by. Only jobs with at least one task in one of the
 	//     specified states will be returned. (Optional)
@@ -261,6 +263,8 @@ type JobClient interface {
 	//   - job.WithTemporalExtent: specifies the time or ID interval for which jobs should be queried. (Optional)
 	//   - job.WithAutomationIDs: specifies the automation IDs to filter jobs by. Only jobs submitted by the specified
 	//  automation will be returned. (Optional)
+	//   - job.WithClusterSlugs: specifies the cluster slugs to filter jobs by. Only jobs submitted to the specified
+	//     clusters will be returned. (Optional)
 	//   - job.WithJobStates: specifies the job state to filter jobs by. Only jobs with the specified state will be returned. (Optional)
 	//   - job.WithTaskStates: specifies task states to filter jobs by. Only jobs with at least one task in one of the
 	//     specified states will be returned. (Optional)
@@ -572,6 +576,7 @@ func (c jobClient) queryPage(ctx context.Context, opts *job.QueryOptions) (*JobP
 		TimeInterval:  timeInterval,
 		IdInterval:    idInterval,
 		AutomationIds: automationIDs,
+		ClusterSlugs:  opts.ClusterSlugs,
 		States:        states,
 		TaskStates:    taskStates,
 		Name:          opts.Name,
