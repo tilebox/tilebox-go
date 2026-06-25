@@ -51,9 +51,16 @@ func GetTraceParentOfCurrentSpan(ctx context.Context) string {
 	return traceparent
 }
 
-func StartJobSpan[Result any](ctx context.Context, tracer oteltrace.Tracer, spanName string, job *workflowsv1.Job, f func(ctx context.Context) (Result, error)) (Result, error) {
-	carrier := propagation.MapCarrier{"traceparent": job.GetTraceParent()}
-	ctx = propagator.Extract(ctx, carrier)
+// ContextWithTraceParent returns a context carrying the remote span context encoded in traceParent.
+// It extracts trace correlation only and does not start or record a new span.
+func ContextWithTraceParent(ctx context.Context, traceParent string) context.Context {
+	if traceParent == "" {
+		return ctx
+	}
 
-	return observability.WithSpanResult(ctx, tracer, spanName, f)
+	return propagator.Extract(ctx, propagation.MapCarrier{"traceparent": traceParent})
+}
+
+func StartJobSpan[Result any](ctx context.Context, tracer oteltrace.Tracer, spanName string, job *workflowsv1.Job, f func(ctx context.Context) (Result, error)) (Result, error) {
+	return observability.WithSpanResult(ContextWithTraceParent(ctx, job.GetTraceParent()), tracer, spanName, f)
 }
