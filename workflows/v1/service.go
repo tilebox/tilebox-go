@@ -352,7 +352,8 @@ func (s *taskService) ExtendTaskLease(ctx context.Context, taskID uuid.UUID, req
 }
 
 type WorkflowService interface {
-	CreateCluster(ctx context.Context, name string) (*workflowsv1.Cluster, error)
+	CreateCluster(ctx context.Context, name, description, slug string) (*workflowsv1.Cluster, error)
+	UpdateCluster(ctx context.Context, slug string, name, description *string) (*workflowsv1.Cluster, error)
 	GetCluster(ctx context.Context, slug string) (*workflowsv1.Cluster, error)
 	DeleteCluster(ctx context.Context, slug string) error
 	ListClusters(ctx context.Context) (*workflowsv1.ListClustersResponse, error)
@@ -360,6 +361,7 @@ type WorkflowService interface {
 	CreateWorkflow(ctx context.Context, name, description string) (*workflowsv1.Workflow, error)
 	ListWorkflows(ctx context.Context) (*workflowsv1.ListWorkflowsResponse, error)
 	GetWorkflow(ctx context.Context, slug string) (*workflowsv1.Workflow, error)
+	UpdateWorkflow(ctx context.Context, slug string, name, description *string) (*workflowsv1.Workflow, error)
 	DeleteWorkflow(ctx context.Context, slug string) error
 	PublishWorkflowRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*workflowsv1.WorkflowRelease, error)
 	UnpublishWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error
@@ -381,13 +383,30 @@ func newWorkflowService(workflowClient workflowsv1connect.WorkflowsServiceClient
 	}
 }
 
-func (s *workflowService) CreateCluster(ctx context.Context, name string) (*workflowsv1.Cluster, error) {
+func (s *workflowService) CreateCluster(ctx context.Context, name, description, slug string) (*workflowsv1.Cluster, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/clusters/create", func(ctx context.Context) (*workflowsv1.Cluster, error) {
 		res, err := s.workflowClient.CreateCluster(ctx, connect.NewRequest(workflowsv1.CreateClusterRequest_builder{
-			Name: name,
+			Name:        name,
+			Description: description,
+			Slug:        slug,
 		}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to create cluster: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) UpdateCluster(ctx context.Context, slug string, name, description *string) (*workflowsv1.Cluster, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/clusters/update", func(ctx context.Context) (*workflowsv1.Cluster, error) {
+		res, err := s.workflowClient.UpdateCluster(ctx, connect.NewRequest(workflowsv1.UpdateClusterRequest_builder{
+			ClusterSlug: slug,
+			Name:        name,
+			Description: description,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to update cluster: %w", err)
 		}
 
 		return res.Msg, nil
@@ -463,6 +482,21 @@ func (s *workflowService) GetWorkflow(ctx context.Context, slug string) (*workfl
 		}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get workflow: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) UpdateWorkflow(ctx context.Context, slug string, name, description *string) (*workflowsv1.Workflow, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/update", func(ctx context.Context) (*workflowsv1.Workflow, error) {
+		res, err := s.workflowClient.UpdateWorkflow(ctx, connect.NewRequest(workflowsv1.UpdateWorkflowRequest_builder{
+			WorkflowSlug: slug,
+			Name:         name,
+			Description:  description,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to update workflow: %w", err)
 		}
 
 		return res.Msg, nil

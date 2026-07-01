@@ -7,6 +7,7 @@ import (
 	"context"
 
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
+	"github.com/tilebox/tilebox-go/workflows/v1/cluster"
 )
 
 // Cluster represents a Tilebox Workflows cluster.
@@ -17,6 +18,8 @@ type Cluster struct {
 	Slug string
 	// Name is the label name of the cluster.
 	Name string
+	// Description is the cluster description.
+	Description string
 	// Deletable is true when the cluster can be deleted.
 	Deletable bool
 	// DeployedWorkflows are the workflows currently deployed to this cluster. Each workflow contains the currently deployed release for that workflow.
@@ -25,7 +28,10 @@ type Cluster struct {
 
 type ClusterClient interface {
 	// Create creates a new cluster with the given name.
-	Create(ctx context.Context, name string) (*Cluster, error)
+	Create(ctx context.Context, name string, options ...cluster.CreateOption) (*Cluster, error)
+
+	// Update updates an existing cluster by its slug.
+	Update(ctx context.Context, slug string, options ...cluster.UpdateOption) (*Cluster, error)
 
 	// Get returns a cluster by its slug.
 	Get(ctx context.Context, slug string) (*Cluster, error)
@@ -43,8 +49,19 @@ type clusterClient struct {
 	service WorkflowService
 }
 
-func (c clusterClient) Create(ctx context.Context, name string) (*Cluster, error) {
-	response, err := c.service.CreateCluster(ctx, name)
+func (c clusterClient) Create(ctx context.Context, name string, options ...cluster.CreateOption) (*Cluster, error) {
+	appliedOptions := cluster.NewCreateOptions(options...)
+	response, err := c.service.CreateCluster(ctx, name, appliedOptions.Description, appliedOptions.Slug)
+	if err != nil {
+		return nil, err
+	}
+
+	return protoToCluster(response), nil
+}
+
+func (c clusterClient) Update(ctx context.Context, slug string, options ...cluster.UpdateOption) (*Cluster, error) {
+	appliedOptions := cluster.NewUpdateOptions(options...)
+	response, err := c.service.UpdateCluster(ctx, slug, appliedOptions.Name, appliedOptions.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +105,7 @@ func protoToCluster(c *workflowsv1.Cluster) *Cluster {
 	return &Cluster{
 		Slug:              c.GetSlug(),
 		Name:              c.GetDisplayName(),
+		Description:       c.GetDescription(),
 		Deletable:         c.GetDeletable(),
 		DeployedWorkflows: deployedWorkflows,
 	}

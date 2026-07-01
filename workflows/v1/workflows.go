@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
+	workflowoptions "github.com/tilebox/tilebox-go/workflows/v1/workflow"
 )
 
 // Workflow represents a logical grouping for a set of tasks.
@@ -30,6 +31,8 @@ type WorkflowRelease struct {
 	Artifact *Artifact
 	// Content describes the files and task implementations included in this release.
 	Content *ReleaseContent
+	// Clusters are the clusters where this release is deployed.
+	Clusters []*Cluster
 	// CreatedAt is the time the workflow release was created.
 	CreatedAt time.Time
 }
@@ -106,6 +109,9 @@ type WorkflowClient interface {
 	// Get returns a workflow by its slug.
 	Get(ctx context.Context, slug string) (*Workflow, error)
 
+	// Update updates an existing workflow by its slug.
+	Update(ctx context.Context, slug string, options ...workflowoptions.UpdateOption) (*Workflow, error)
+
 	// Delete deletes a workflow by its slug.
 	Delete(ctx context.Context, slug string) error
 
@@ -154,6 +160,16 @@ func (c workflowClient) List(ctx context.Context) ([]*Workflow, error) {
 
 func (c workflowClient) Get(ctx context.Context, slug string) (*Workflow, error) {
 	response, err := c.service.GetWorkflow(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+
+	return protoToWorkflow(response), nil
+}
+
+func (c workflowClient) Update(ctx context.Context, slug string, options ...workflowoptions.UpdateOption) (*Workflow, error) {
+	appliedOptions := workflowoptions.NewUpdateOptions(options...)
+	response, err := c.service.UpdateWorkflow(ctx, slug, appliedOptions.Name, appliedOptions.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -228,8 +244,17 @@ func protoToWorkflowRelease(release *workflowsv1.WorkflowRelease) *WorkflowRelea
 		ID:        protoIDToUUID(release.GetId()),
 		Artifact:  protoToArtifact(release.GetArtifact()),
 		Content:   protoToReleaseContent(release.GetContent()),
+		Clusters:  protoToClusters(release.GetClusters()),
 		CreatedAt: createdAt,
 	}
+}
+
+func protoToClusters(clusters []*workflowsv1.Cluster) []*Cluster {
+	converted := make([]*Cluster, len(clusters))
+	for i, cluster := range clusters {
+		converted[i] = protoToCluster(cluster)
+	}
+	return converted
 }
 
 func protoToArtifact(artifact *workflowsv1.Artifact) *Artifact {
@@ -287,14 +312,9 @@ func protoToPath(path *workflowsv1.Path) *Path {
 }
 
 func protoToWorkflowReleaseDeployment(release *workflowsv1.WorkflowRelease, clusters []*workflowsv1.Cluster) *WorkflowReleaseDeployment {
-	deployedClusters := make([]*Cluster, len(clusters))
-	for i, cluster := range clusters {
-		deployedClusters[i] = protoToCluster(cluster)
-	}
-
 	return &WorkflowReleaseDeployment{
 		Release:  protoToWorkflowRelease(release),
-		Clusters: deployedClusters,
+		Clusters: protoToClusters(clusters),
 	}
 }
 
