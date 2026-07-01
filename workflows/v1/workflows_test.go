@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
+	"github.com/tilebox/tilebox-go/workflows/v1/workflow"
+	"go.opentelemetry.io/otel/trace/noop"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -70,6 +72,52 @@ func TestWorkflowClient_Get(t *testing.T) {
 	assert.Equal(t, "Agentic Workflow", workflow.Name)
 }
 
+func TestWorkflowClient_Update(t *testing.T) {
+	ctx := context.Background()
+	service := &fakeWorkflowService{
+		workflow: workflowsv1.Workflow_builder{
+			Slug:        "agentic-workflow",
+			Name:        "Agentic Workflow",
+			Description: "Updated description",
+		}.Build(),
+	}
+	client := workflowClient{service: service}
+
+	updatedWorkflow, err := client.Update(ctx, "agentic-workflow", workflow.WithName("Agentic Workflow"), workflow.WithDescription("Updated description"))
+	require.NoError(t, err)
+
+	assert.Equal(t, "agentic-workflow", service.updateWorkflowSlug)
+	require.NotNil(t, service.updateWorkflowName)
+	require.NotNil(t, service.updateWorkflowDescription)
+	assert.Equal(t, "Agentic Workflow", *service.updateWorkflowName)
+	assert.Equal(t, "Updated description", *service.updateWorkflowDescription)
+	assert.Equal(t, "agentic-workflow", updatedWorkflow.Slug)
+	assert.Equal(t, "Agentic Workflow", updatedWorkflow.Name)
+	assert.Equal(t, "Updated description", updatedWorkflow.Description)
+}
+
+func Test_workflowService_UpdateWorkflow_PreservesOptionalPresence(t *testing.T) {
+	ctx := context.Background()
+	connectClient := &fakeWorkflowsConnectClient{}
+	service := newWorkflowService(connectClient, noop.NewTracerProvider().Tracer("test"))
+
+	_, err := service.UpdateWorkflow(ctx, "agentic-workflow", nil, nil)
+	require.NoError(t, err)
+	require.NotNil(t, connectClient.updateWorkflowRequest)
+	assert.Equal(t, "agentic-workflow", connectClient.updateWorkflowRequest.GetWorkflowSlug())
+	assert.False(t, connectClient.updateWorkflowRequest.HasName())
+	assert.False(t, connectClient.updateWorkflowRequest.HasDescription())
+
+	connectClient.updateWorkflowRequest = nil
+	emptyDescription := ""
+	_, err = service.UpdateWorkflow(ctx, "agentic-workflow", nil, &emptyDescription)
+	require.NoError(t, err)
+	require.NotNil(t, connectClient.updateWorkflowRequest)
+	assert.False(t, connectClient.updateWorkflowRequest.HasName())
+	assert.True(t, connectClient.updateWorkflowRequest.HasDescription())
+	assert.Empty(t, connectClient.updateWorkflowRequest.GetDescription())
+}
+
 func TestWorkflowClient_Delete(t *testing.T) {
 	ctx := context.Background()
 	service := &fakeWorkflowService{}
@@ -95,6 +143,9 @@ func TestWorkflowClient_PublishRelease(t *testing.T) {
 				Id:     tileboxv1.NewUUID(artifactID),
 				Digest: digest,
 			}.Build(),
+			Clusters: []*workflowsv1.Cluster{
+				workflowsv1.Cluster_builder{Slug: "dev", DisplayName: "Dev", Description: "Development cluster"}.Build(),
+			},
 			Content: releaseContentToProtoMust(t, &ReleaseContent{
 				Fingerprint: fingerprint,
 				Tasks:       []TaskIdentifier{NewTaskIdentifier("tilebox.com/task/Review", "v1.0")},
@@ -140,6 +191,10 @@ func TestWorkflowClient_PublishRelease(t *testing.T) {
 	assert.Equal(t, "main.py", release.Content.Files[0].Children[0].Path)
 	assert.Equal(t, "my_module.my_runner:runner", release.Content.RunnerObjectPath)
 	assert.Equal(t, []string{"python", "main.py"}, release.Content.CommandOverride)
+	require.Len(t, release.Clusters, 1)
+	assert.Equal(t, "dev", release.Clusters[0].Slug)
+	assert.Equal(t, "Dev", release.Clusters[0].Name)
+	assert.Equal(t, "Development cluster", release.Clusters[0].Description)
 	assert.Equal(t, createdAt, release.CreatedAt)
 }
 
@@ -213,6 +268,7 @@ func TestProtoToCluster_MapsDeployedWorkflows(t *testing.T) {
 	cluster := protoToCluster(workflowsv1.Cluster_builder{
 		Slug:        "dev",
 		DisplayName: "Dev",
+		Description: "Development cluster",
 		Deletable:   true,
 		DeployedReleases: []*workflowsv1.Workflow{
 			workflowsv1.Workflow_builder{
@@ -227,6 +283,7 @@ func TestProtoToCluster_MapsDeployedWorkflows(t *testing.T) {
 
 	assert.Equal(t, "dev", cluster.Slug)
 	assert.Equal(t, "Dev", cluster.Name)
+	assert.Equal(t, "Development cluster", cluster.Description)
 	assert.True(t, cluster.Deletable)
 	require.Len(t, cluster.DeployedWorkflows, 1)
 	assert.Equal(t, "agentic-workflow", cluster.DeployedWorkflows[0].Slug)
@@ -262,6 +319,7 @@ func TestProtoToWorkflow_HandlesNil(t *testing.T) {
 }
 
 type fakeWorkflowService struct {
+	cluster                         *workflowsv1.Cluster
 	workflow                        *workflowsv1.Workflow
 	listWorkflowsResponse           *workflowsv1.ListWorkflowsResponse
 	workflowRelease                 *workflowsv1.WorkflowRelease
@@ -269,10 +327,20 @@ type fakeWorkflowService struct {
 	undeployWorkflowReleaseResponse *workflowsv1.UndeployWorkflowReleaseResponse
 	err                             error
 
-	createName         string
-	createDescription  string
-	getSlug            string
-	deleteWorkflowSlug string
+	createClusterName        string
+	createClusterDescription string
+	createClusterSlug        string
+	updateClusterSlug        string
+	updateClusterName        *string
+	updateClusterDescription *string
+
+	createName                string
+	createDescription         string
+	getSlug                   string
+	updateWorkflowSlug        string
+	updateWorkflowName        *string
+	updateWorkflowDescription *string
+	deleteWorkflowSlug        string
 
 	publishWorkflowSlug string
 	publishArtifactID   uuid.UUID
@@ -290,8 +358,18 @@ type fakeWorkflowService struct {
 	undeployClusterSlugs []string
 }
 
-func (s *fakeWorkflowService) CreateCluster(context.Context, string) (*workflowsv1.Cluster, error) {
-	return nil, errors.New("not implemented")
+func (s *fakeWorkflowService) CreateCluster(_ context.Context, name, description, slug string) (*workflowsv1.Cluster, error) {
+	s.createClusterName = name
+	s.createClusterDescription = description
+	s.createClusterSlug = slug
+	return s.cluster, s.err
+}
+
+func (s *fakeWorkflowService) UpdateCluster(_ context.Context, slug string, name, description *string) (*workflowsv1.Cluster, error) {
+	s.updateClusterSlug = slug
+	s.updateClusterName = name
+	s.updateClusterDescription = description
+	return s.cluster, s.err
 }
 
 func (s *fakeWorkflowService) GetCluster(context.Context, string) (*workflowsv1.Cluster, error) {
@@ -318,6 +396,13 @@ func (s *fakeWorkflowService) ListWorkflows(context.Context) (*workflowsv1.ListW
 
 func (s *fakeWorkflowService) GetWorkflow(_ context.Context, slug string) (*workflowsv1.Workflow, error) {
 	s.getSlug = slug
+	return s.workflow, s.err
+}
+
+func (s *fakeWorkflowService) UpdateWorkflow(_ context.Context, slug string, name, description *string) (*workflowsv1.Workflow, error) {
+	s.updateWorkflowSlug = slug
+	s.updateWorkflowName = name
+	s.updateWorkflowDescription = description
 	return s.workflow, s.err
 }
 
