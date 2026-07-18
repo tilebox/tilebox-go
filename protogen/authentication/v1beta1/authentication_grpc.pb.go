@@ -4,9 +4,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.2
 // - protoc             (unknown)
-// source: authentication/v1/authentication.proto
+// source: authentication/v1beta1/authentication.proto
 
-package authenticationv1
+package authenticationv1beta1
 
 import (
 	context "context"
@@ -21,7 +21,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AuthenticationService_GetAuthenticationStatus_FullMethodName = "/authentication.v1.AuthenticationService/GetAuthenticationStatus"
+	AuthenticationService_GetAuthenticationStatus_FullMethodName = "/authentication.v1beta1.AuthenticationService/GetAuthenticationStatus"
 )
 
 // AuthenticationServiceClient is the client API for AuthenticationService service.
@@ -118,7 +118,7 @@ func _AuthenticationService_GetAuthenticationStatus_Handler(srv interface{}, ctx
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "authentication.v1.AuthenticationService",
+	ServiceName: "authentication.v1beta1.AuthenticationService",
 	HandlerType: (*AuthenticationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -127,5 +127,5 @@ var AuthenticationService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "authentication/v1/authentication.proto",
+	Metadata: "authentication/v1beta1/authentication.proto",
 }

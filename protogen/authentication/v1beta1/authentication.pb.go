@@ -4,9 +4,9 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: authentication/v1/authentication.proto
+// source: authentication/v1beta1/authentication.proto
 
-package authenticationv1
+package authenticationv1beta1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
@@ -36,7 +36,7 @@ type User struct {
 
 func (x *User) Reset() {
 	*x = User{}
-	mi := &file_authentication_v1_authentication_proto_msgTypes[0]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -48,7 +48,7 @@ func (x *User) String() string {
 func (*User) ProtoMessage() {}
 
 func (x *User) ProtoReflect() protoreflect.Message {
-	mi := &file_authentication_v1_authentication_proto_msgTypes[0]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -136,7 +136,7 @@ type Organization struct {
 
 func (x *Organization) Reset() {
 	*x = Organization{}
-	mi := &file_authentication_v1_authentication_proto_msgTypes[1]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -148,7 +148,7 @@ func (x *Organization) String() string {
 func (*Organization) ProtoMessage() {}
 
 func (x *Organization) ProtoReflect() protoreflect.Message {
-	mi := &file_authentication_v1_authentication_proto_msgTypes[1]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -236,7 +236,7 @@ type APIKey struct {
 
 func (x *APIKey) Reset() {
 	*x = APIKey{}
-	mi := &file_authentication_v1_authentication_proto_msgTypes[2]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -248,7 +248,7 @@ func (x *APIKey) String() string {
 func (*APIKey) ProtoMessage() {}
 
 func (x *APIKey) ProtoReflect() protoreflect.Message {
-	mi := &file_authentication_v1_authentication_proto_msgTypes[2]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -333,7 +333,7 @@ type GetAuthenticationStatusRequest struct {
 
 func (x *GetAuthenticationStatusRequest) Reset() {
 	*x = GetAuthenticationStatusRequest{}
-	mi := &file_authentication_v1_authentication_proto_msgTypes[3]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -345,7 +345,7 @@ func (x *GetAuthenticationStatusRequest) String() string {
 func (*GetAuthenticationStatusRequest) ProtoMessage() {}
 
 func (x *GetAuthenticationStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_authentication_v1_authentication_proto_msgTypes[3]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -380,7 +380,7 @@ type AuthenticationStatus struct {
 
 func (x *AuthenticationStatus) Reset() {
 	*x = AuthenticationStatus{}
-	mi := &file_authentication_v1_authentication_proto_msgTypes[4]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -392,7 +392,7 @@ func (x *AuthenticationStatus) String() string {
 func (*AuthenticationStatus) ProtoMessage() {}
 
 func (x *AuthenticationStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_authentication_v1_authentication_proto_msgTypes[4]
+	mi := &file_authentication_v1beta1_authentication_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -490,11 +490,11 @@ func (b0 AuthenticationStatus_builder) Build() *AuthenticationStatus {
 	return m0
 }
 
-var File_authentication_v1_authentication_proto protoreflect.FileDescriptor
+var File_authentication_v1beta1_authentication_proto protoreflect.FileDescriptor
 
-const file_authentication_v1_authentication_proto_rawDesc = "" +
+const file_authentication_v1beta1_authentication_proto_rawDesc = "" +
 	"\n" +
-	"&authentication/v1/authentication.proto\x12\x11authentication.v1\x1a\x1bbuf/validate/validate.proto\x1a\x13tilebox/v1/id.proto\"X\n" +
+	"+authentication/v1beta1/authentication.proto\x12\x16authentication.v1beta1\x1a\x1bbuf/validate/validate.proto\x1a\x13tilebox/v1/id.proto\"X\n" +
 	"\x04User\x12&\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -509,33 +509,33 @@ const file_authentication_v1_authentication_proto_rawDesc = "" +
 	"identifier\x18\x02 \x01(\tR\n" +
 	"identifier\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\" \n" +
-	"\x1eGetAuthenticationStatusRequest\"\xcc\x01\n" +
-	"\x14AuthenticationStatus\x123\n" +
-	"\x04user\x18\x01 \x01(\v2\x17.authentication.v1.UserB\x06\xbaH\x03\xc8\x01\x01R\x04user\x12K\n" +
-	"\forganization\x18\x02 \x01(\v2\x1f.authentication.v1.OrganizationB\x06\xbaH\x03\xc8\x01\x01R\forganization\x122\n" +
-	"\aapi_key\x18\x03 \x01(\v2\x19.authentication.v1.APIKeyR\x06apiKey2\x90\x01\n" +
-	"\x15AuthenticationService\x12w\n" +
-	"\x17GetAuthenticationStatus\x121.authentication.v1.GetAuthenticationStatusRequest\x1a'.authentication.v1.AuthenticationStatus\"\x00B\xe1\x01\n" +
-	"\x15com.authentication.v1B\x13AuthenticationProtoP\x01ZIgithub.com/tilebox/tilebox-go/protogen/authentication/v1;authenticationv1\xa2\x02\x03AXX\xaa\x02\x11Authentication.V1\xca\x02\x11Authentication\\V1\xe2\x02\x1dAuthentication\\V1\\GPBMetadata\xea\x02\x12Authentication::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
+	"\x1eGetAuthenticationStatusRequest\"\xdb\x01\n" +
+	"\x14AuthenticationStatus\x128\n" +
+	"\x04user\x18\x01 \x01(\v2\x1c.authentication.v1beta1.UserB\x06\xbaH\x03\xc8\x01\x01R\x04user\x12P\n" +
+	"\forganization\x18\x02 \x01(\v2$.authentication.v1beta1.OrganizationB\x06\xbaH\x03\xc8\x01\x01R\forganization\x127\n" +
+	"\aapi_key\x18\x03 \x01(\v2\x1e.authentication.v1beta1.APIKeyR\x06apiKey2\x9b\x01\n" +
+	"\x15AuthenticationService\x12\x81\x01\n" +
+	"\x17GetAuthenticationStatus\x126.authentication.v1beta1.GetAuthenticationStatusRequest\x1a,.authentication.v1beta1.AuthenticationStatus\"\x00B\x84\x02\n" +
+	"\x1acom.authentication.v1beta1B\x13AuthenticationProtoP\x01ZSgithub.com/tilebox/tilebox-go/protogen/authentication/v1beta1;authenticationv1beta1\xa2\x02\x03AXX\xaa\x02\x16Authentication.V1beta1\xca\x02\x16Authentication\\V1beta1\xe2\x02\"Authentication\\V1beta1\\GPBMetadata\xea\x02\x17Authentication::V1beta1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_authentication_v1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
-var file_authentication_v1_authentication_proto_goTypes = []any{
-	(*User)(nil),                           // 0: authentication.v1.User
-	(*Organization)(nil),                   // 1: authentication.v1.Organization
-	(*APIKey)(nil),                         // 2: authentication.v1.APIKey
-	(*GetAuthenticationStatusRequest)(nil), // 3: authentication.v1.GetAuthenticationStatusRequest
-	(*AuthenticationStatus)(nil),           // 4: authentication.v1.AuthenticationStatus
+var file_authentication_v1beta1_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_authentication_v1beta1_authentication_proto_goTypes = []any{
+	(*User)(nil),                           // 0: authentication.v1beta1.User
+	(*Organization)(nil),                   // 1: authentication.v1beta1.Organization
+	(*APIKey)(nil),                         // 2: authentication.v1beta1.APIKey
+	(*GetAuthenticationStatusRequest)(nil), // 3: authentication.v1beta1.GetAuthenticationStatusRequest
+	(*AuthenticationStatus)(nil),           // 4: authentication.v1beta1.AuthenticationStatus
 	(*v1.ID)(nil),                          // 5: tilebox.v1.ID
 }
-var file_authentication_v1_authentication_proto_depIdxs = []int32{
-	5, // 0: authentication.v1.User.id:type_name -> tilebox.v1.ID
-	5, // 1: authentication.v1.Organization.id:type_name -> tilebox.v1.ID
-	5, // 2: authentication.v1.APIKey.id:type_name -> tilebox.v1.ID
-	0, // 3: authentication.v1.AuthenticationStatus.user:type_name -> authentication.v1.User
-	1, // 4: authentication.v1.AuthenticationStatus.organization:type_name -> authentication.v1.Organization
-	2, // 5: authentication.v1.AuthenticationStatus.api_key:type_name -> authentication.v1.APIKey
-	3, // 6: authentication.v1.AuthenticationService.GetAuthenticationStatus:input_type -> authentication.v1.GetAuthenticationStatusRequest
-	4, // 7: authentication.v1.AuthenticationService.GetAuthenticationStatus:output_type -> authentication.v1.AuthenticationStatus
+var file_authentication_v1beta1_authentication_proto_depIdxs = []int32{
+	5, // 0: authentication.v1beta1.User.id:type_name -> tilebox.v1.ID
+	5, // 1: authentication.v1beta1.Organization.id:type_name -> tilebox.v1.ID
+	5, // 2: authentication.v1beta1.APIKey.id:type_name -> tilebox.v1.ID
+	0, // 3: authentication.v1beta1.AuthenticationStatus.user:type_name -> authentication.v1beta1.User
+	1, // 4: authentication.v1beta1.AuthenticationStatus.organization:type_name -> authentication.v1beta1.Organization
+	2, // 5: authentication.v1beta1.AuthenticationStatus.api_key:type_name -> authentication.v1beta1.APIKey
+	3, // 6: authentication.v1beta1.AuthenticationService.GetAuthenticationStatus:input_type -> authentication.v1beta1.GetAuthenticationStatusRequest
+	4, // 7: authentication.v1beta1.AuthenticationService.GetAuthenticationStatus:output_type -> authentication.v1beta1.AuthenticationStatus
 	7, // [7:8] is the sub-list for method output_type
 	6, // [6:7] is the sub-list for method input_type
 	6, // [6:6] is the sub-list for extension type_name
@@ -543,26 +543,26 @@ var file_authentication_v1_authentication_proto_depIdxs = []int32{
 	0, // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_authentication_v1_authentication_proto_init() }
-func file_authentication_v1_authentication_proto_init() {
-	if File_authentication_v1_authentication_proto != nil {
+func init() { file_authentication_v1beta1_authentication_proto_init() }
+func file_authentication_v1beta1_authentication_proto_init() {
+	if File_authentication_v1beta1_authentication_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_authentication_v1_authentication_proto_rawDesc), len(file_authentication_v1_authentication_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_authentication_v1beta1_authentication_proto_rawDesc), len(file_authentication_v1beta1_authentication_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_authentication_v1_authentication_proto_goTypes,
-		DependencyIndexes: file_authentication_v1_authentication_proto_depIdxs,
-		MessageInfos:      file_authentication_v1_authentication_proto_msgTypes,
+		GoTypes:           file_authentication_v1beta1_authentication_proto_goTypes,
+		DependencyIndexes: file_authentication_v1beta1_authentication_proto_depIdxs,
+		MessageInfos:      file_authentication_v1beta1_authentication_proto_msgTypes,
 	}.Build()
-	File_authentication_v1_authentication_proto = out.File
-	file_authentication_v1_authentication_proto_goTypes = nil
-	file_authentication_v1_authentication_proto_depIdxs = nil
+	File_authentication_v1beta1_authentication_proto = out.File
+	file_authentication_v1beta1_authentication_proto_goTypes = nil
+	file_authentication_v1beta1_authentication_proto_depIdxs = nil
 }
