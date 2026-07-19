@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `workflows`: Added `NewWorker`, `Worker.RegisterTasks`, and `Worker.Serve` for execution-only Go workflow release children managed by `tilebox runner start`.
+- `workflows`: Added `GetClient` for accessing the initialized workflows client from a task execution context.
+
+### Changed
+
+- `workflows`: `NewClient` now uses `TILEBOX_API_URL` as its default URL when the environment variable is set.
+
 ## [0.10.0] - 2026-07-01
 
 ### Added

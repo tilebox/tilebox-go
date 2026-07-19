@@ -8,19 +8,15 @@ import (
 	"log/slog"
 	"math"
 	"os/signal"
-	"reflect"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/tilebox/tilebox-go/internal/span"
-	obslogger "github.com/tilebox/tilebox-go/observability/logger"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/runner"
 	"github.com/tilebox/tilebox-go/workflows/v1/subtask"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/protobuf/proto"
@@ -116,17 +112,16 @@ func newTaskRunnerMetrics(meter metric.Meter) (*taskRunnerMetrics, error) {
 //
 // Documentation: https://docs.tilebox.com/workflows/concepts/task-runners
 type TaskRunner struct {
-	pollingRunner   *PollingTaskRunner
-	service         TaskService
-	taskDefinitions map[taskIdentifier]ExecutableTask
-
-	cluster string
-	tracer  trace.Tracer
-	logger  *slog.Logger
-	metrics *taskRunnerMetrics
+	pollingRunner *PollingTaskRunner
+	service       TaskService
+	executor      *taskExecutor
 }
 
-func newTaskRunner(ctx context.Context, service TaskService, clusterClient ClusterClient, tracer trace.Tracer, options ...runner.Option) (*TaskRunner, error) {
+func newTaskRunner(ctx context.Context, service TaskService, clusterClient ClusterClient, tracer trace.Tracer) (*TaskRunner, error) {
+	return newTaskRunnerWithClient(ctx, nil, service, clusterClient, tracer)
+}
+
+func newTaskRunnerWithClient(ctx context.Context, client *Client, service TaskService, clusterClient ClusterClient, tracer trace.Tracer, options ...runner.Option) (*TaskRunner, error) {
 	opts := &runner.Options{
 		ClusterSlug:   "",
 		Logger:        slog.Default(),
@@ -141,19 +136,14 @@ func newTaskRunner(ctx context.Context, service TaskService, clusterClient Clust
 		return nil, fmt.Errorf("failed to get cluster: %w", err)
 	}
 
-	metrics, err := newTaskRunnerMetrics(opts.MeterProvider.Meter(otelMeterName))
+	executor, err := newTaskExecutor(newTaskRegistry(), cluster.Slug, client, tracer, opts.Logger, opts.MeterProvider)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create task runner metrics: %w", err)
+		return nil, err
 	}
 
 	taskRunner := &TaskRunner{
-		service:         service,
-		taskDefinitions: make(map[taskIdentifier]ExecutableTask),
-
-		cluster: cluster.Slug,
-		tracer:  tracer,
-		logger:  opts.Logger,
-		metrics: metrics,
+		service:  service,
+		executor: executor,
 	}
 	taskRunner.pollingRunner = NewPollingTaskRunner(service, cluster.Slug, taskRunner, opts.Logger)
 	return taskRunner, nil
@@ -161,19 +151,12 @@ func newTaskRunner(ctx context.Context, service TaskService, clusterClient Clust
 
 // GetRegisteredTask returns the task with the given identifier.
 func (t *TaskRunner) GetRegisteredTask(identifier TaskIdentifier) (ExecutableTask, bool) {
-	registeredTask, found := t.taskDefinitions[taskIdentifier{name: identifier.Name(), version: identifier.Version()}]
-	return registeredTask, found
+	return t.executor.registry.get(identifier)
 }
 
 // RegisterTasks makes the task runner aware of multiple tasks.
 func (t *TaskRunner) RegisterTasks(tasks ...ExecutableTask) error {
-	for _, task := range tasks {
-		err := t.registerTask(task)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return t.executor.registry.registerTasks(tasks...)
 }
 
 func isEmpty(id *tileboxv1.ID) bool {
@@ -195,152 +178,22 @@ func (t *TaskRunner) RunAll(ctx context.Context) error {
 }
 
 func (t *TaskRunner) TaskIdentifiers() []*workflowsv1.TaskIdentifier {
-	identifiers := make([]*workflowsv1.TaskIdentifier, 0, len(t.taskDefinitions))
-	for _, task := range t.taskDefinitions {
-		identifier := identifierFromTask(task)
-		identifiers = append(identifiers, workflowsv1.TaskIdentifier_builder{
-			Name:    identifier.Name(),
-			Version: identifier.Version(),
-		}.Build())
-	}
-	return identifiers
+	return t.executor.registry.identifiers()
 }
 
 func (t *TaskRunner) ExecuteTask(ctx context.Context, task *workflowsv1.Task) (*workflowsv1.ExecuteTaskResponse, error) {
-	executionContext, err := t.executeTask(ctx, task)
-	if err != nil {
-		var progressUpdates []*workflowsv1.Progress
-		if executionContext != nil {
-			progressUpdates = executionContext.getProgressUpdates()
-		}
-		failedTask := workflowsv1.TaskFailedRequest_builder{
-			TaskId:           task.GetId(),
-			Display:          failedTaskDisplay(task.GetDisplay(), err),
-			WasWorkflowError: true,
-			ProgressUpdates:  progressUpdates,
-		}.Build()
-		return workflowsv1.ExecuteTaskResponse_builder{FailedTask: failedTask}.Build(), nil
+	response, err := t.executor.ExecuteTask(ctx, task)
+	if response.GetFailedTask() != nil {
+		// TaskRunner historically treats every native execution failure as a workflow error. Keep that behavior for
+		// direct polling runners while WorkerService can distinguish setup/routing failures.
+		response.GetFailedTask().SetWasWorkflowError(true)
 	}
-
-	computedTask := workflowsv1.ComputedTask_builder{
-		Id:              task.GetId(),
-		Display:         task.GetDisplay(),
-		SubTasks:        executionContext.getSubTasks(),
-		ProgressUpdates: executionContext.getProgressUpdates(),
-	}.Build()
-	return workflowsv1.ExecuteTaskResponse_builder{ComputedTask: computedTask}.Build(), nil
-}
-
-func (t *TaskRunner) executeTask(ctx context.Context, task *workflowsv1.Task) (*taskExecutionContext, error) {
-	// actually execute the task
-	beforeTime := time.Now().UTC()
-
-	if task.GetIdentifier() == nil {
-		return nil, errors.New("task has no identifier")
-	}
-	identifier := NewTaskIdentifier(task.GetIdentifier().GetName(), task.GetIdentifier().GetVersion())
-	taskPrototype, found := t.GetRegisteredTask(identifier)
-	if !found {
-		return nil, fmt.Errorf("task %s is not registered on this runner", task.GetIdentifier().GetName())
-	}
-
-	return span.StartJobSpan(ctx, t.tracer, fmt.Sprintf("task/%s", identifier.Name()), task.GetJob(), func(ctx context.Context) (taskExecutionContext *taskExecutionContext, err error) { //nolint:nonamedreturns // needed to return a value in case of panic
-		t.logger.DebugContext(ctx, "executing task",
-			slog.String("task_id", task.GetId().AsUUID().String()),
-			slog.String("task", identifier.Name()),
-			slog.String("version", identifier.Version()),
-		)
-		taskStruct := reflect.New(reflect.ValueOf(taskPrototype).Elem().Type()).Interface().(ExecutableTask)
-
-		_, isProtobuf := taskStruct.(proto.Message)
-		if isProtobuf {
-			err := proto.Unmarshal(task.GetInput(), taskStruct.(proto.Message))
-			if err != nil {
-				return nil, fmt.Errorf("failed to unmarshal protobuf task: %w", err)
-			}
-		} else {
-			err := json.Unmarshal(task.GetInput(), taskStruct)
-			if err != nil {
-				return nil, fmt.Errorf("failed to unmarshal json task: %w", err)
-			}
-		}
-
-		log := t.logger.With(
-			slog.String("job_id", task.GetJob().GetId().AsUUID().String()),
-			slog.String("task", identifier.Name()),
-			slog.String("version", identifier.Version()),
-			slog.Time("start_time", beforeTime),
-		)
-
-		taskMetricAttributes := metric.WithAttributes(attribute.String("task_identifier", identifier.Name()), attribute.String("task_version", identifier.Version()))
-
-		defer func() {
-			if r := recover(); r != nil {
-				// recover from panics during task executions, so we can still report the error to the server and continue
-				// with other tasks
-				log.ErrorContext(ctx, "task execution failed", slog.String("error", "panic"), slog.Int64("retry_attempt", task.GetRetryCount()))
-				taskExecutionContext = nil
-				err = fmt.Errorf("task panicked: %v", r)
-
-				// also instrument the panic as a failed task execution
-				t.metrics.tasksFailedMetric.Add(ctx, 1, taskMetricAttributes)
-				t.metrics.taskExecutionDurationMetric.Record(ctx, time.Since(beforeTime).Seconds(), taskMetricAttributes, metric.WithAttributes(attribute.String("state", "failed")))
-			}
-		}()
-
-		t.metrics.taskInputSizeMetric.Record(ctx, int64(len(task.GetInput())), taskMetricAttributes)
-		t.metrics.tasksExecutedMetric.Add(ctx, 1, taskMetricAttributes)
-
-		executionContext := t.withTaskExecutionContext(ctx, task)
-		executionContext = obslogger.ContextWithSlogAttributes(executionContext, slog.String("task_id", task.GetId().AsUUID().String()))
-		err = taskStruct.Execute(executionContext)
-
-		executionTime := time.Since(beforeTime)
-		log = log.With(
-			slog.Duration("execution_time", executionTime),
-			slog.String("execution_time_human", roundDuration(executionTime, 2).String()),
-		)
-
-		if err != nil {
-			t.metrics.tasksFailedMetric.Add(ctx, 1, taskMetricAttributes)
-			t.metrics.taskExecutionDurationMetric.Record(ctx, executionTime.Seconds(), taskMetricAttributes, metric.WithAttributes(attribute.String("state", "failed")))
-
-			log.ErrorContext(executionContext, "task execution failed", slog.Any("error", err), slog.Int64("retry_attempt", task.GetRetryCount()))
-			return getTaskExecutionContext(executionContext), fmt.Errorf("failed to execute task: %w", err)
-		}
-
-		t.metrics.tasksComputedMetric.Add(ctx, 1, taskMetricAttributes)
-		t.metrics.taskExecutionDurationMetric.Record(ctx, executionTime.Seconds(), taskMetricAttributes, metric.WithAttributes(attribute.String("state", "computed")))
-
-		return getTaskExecutionContext(executionContext), nil
-	})
-}
-
-// extendTaskLease is a function designed to be run as a goroutine, extending the lease of a task continuously until the
-// context is cancelled, which indicates that the execution of the task is finished.
-// registerTask makes the task runner aware of a task.
-func (t *TaskRunner) registerTask(task ExecutableTask) error {
-	identifier := identifierFromTask(task)
-	err := ValidateIdentifier(identifier)
-	if err != nil {
-		return err
-	}
-	key := taskIdentifier{name: identifier.Name(), version: identifier.Version()}
-	_, found := t.taskDefinitions[key]
-	if found {
-		return fmt.Errorf(
-			"duplicate task identifier: a task '%s' with version '%s' is already registered",
-			identifier.Name(),
-			identifier.Version(),
-		)
-	}
-	t.taskDefinitions[key] = task
-	return nil
+	return response, err
 }
 
 type taskExecutionContext struct {
 	CurrentTask *workflowsv1.Task
-	runner      *TaskRunner
+	executor    *taskExecutor
 
 	subtasksMutex sync.Mutex
 	subtasks      []*futureTask
@@ -356,11 +209,13 @@ func (e *taskExecutionContext) getProgressUpdates() []*workflowsv1.Progress {
 	defer e.progressMutex.Unlock()
 	progressUpdates := make([]*workflowsv1.Progress, 0, len(e.progressIndicators))
 	for _, progress := range e.progressIndicators {
+		progress.mutex.Lock()
 		progressUpdates = append(progressUpdates, workflowsv1.Progress_builder{
 			Label: progress.label,
 			Total: progress.total,
 			Done:  progress.done,
 		}.Build())
+		progress.mutex.Unlock()
 	}
 	return progressUpdates
 }
@@ -373,14 +228,7 @@ func (e *taskExecutionContext) getSubTasks() *workflowsv1.TaskSubmissions {
 }
 
 func (t *TaskRunner) withTaskExecutionContext(ctx context.Context, task *workflowsv1.Task) context.Context {
-	return context.WithValue(ctx, contextKeyTaskExecution, &taskExecutionContext{
-		CurrentTask:        task,
-		runner:             t,
-		subtasksMutex:      sync.Mutex{},
-		subtasks:           make([]*futureTask, 0),
-		progressIndicators: make(map[string]*taskProgressIndicator),
-		progressMutex:      sync.Mutex{},
-	})
+	return t.executor.withTaskExecutionContext(ctx, task)
 }
 
 func getTaskExecutionContext(ctx context.Context) *taskExecutionContext {
@@ -399,7 +247,19 @@ func GetCurrentCluster(ctx context.Context) (string, error) {
 	if executionContext == nil {
 		return "", errors.New("cannot get current cluster without task execution context")
 	}
-	return executionContext.runner.cluster, nil
+	return executionContext.executor.cluster, nil
+}
+
+// GetClient returns the authenticated workflows client for the current task execution.
+//
+// A client is available for tasks run by a Client-created TaskRunner and by an initialized Worker. The client uses
+// the execution runtime's configured API connection, so callers should pass the task context to client operations.
+func GetClient(ctx context.Context) (*Client, error) {
+	executionContext := getTaskExecutionContext(ctx)
+	if executionContext == nil || executionContext.executor.client == nil {
+		return nil, errors.New("cannot get workflows client without initialized task execution context")
+	}
+	return executionContext.executor.client, nil
 }
 
 // SetTaskDisplay sets the label name of the current task.
@@ -426,7 +286,7 @@ func SubmitSubtask(ctx context.Context, task Task, options ...subtask.SubmitOpti
 
 	opts := &subtask.SubmitOptions{
 		Dependencies: nil,
-		ClusterSlug:  executionContext.runner.cluster,
+		ClusterSlug:  executionContext.executor.cluster,
 		MaxRetries:   0,
 		Optional:     false,
 	}

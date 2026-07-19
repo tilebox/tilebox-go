@@ -79,6 +79,9 @@ func identifierFromTask(task Task) TaskIdentifier {
 
 // ValidateIdentifier performs client-side validation on a task identifier.
 func ValidateIdentifier(identifier TaskIdentifier) error {
+	if identifier == nil {
+		return errors.New("task identifier is nil")
+	}
 	if identifier.Name() == "" {
 		return errors.New("task name is empty")
 	}
