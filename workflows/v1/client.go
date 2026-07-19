@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	otelTracerName = "tilebox.com/observability"
-	otelMeterName  = otelTracerName
+	defaultTileboxAPIURL = "https://api.tilebox.com"
+	otelTracerName       = "tilebox.com/observability"
+	otelMeterName        = otelTracerName
 )
 
 // Client is a Tilebox Workflows client.
@@ -38,7 +39,7 @@ type Client struct {
 // NewClient creates a new Tilebox Workflows client.
 //
 // By default, the returned Client is configured with:
-//   - "https://api.tilebox.com" as the URL
+//   - environment variable TILEBOX_API_URL as the URL, or "https://api.tilebox.com" when unset
 //   - environment variable TILEBOX_API_KEY as the API key
 //   - a grpc.RetryHTTPClient HTTP client
 //   - the global tracer provider
@@ -48,7 +49,10 @@ type Client struct {
 func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
 	configureTileboxTelemetry(context.Background(), cfg)
+	return newClient(cfg)
+}
 
+func newClient(cfg *clientConfig) *Client {
 	jobConnectClient := newConnectClient(workflowsv1connect.NewJobServiceClient, cfg)
 	telemetryConnectClient := newConnectClient(workflowsv1connect.NewTelemetryQueryServiceClient, cfg)
 	taskConnectClient := newConnectClient(workflowsv1connect.NewTaskServiceClient, cfg)
@@ -77,7 +81,7 @@ func NewClient(options ...ClientOption) *Client {
 //   - runner.WithRunnerLogger: sets the logger to use for the task runner. Defaults to slog.Default().
 //   - runner.WithDisableMetrics: disables OpenTelemetry metrics for the task runner.
 func (c *Client) NewTaskRunner(ctx context.Context, options ...runner.Option) (*TaskRunner, error) {
-	return newTaskRunner(ctx, c.taskService, c.Clusters, c.tracer, options...)
+	return newTaskRunnerWithClient(ctx, c, c.taskService, c.Clusters, c.tracer, options...)
 }
 
 // NewPollingTaskRunner creates a polling task runner for custom task executors.
@@ -166,8 +170,12 @@ func WithDisableLogging() ClientOption {
 }
 
 func newClientConfig(options []ClientOption) *clientConfig {
+	apiURL := os.Getenv("TILEBOX_API_URL")
+	if apiURL == "" {
+		apiURL = defaultTileboxAPIURL
+	}
 	cfg := &clientConfig{
-		url:            "https://api.tilebox.com",
+		url:            apiURL,
 		apiKey:         os.Getenv("TILEBOX_API_KEY"),
 		tracerProvider: otel.GetTracerProvider(), // use the global tracer provider by default
 	}
