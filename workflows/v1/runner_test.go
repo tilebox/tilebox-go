@@ -163,7 +163,7 @@ func TestTaskRunner_RegisterTasks(t *testing.T) {
 
 			require.NoError(t, err)
 
-			assert.Len(t, runner.taskDefinitions, len(tt.wantTasks))
+			assert.Len(t, runner.executor.registry.definitions, len(tt.wantTasks))
 			for _, task := range tt.wantTasks {
 				identifier := identifierFromTask(task)
 				_, ok := runner.GetRegisteredTask(identifier)
@@ -215,6 +215,7 @@ func Test_isEmpty(t *testing.T) {
 // mockMinimalTaskService is a mock task service that returns a single next task response. after that it returns an empty response every time
 type mockMinimalTaskService struct {
 	computedTasks          []*workflowsv1.ComputedTask
+	computedTaskReported   chan struct{}
 	nextTask               *workflowsv1.Task
 	idlingDuration         time.Duration
 	failed                 bool
@@ -228,6 +229,12 @@ var _ TaskService = &mockMinimalTaskService{}
 func (m *mockMinimalTaskService) NextTask(_ context.Context, computedTask *workflowsv1.ComputedTask, _ *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, error) {
 	if computedTask != nil {
 		m.computedTasks = append(m.computedTasks, computedTask)
+		if m.computedTaskReported != nil {
+			select {
+			case m.computedTaskReported <- struct{}{}:
+			default:
+			}
+		}
 	}
 
 	if m.nextTask != nil {
@@ -292,7 +299,8 @@ func TestTaskRunner_RunForever(t *testing.T) {
 			TraceParent: "00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01",
 		}.Build(),
 	}.Build()
-	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask}
+	computedTaskReported := make(chan struct{}, 1)
+	mockTaskClient := &mockMinimalTaskService{nextTask: mockNextTask, computedTaskReported: computedTaskReported}
 
 	tracer := noop.NewTracerProvider().Tracer("")
 	service := mockTaskService{}
@@ -304,8 +312,15 @@ func TestTaskRunner_RunForever(t *testing.T) {
 	err = runner.RegisterTasks(task)
 	require.NoError(t, err, "failed to register task")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond) // run our one task, then stop
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	go func() {
+		select {
+		case <-computedTaskReported:
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
 	require.NoError(t, runner.RunForever(ctx))
 
 	assert.False(t, mockTaskClient.failed, "task should not have failed")

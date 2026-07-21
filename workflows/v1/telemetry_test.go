@@ -73,11 +73,30 @@ func TestConfigureConsoleLoggingIsIdempotent(t *testing.T) {
 	assert.Len(t, slogHandlers, 1)
 }
 
+func TestConfigureRemovableSlogHandlerStopsFanoutAndRestoresLogger(t *testing.T) {
+	resetSlogConfigurationForTest(t)
+
+	records := make([]string, 0)
+	baseLogger := slog.New(&recordingSlogHandler{name: "base", records: &records})
+	slog.SetDefault(baseLogger)
+	remove := configureRemovableSlogHandler(&recordingSlogHandler{name: "worker", records: &records})
+	slog.Info("before removal")
+	remove()
+	remove()
+	slog.Info("after removal")
+
+	assert.Equal(t, []string{
+		"base:before removal",
+		"worker:before removal",
+		"base:after removal",
+	}, records)
+}
+
 func TestWithSpanResultUsesTaskRunnerTracer(t *testing.T) {
 	spanRecorder := tracetest.NewSpanRecorder()
 	tracerProvider := sdktrace.NewTracerProvider(sdktrace.WithSpanProcessor(spanRecorder))
 	ctx := context.WithValue(context.Background(), contextKeyTaskExecution, &taskExecutionContext{
-		runner: &TaskRunner{tracer: tracerProvider.Tracer("test")},
+		executor: &taskExecutor{tracer: tracerProvider.Tracer("test")},
 	})
 
 	result, err := WithSpanResult(ctx, "expensive-compute", func(ctx context.Context) (string, error) {
@@ -111,7 +130,9 @@ func resetSlogConfigurationForTest(t *testing.T) {
 	slog.SetDefault(initialDefaultSlogLogger)
 	slogHandlersMu.Lock()
 	previousHandlers := slogHandlers
+	previousBaseLogger := slogBaseLogger
 	slogHandlers = nil
+	slogBaseLogger = nil
 	consoleLogHandlerOnce = sync.Once{}
 	slogHandlersMu.Unlock()
 
@@ -121,6 +142,7 @@ func resetSlogConfigurationForTest(t *testing.T) {
 		slogHandlersMu.Lock()
 		defer slogHandlersMu.Unlock()
 		slogHandlers = previousHandlers
+		slogBaseLogger = previousBaseLogger
 		consoleLogHandlerOnce = sync.Once{}
 	})
 }

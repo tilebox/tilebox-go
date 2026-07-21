@@ -186,6 +186,8 @@ func TestPollingTaskRunnerRetriesTaskFailedRequestErrorOnceAsWorkflowFailure(t *
 
 func TestPollingTaskRunnerStopsRetryingTaskFailedAfterSecondRequestError(t *testing.T) {
 	taskID := uuid.New()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	mockNextTask := workflowsv1.Task_builder{
 		Id: tileboxv1.NewUUID(taskID),
 		Identifier: workflowsv1.TaskIdentifier_builder{
@@ -204,6 +206,11 @@ func TestPollingTaskRunnerStopsRetryingTaskFailedAfterSecondRequestError(t *test
 			connect.NewError(connect.CodeInvalidArgument, errors.New("invalid failed task request")),
 			connect.NewError(connect.CodeInvalidArgument, errors.New("still invalid")),
 		},
+		taskFailedHook: func(requests int) {
+			if requests == 2 {
+				cancel()
+			}
+		},
 	}
 	executor := &failedResponseExecutor{
 		response: workflowsv1.ExecuteTaskResponse_builder{
@@ -214,8 +221,6 @@ func TestPollingTaskRunnerStopsRetryingTaskFailedAfterSecondRequestError(t *test
 		}.Build(),
 	}
 	runner := NewPollingTaskRunner(service, "default", executor, slog.Default())
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
-	defer cancel()
 
 	require.NoError(t, runner.RunAll(ctx))
 
@@ -274,6 +279,7 @@ type requestErrorTaskService struct {
 	nextTaskComputedTaskErr       error
 	taskFailedErrors              []error
 	taskFailedRequests            []*workflowsv1.TaskFailedRequest
+	taskFailedHook                func(requests int)
 }
 
 var _ TaskService = &requestErrorTaskService{}
@@ -303,6 +309,9 @@ func (s *requestErrorTaskService) TaskFailed(_ context.Context, taskID uuid.UUID
 		WasWorkflowError: wasWorkflowError,
 		ProgressUpdates:  progressUpdates,
 	}.Build())
+	if s.taskFailedHook != nil {
+		s.taskFailedHook(len(s.taskFailedRequests))
+	}
 	if len(s.taskFailedErrors) > 0 {
 		err := s.taskFailedErrors[0]
 		s.taskFailedErrors = s.taskFailedErrors[1:]

@@ -31,6 +31,7 @@ var (
 	tileboxTraceProviders   sync.Map
 	slogHandlersMu          sync.Mutex
 	slogHandlers            []slog.Handler
+	slogBaseLogger          *slog.Logger
 )
 
 // ConfigureConsoleLogging configures the default slog logger to write logs to stdout at the given level.
@@ -48,22 +49,22 @@ func ConfigureConsoleLogging(level slog.Level) {
 // If ctx is not a task execution context or the task runner has no tracer, f is called without creating a span.
 func WithSpanResult[Result any](ctx context.Context, name string, f func(ctx context.Context) (Result, error)) (Result, error) {
 	executionContext := getTaskExecutionContext(ctx)
-	if executionContext == nil || executionContext.runner.tracer == nil {
+	if executionContext == nil || executionContext.executor.tracer == nil {
 		return f(ctx)
 	}
 
-	return observability.WithSpanResult(ctx, executionContext.runner.tracer, name, f)
+	return observability.WithSpanResult(ctx, executionContext.executor.tracer, name, f)
 }
 
 // WithSpan wraps f with a tracing span using the current task runner's tracer.
 // If ctx is not a task execution context or the task runner has no tracer, f is called without creating a span.
 func WithSpan(ctx context.Context, name string, f func(ctx context.Context) error) error {
 	executionContext := getTaskExecutionContext(ctx)
-	if executionContext == nil || executionContext.runner.tracer == nil {
+	if executionContext == nil || executionContext.executor.tracer == nil {
 		return f(ctx)
 	}
 
-	return observability.WithSpan(ctx, executionContext.runner.tracer, name, f)
+	return observability.WithSpan(ctx, executionContext.executor.tracer, name, f)
 }
 
 func configureTileboxTelemetry(ctx context.Context, cfg *clientConfig) {
@@ -159,9 +160,13 @@ func NewTileboxLogHandler(ctx context.Context, apiURL string, apiKey string, lev
 func configureSlogHandler(handler slog.Handler) {
 	slogHandlersMu.Lock()
 	defer slogHandlersMu.Unlock()
+	configureSlogHandlerLocked(handler)
+}
 
+func configureSlogHandlerLocked(handler slog.Handler) {
 	if len(slogHandlers) == 0 {
-		existingHandler := slog.Default().Handler()
+		slogBaseLogger = slog.Default()
+		existingHandler := slogBaseLogger.Handler()
 		if !isDefaultSlogHandler(existingHandler) {
 			slogHandlers = append(slogHandlers, existingHandler)
 		}
@@ -169,6 +174,41 @@ func configureSlogHandler(handler slog.Handler) {
 
 	slogHandlers = append(slogHandlers, handler)
 	slog.SetDefault(logger.New(slogHandlers...))
+}
+
+type removableSlogHandler struct {
+	slog.Handler
+}
+
+func configureRemovableSlogHandler(handler slog.Handler) func() {
+	registeredHandler := &removableSlogHandler{Handler: handler}
+	slogHandlersMu.Lock()
+	configureSlogHandlerLocked(registeredHandler)
+	slogHandlersMu.Unlock()
+
+	var removeOnce sync.Once
+	return func() {
+		removeOnce.Do(func() {
+			slogHandlersMu.Lock()
+			defer slogHandlersMu.Unlock()
+
+			for i, configuredHandler := range slogHandlers {
+				if configuredHandler == registeredHandler {
+					slogHandlers = append(slogHandlers[:i], slogHandlers[i+1:]...)
+					break
+				}
+			}
+
+			if len(slogHandlers) > 0 {
+				slog.SetDefault(logger.New(slogHandlers...))
+				return
+			}
+			if slogBaseLogger != nil {
+				slog.SetDefault(slogBaseLogger)
+				slogBaseLogger = nil
+			}
+		})
+	}
 }
 
 func isDefaultSlogHandler(handler slog.Handler) bool {

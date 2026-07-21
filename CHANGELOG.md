@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `datasets`: Added source JSON pointers, queryable metadata, JSON Schema references, semantic roles, and well-known protobuf message and enum fields to dataset creation and updates, including generated STAC types.
 - `datasets`: Added fluent Boolean and numeric expressions for filtering datapoints by custom queryable fields.
+- `workflows`: Added `NewWorker`, `Worker.RegisterTasks`, and `Worker.Serve` for execution-only Go workflow release children managed by `tilebox runner start`.
+- `workflows`: Added `GetClient` for accessing the initialized workflows client from a task execution context.
 
 ### Changed
 
 - Updated the minimum supported Go version to 1.26.
+- `workflows`: `NewClient` now uses `TILEBOX_API_URL` as its default URL when the environment variable is set.
 
 ## [0.10.0] - 2026-07-01
 

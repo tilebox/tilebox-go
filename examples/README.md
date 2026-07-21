@@ -21,7 +21,8 @@ For example, to run the `workflows/helloworld` example:
 go run ./examples/workflows/helloworld
 ```
 
-Workflow examples submit a job first, then start a task runner in the same process.
+Most workflow examples submit a job first, then start a task runner in the same process. The release-worker example is
+an execution-only child managed by `tilebox runner start` and does not poll independently.
 
 ## Workflows examples
 
@@ -29,6 +30,7 @@ Workflow examples submit a job first, then start a task runner in the same proce
 - [MapReduce](workflows/mapreduce): How to fan out tasks and submit dependent reduce tasks.
 - [Progress](workflows/progress): How to report workflow progress.
 - [Protobuf tasks](workflows/protobuf-task): How to use Protobuf tasks.
+- [Go release worker](workflows/release-worker): How to author an execution-only Go child for a workflow release.
 - [Observability](workflows/observability): How to query Tilebox workflow telemetry and export traces/logs to custom Axiom or OpenTelemetry backends.
 
 ## Datasets examples
