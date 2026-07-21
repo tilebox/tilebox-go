@@ -20,7 +20,10 @@ type DatapointClient interface {
 	// GetInto get a single datapoint by its ID from one or more collections of the same dataset into a proto.Message.
 	//
 	// Options:
+	//   - WithCollections / WithCollectionIDs: specifies the collections to query. If no collections are specified, all collections of the dataset will be queried. (Optional)
 	//   - WithSkipData: can be used to skip the actual data, only returning required datapoint fields. (Optional)
+	//
+	// Other QueryOption values are not supported by GetInto and return an error.
 	//
 	// Example usage:
 	//
@@ -34,6 +37,7 @@ type DatapointClient interface {
 	//   - WithCollections / WithCollectionIDs: specifies the collections to query. If no collections are specified, all collections of the dataset will be queried. (Optional)
 	//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
 	//   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
+	//   - WithFilters: specifies filters over queryable dataset fields. (Optional)
 	//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning required datapoint fields. (Optional)
 	//   - WithCursor: starts the query after a cursor returned by a previous page. (Optional)
 	//   - WithLimit: limits the total number of datapoints returned. Defaults to unlimited.
@@ -64,6 +68,7 @@ type DatapointClient interface {
 	//   - WithCollections / WithCollectionIDs: specifies the collections to query. If no collections are specified, all collections of the dataset will be queried. (Optional)
 	//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
 	//   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
+	//   - WithFilters: specifies filters over queryable dataset fields. (Optional)
 	//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning required datapoint fields. (Optional)
 	//   - WithCursor: starts the query after a cursor returned by a previous page. (Optional)
 	//   - WithLimit: limits the number of datapoints returned in this page. Defaults to the server default.
@@ -135,13 +140,14 @@ type datapointClient struct {
 type queryOptions struct {
 	temporalExtent query.TemporalExtent
 	spatialExtent  query.SpatialExtent
+	filters        []query.Expression
 	skipData       bool
 	collectionIDs  []uuid.UUID
 	cursor         *Cursor
 	limit          int64
 }
 
-// QueryOption is an interface for configuring a Query request.
+// QueryOption configures a datapoint query or lookup. Individual operations document which options they support.
 type QueryOption func(*queryOptions)
 
 // WithTemporalExtent specifies the time interval for which data should be queried.
@@ -164,6 +170,14 @@ func WithSpatialExtent(geometry orb.Geometry) QueryOption {
 func WithSpatialExtentFilter(spatialExtent query.SpatialExtent) QueryOption {
 	return func(cfg *queryOptions) {
 		cfg.spatialExtent = spatialExtent
+	}
+}
+
+// WithFilters filters datapoints using expressions over fields marked queryable in the dataset schema.
+// Multiple filters are combined with each other and with temporal and spatial filters using logical AND.
+func WithFilters(filters ...query.Expression) QueryOption {
+	return func(cfg *queryOptions) {
+		cfg.filters = append(cfg.filters, filters...)
 	}
 }
 
@@ -219,6 +233,9 @@ func (d datapointClient) GetInto(ctx context.Context, datasetID uuid.UUID, datap
 	}
 	for _, option := range options {
 		option(cfg)
+	}
+	if cfg.temporalExtent != nil || cfg.spatialExtent != nil || len(cfg.filters) > 0 || cfg.cursor != nil || cfg.limit != 0 {
+		return errors.New("query option is not supported by GetInto")
 	}
 
 	rawDatapoint, err := d.dataAccessService.QueryByID(ctx, datasetID, cfg.collectionIDs, datapointID, cfg.skipData)
@@ -493,6 +510,18 @@ func (d datapointClient) queryPage(ctx context.Context, datasetID uuid.UUID, cfg
 			return nil, err
 		}
 		filters.SetSpatialExtent(spatialExtent)
+	}
+
+	if len(cfg.filters) > 0 {
+		expressions := make([]*datasetsv1.FilterExpression, len(cfg.filters))
+		for i, expression := range cfg.filters {
+			converted, err := query.ToProtoExpression(expression)
+			if err != nil {
+				return nil, fmt.Errorf("invalid query expression %d: %w", i, err)
+			}
+			expressions[i] = converted
+		}
+		filters.SetExpressions(expressions)
 	}
 
 	datapointsMessage, err := d.dataAccessService.Query(ctx, datasetID, cfg.collectionIDs, filters, paginationFromOptions(cfg.limit, cfg.cursor), cfg.skipData)

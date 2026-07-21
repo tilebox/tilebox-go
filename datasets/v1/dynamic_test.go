@@ -38,10 +38,10 @@ func TestUnmarshalDatapoint(t *testing.T) {
 		Id:              datasetsv1.NewUUID(datapointID),
 		Time:            timestamppb.New(timestamp),
 		Geometry:        datasetsv1.NewGeometry(geometry),
-		GranuleName:     pointer("S2B_MSIL1C_20250101T000019_N0511_R073_T57QWV_20250101T010340.SAFE"),
-		ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1C),
-		FlightDirection: pointer(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
-		AcquisitionMode: pointer(datasetsv1.AcquisitionMode_ACQUISITION_MODE_NOBS),
+		GranuleName:     new("S2B_MSIL1C_20250101T000019_N0511_R073_T57QWV_20250101T010340.SAFE"),
+		ProcessingLevel: new(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1C),
+		FlightDirection: new(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
+		AcquisitionMode: new(datasetsv1.AcquisitionMode_ACQUISITION_MODE_NOBS),
 	}.Build()
 	rawDatapoint, err := proto.Marshal(datapoint)
 	require.NoError(t, err)
@@ -100,19 +100,19 @@ func durationDataset() *Dataset {
 		Type: datasetsv1.AnnotatedType_builder{
 			DescriptorSet: &descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{
 				{
-					Name:       proto.String("tilebox/v1/DurationDatapoint.proto"),
-					Package:    proto.String("tilebox.v1"),
+					Name:       new("tilebox/v1/DurationDatapoint.proto"),
+					Package:    new("tilebox.v1"),
 					Dependency: []string{"google/protobuf/duration.proto"},
 					MessageType: []*descriptorpb.DescriptorProto{
 						{
-							Name: proto.String("DurationDatapoint"),
+							Name: new("DurationDatapoint"),
 							Field: []*descriptorpb.FieldDescriptorProto{
 								{
-									Name:     proto.String("elapsed"),
+									Name:     new("elapsed"),
 									Number:   proto.Int32(1),
 									Label:    descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
 									Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
-									TypeName: proto.String(".google.protobuf.Duration"),
+									TypeName: new(".google.protobuf.Duration"),
 								},
 							},
 						},

@@ -2,6 +2,7 @@ package field // import "github.com/tilebox/tilebox-go/datasets/v1/field"
 
 import (
 	"fmt"
+	"slices"
 
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 	"google.golang.org/protobuf/proto"
@@ -37,6 +38,16 @@ func Bool(name string) *Descriptor {
 		name: name,
 		info: &typeInfo{
 			Type: descriptorpb.FieldDescriptorProto_TYPE_BOOL,
+		},
+	}
+}
+
+// Int32 returns a new Field with type int32.
+func Int32(name string) *Descriptor {
+	return &Descriptor{
+		name: name,
+		info: &typeInfo{
+			Type: descriptorpb.FieldDescriptorProto_TYPE_INT32,
 		},
 	}
 }
@@ -142,7 +153,7 @@ func Enum(name string, enum protoreflect.Enum) *Descriptor {
 
 // protoTypeName returns the fully qualified protobuf type name with a leading dot
 func protoTypeName(message proto.Message) *string {
-	return proto.String(fmt.Sprintf(".%s", message.ProtoReflect().Descriptor().FullName()))
+	return new(fmt.Sprintf(".%s", message.ProtoReflect().Descriptor().FullName()))
 }
 
 type typeInfo struct {
@@ -190,6 +201,8 @@ func (d *Descriptor) SourceJSONPointer(sourceJSONPointer string) *Descriptor {
 }
 
 // Queryable marks the field for projection into query storage and server-side filtering.
+// Only optional fields created with Bool, Int32, Int64, Uint64, or Float64 can be queryable.
+// Repeated fields and fields of all other types are not supported.
 func (d *Descriptor) Queryable() *Descriptor {
 	d.queryable = true
 	return d
@@ -203,7 +216,7 @@ func (d *Descriptor) JSONSchemaRef(jsonSchemaRef string) *Descriptor {
 
 // Roles sets the semantic display roles fulfilled by this field. Optional.
 func (d *Descriptor) Roles(roles ...FieldRole) *Descriptor {
-	d.roles = roles
+	d.roles = slices.Clone(roles)
 	return d
 }
 

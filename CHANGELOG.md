@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `datasets`: Added source JSON pointers, queryable metadata, JSON Schema references, semantic roles, and well-known protobuf message and enum fields to dataset creation and updates, including generated STAC types.
+- `datasets`: Added fluent Boolean and numeric expressions for filtering datapoints by custom queryable fields.
+
+### Changed
+
+- Updated the minimum supported Go version to 1.26.
+
 ## [0.10.0] - 2026-07-01
 
 ### Added

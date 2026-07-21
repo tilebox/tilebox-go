@@ -26,8 +26,8 @@ func (t *SampleTask) Execute(ctx context.Context) error {
 	_, err := workflows.SubmitSubtask(ctx, &SpawnWorkflowTreeTask{
 		*examplesv1.SpawnWorkflowTreeTask_builder{
 			CurrentLevel: proto.Int64(0),
-			Depth:        proto.Int64(int64(t.Depth)),
-			BranchFactor: proto.Int64(int64(t.BranchFactor)),
+			Depth:        new(int64(t.Depth)),
+			BranchFactor: new(int64(t.BranchFactor)),
 		}.Build(),
 	})
 	return err
@@ -51,9 +51,9 @@ func (t *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
 	for i := range t.GetBranchFactor() {
 		subtasks[i] = &SpawnWorkflowTreeTask{
 			*examplesv1.SpawnWorkflowTreeTask_builder{
-				CurrentLevel: proto.Int64(t.GetCurrentLevel() + 1),
-				Depth:        proto.Int64(t.GetDepth()),
-				BranchFactor: proto.Int64(t.GetBranchFactor()),
+				CurrentLevel: new(t.GetCurrentLevel() + 1),
+				Depth:        new(t.GetDepth()),
+				BranchFactor: new(t.GetBranchFactor()),
 			}.Build(),
 		}
 	}

@@ -41,7 +41,7 @@ func main() {
 		{{-109.05, 41.00}, {-102.05, 41.00}, {-102.05, 37.0}, {-109.045, 37.0}, {-109.05, 41.00}},
 	}
 
-	// Perform a spatial-temporal query
+	// Perform a spatial-temporal query for datapoints with less than 20% cloud cover.
 	// Sentinel2Msi type is generated using tilebox-generate
 	var foundDatapoints []*examplesv1.Sentinel2Msi
 	err = client.Datapoints.QueryInto(ctx,
@@ -50,13 +50,14 @@ func main() {
 		datasets.WithCollections(collection),
 		datasets.WithTemporalExtent(query.NewTimeInterval(startDate, endDate)),
 		datasets.WithSpatialExtent(area),
+		datasets.WithFilters(query.Field("cloud_cover").LessThan(20.0)),
 	)
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to query datapoints", slog.Any("error", err))
 		return
 	}
 
-	slog.InfoContext(ctx, "Found datapoints over Colorado in March 2025", slog.Int("count", len(foundDatapoints)))
+	slog.InfoContext(ctx, "Found low-cloud-cover datapoints over Colorado in April 2025", slog.Int("count", len(foundDatapoints)))
 	if len(foundDatapoints) > 0 {
 		slog.InfoContext(ctx, "First datapoint over Colorado",
 			slog.String("id", foundDatapoints[0].GetId().AsUUID().String()),
