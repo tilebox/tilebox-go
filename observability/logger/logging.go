@@ -221,7 +221,7 @@ func NewConsoleHandler(options ...Option) slog.Handler {
 
 	return &tracingAndlevelFilterHandler{
 		level: opts.Level,
-		next:  tint.NewHandler(os.Stdout, &tint.Options{Level: opts.Level}),
+		next:  tint.NewTextHandler(os.Stdout, &tint.Options{Level: opts.Level}),
 	}
 }
 
