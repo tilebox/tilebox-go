@@ -11,8 +11,6 @@ package workflowsv1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
-	_ "go.opentelemetry.io/proto/otlp/logs/v1"
-	_ "go.opentelemetry.io/proto/otlp/trace/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1357,7 +1355,7 @@ var File_workflows_v1_job_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a&opentelemetry/proto/logs/v1/logs.proto\x1a(opentelemetry/proto/trace/v1/trace.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xce\x03\n" +
+	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xce\x03\n" +
 	"\x10SubmitJobRequest\x123\n" +
 	"\x05tasks\x18\x05 \x01(\v2\x1d.workflows.v1.TaskSubmissionsR\x05tasks\x12\"\n" +
 	"\bjob_name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\ajobName\x12*\n" +

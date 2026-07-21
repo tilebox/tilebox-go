@@ -40,6 +40,19 @@ type mockDataAccessService struct {
 	n int
 }
 
+type capturingDataAccessService struct {
+	DataAccessService
+
+	filters *datasetsv1.QueryFilters
+	called  bool
+}
+
+func (m *capturingDataAccessService) Query(_ context.Context, _ uuid.UUID, _ []uuid.UUID, filters *datasetsv1.QueryFilters, _ *tileboxv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
+	m.filters = filters
+	m.called = true
+	return datasetsv1.QueryResultPage_builder{}.Build(), nil
+}
+
 var mockNextCursorID = uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b")
 
 func (m mockDataAccessService) Query(_ context.Context, _ uuid.UUID, _ []uuid.UUID, _ *datasetsv1.QueryFilters, page *tileboxv1.Pagination, _ bool) (*datasetsv1.QueryResultPage, error) {
@@ -51,10 +64,10 @@ func (m mockDataAccessService) Query(_ context.Context, _ uuid.UUID, _ []uuid.UU
 	data := make([][]byte, count)
 	for i := range count {
 		datapoint := examplesv1.Sentinel2Msi_builder{
-			GranuleName:     pointer(uuid.New().String()),
-			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
-			Platform:        pointer("S2B"),
-			FlightDirection: pointer(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
+			GranuleName:     new(uuid.New().String()),
+			ProcessingLevel: new(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
+			Platform:        new("S2B"),
+			FlightDirection: new(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
 		}.Build()
 
 		message, err := proto.Marshal(datapoint)
@@ -144,6 +157,15 @@ func Test_QueryOptions(t *testing.T) {
 			},
 			want: queryOptions{
 				spatialExtent: &query.SpatialFilter{Geometry: colorado, Mode: datasetsv1.SpatialFilterMode_SPATIAL_FILTER_MODE_INTERSECTS, CoordinateSystem: datasetsv1.SpatialCoordinateSystem_SPATIAL_COORDINATE_SYSTEM_CARTESIAN},
+			},
+		},
+		{
+			name: "with filters",
+			options: []QueryOption{
+				WithFilters(query.Field("cloud_cover").LessThan(20.0)),
+			},
+			want: queryOptions{
+				filters: []query.Expression{query.Field("cloud_cover").LessThan(20.0)},
 			},
 		},
 		{
@@ -334,6 +356,36 @@ func Test_datapointClient_QueryPage(t *testing.T) {
 	assert.Equal(t, mockNextCursorID, page.NextCursor.StartingAfter())
 }
 
+func Test_datapointClient_QueryPage_WithFilters(t *testing.T) {
+	service := &capturingDataAccessService{}
+	client := &datapointClient{dataAccessService: service}
+	timeInterval := query.NewTimeInterval(time.Now(), time.Now().Add(time.Hour))
+
+	_, err := client.QueryPage(
+		context.Background(),
+		uuid.New(),
+		WithTemporalExtent(timeInterval),
+		WithFilters(
+			query.Field("cloud_cover").LessThan(20.0),
+			query.Field("valid").Equal(true),
+		),
+	)
+	require.NoError(t, err)
+	require.Len(t, service.filters.GetExpressions(), 2)
+	assert.Equal(t, "cloud_cover", service.filters.GetExpressions()[0].GetComparison().GetFieldName())
+	assert.Equal(t, "valid", service.filters.GetExpressions()[1].GetComparison().GetFieldName())
+
+	service.called = false
+	_, err = client.QueryPage(
+		context.Background(),
+		uuid.New(),
+		WithTemporalExtent(timeInterval),
+		WithFilters(query.Field("cloud_cover").Equal("unsupported")),
+	)
+	require.ErrorContains(t, err, "invalid query expression 0")
+	assert.False(t, service.called)
+}
+
 func Test_paginationFromOptions(t *testing.T) {
 	cursorID := uuid.New()
 
@@ -441,10 +493,10 @@ func NewMockDatapointClient(tb testing.TB, n int) DatapointClient {
 	data := make([][]byte, n)
 	for i := range n {
 		datapoint := examplesv1.Sentinel2Msi_builder{
-			GranuleName:     pointer(uuid.New().String()),
-			ProcessingLevel: pointer(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
-			Platform:        pointer("S2B"),
-			FlightDirection: pointer(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
+			GranuleName:     new(uuid.New().String()),
+			ProcessingLevel: new(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1),
+			Platform:        new("S2B"),
+			FlightDirection: new(datasetsv1.FlightDirection_FLIGHT_DIRECTION_ASCENDING),
 		}.Build()
 
 		message, err := proto.Marshal(datapoint)

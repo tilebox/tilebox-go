@@ -11,6 +11,7 @@ package workflowsv1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -616,11 +617,12 @@ func (b0 StorageEventTrigger_builder) Build() *StorageEventTrigger {
 
 // CronTrigger is a trigger that will trigger a task submission on a schedule.
 type CronTrigger struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id       *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_Schedule string                 `protobuf:"bytes,2,opt,name=schedule"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id              *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Schedule        string                 `protobuf:"bytes,2,opt,name=schedule"`
+	xxx_hidden_NextScheduledAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=next_scheduled_at,json=nextScheduledAt"`
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
 }
 
 func (x *CronTrigger) Reset() {
@@ -662,12 +664,23 @@ func (x *CronTrigger) GetSchedule() string {
 	return ""
 }
 
+func (x *CronTrigger) GetNextScheduledAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_NextScheduledAt
+	}
+	return nil
+}
+
 func (x *CronTrigger) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
 func (x *CronTrigger) SetSchedule(v string) {
 	x.xxx_hidden_Schedule = v
+}
+
+func (x *CronTrigger) SetNextScheduledAt(v *timestamppb.Timestamp) {
+	x.xxx_hidden_NextScheduledAt = v
 }
 
 func (x *CronTrigger) HasId() bool {
@@ -677,8 +690,19 @@ func (x *CronTrigger) HasId() bool {
 	return x.xxx_hidden_Id != nil
 }
 
+func (x *CronTrigger) HasNextScheduledAt() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_NextScheduledAt != nil
+}
+
 func (x *CronTrigger) ClearId() {
 	x.xxx_hidden_Id = nil
+}
+
+func (x *CronTrigger) ClearNextScheduledAt() {
+	x.xxx_hidden_NextScheduledAt = nil
 }
 
 type CronTrigger_builder struct {
@@ -688,6 +712,8 @@ type CronTrigger_builder struct {
 	Id *v1.ID
 	// A cron schedule for the trigger, e.g. "0 0 * * *" (every day at midnight)
 	Schedule string
+	// The next time the cron schedule occurs, regardless of whether the automation is disabled.
+	NextScheduledAt *timestamppb.Timestamp
 }
 
 func (b0 CronTrigger_builder) Build() *CronTrigger {
@@ -696,6 +722,7 @@ func (b0 CronTrigger_builder) Build() *CronTrigger {
 	_, _ = b, x
 	x.xxx_hidden_Id = b.Id
 	x.xxx_hidden_Schedule = b.Schedule
+	x.xxx_hidden_NextScheduledAt = b.NextScheduledAt
 	return m0
 }
 
@@ -1040,7 +1067,7 @@ var File_workflows_v1_automation_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\n" +
-	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"\x9c\x01\n" +
+	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"\x9c\x01\n" +
 	"\x0fStorageLocation\x12&\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12&\n" +
 	"\blocation\x18\x02 \x01(\tB\n" +
@@ -1064,10 +1091,11 @@ const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\x13StorageEventTrigger\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12H\n" +
 	"\x10storage_location\x18\x02 \x01(\v2\x1d.workflows.v1.StorageLocationR\x0fstorageLocation\x12*\n" +
-	"\fglob_pattern\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vglobPattern\"R\n" +
+	"\fglob_pattern\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vglobPattern\"\x9f\x01\n" +
 	"\vCronTrigger\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12#\n" +
-	"\bschedule\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bschedule\"E\n" +
+	"\bschedule\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bschedule\x12K\n" +
+	"\x11next_scheduled_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\x0fnextScheduledAt\"E\n" +
 	"\n" +
 	"Automation\x12#\n" +
 	"\rtrigger_event\x18\x01 \x01(\fR\ftriggerEvent\x12\x12\n" +
@@ -1134,33 +1162,34 @@ var file_workflows_v1_automation_proto_depIdxs = []int32{
 	12, // 8: workflows.v1.StorageEventTrigger.id:type_name -> tilebox.v1.ID
 	2,  // 9: workflows.v1.StorageEventTrigger.storage_location:type_name -> workflows.v1.StorageLocation
 	12, // 10: workflows.v1.CronTrigger.id:type_name -> tilebox.v1.ID
-	12, // 11: workflows.v1.TriggeredStorageEvent.storage_location_id:type_name -> tilebox.v1.ID
-	1,  // 12: workflows.v1.TriggeredStorageEvent.type:type_name -> workflows.v1.StorageEventType
-	14, // 13: workflows.v1.TriggeredCronEvent.trigger_time:type_name -> google.protobuf.Timestamp
-	12, // 14: workflows.v1.DeleteAutomationRequest.automation_id:type_name -> tilebox.v1.ID
-	15, // 15: workflows.v1.AutomationService.ListStorageLocations:input_type -> google.protobuf.Empty
-	12, // 16: workflows.v1.AutomationService.GetStorageLocation:input_type -> tilebox.v1.ID
-	2,  // 17: workflows.v1.AutomationService.CreateStorageLocation:input_type -> workflows.v1.StorageLocation
-	12, // 18: workflows.v1.AutomationService.DeleteStorageLocation:input_type -> tilebox.v1.ID
-	15, // 19: workflows.v1.AutomationService.ListAutomations:input_type -> google.protobuf.Empty
-	12, // 20: workflows.v1.AutomationService.GetAutomation:input_type -> tilebox.v1.ID
-	4,  // 21: workflows.v1.AutomationService.CreateAutomation:input_type -> workflows.v1.AutomationPrototype
-	4,  // 22: workflows.v1.AutomationService.UpdateAutomation:input_type -> workflows.v1.AutomationPrototype
-	11, // 23: workflows.v1.AutomationService.DeleteAutomation:input_type -> workflows.v1.DeleteAutomationRequest
-	3,  // 24: workflows.v1.AutomationService.ListStorageLocations:output_type -> workflows.v1.StorageLocations
-	2,  // 25: workflows.v1.AutomationService.GetStorageLocation:output_type -> workflows.v1.StorageLocation
-	2,  // 26: workflows.v1.AutomationService.CreateStorageLocation:output_type -> workflows.v1.StorageLocation
-	15, // 27: workflows.v1.AutomationService.DeleteStorageLocation:output_type -> google.protobuf.Empty
-	5,  // 28: workflows.v1.AutomationService.ListAutomations:output_type -> workflows.v1.Automations
-	4,  // 29: workflows.v1.AutomationService.GetAutomation:output_type -> workflows.v1.AutomationPrototype
-	4,  // 30: workflows.v1.AutomationService.CreateAutomation:output_type -> workflows.v1.AutomationPrototype
-	4,  // 31: workflows.v1.AutomationService.UpdateAutomation:output_type -> workflows.v1.AutomationPrototype
-	15, // 32: workflows.v1.AutomationService.DeleteAutomation:output_type -> google.protobuf.Empty
-	24, // [24:33] is the sub-list for method output_type
-	15, // [15:24] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	14, // 11: workflows.v1.CronTrigger.next_scheduled_at:type_name -> google.protobuf.Timestamp
+	12, // 12: workflows.v1.TriggeredStorageEvent.storage_location_id:type_name -> tilebox.v1.ID
+	1,  // 13: workflows.v1.TriggeredStorageEvent.type:type_name -> workflows.v1.StorageEventType
+	14, // 14: workflows.v1.TriggeredCronEvent.trigger_time:type_name -> google.protobuf.Timestamp
+	12, // 15: workflows.v1.DeleteAutomationRequest.automation_id:type_name -> tilebox.v1.ID
+	15, // 16: workflows.v1.AutomationService.ListStorageLocations:input_type -> google.protobuf.Empty
+	12, // 17: workflows.v1.AutomationService.GetStorageLocation:input_type -> tilebox.v1.ID
+	2,  // 18: workflows.v1.AutomationService.CreateStorageLocation:input_type -> workflows.v1.StorageLocation
+	12, // 19: workflows.v1.AutomationService.DeleteStorageLocation:input_type -> tilebox.v1.ID
+	15, // 20: workflows.v1.AutomationService.ListAutomations:input_type -> google.protobuf.Empty
+	12, // 21: workflows.v1.AutomationService.GetAutomation:input_type -> tilebox.v1.ID
+	4,  // 22: workflows.v1.AutomationService.CreateAutomation:input_type -> workflows.v1.AutomationPrototype
+	4,  // 23: workflows.v1.AutomationService.UpdateAutomation:input_type -> workflows.v1.AutomationPrototype
+	11, // 24: workflows.v1.AutomationService.DeleteAutomation:input_type -> workflows.v1.DeleteAutomationRequest
+	3,  // 25: workflows.v1.AutomationService.ListStorageLocations:output_type -> workflows.v1.StorageLocations
+	2,  // 26: workflows.v1.AutomationService.GetStorageLocation:output_type -> workflows.v1.StorageLocation
+	2,  // 27: workflows.v1.AutomationService.CreateStorageLocation:output_type -> workflows.v1.StorageLocation
+	15, // 28: workflows.v1.AutomationService.DeleteStorageLocation:output_type -> google.protobuf.Empty
+	5,  // 29: workflows.v1.AutomationService.ListAutomations:output_type -> workflows.v1.Automations
+	4,  // 30: workflows.v1.AutomationService.GetAutomation:output_type -> workflows.v1.AutomationPrototype
+	4,  // 31: workflows.v1.AutomationService.CreateAutomation:output_type -> workflows.v1.AutomationPrototype
+	4,  // 32: workflows.v1.AutomationService.UpdateAutomation:output_type -> workflows.v1.AutomationPrototype
+	15, // 33: workflows.v1.AutomationService.DeleteAutomation:output_type -> google.protobuf.Empty
+	25, // [25:34] is the sub-list for method output_type
+	16, // [16:25] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_automation_proto_init() }

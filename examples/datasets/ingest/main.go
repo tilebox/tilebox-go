@@ -7,7 +7,6 @@ import (
 
 	"github.com/tilebox/tilebox-go/datasets/v1"
 	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -36,11 +35,11 @@ func main() {
 	datapoints := []*examplesv1.Sentinel2Msi{
 		examplesv1.Sentinel2Msi_builder{
 			Time:        timestamppb.New(time.Now()),
-			GranuleName: proto.String("Granule 1"),
+			GranuleName: new("Granule 1"),
 		}.Build(),
 		examplesv1.Sentinel2Msi_builder{
 			Time:        timestamppb.New(time.Now().Add(-5 * time.Hour)),
-			GranuleName: proto.String("Past Granule 2"),
+			GranuleName: new("Past Granule 2"),
 		}.Build(),
 	}
 

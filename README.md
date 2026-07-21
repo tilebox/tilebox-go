@@ -46,6 +46,55 @@ For examples on how to use the library, see the [examples](examples) directory.
 
 ## Usage
 
+### Filtering Dataset Queries
+
+Fields marked queryable in a dataset schema can be filtered with fluent Boolean and numeric expressions. Multiple
+expressions passed to `WithFilters` are combined with each other and with temporal and spatial filters using logical
+AND.
+
+```go
+package main
+
+import (
+	"context"
+	"log/slog"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/tilebox/tilebox-go/datasets/v1"
+	"github.com/tilebox/tilebox-go/query"
+)
+
+func main() {
+	ctx := context.Background()
+	client := datasets.NewClient()
+	datasetID := uuid.MustParse("019c0123-4567-7890-abcd-ef0123456789")
+	start := time.Date(2026, time.July, 1, 0, 0, 0, 0, time.UTC)
+	end := start.Add(24 * time.Hour)
+
+	datapoints, err := datasets.Collect(client.Datapoints.Query(ctx,
+		datasetID,
+		datasets.WithTemporalExtent(query.NewTimeInterval(start, end)),
+		datasets.WithFilters(
+			query.Field("eo_cloud_cover").LessThan(20.0),
+			query.Or(
+				query.Field("quality").GreaterThanOrEqual(80),
+				query.Field("quality").IsNull(),
+			),
+		),
+	))
+	if err != nil {
+		slog.ErrorContext(ctx, "Failed to query datapoints", slog.Any("error", err))
+		return
+	}
+
+	slog.InfoContext(ctx, "Found datapoints", slog.Int("count", len(datapoints)))
+}
+```
+
+Comparisons with absent fields evaluate to unknown and therefore do not match. Use `IsNull`, as above, when absent values
+should be included explicitly. `NotEqual` also excludes absent values.
+
 ### Writing a Task
 
 Here we define a simple task that logs "Hello World!":

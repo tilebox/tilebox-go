@@ -132,7 +132,7 @@ type CreateDatasetRequest_builder struct {
 
 	// name of the dataset to create.
 	Name string
-	// message type of the dataset to create.
+	// Message type of the dataset to create, including per-field source mappings, queryable metadata, and roles.
 	Type *DatasetType
 	// short text summary of the dataset to create.
 	Summary string
@@ -440,7 +440,7 @@ type UpdateDatasetRequest_builder struct {
 	Id *v1.ID
 	// updated name of the dataset.
 	Name *string
-	// updated type of the dataset.
+	// Updated type of the dataset, including per-field source mappings, queryable metadata, and roles.
 	Type *DatasetType
 	// updated summary of the dataset.
 	Summary *string

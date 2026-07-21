@@ -13,7 +13,6 @@ import (
 	v12 "go.opentelemetry.io/proto/otlp/trace/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -601,7 +600,7 @@ var File_workflows_v1_telemetry_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_telemetry_proto_rawDesc = "" +
 	"\n" +
-	"\x1cworkflows/v1/telemetry.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a&opentelemetry/proto/logs/v1/logs.proto\x1a(opentelemetry/proto/trace/v1/trace.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"\xb9\x01\n" +
+	"\x1cworkflows/v1/telemetry.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a&opentelemetry/proto/logs/v1/logs.proto\x1a(opentelemetry/proto/trace/v1/trace.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"\xb9\x01\n" +
 	"\x13QueryJobLogsRequest\x12-\n" +
 	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x121\n" +
 	"\x04page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\x12@\n" +
