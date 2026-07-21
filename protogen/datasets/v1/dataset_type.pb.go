@@ -76,12 +76,57 @@ func (x DatasetKind) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Field describes a field of a dataset.
+// FieldRole describes a semantic display role fulfilled by a dataset field.
+// Thumbnail discovery is intentionally not represented here: thumbnails are assets whose STAC asset roles include
+// thumbnail.
+type FieldRole int32
+
+const (
+	FieldRole_FIELD_ROLE_UNSPECIFIED FieldRole = 0
+	// The primary human-readable title or name used when displaying a datapoint.
+	FieldRole_FIELD_ROLE_PRIMARY_TITLE FieldRole = 1
+)
+
+// Enum value maps for FieldRole.
+var (
+	FieldRole_name = map[int32]string{
+		0: "FIELD_ROLE_UNSPECIFIED",
+		1: "FIELD_ROLE_PRIMARY_TITLE",
+	}
+	FieldRole_value = map[string]int32{
+		"FIELD_ROLE_UNSPECIFIED":   0,
+		"FIELD_ROLE_PRIMARY_TITLE": 1,
+	}
+)
+
+func (x FieldRole) Enum() *FieldRole {
+	p := new(FieldRole)
+	*p = x
+	return p
+}
+
+func (x FieldRole) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FieldRole) Descriptor() protoreflect.EnumDescriptor {
+	return file_datasets_v1_dataset_type_proto_enumTypes[1].Descriptor()
+}
+
+func (FieldRole) Type() protoreflect.EnumType {
+	return &file_datasets_v1_dataset_type_proto_enumTypes[1]
+}
+
+func (x FieldRole) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Field is the request representation of a dataset field. It intentionally combines only a protobuf field descriptor
+// with its Tilebox annotation, matching the information represented separately by AnnotatedType.
 type Field struct {
 	state                  protoimpl.MessageState             `protogen:"opaque.v1"`
 	xxx_hidden_Descriptor_ *descriptorpb.FieldDescriptorProto `protobuf:"bytes,1,opt,name=descriptor"`
 	xxx_hidden_Annotation  *FieldAnnotation                   `protobuf:"bytes,2,opt,name=annotation"`
-	xxx_hidden_Queryable   bool                               `protobuf:"varint,3,opt,name=queryable"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
@@ -125,23 +170,12 @@ func (x *Field) GetAnnotation() *FieldAnnotation {
 	return nil
 }
 
-func (x *Field) GetQueryable() bool {
-	if x != nil {
-		return x.xxx_hidden_Queryable
-	}
-	return false
-}
-
 func (x *Field) SetDescriptor(v *descriptorpb.FieldDescriptorProto) {
 	x.xxx_hidden_Descriptor_ = v
 }
 
 func (x *Field) SetAnnotation(v *FieldAnnotation) {
 	x.xxx_hidden_Annotation = v
-}
-
-func (x *Field) SetQueryable(v bool) {
-	x.xxx_hidden_Queryable = v
 }
 
 func (x *Field) HasDescriptor() bool {
@@ -173,11 +207,8 @@ type Field_builder struct {
 	// If the type is TYPE_MESSAGE, then the type_name must be a fully qualified name to a well known type, e.g.
 	// `datasets.v1.Vec3` or `google.protobuf.Timestamp`.
 	Descriptor *descriptorpb.FieldDescriptorProto
-	// An optional description and example value for the field.
+	// Additional documentation, source mapping, and query metadata for the field.
 	Annotation *FieldAnnotation
-	// A flag indicating whether the field should be queryable. This means we will build an index for the field, and
-	// allow users to query for certain values server-side.
-	Queryable bool
 }
 
 func (b0 Field_builder) Build() *Field {
@@ -186,17 +217,22 @@ func (b0 Field_builder) Build() *Field {
 	_, _ = b, x
 	x.xxx_hidden_Descriptor_ = b.Descriptor
 	x.xxx_hidden_Annotation = b.Annotation
-	x.xxx_hidden_Queryable = b.Queryable
 	return m0
 }
 
-// FieldAnnotation contains additional information about a field in a dataset
+// FieldAnnotation contains additional information about a field in a dataset.
 type FieldAnnotation struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Description  string                 `protobuf:"bytes,1,opt,name=description"`
-	xxx_hidden_ExampleValue string                 `protobuf:"bytes,2,opt,name=example_value,json=exampleValue"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Description       string                 `protobuf:"bytes,1,opt,name=description"`
+	xxx_hidden_ExampleValue      string                 `protobuf:"bytes,2,opt,name=example_value,json=exampleValue"`
+	xxx_hidden_SourceJsonPointer *string                `protobuf:"bytes,3,opt,name=source_json_pointer,json=sourceJsonPointer"`
+	xxx_hidden_Queryable         bool                   `protobuf:"varint,4,opt,name=queryable"`
+	xxx_hidden_JsonSchemaRef     *string                `protobuf:"bytes,5,opt,name=json_schema_ref,json=jsonSchemaRef"`
+	xxx_hidden_Roles             []FieldRole            `protobuf:"varint,6,rep,packed,name=roles,enum=datasets.v1.FieldRole"`
+	XXX_raceDetectHookData       protoimpl.RaceDetectHookData
+	XXX_presence                 [1]uint32
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *FieldAnnotation) Reset() {
@@ -238,6 +274,40 @@ func (x *FieldAnnotation) GetExampleValue() string {
 	return ""
 }
 
+func (x *FieldAnnotation) GetSourceJsonPointer() string {
+	if x != nil {
+		if x.xxx_hidden_SourceJsonPointer != nil {
+			return *x.xxx_hidden_SourceJsonPointer
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *FieldAnnotation) GetQueryable() bool {
+	if x != nil {
+		return x.xxx_hidden_Queryable
+	}
+	return false
+}
+
+func (x *FieldAnnotation) GetJsonSchemaRef() string {
+	if x != nil {
+		if x.xxx_hidden_JsonSchemaRef != nil {
+			return *x.xxx_hidden_JsonSchemaRef
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *FieldAnnotation) GetRoles() []FieldRole {
+	if x != nil {
+		return x.xxx_hidden_Roles
+	}
+	return nil
+}
+
 func (x *FieldAnnotation) SetDescription(v string) {
 	x.xxx_hidden_Description = v
 }
@@ -246,11 +316,65 @@ func (x *FieldAnnotation) SetExampleValue(v string) {
 	x.xxx_hidden_ExampleValue = v
 }
 
+func (x *FieldAnnotation) SetSourceJsonPointer(v string) {
+	x.xxx_hidden_SourceJsonPointer = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 6)
+}
+
+func (x *FieldAnnotation) SetQueryable(v bool) {
+	x.xxx_hidden_Queryable = v
+}
+
+func (x *FieldAnnotation) SetJsonSchemaRef(v string) {
+	x.xxx_hidden_JsonSchemaRef = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
+}
+
+func (x *FieldAnnotation) SetRoles(v []FieldRole) {
+	x.xxx_hidden_Roles = v
+}
+
+func (x *FieldAnnotation) HasSourceJsonPointer() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *FieldAnnotation) HasJsonSchemaRef() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
+func (x *FieldAnnotation) ClearSourceJsonPointer() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_SourceJsonPointer = nil
+}
+
+func (x *FieldAnnotation) ClearJsonSchemaRef() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_JsonSchemaRef = nil
+}
+
 type FieldAnnotation_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Description  string
 	ExampleValue string
+	// RFC 6901 JSON Pointer locating the field value in the source document.
+	// This allows flattened dataset fields to be reconstructed without relying on their protobuf field names.
+	SourceJsonPointer *string
+	// Whether the field is projected into query storage and may be used in server-side filter expressions.
+	// Queryable fields are not necessarily backed by a secondary database index.
+	Queryable bool
+	// Optional JSON Schema reference for this field when it corresponds to a well known schema.
+	// For example, this may reference the canonical STAC extension schema definition for a property.
+	// Emitted as `$ref` when advertising this field as a queryable in STAC.
+	JsonSchemaRef *string
+	// Semantic display roles fulfilled by this field.
+	Roles []FieldRole
 }
 
 func (b0 FieldAnnotation_builder) Build() *FieldAnnotation {
@@ -259,10 +383,20 @@ func (b0 FieldAnnotation_builder) Build() *FieldAnnotation {
 	_, _ = b, x
 	x.xxx_hidden_Description = b.Description
 	x.xxx_hidden_ExampleValue = b.ExampleValue
+	if b.SourceJsonPointer != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 6)
+		x.xxx_hidden_SourceJsonPointer = b.SourceJsonPointer
+	}
+	x.xxx_hidden_Queryable = b.Queryable
+	if b.JsonSchemaRef != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
+		x.xxx_hidden_JsonSchemaRef = b.JsonSchemaRef
+	}
+	x.xxx_hidden_Roles = b.Roles
 	return m0
 }
 
-// DatasetType describes the type of a dataset.
+// DatasetType is the request representation of a dataset type, used when creating or updating a dataset.
 type DatasetType struct {
 	state             protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Kind   DatasetKind            `protobuf:"varint,1,opt,name=kind,enum=datasets.v1.DatasetKind"`
@@ -339,7 +473,8 @@ func (b0 DatasetType_builder) Build() *DatasetType {
 	return m0
 }
 
-// AnnotatedType describes a message type
+// AnnotatedType is the resolved representation returned on Dataset messages, including GetDataset responses.
+// It combines the generated protobuf descriptors with the corresponding Tilebox field annotations.
 type AnnotatedType struct {
 	state                       protoimpl.MessageState          `protogen:"opaque.v1"`
 	xxx_hidden_DescriptorSet    *descriptorpb.FileDescriptorSet `protobuf:"bytes,1,opt,name=descriptor_set,json=descriptorSet"`
@@ -437,7 +572,9 @@ type AnnotatedType_builder struct {
 
 	DescriptorSet *descriptorpb.FileDescriptorSet
 	// the url of the type, one of the types defined in the descriptor
-	TypeUrl          string
+	TypeUrl string
+	// Annotations corresponding by index to the FieldDescriptorProto entries of the message selected by type_url.
+	// Empty annotations must be retained so this positional mapping remains stable.
 	FieldAnnotations []*FieldAnnotation
 	Kind             DatasetKind
 }
@@ -729,18 +866,21 @@ var File_datasets_v1_dataset_type_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"\n" +
-	"\x1edatasets/v1/dataset_type.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\"datasets/v1/well_known_types.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\xbb\x01\n" +
+	"\x1edatasets/v1/dataset_type.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\"datasets/v1/well_known_types.proto\x1a google/protobuf/descriptor.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\"\x94\x01\n" +
 	"\x05Field\x12M\n" +
 	"\n" +
 	"descriptor\x18\x01 \x01(\v2%.google.protobuf.FieldDescriptorProtoB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"descriptor\x12<\n" +
 	"\n" +
 	"annotation\x18\x02 \x01(\v2\x1c.datasets.v1.FieldAnnotationR\n" +
-	"annotation\x12%\n" +
-	"\tqueryable\x18\x03 \x01(\bB\a\xbaH\x04j\x02\b\x00R\tqueryable\"X\n" +
+	"annotation\"\x9d\x02\n" +
 	"\x0fFieldAnnotation\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12#\n" +
-	"\rexample_value\x18\x02 \x01(\tR\fexampleValue\"s\n" +
+	"\rexample_value\x18\x02 \x01(\tR\fexampleValue\x125\n" +
+	"\x13source_json_pointer\x18\x03 \x01(\tB\x05\xaa\x01\x02\b\x01R\x11sourceJsonPointer\x12\x1c\n" +
+	"\tqueryable\x18\x04 \x01(\bR\tqueryable\x12-\n" +
+	"\x0fjson_schema_ref\x18\x05 \x01(\tB\x05\xaa\x01\x02\b\x01R\rjsonSchemaRef\x12?\n" +
+	"\x05roles\x18\x06 \x03(\x0e2\x16.datasets.v1.FieldRoleB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x05roles\"s\n" +
 	"\vDatasetType\x128\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x18.datasets.v1.DatasetKindB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04kind\x12*\n" +
@@ -762,45 +902,50 @@ const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"\vDatasetKind\x12\x1c\n" +
 	"\x18DATASET_KIND_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15DATASET_KIND_TEMPORAL\x10\x01\x12\x1f\n" +
-	"\x1bDATASET_KIND_SPATIOTEMPORAL\x10\x02B\xb4\x01\n" +
+	"\x1bDATASET_KIND_SPATIOTEMPORAL\x10\x02*E\n" +
+	"\tFieldRole\x12\x1a\n" +
+	"\x16FIELD_ROLE_UNSPECIFIED\x10\x00\x12\x1c\n" +
+	"\x18FIELD_ROLE_PRIMARY_TITLE\x10\x01B\xb4\x01\n" +
 	"\x0fcom.datasets.v1B\x10DatasetTypeProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_datasets_v1_dataset_type_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_datasets_v1_dataset_type_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_datasets_v1_dataset_type_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_datasets_v1_dataset_type_proto_goTypes = []any{
 	(DatasetKind)(0),                          // 0: datasets.v1.DatasetKind
-	(*Field)(nil),                             // 1: datasets.v1.Field
-	(*FieldAnnotation)(nil),                   // 2: datasets.v1.FieldAnnotation
-	(*DatasetType)(nil),                       // 3: datasets.v1.DatasetType
-	(*AnnotatedType)(nil),                     // 4: datasets.v1.AnnotatedType
-	(*TemporalDatapoint)(nil),                 // 5: datasets.v1.TemporalDatapoint
-	(*SpatioTemporalDatapoint)(nil),           // 6: datasets.v1.SpatioTemporalDatapoint
-	(*descriptorpb.FieldDescriptorProto)(nil), // 7: google.protobuf.FieldDescriptorProto
-	(*descriptorpb.FileDescriptorSet)(nil),    // 8: google.protobuf.FileDescriptorSet
-	(*timestamppb.Timestamp)(nil),             // 9: google.protobuf.Timestamp
-	(*v1.ID)(nil),                             // 10: tilebox.v1.ID
-	(*Geometry)(nil),                          // 11: datasets.v1.Geometry
+	(FieldRole)(0),                            // 1: datasets.v1.FieldRole
+	(*Field)(nil),                             // 2: datasets.v1.Field
+	(*FieldAnnotation)(nil),                   // 3: datasets.v1.FieldAnnotation
+	(*DatasetType)(nil),                       // 4: datasets.v1.DatasetType
+	(*AnnotatedType)(nil),                     // 5: datasets.v1.AnnotatedType
+	(*TemporalDatapoint)(nil),                 // 6: datasets.v1.TemporalDatapoint
+	(*SpatioTemporalDatapoint)(nil),           // 7: datasets.v1.SpatioTemporalDatapoint
+	(*descriptorpb.FieldDescriptorProto)(nil), // 8: google.protobuf.FieldDescriptorProto
+	(*descriptorpb.FileDescriptorSet)(nil),    // 9: google.protobuf.FileDescriptorSet
+	(*timestamppb.Timestamp)(nil),             // 10: google.protobuf.Timestamp
+	(*v1.ID)(nil),                             // 11: tilebox.v1.ID
+	(*Geometry)(nil),                          // 12: datasets.v1.Geometry
 }
 var file_datasets_v1_dataset_type_proto_depIdxs = []int32{
-	7,  // 0: datasets.v1.Field.descriptor:type_name -> google.protobuf.FieldDescriptorProto
-	2,  // 1: datasets.v1.Field.annotation:type_name -> datasets.v1.FieldAnnotation
-	0,  // 2: datasets.v1.DatasetType.kind:type_name -> datasets.v1.DatasetKind
-	1,  // 3: datasets.v1.DatasetType.fields:type_name -> datasets.v1.Field
-	8,  // 4: datasets.v1.AnnotatedType.descriptor_set:type_name -> google.protobuf.FileDescriptorSet
-	2,  // 5: datasets.v1.AnnotatedType.field_annotations:type_name -> datasets.v1.FieldAnnotation
-	0,  // 6: datasets.v1.AnnotatedType.kind:type_name -> datasets.v1.DatasetKind
-	9,  // 7: datasets.v1.TemporalDatapoint.time:type_name -> google.protobuf.Timestamp
-	10, // 8: datasets.v1.TemporalDatapoint.id:type_name -> tilebox.v1.ID
-	9,  // 9: datasets.v1.TemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
-	9,  // 10: datasets.v1.SpatioTemporalDatapoint.time:type_name -> google.protobuf.Timestamp
-	10, // 11: datasets.v1.SpatioTemporalDatapoint.id:type_name -> tilebox.v1.ID
-	9,  // 12: datasets.v1.SpatioTemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
-	11, // 13: datasets.v1.SpatioTemporalDatapoint.geometry:type_name -> datasets.v1.Geometry
-	14, // [14:14] is the sub-list for method output_type
-	14, // [14:14] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	8,  // 0: datasets.v1.Field.descriptor:type_name -> google.protobuf.FieldDescriptorProto
+	3,  // 1: datasets.v1.Field.annotation:type_name -> datasets.v1.FieldAnnotation
+	1,  // 2: datasets.v1.FieldAnnotation.roles:type_name -> datasets.v1.FieldRole
+	0,  // 3: datasets.v1.DatasetType.kind:type_name -> datasets.v1.DatasetKind
+	2,  // 4: datasets.v1.DatasetType.fields:type_name -> datasets.v1.Field
+	9,  // 5: datasets.v1.AnnotatedType.descriptor_set:type_name -> google.protobuf.FileDescriptorSet
+	3,  // 6: datasets.v1.AnnotatedType.field_annotations:type_name -> datasets.v1.FieldAnnotation
+	0,  // 7: datasets.v1.AnnotatedType.kind:type_name -> datasets.v1.DatasetKind
+	10, // 8: datasets.v1.TemporalDatapoint.time:type_name -> google.protobuf.Timestamp
+	11, // 9: datasets.v1.TemporalDatapoint.id:type_name -> tilebox.v1.ID
+	10, // 10: datasets.v1.TemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
+	10, // 11: datasets.v1.SpatioTemporalDatapoint.time:type_name -> google.protobuf.Timestamp
+	11, // 12: datasets.v1.SpatioTemporalDatapoint.id:type_name -> tilebox.v1.ID
+	10, // 13: datasets.v1.SpatioTemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
+	12, // 14: datasets.v1.SpatioTemporalDatapoint.geometry:type_name -> datasets.v1.Geometry
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_dataset_type_proto_init() }
@@ -814,7 +959,7 @@ func file_datasets_v1_dataset_type_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_dataset_type_proto_rawDesc), len(file_datasets_v1_dataset_type_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,

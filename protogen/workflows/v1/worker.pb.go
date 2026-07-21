@@ -472,7 +472,7 @@ var File_workflows_v1_worker_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_worker_proto_rawDesc = "" +
 	"\n" +
-	"\x19workflows/v1/worker.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13tilebox/v1/id.proto\x1a\x1dworkflows/v1/automation.proto\x1a\x17workflows/v1/core.proto\x1a\x17workflows/v1/task.proto\x1a\x1cworkflows/v1/workflows.proto\"\x99\x02\n" +
+	"\x19workflows/v1/worker.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\x1a\x17workflows/v1/task.proto\x1a\x1cworkflows/v1/workflows.proto\"\x99\x02\n" +
 	"\x17InitializeRunnerRequest\x12+\n" +
 	"\trunner_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\brunnerId\x12!\n" +
 	"\ftrace_parent\x18\x02 \x01(\tR\vtraceParent\x12/\n" +
@@ -538,7 +538,6 @@ func file_workflows_v1_worker_proto_init() {
 	if File_workflows_v1_worker_proto != nil {
 		return
 	}
-	file_workflows_v1_automation_proto_init()
 	file_workflows_v1_core_proto_init()
 	file_workflows_v1_task_proto_init()
 	file_workflows_v1_workflows_proto_init()
