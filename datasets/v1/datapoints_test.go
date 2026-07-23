@@ -368,19 +368,21 @@ func Test_datapointClient_QueryPage_WithFilters(t *testing.T) {
 		WithFilters(
 			query.Field("cloud_cover").LessThan(20.0),
 			query.Field("valid").Equal(true),
+			query.Field("granule_name").Equal("S2A_GRANULE"),
 		),
 	)
 	require.NoError(t, err)
-	require.Len(t, service.filters.GetExpressions(), 2)
+	require.Len(t, service.filters.GetExpressions(), 3)
 	assert.Equal(t, "cloud_cover", service.filters.GetExpressions()[0].GetComparison().GetFieldName())
 	assert.Equal(t, "valid", service.filters.GetExpressions()[1].GetComparison().GetFieldName())
+	assert.Equal(t, "S2A_GRANULE", service.filters.GetExpressions()[2].GetComparison().GetValue().GetStringValue())
 
 	service.called = false
 	_, err = client.QueryPage(
 		context.Background(),
 		uuid.New(),
 		WithTemporalExtent(timeInterval),
-		WithFilters(query.Field("cloud_cover").Equal("unsupported")),
+		WithFilters(query.Field("cloud_cover").Equal([]byte("unsupported"))),
 	)
 	require.ErrorContains(t, err, "invalid query expression 0")
 	assert.False(t, service.called)

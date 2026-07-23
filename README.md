@@ -48,7 +48,7 @@ For examples on how to use the library, see the [examples](examples) directory.
 
 ### Filtering Dataset Queries
 
-Fields marked queryable in a dataset schema can be filtered with fluent Boolean and numeric expressions. Multiple
+Fields marked queryable in a dataset schema can be filtered with fluent Boolean, string, and numeric expressions. Multiple
 expressions passed to `WithFilters` are combined with each other and with temporal and spatial filters using logical
 AND.
 
@@ -77,6 +77,7 @@ func main() {
 		datasets.WithTemporalExtent(query.NewTimeInterval(start, end)),
 		datasets.WithFilters(
 			query.Field("eo_cloud_cover").LessThan(20.0),
+			query.Field("granule_name").Equal("S2A_GRANULE"),
 			query.Or(
 				query.Field("quality").GreaterThanOrEqual(80),
 				query.Field("quality").IsNull(),

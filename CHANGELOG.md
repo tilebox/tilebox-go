@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-07-23
+
 ### Added
 
+- `accounts`: Added account details, active plan, and usage report clients.
 - `datasets`: Added source JSON pointers, queryable metadata, JSON Schema references, semantic roles, and well-known protobuf message and enum fields to dataset creation and updates, including generated STAC types.
-- `datasets`: Added fluent Boolean and numeric expressions for filtering datapoints by custom queryable fields.
+- `datasets`: Added fluent Boolean, string, and numeric expressions for filtering datapoints by custom queryable fields.
 
 ### Changed
 
@@ -157,7 +160,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/tilebox/tilebox-go/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/tilebox/tilebox-go/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/tilebox/tilebox-go/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/tilebox/tilebox-go/compare/v0.7.1...v0.8.0

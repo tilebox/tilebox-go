@@ -12,6 +12,7 @@ import (
 
 func TestComparisonExpressionValues(t *testing.T) {
 	type signedCount int32
+	type granuleName string
 
 	tests := []struct {
 		name  string
@@ -19,6 +20,8 @@ func TestComparisonExpressionValues(t *testing.T) {
 		want  *datasetsv1.FieldQueryValue
 	}{
 		{name: "bool", value: false, want: datasetsv1.FieldQueryValue_builder{BoolValue: new(false)}.Build()},
+		{name: "string", value: "S2A_GRANULE", want: datasetsv1.FieldQueryValue_builder{StringValue: new("S2A_GRANULE")}.Build()},
+		{name: "named string", value: granuleName("S2B_GRANULE"), want: datasetsv1.FieldQueryValue_builder{StringValue: new("S2B_GRANULE")}.Build()},
 		{name: "int", value: 0, want: datasetsv1.FieldQueryValue_builder{Int64Value: new(int64(0))}.Build()},
 		{name: "named int32", value: signedCount(12), want: datasetsv1.FieldQueryValue_builder{Int64Value: new(int64(12))}.Build()},
 		{name: "uint64", value: uint64(42), want: datasetsv1.FieldQueryValue_builder{Uint64Value: new(uint64(42))}.Build()},
@@ -64,7 +67,7 @@ func TestInvalidExpression(t *testing.T) {
 		wantErr    string
 	}{
 		{name: "nil value", expression: Field("value").Equal(nil), wantErr: "comparison value cannot be nil"},
-		{name: "unsupported value", expression: Field("value").Equal("text"), wantErr: "unsupported comparison value type string"},
+		{name: "unsupported value", expression: Field("value").Equal([]byte("text")), wantErr: "unsupported comparison value type []uint8"},
 		{name: "NaN", expression: Field("value").Equal(math.NaN()), wantErr: "comparison value must be finite"},
 		{name: "infinity", expression: Field("value").Equal(math.Inf(1)), wantErr: "comparison value must be finite"},
 		{name: "protobuf enum", expression: Field("value").Equal(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1), wantErr: "protobuf enums are not queryable"},

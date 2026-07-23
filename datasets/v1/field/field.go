@@ -201,7 +201,7 @@ func (d *Descriptor) SourceJSONPointer(sourceJSONPointer string) *Descriptor {
 }
 
 // Queryable marks the field for projection into query storage and server-side filtering.
-// Only optional fields created with Bool, Int32, Int64, Uint64, or Float64 can be queryable.
+// Only optional fields created with String, Bool, Int32, Int64, Uint64, or Float64 can be queryable.
 // Repeated fields and fields of all other types are not supported.
 func (d *Descriptor) Queryable() *Descriptor {
 	d.queryable = true
