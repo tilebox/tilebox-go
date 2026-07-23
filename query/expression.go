@@ -160,6 +160,9 @@ func queryValueToProto(value any) (*datasetsv1.FieldQueryValue, reflect.Kind, er
 	case reflect.Bool:
 		converted := reflected.Bool()
 		return datasetsv1.FieldQueryValue_builder{BoolValue: &converted}.Build(), reflect.Bool, nil
+	case reflect.String:
+		converted := reflected.String()
+		return datasetsv1.FieldQueryValue_builder{StringValue: &converted}.Build(), reflect.String, nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		converted := reflected.Int()
 		return datasetsv1.FieldQueryValue_builder{Int64Value: &converted}.Build(), reflect.Int64, nil
@@ -173,6 +176,6 @@ func queryValueToProto(value any) (*datasetsv1.FieldQueryValue, reflect.Kind, er
 		}
 		return datasetsv1.FieldQueryValue_builder{DoubleValue: &converted}.Build(), reflect.Float64, nil
 	default:
-		return nil, reflect.Invalid, fmt.Errorf("unsupported comparison value type %T; expected a boolean or numeric value", value)
+		return nil, reflect.Invalid, fmt.Errorf("unsupported comparison value type %T; expected a boolean, string, or numeric value", value)
 	}
 }

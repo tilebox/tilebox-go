@@ -21,6 +21,7 @@ func main() {
 			Description("The source granule name used as the primary title of the STAC item.").
 			ExampleValue("S2A_MSIL2A_20260521T104031_N0511_R008_T32TQM_20260521T132145").
 			SourceJSONPointer("/properties/granule_name").
+			Queryable().
 			Roles(field.RolePrimaryTitle),
 		field.Message("assets", &stacv1.Assets{}).
 			Description("The STAC assets associated with the item.").

@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `datasets`: Added source JSON pointers, queryable metadata, JSON Schema references, semantic roles, and well-known protobuf message and enum fields to dataset creation and updates, including generated STAC types.
-- `datasets`: Added fluent Boolean and numeric expressions for filtering datapoints by custom queryable fields.
+- `datasets`: Added fluent Boolean, string, and numeric expressions for filtering datapoints by custom queryable fields.
 
 ### Changed
 
