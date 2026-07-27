@@ -10,6 +10,9 @@ import (
 	"unicode"
 
 	"github.com/google/uuid"
+	// These generated STAC, datasets/v1, Duration, and Timestamp imports register
+	// supported dataset field type descriptors in protoregistry.GlobalFiles.
+	_ "github.com/tilebox/tilebox-go/protogen/datasets/stac/v1"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -18,8 +21,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/dynamicpb"
-	"google.golang.org/protobuf/types/known/durationpb"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	_ "google.golang.org/protobuf/types/known/durationpb"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // DatapointDescriptor contains the resolved protobuf descriptor needed to decode raw datapoint bytes.
@@ -35,7 +38,7 @@ func NewDatapointDescriptor(dataset *Dataset) (*DatapointDescriptor, error) {
 		return nil, errors.New("dataset does not include a protobuf descriptor")
 	}
 
-	descriptorSet := descriptorSetWithWellKnownTypes(dataset.Type.GetDescriptorSet())
+	descriptorSet := descriptorSetWithDependencies(dataset.Type.GetDescriptorSet())
 	files, err := protodesc.NewFiles(descriptorSet)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build dataset protobuf descriptors: %w", err)
@@ -129,20 +132,36 @@ func (d DatapointDecoder) resolver(descriptor *DatapointDescriptor) interface {
 	return descriptor.resolver
 }
 
-func descriptorSetWithWellKnownTypes(datasetDescriptorSet *descriptorpb.FileDescriptorSet) *descriptorpb.FileDescriptorSet {
+// descriptorSetWithDependencies adds imports needed by the dataset descriptor.
+// SDK-supported dependencies are registered in protoregistry.GlobalFiles by the
+// generated protobuf imports above; application-registered dependencies can be resolved too.
+func descriptorSetWithDependencies(datasetDescriptorSet *descriptorpb.FileDescriptorSet) *descriptorpb.FileDescriptorSet {
 	descriptorSet := &descriptorpb.FileDescriptorSet{}
 	seen := map[string]bool{}
-	addFile := func(file *descriptorpb.FileDescriptorProto) {
+	datasetFiles := make(map[string]*descriptorpb.FileDescriptorProto, len(datasetDescriptorSet.GetFile()))
+	for _, file := range datasetDescriptorSet.GetFile() {
+		datasetFiles[file.GetName()] = file
+	}
+
+	var addFile func(file *descriptorpb.FileDescriptorProto)
+	addFile = func(file *descriptorpb.FileDescriptorProto) {
 		if file == nil || seen[file.GetName()] {
 			return
 		}
 		seen[file.GetName()] = true
+		for _, dependency := range file.GetDependency() {
+			if datasetFile := datasetFiles[dependency]; datasetFile != nil {
+				addFile(datasetFile)
+				continue
+			}
+			registeredFile, err := protoregistry.GlobalFiles.FindFileByPath(dependency)
+			if err == nil {
+				addFile(protodesc.ToFileDescriptorProto(registeredFile))
+			}
+		}
 		descriptorSet.File = append(descriptorSet.File, file)
 	}
 
-	addFile(protodesc.ToFileDescriptorProto(durationpb.File_google_protobuf_duration_proto))
-	addFile(protodesc.ToFileDescriptorProto(timestamppb.File_google_protobuf_timestamp_proto))
-	addFile(protodesc.ToFileDescriptorProto(datasetsv1.File_datasets_v1_well_known_types_proto))
 	for _, file := range datasetDescriptorSet.GetFile() {
 		addFile(file)
 	}

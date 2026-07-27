@@ -8,6 +8,7 @@ import (
 	"github.com/paulmach/orb"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	stacv1 "github.com/tilebox/tilebox-go/protogen/datasets/stac/v1"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
 	"google.golang.org/protobuf/proto"
@@ -25,6 +26,16 @@ func TestNewDatapointDescriptor(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, descriptor)
 	assert.Equal(t, "tilebox.v1.Sentinel2Msi", string(descriptor.MessageDescriptor.FullName()))
+}
+
+func TestNewDatapointDescriptorResolvesSTACImports(t *testing.T) {
+	descriptor, err := NewDatapointDescriptor(stacDataset())
+
+	require.NoError(t, err)
+	require.NotNil(t, descriptor)
+	assets := descriptor.MessageDescriptor.Fields().ByName("assets")
+	require.NotNil(t, assets)
+	assert.Equal(t, protoreflect.FullName("datasets.stac.v1.Assets"), assets.Message().FullName())
 }
 
 func TestUnmarshalDatapoint(t *testing.T) {
@@ -113,6 +124,34 @@ func durationDataset() *Dataset {
 									Label:    descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
 									Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 									TypeName: new(".google.protobuf.Duration"),
+								},
+							},
+						},
+					},
+				},
+			}},
+		}.Build(),
+	}
+}
+
+func stacDataset() *Dataset {
+	return &Dataset{
+		Type: datasetsv1.AnnotatedType_builder{
+			DescriptorSet: &descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{
+				{
+					Name:       new("tilebox/v1/STACDatapoint.proto"),
+					Package:    new("tilebox.v1"),
+					Dependency: []string{stacv1.File_datasets_stac_v1_asset_proto.Path()},
+					MessageType: []*descriptorpb.DescriptorProto{
+						{
+							Name: new("STACDatapoint"),
+							Field: []*descriptorpb.FieldDescriptorProto{
+								{
+									Name:     new("assets"),
+									Number:   proto.Int32(1),
+									Label:    descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+									Type:     descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+									TypeName: new(".datasets.stac.v1.Assets"),
 								},
 							},
 						},
