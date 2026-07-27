@@ -14,6 +14,7 @@ import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -140,19 +141,22 @@ func (b0 Storage_builder) Build() *Storage {
 
 // StorageScheme describes a storage provider independently of concrete asset hrefs.
 type StorageScheme struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_KnownType     KnownStorageType       `protobuf:"varint,1,opt,name=known_type,json=knownType,enum=datasets.stac.v1.KnownStorageType"`
-	xxx_hidden_CustomType    *string                `protobuf:"bytes,2,opt,name=custom_type,json=customType"`
-	xxx_hidden_Platform      string                 `protobuf:"bytes,3,opt,name=platform"`
-	xxx_hidden_Title         *string                `protobuf:"bytes,4,opt,name=title"`
-	xxx_hidden_Description   *string                `protobuf:"bytes,5,opt,name=description"`
-	xxx_hidden_Region        *string                `protobuf:"bytes,6,opt,name=region"`
-	xxx_hidden_RequesterPays bool                   `protobuf:"varint,7,opt,name=requester_pays,json=requesterPays"`
-	xxx_hidden_StorageClass  *string                `protobuf:"bytes,8,opt,name=storage_class,json=storageClass"`
-	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
-	XXX_presence             [1]uint32
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state                           protoimpl.MessageState     `protogen:"opaque.v1"`
+	xxx_hidden_KnownType            KnownStorageType           `protobuf:"varint,1,opt,name=known_type,json=knownType,enum=datasets.stac.v1.KnownStorageType"`
+	xxx_hidden_CustomType           *string                    `protobuf:"bytes,2,opt,name=custom_type,json=customType"`
+	xxx_hidden_Platform             string                     `protobuf:"bytes,3,opt,name=platform"`
+	xxx_hidden_Title                *string                    `protobuf:"bytes,4,opt,name=title"`
+	xxx_hidden_Description          *string                    `protobuf:"bytes,5,opt,name=description"`
+	xxx_hidden_Region               *string                    `protobuf:"bytes,6,opt,name=region"`
+	xxx_hidden_RequesterPays        bool                       `protobuf:"varint,7,opt,name=requester_pays,json=requesterPays"`
+	xxx_hidden_StorageClass         *string                    `protobuf:"bytes,8,opt,name=storage_class,json=storageClass"`
+	xxx_hidden_Bucket               *string                    `protobuf:"bytes,9,opt,name=bucket"`
+	xxx_hidden_Account              *string                    `protobuf:"bytes,10,opt,name=account"`
+	xxx_hidden_AdditionalProperties map[string]*structpb.Value `protobuf:"bytes,11,rep,name=additional_properties,json=additionalProperties" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	XXX_raceDetectHookData          protoimpl.RaceDetectHookData
+	XXX_presence                    [1]uint32
+	unknownFields                   protoimpl.UnknownFields
+	sizeCache                       protoimpl.SizeCache
 }
 
 func (x *StorageScheme) Reset() {
@@ -253,14 +257,41 @@ func (x *StorageScheme) GetStorageClass() string {
 	return ""
 }
 
+func (x *StorageScheme) GetBucket() string {
+	if x != nil {
+		if x.xxx_hidden_Bucket != nil {
+			return *x.xxx_hidden_Bucket
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *StorageScheme) GetAccount() string {
+	if x != nil {
+		if x.xxx_hidden_Account != nil {
+			return *x.xxx_hidden_Account
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *StorageScheme) GetAdditionalProperties() map[string]*structpb.Value {
+	if x != nil {
+		return x.xxx_hidden_AdditionalProperties
+	}
+	return nil
+}
+
 func (x *StorageScheme) SetKnownType(v KnownStorageType) {
 	x.xxx_hidden_KnownType = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 11)
 }
 
 func (x *StorageScheme) SetCustomType(v string) {
 	x.xxx_hidden_CustomType = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 11)
 }
 
 func (x *StorageScheme) SetPlatform(v string) {
@@ -269,27 +300,41 @@ func (x *StorageScheme) SetPlatform(v string) {
 
 func (x *StorageScheme) SetTitle(v string) {
 	x.xxx_hidden_Title = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 11)
 }
 
 func (x *StorageScheme) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 11)
 }
 
 func (x *StorageScheme) SetRegion(v string) {
 	x.xxx_hidden_Region = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 11)
 }
 
 func (x *StorageScheme) SetRequesterPays(v bool) {
 	x.xxx_hidden_RequesterPays = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 11)
 }
 
 func (x *StorageScheme) SetStorageClass(v string) {
 	x.xxx_hidden_StorageClass = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 8)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 11)
+}
+
+func (x *StorageScheme) SetBucket(v string) {
+	x.xxx_hidden_Bucket = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 11)
+}
+
+func (x *StorageScheme) SetAccount(v string) {
+	x.xxx_hidden_Account = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 9, 11)
+}
+
+func (x *StorageScheme) SetAdditionalProperties(v map[string]*structpb.Value) {
+	x.xxx_hidden_AdditionalProperties = v
 }
 
 func (x *StorageScheme) HasKnownType() bool {
@@ -341,6 +386,20 @@ func (x *StorageScheme) HasStorageClass() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
 }
 
+func (x *StorageScheme) HasBucket() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 8)
+}
+
+func (x *StorageScheme) HasAccount() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 9)
+}
+
 func (x *StorageScheme) ClearKnownType() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_KnownType = KnownStorageType_KNOWN_STORAGE_TYPE_UNSPECIFIED
@@ -376,6 +435,16 @@ func (x *StorageScheme) ClearStorageClass() {
 	x.xxx_hidden_StorageClass = nil
 }
 
+func (x *StorageScheme) ClearBucket() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 8)
+	x.xxx_hidden_Bucket = nil
+}
+
+func (x *StorageScheme) ClearAccount() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 9)
+	x.xxx_hidden_Account = nil
+}
+
 type StorageScheme_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -390,6 +459,13 @@ type StorageScheme_builder struct {
 	RequesterPays *bool
 	// Maps the provider-specific `class` property used by the Copernicus example.
 	StorageClass *string
+	// Bucket variable used by the standard AWS S3 platform template and by provider-specific templates when applicable.
+	Bucket *string
+	// Account variable used by the standard Microsoft Azure platform template.
+	Account *string
+	// Additional provider properties and URI-template variables. Canonical STAC conversion flattens these entries into
+	// the Storage Scheme Object and must reject collisions with the typed properties above.
+	AdditionalProperties map[string]*structpb.Value
 }
 
 func (b0 StorageScheme_builder) Build() *StorageScheme {
@@ -397,34 +473,43 @@ func (b0 StorageScheme_builder) Build() *StorageScheme {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.KnownType != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 11)
 		x.xxx_hidden_KnownType = *b.KnownType
 	}
 	if b.CustomType != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 11)
 		x.xxx_hidden_CustomType = b.CustomType
 	}
 	x.xxx_hidden_Platform = b.Platform
 	if b.Title != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 11)
 		x.xxx_hidden_Title = b.Title
 	}
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 11)
 		x.xxx_hidden_Description = b.Description
 	}
 	if b.Region != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 11)
 		x.xxx_hidden_Region = b.Region
 	}
 	if b.RequesterPays != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 11)
 		x.xxx_hidden_RequesterPays = *b.RequesterPays
 	}
 	if b.StorageClass != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 8)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 11)
 		x.xxx_hidden_StorageClass = b.StorageClass
 	}
+	if b.Bucket != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 11)
+		x.xxx_hidden_Bucket = b.Bucket
+	}
+	if b.Account != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 9, 11)
+		x.xxx_hidden_Account = b.Account
+	}
+	x.xxx_hidden_AdditionalProperties = b.AdditionalProperties
 	return m0
 }
 
@@ -432,23 +517,33 @@ var File_datasets_stac_v1_storage_proto protoreflect.FileDescriptor
 
 const file_datasets_stac_v1_storage_proto_rawDesc = "" +
 	"\n" +
-	"\x1edatasets/stac/v1/storage.proto\x12\x10datasets.stac.v1\x1a\x1bbuf/validate/validate.proto\"\xa8\x01\n" +
-	"\aStorage\x12@\n" +
-	"\aschemes\x18\x01 \x03(\v2&.datasets.stac.v1.Storage.SchemesEntryR\aschemes\x1a[\n" +
+	"\x1edatasets/stac/v1/storage.proto\x12\x10datasets.stac.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1cgoogle/protobuf/struct.proto\"\xb6\x01\n" +
+	"\aStorage\x12N\n" +
+	"\aschemes\x18\x01 \x03(\v2&.datasets.stac.v1.Storage.SchemesEntryB\f\xbaH\t\x9a\x01\x06\"\x04r\x02\x10\x01R\aschemes\x1a[\n" +
 	"\fSchemesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x125\n" +
-	"\x05value\x18\x02 \x01(\v2\x1f.datasets.stac.v1.StorageSchemeR\x05value:\x028\x01\"\x98\x03\n" +
+	"\x05value\x18\x02 \x01(\v2\x1f.datasets.stac.v1.StorageSchemeR\x05value:\x028\x01\"\xf1\r\n" +
 	"\rStorageScheme\x12R\n" +
 	"\n" +
 	"known_type\x18\x01 \x01(\x0e2\".datasets.stac.v1.KnownStorageTypeB\x0f\xbaH\a\x82\x01\x04\x10\x01 \x00\xaa\x01\x02\b\x01R\tknownType\x12-\n" +
 	"\vcustom_type\x18\x02 \x01(\tB\f\xbaH\x04r\x02\x10\x01\xaa\x01\x02\b\x01R\n" +
-	"customType\x12#\n" +
-	"\bplatform\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bplatform\x12\x1b\n" +
+	"customType\x12@\n" +
+	"\bplatform\x18\x03 \x01(\tB$\xbaH!r\x1f\x10\x012\x1b^[A-Za-z][A-Za-z0-9+.-]*://R\bplatform\x12\x1b\n" +
 	"\x05title\x18\x04 \x01(\tB\x05\xaa\x01\x02\b\x01R\x05title\x12'\n" +
 	"\vdescription\x18\x05 \x01(\tB\x05\xaa\x01\x02\b\x01R\vdescription\x12\x1d\n" +
 	"\x06region\x18\x06 \x01(\tB\x05\xaa\x01\x02\b\x01R\x06region\x12,\n" +
 	"\x0erequester_pays\x18\a \x01(\bB\x05\xaa\x01\x02\b\x01R\rrequesterPays\x12*\n" +
-	"\rstorage_class\x18\b \x01(\tB\x05\xaa\x01\x02\b\x01R\fstorageClass: \xbaH\x1d\"\x1b\n" +
+	"\rstorage_class\x18\b \x01(\tB\x05\xaa\x01\x02\b\x01R\fstorageClass\x12$\n" +
+	"\x06bucket\x18\t \x01(\tB\f\xbaH\x04r\x02\x10\x01\xaa\x01\x02\b\x01R\x06bucket\x12&\n" +
+	"\aaccount\x18\n" +
+	" \x01(\tB\f\xbaH\x04r\x02\x10\x01\xaa\x01\x02\b\x01R\aaccount\x12|\n" +
+	"\x15additional_properties\x18\v \x03(\v29.datasets.stac.v1.StorageScheme.AdditionalPropertiesEntryB\f\xbaH\t\x9a\x01\x06\"\x04r\x02\x10\x01R\x14additionalProperties\x1a_\n" +
+	"\x19AdditionalPropertiesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
+	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x05value:\x028\x01:\xae\b\xbaH\xaa\b\x1a\xb4\x03\n" +
+	"\x15storage_scheme.aws_s3\x12]aws-s3 storage requires the standard platform template and valid bucket and region parameters\x1a\xbb\x02!((has(this.known_type) && this.known_type == 1) || (has(this.custom_type) && this.custom_type == 'aws-s3')) || (this.platform == 'https://{bucket}.s3.{region}.amazonaws.com' && has(this.bucket) && this.bucket.matches('^[a-z0-9][-a-z0-9.]{1,61}[a-z0-9]$') && has(this.region) && this.region.matches('^[a-z0-9-]+$'))\x1a\xb9\x02\n" +
+	"\x1estorage_scheme.microsoft_azure\x12Qms-azure storage requires the standard platform template and an account parameter\x1a\xc3\x01!((has(this.known_type) && this.known_type == 3) || (has(this.custom_type) && this.custom_type == 'ms-azure')) || (this.platform == 'https://{account}.blob.core.windows.net' && has(this.account))\x1a\x97\x02\n" +
+	"$storage_scheme.additional_properties\x12Vadditional storage properties must not redefine typed Storage Scheme Object properties\x1a\x96\x01!this.additional_properties.exists(key, key in ['type', 'platform', 'title', 'description', 'region', 'requester_pays', 'class', 'bucket', 'account'])\"\x1b\n" +
 	"\n" +
 	"known_type\n" +
 	"\vcustom_type\x10\x01*\xcc\x01\n" +
@@ -461,22 +556,26 @@ const file_datasets_stac_v1_storage_proto_rawDesc = "" +
 	"\x14com.datasets.stac.v1B\fStorageProtoP\x01Z>github.com/tilebox/tilebox-go/protogen/datasets/stac/v1;stacv1\xa2\x02\x03DSX\xaa\x02\x10Datasets.Stac.V1\xca\x02\x10Datasets\\Stac\\V1\xe2\x02\x1cDatasets\\Stac\\V1\\GPBMetadata\xea\x02\x12Datasets::Stac::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_datasets_stac_v1_storage_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_datasets_stac_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_datasets_stac_v1_storage_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_datasets_stac_v1_storage_proto_goTypes = []any{
-	(KnownStorageType)(0), // 0: datasets.stac.v1.KnownStorageType
-	(*Storage)(nil),       // 1: datasets.stac.v1.Storage
-	(*StorageScheme)(nil), // 2: datasets.stac.v1.StorageScheme
-	nil,                   // 3: datasets.stac.v1.Storage.SchemesEntry
+	(KnownStorageType)(0),  // 0: datasets.stac.v1.KnownStorageType
+	(*Storage)(nil),        // 1: datasets.stac.v1.Storage
+	(*StorageScheme)(nil),  // 2: datasets.stac.v1.StorageScheme
+	nil,                    // 3: datasets.stac.v1.Storage.SchemesEntry
+	nil,                    // 4: datasets.stac.v1.StorageScheme.AdditionalPropertiesEntry
+	(*structpb.Value)(nil), // 5: google.protobuf.Value
 }
 var file_datasets_stac_v1_storage_proto_depIdxs = []int32{
 	3, // 0: datasets.stac.v1.Storage.schemes:type_name -> datasets.stac.v1.Storage.SchemesEntry
 	0, // 1: datasets.stac.v1.StorageScheme.known_type:type_name -> datasets.stac.v1.KnownStorageType
-	2, // 2: datasets.stac.v1.Storage.SchemesEntry.value:type_name -> datasets.stac.v1.StorageScheme
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	4, // 2: datasets.stac.v1.StorageScheme.additional_properties:type_name -> datasets.stac.v1.StorageScheme.AdditionalPropertiesEntry
+	2, // 3: datasets.stac.v1.Storage.SchemesEntry.value:type_name -> datasets.stac.v1.StorageScheme
+	5, // 4: datasets.stac.v1.StorageScheme.AdditionalPropertiesEntry.value:type_name -> google.protobuf.Value
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_datasets_stac_v1_storage_proto_init() }
@@ -490,7 +589,7 @@ func file_datasets_stac_v1_storage_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_stac_v1_storage_proto_rawDesc), len(file_datasets_stac_v1_storage_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
