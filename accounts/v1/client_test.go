@@ -23,6 +23,19 @@ func TestClient_GetAccountDetails(t *testing.T) {
 	assert.Equal(t, "Test User", details.GetUserName())
 	assert.Equal(t, "test-organization", details.GetOrganizationSlug())
 	assert.Equal(t, "Bearer test-api-key", service.authorization)
+	assert.Equal(t, "go_sdk", service.clientSource)
+	assert.NotEmpty(t, service.clientVersion)
+}
+
+func TestClientMetadataCanBeOverridden(t *testing.T) {
+	service := &fakeAccountsService{}
+	client := newTestClient(t, service, WithClientMetadata("cli", "v1.2.3"))
+
+	_, err := client.Account.GetAccountDetails(t.Context())
+	require.NoError(t, err)
+
+	assert.Equal(t, "cli", service.clientSource)
+	assert.Equal(t, "v1.2.3", service.clientVersion)
 }
 
 func TestClient_GetActivePlan(t *testing.T) {
@@ -68,7 +81,7 @@ func TestClient_GetUsageReport(t *testing.T) {
 	}
 }
 
-func newTestClient(t *testing.T, service *fakeAccountsService) *Client {
+func newTestClient(t *testing.T, service *fakeAccountsService, options ...ClientOption) *Client {
 	t.Helper()
 
 	mux := http.NewServeMux()
@@ -80,21 +93,26 @@ func newTestClient(t *testing.T, service *fakeAccountsService) *Client {
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
 
-	return NewClient(
+	options = append(options,
 		WithURL(server.URL),
 		WithHTTPClient(server.Client()),
 		WithAPIKey("test-api-key"),
 		WithDisableTracing(),
 	)
+	return NewClient(options...)
 }
 
 type fakeAccountsService struct {
 	authorization string
+	clientSource  string
+	clientVersion string
 	historyDays   uint64
 }
 
 func (s *fakeAccountsService) GetAccountDetails(_ context.Context, request *connect.Request[accountsv1alpha1.GetAccountDetailsRequest]) (*connect.Response[accountsv1alpha1.AccountDetails], error) {
 	s.authorization = request.Header().Get("Authorization")
+	s.clientSource = request.Header().Get("Tilebox-Client-Source")
+	s.clientVersion = request.Header().Get("Tilebox-Client-Version")
 	return connect.NewResponse(accountsv1alpha1.AccountDetails_builder{
 		UserName:         "Test User",
 		OrganizationSlug: "test-organization",
