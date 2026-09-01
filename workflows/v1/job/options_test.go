@@ -250,11 +250,9 @@ func Test_TaskPageOptions(t *testing.T) {
 	}
 
 	assert.Equal(t, TaskPageOptions{
-		TaskListOptions: TaskListOptions{
-			ParentTaskID: &parentTaskID,
-			Cursor:       cursor,
-			Limit:        10,
-		},
+		ParentTaskID:          &parentTaskID,
+		Cursor:                cursor,
+		Limit:                 10,
 		PrefetchChildrenLimit: 5,
 	}, options)
 }
