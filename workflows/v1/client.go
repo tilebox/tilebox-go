@@ -1,4 +1,4 @@
-package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
+package workflows
 
 import (
 	"context"

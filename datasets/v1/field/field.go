@@ -1,4 +1,4 @@
-package field // import "github.com/tilebox/tilebox-go/datasets/v1/field"
+package field
 
 import (
 	"fmt"

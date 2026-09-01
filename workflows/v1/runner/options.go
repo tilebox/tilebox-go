@@ -1,4 +1,4 @@
-package runner // import "github.com/tilebox/tilebox-go/workflows/v1/runner"
+package runner
 
 import (
 	"log/slog"

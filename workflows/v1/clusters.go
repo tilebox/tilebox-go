@@ -1,7 +1,7 @@
 // Package workflows provides a client for interacting with Tilebox Workflows.
 //
 // Documentation: https://docs.tilebox.com/workflows
-package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
+package workflows
 
 import (
 	"context"

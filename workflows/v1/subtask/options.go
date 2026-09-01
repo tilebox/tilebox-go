@@ -1,4 +1,4 @@
-package subtask // import "github.com/tilebox/tilebox-go/workflows/v1/subtask"
+package subtask
 
 import "fmt"
 

@@ -215,14 +215,68 @@ func Test_QueryOptions(t *testing.T) {
 	}
 }
 
+func Test_TaskListOptions(t *testing.T) {
+	parentTaskID := uuid.New()
+	cursor := NewCursor(uuid.New())
+
+	var options TaskListOptions
+	for _, option := range []TaskListOption{
+		WithParentTaskID(parentTaskID),
+		WithCursor(cursor),
+		WithLimit(10),
+	} {
+		option.ApplyTaskListOption(&options)
+	}
+
+	assert.Equal(t, TaskListOptions{
+		ParentTaskID: &parentTaskID,
+		Cursor:       cursor,
+		Limit:        10,
+	}, options)
+}
+
+func Test_TaskPageOptions(t *testing.T) {
+	parentTaskID := uuid.New()
+	cursor := NewCursor(uuid.New())
+
+	var options TaskPageOptions
+	for _, option := range []TaskPageOption{
+		WithParentTaskID(parentTaskID),
+		WithCursor(cursor),
+		WithLimit(10),
+		WithPrefetchChildren(5),
+	} {
+		option.ApplyTaskPageOption(&options)
+	}
+
+	assert.Equal(t, TaskPageOptions{
+		TaskListOptions: TaskListOptions{
+			ParentTaskID: &parentTaskID,
+			Cursor:       cursor,
+			Limit:        10,
+		},
+		PrefetchChildrenLimit: 5,
+	}, options)
+}
+
 func Test_TelemetryQueryOptions(t *testing.T) {
 	cursor := NewCursor(uuid.New())
+	taskID := uuid.New()
 
 	tests := []struct {
 		name    string
 		options []TelemetryQueryOption
 		want    TelemetryQueryOptions
 	}{
+		{
+			name: "with task id",
+			options: []TelemetryQueryOption{
+				WithTaskID(taskID),
+			},
+			want: TelemetryQueryOptions{
+				TaskID: &taskID,
+			},
+		},
 		{
 			name: "with cursor",
 			options: []TelemetryQueryOption{
@@ -256,6 +310,54 @@ func Test_TelemetryQueryOptions(t *testing.T) {
 			var options TelemetryQueryOptions
 			for _, option := range tt.options {
 				option.ApplyTelemetryQueryOption(&options)
+			}
+			assert.Equal(t, tt.want, options)
+		})
+	}
+}
+
+func Test_LogQueryOptions(t *testing.T) {
+	cursor := NewCursor(uuid.New())
+	taskID := uuid.New()
+
+	tests := []struct {
+		name    string
+		options []LogQueryOption
+		want    LogQueryOptions
+	}{
+		{
+			name: "with shared options",
+			options: []LogQueryOption{
+				WithTaskID(taskID),
+				WithCursor(cursor),
+				WithLimit(10),
+				WithSortDirection(Ascending),
+			},
+			want: LogQueryOptions{
+				TelemetryQueryOptions: TelemetryQueryOptions{
+					TaskID:        &taskID,
+					Cursor:        cursor,
+					Limit:         10,
+					SortDirection: Ascending,
+				},
+			},
+		},
+		{
+			name: "with log severity groups",
+			options: []LogQueryOption{
+				WithLogSeverityGroups(LogSeverityInfo, LogSeverityWarning),
+				WithLogSeverityGroups(LogSeverityError),
+			},
+			want: LogQueryOptions{
+				SeverityGroups: []LogSeverityGroup{LogSeverityInfo, LogSeverityWarning, LogSeverityError},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var options LogQueryOptions
+			for _, option := range tt.options {
+				option.ApplyLogQueryOption(&options)
 			}
 			assert.Equal(t, tt.want, options)
 		})

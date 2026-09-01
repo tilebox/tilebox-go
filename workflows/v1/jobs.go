@@ -1,4 +1,4 @@
-package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
+package workflows
 
 import (
 	"context"
@@ -32,8 +32,6 @@ type Job struct {
 	State job.State
 	// SubmittedAt is the time the job was submitted.
 	SubmittedAt time.Time
-	// TaskSummaries is the task summaries of the job.
-	TaskSummaries []*TaskSummary
 	// AutomationID is the ID of the automation that submitted the job.
 	AutomationID uuid.UUID
 	// Progress is a list of progress indicators for the job.
@@ -42,20 +40,34 @@ type Job struct {
 	ExecutionStats *ExecutionStats
 }
 
-// TaskSummary is a summary of a task.
-type TaskSummary struct {
+// JobTask is a task in a job's user-visible task tree.
+type JobTask struct {
 	// ID is the unique identifier of the task.
 	ID uuid.UUID
-	// Display is the label message of the task.
+	// ParentID is the closest user-visible parent task. Nil indicates a root task.
+	ParentID *uuid.UUID
+	// Display is a human-readable representation of the task.
 	Display string
-	// State is the state of the task.
+	// State is the current state of the task.
 	State TaskState
-	// ParentID is the ID of the parent task.
-	ParentID uuid.UUID
-	// StartedAt is the time the task started.
+	// SubmittedAt is the time the task was submitted.
+	SubmittedAt time.Time
+	// StartedAt is the time the task started running. It is zero if the task has not started.
 	StartedAt time.Time
-	// StoppedAt is the time the task stopped.
+	// StoppedAt is the time the task stopped running. It is zero if the task has not stopped.
 	StoppedAt time.Time
+	// Input is the serialized task input.
+	Input []byte
+	// RetryCount is the number of times the task has been retried.
+	RetryCount int64
+	// MaxRetries is the maximum number of times the task may be retried.
+	MaxRetries int64
+	// HasChildren reports whether the task has children in the user-visible tree.
+	HasChildren bool
+	// ClusterSlug is the cluster on which the task is scheduled to run.
+	ClusterSlug string
+	// Optional reports whether failure of the task is optional.
+	Optional bool
 }
 
 // TaskState is the state of a Task.
@@ -162,6 +174,18 @@ type JobPage struct {
 	NextCursor *job.Cursor
 }
 
+// JobTaskPage is one page of root tasks or direct children of one task.
+type JobTaskPage struct {
+	// ParentTaskID is the parent of this sibling collection. Nil indicates root tasks.
+	ParentTaskID *uuid.UUID
+	// Tasks is the list of tasks in this page.
+	Tasks []*JobTask
+	// NextCursor can be used with the same parent task to request the next page.
+	NextCursor *job.Cursor
+	// PrefetchedChildPages contains the first child page for tasks in this page when prefetching was requested.
+	PrefetchedChildPages []*JobTaskPage
+}
+
 // LogPage is a single page of log records returned by a manual page query.
 type LogPage struct {
 	// Logs is the list of log records in this page.
@@ -225,6 +249,25 @@ type JobClient interface {
 	// Get returns a job by its ID.
 	Get(ctx context.Context, jobID uuid.UUID) (*Job, error)
 
+	// ListTasks returns root tasks or the direct children of one task.
+	//
+	// Options:
+	//   - job.WithParentTaskID: lists direct children of the specified task instead of root tasks. (Optional)
+	//   - job.WithCursor: starts after a cursor returned for the same sibling collection. (Optional)
+	//   - job.WithLimit: limits the total number of tasks returned. Defaults to unlimited.
+	//
+	// Pagination is handled automatically for this sibling collection. Child collections are not traversed.
+	ListTasks(ctx context.Context, jobID uuid.UUID, options ...job.TaskListOption) iter.Seq2[*JobTask, error]
+
+	// ListTasksPage returns one page of root tasks or direct children of one task.
+	//
+	// Options:
+	//   - job.WithParentTaskID: lists direct children of the specified task instead of root tasks. (Optional)
+	//   - job.WithCursor: starts after a cursor returned for the same sibling collection. (Optional)
+	//   - job.WithLimit: limits the number of tasks returned in this page. Defaults to the server default.
+	//   - job.WithPrefetchChildren: includes the first child page for each task returned in this page. (Optional)
+	ListTasksPage(ctx context.Context, jobID uuid.UUID, options ...job.TaskPageOption) (*JobTaskPage, error)
+
 	// Retry retries a job.
 	//
 	// Returns the number of rescheduled tasks.
@@ -277,25 +320,30 @@ type JobClient interface {
 	// QueryLogs returns the logs emitted while running a job.
 	//
 	// Options:
+	//   - job.WithTaskID: filters logs by task ID. Defaults to all tasks in the job.
 	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
 	//   - job.WithLimit: limits the total number of records returned. Defaults to unlimited.
 	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
+	//   - job.WithLogSeverityGroups: filters logs by severity group. Defaults to all severities.
 	//
 	// Pagination is handled automatically under the hood. The logs are lazily loaded and returned as a sequence.
 	// The output sequence can be transformed into a slice using Collect.
-	QueryLogs(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) iter.Seq2[*LogRecord, error]
+	QueryLogs(ctx context.Context, jobID uuid.UUID, options ...job.LogQueryOption) iter.Seq2[*LogRecord, error]
 
 	// QueryLogsPage returns a single page of logs emitted while running a job.
 	//
 	// Options:
+	//   - job.WithTaskID: filters logs by task ID. Defaults to all tasks in the job.
 	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
 	//   - job.WithLimit: limits the number of records returned in this page. Defaults to the server default.
 	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
-	QueryLogsPage(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) (*LogPage, error)
+	//   - job.WithLogSeverityGroups: filters logs by severity group. Defaults to all severities.
+	QueryLogsPage(ctx context.Context, jobID uuid.UUID, options ...job.LogQueryOption) (*LogPage, error)
 
 	// QuerySpans returns the spans emitted while running a job.
 	//
 	// Options:
+	//   - job.WithTaskID: filters spans by task ID. Defaults to all tasks in the job.
 	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
 	//   - job.WithLimit: limits the total number of records returned. Defaults to unlimited.
 	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
@@ -307,6 +355,7 @@ type JobClient interface {
 	// QuerySpansPage returns a single page of spans emitted while running a job.
 	//
 	// Options:
+	//   - job.WithTaskID: filters spans by task ID. Defaults to all tasks in the job.
 	//   - job.WithCursor: starts the query after a cursor returned by a previous page. (Optional)
 	//   - job.WithLimit: limits the number of records returned in this page. Defaults to the server default.
 	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
@@ -346,6 +395,60 @@ func (c jobClient) Get(ctx context.Context, jobID uuid.UUID) (*Job, error) {
 	}
 
 	return protoToJob(response), nil
+}
+
+func (c jobClient) ListTasks(ctx context.Context, jobID uuid.UUID, options ...job.TaskListOption) iter.Seq2[*JobTask, error] {
+	opts := &job.TaskListOptions{}
+	for _, option := range options {
+		option.ApplyTaskListOption(opts)
+	}
+
+	return func(yield func(*JobTask, error) bool) {
+		cursor := opts.Cursor
+		remaining := opts.Limit
+
+		for {
+			pageOpts := &job.TaskPageOptions{TaskListOptions: *opts}
+			pageOpts.Cursor = cursor
+			if opts.Limit > 0 {
+				if remaining == 0 {
+					break
+				}
+				pageOpts.Limit = remaining
+			}
+
+			taskPage, err := c.listTasksPage(ctx, jobID, pageOpts)
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+
+			for _, task := range taskPage.Tasks {
+				if opts.Limit > 0 && remaining == 0 {
+					return
+				}
+				if !yield(task, nil) {
+					return
+				}
+				if opts.Limit > 0 {
+					remaining--
+				}
+			}
+
+			cursor = taskPage.NextCursor
+			if cursor == nil || (opts.Limit > 0 && remaining == 0) {
+				break
+			}
+		}
+	}
+}
+
+func (c jobClient) ListTasksPage(ctx context.Context, jobID uuid.UUID, options ...job.TaskPageOption) (*JobTaskPage, error) {
+	opts := &job.TaskPageOptions{}
+	for _, option := range options {
+		option.ApplyTaskPageOption(opts)
+	}
+	return c.listTasksPage(ctx, jobID, opts)
 }
 
 func (c jobClient) Retry(ctx context.Context, jobID uuid.UUID) (int64, error) {
@@ -416,10 +519,10 @@ func (c jobClient) QueryPage(ctx context.Context, options ...job.QueryOption) (*
 	return c.queryPage(ctx, opts)
 }
 
-func (c jobClient) QueryLogs(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) iter.Seq2[*LogRecord, error] {
-	opts := &job.TelemetryQueryOptions{}
+func (c jobClient) QueryLogs(ctx context.Context, jobID uuid.UUID, options ...job.LogQueryOption) iter.Seq2[*LogRecord, error] {
+	opts := &job.LogQueryOptions{}
 	for _, option := range options {
-		option.ApplyTelemetryQueryOption(opts)
+		option.ApplyLogQueryOption(opts)
 	}
 
 	return func(yield func(*LogRecord, error) bool) {
@@ -463,10 +566,10 @@ func (c jobClient) QueryLogs(ctx context.Context, jobID uuid.UUID, options ...jo
 	}
 }
 
-func (c jobClient) QueryLogsPage(ctx context.Context, jobID uuid.UUID, options ...job.TelemetryQueryOption) (*LogPage, error) {
-	opts := &job.TelemetryQueryOptions{}
+func (c jobClient) QueryLogsPage(ctx context.Context, jobID uuid.UUID, options ...job.LogQueryOption) (*LogPage, error) {
+	opts := &job.LogQueryOptions{}
 	for _, option := range options {
-		option.ApplyTelemetryQueryOption(opts)
+		option.ApplyLogQueryOption(opts)
 	}
 	return c.queryLogsPage(ctx, jobID, opts)
 }
@@ -527,7 +630,7 @@ func (c jobClient) QuerySpansPage(ctx context.Context, jobID uuid.UUID, options 
 }
 
 func (c jobClient) querySpansPage(ctx context.Context, jobID uuid.UUID, opts *job.TelemetryQueryOptions) (*SpanPage, error) {
-	spansMessage, err := c.telemetryService.QueryJobSpans(ctx, jobID, paginationFromOptions(opts.Limit, opts.Cursor), sortDirectionToProto(opts.SortDirection))
+	spansMessage, err := c.telemetryService.QueryJobSpans(ctx, jobID, taskIDToProto(opts.TaskID), paginationFromOptions(opts.Limit, opts.Cursor), sortDirectionToProto(opts.SortDirection))
 	if err != nil {
 		return nil, err
 	}
@@ -545,6 +648,32 @@ func (c jobClient) querySpansPage(ctx context.Context, jobID uuid.UUID, opts *jo
 		Spans:      spans,
 		NextCursor: cursorFromPagination(spansMessage.GetNextPage()),
 	}, nil
+}
+
+func (c jobClient) listTasksPage(ctx context.Context, jobID uuid.UUID, opts *job.TaskPageOptions) (*JobTaskPage, error) {
+	var prefetchChildren *workflowsv1.JobTaskChildrenPrefetch
+	if opts.PrefetchChildrenLimit > 0 {
+		prefetchChildren = workflowsv1.JobTaskChildrenPrefetch_builder{
+			Limit: opts.PrefetchChildrenLimit,
+		}.Build()
+	}
+
+	response, err := c.service.ListJobTasks(
+		ctx,
+		jobID,
+		taskIDToProto(opts.ParentTaskID),
+		paginationFromOptions(opts.Limit, opts.Cursor),
+		prefetchChildren,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	page := protoToJobTaskPage(response.GetPage())
+	for _, childPage := range response.GetPrefetchedChildPages() {
+		page.PrefetchedChildPages = append(page.PrefetchedChildPages, protoToJobTaskPage(childPage))
+	}
+	return page, nil
 }
 
 func (c jobClient) queryPage(ctx context.Context, opts *job.QueryOptions) (*JobPage, error) {
@@ -598,8 +727,17 @@ func (c jobClient) queryPage(ctx context.Context, opts *job.QueryOptions) (*JobP
 	}, nil
 }
 
-func (c jobClient) queryLogsPage(ctx context.Context, jobID uuid.UUID, opts *job.TelemetryQueryOptions) (*LogPage, error) {
-	logsMessage, err := c.telemetryService.QueryJobLogs(ctx, jobID, paginationFromOptions(opts.Limit, opts.Cursor), sortDirectionToProto(opts.SortDirection))
+func (c jobClient) queryLogsPage(ctx context.Context, jobID uuid.UUID, opts *job.LogQueryOptions) (*LogPage, error) {
+	var filters *workflowsv1.LogQueryFilters
+	if len(opts.SeverityGroups) > 0 {
+		severityLevels := make([]workflowsv1.LogSeverityGroup, len(opts.SeverityGroups))
+		for index, group := range opts.SeverityGroups {
+			severityLevels[index] = workflowsv1.LogSeverityGroup(group)
+		}
+		filters = workflowsv1.LogQueryFilters_builder{SeverityLevels: severityLevels}.Build()
+	}
+
+	logsMessage, err := c.telemetryService.QueryJobLogs(ctx, jobID, taskIDToProto(opts.TaskID), paginationFromOptions(opts.Limit, opts.Cursor), sortDirectionToProto(opts.SortDirection), filters)
 	if err != nil {
 		return nil, err
 	}
@@ -664,11 +802,6 @@ func validateJob(jobName string, clusterSlug string, maxRetries int64, tasks ...
 }
 
 func protoToJob(jobMessage *workflowsv1.Job) *Job {
-	taskSummaries := make([]*TaskSummary, 0, len(jobMessage.GetTaskSummaries()))
-	for _, taskSummary := range jobMessage.GetTaskSummaries() {
-		taskSummaries = append(taskSummaries, protoToTaskSummary(taskSummary))
-	}
-
 	progressIndicators := make([]*ProgressIndicator, 0, len(jobMessage.GetProgress()))
 	for _, progress := range jobMessage.GetProgress() {
 		progressIndicators = append(progressIndicators, protoToProgressIndicator(progress))
@@ -679,7 +812,6 @@ func protoToJob(jobMessage *workflowsv1.Job) *Job {
 		Name:           jobMessage.GetName(),
 		State:          job.State(jobMessage.GetState()),
 		SubmittedAt:    jobMessage.GetSubmittedAt().AsTime(),
-		TaskSummaries:  taskSummaries,
 		AutomationID:   jobMessage.GetAutomationId().AsUUID(),
 		Progress:       progressIndicators,
 		ExecutionStats: protoToExecutionStats(jobMessage.GetExecutionStats()),
@@ -708,14 +840,47 @@ func protoToExecutionStats(es *workflowsv1.ExecutionStats) *ExecutionStats {
 	}
 }
 
-func protoToTaskSummary(t *workflowsv1.TaskSummary) *TaskSummary {
-	return &TaskSummary{
-		ID:        t.GetId().AsUUID(),
-		Display:   t.GetDisplay(),
-		State:     TaskState(t.GetState()),
-		ParentID:  t.GetParentId().AsUUID(),
-		StartedAt: t.GetStartedAt().AsTime(),
-		StoppedAt: t.GetStoppedAt().AsTime(),
+func protoToJobTaskPage(page *workflowsv1.JobTaskPage) *JobTaskPage {
+	tasks := make([]*JobTask, 0, len(page.GetTasks()))
+	for _, task := range page.GetTasks() {
+		tasks = append(tasks, protoToJobTask(task))
+	}
+
+	return &JobTaskPage{
+		ParentTaskID: uuidPointerFromProto(page.GetParentTaskId()),
+		Tasks:        tasks,
+		NextCursor:   cursorFromPagination(page.GetNextPage()),
+	}
+}
+
+func protoToJobTask(task *workflowsv1.TaskSummary) *JobTask {
+	var submittedAt time.Time
+	if timestamp := task.GetSubmittedAt(); timestamp != nil {
+		submittedAt = timestamp.AsTime()
+	}
+	var startedAt time.Time
+	if timestamp := task.GetStartedAt(); timestamp != nil {
+		startedAt = timestamp.AsTime()
+	}
+	var stoppedAt time.Time
+	if timestamp := task.GetStoppedAt(); timestamp != nil {
+		stoppedAt = timestamp.AsTime()
+	}
+
+	return &JobTask{
+		ID:          task.GetId().AsUUID(),
+		ParentID:    uuidPointerFromProto(task.GetParentId()),
+		Display:     task.GetDisplay(),
+		State:       TaskState(task.GetState()),
+		SubmittedAt: submittedAt,
+		StartedAt:   startedAt,
+		StoppedAt:   stoppedAt,
+		Input:       task.GetInput(),
+		RetryCount:  task.GetRetryCount(),
+		MaxRetries:  task.GetMaxRetries(),
+		HasChildren: task.GetHasChildren(),
+		ClusterSlug: task.GetClusterSlug(),
+		Optional:    task.GetOptional(),
 	}
 }
 
@@ -768,6 +933,21 @@ func paginationFromOptions(limit int64, cursor *job.Cursor) *tileboxv1.Paginatio
 		Limit:         &limit,
 		StartingAfter: startingAfter,
 	}.Build()
+}
+
+func taskIDToProto(taskID *uuid.UUID) *tileboxv1.ID {
+	if taskID == nil {
+		return nil
+	}
+	return tileboxv1.NewUUID(*taskID)
+}
+
+func uuidPointerFromProto(id *tileboxv1.ID) *uuid.UUID {
+	if id == nil {
+		return nil
+	}
+	value := id.AsUUID()
+	return &value
 }
 
 func cursorFromPagination(page *tileboxv1.Pagination) *job.Cursor {

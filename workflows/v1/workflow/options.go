@@ -1,4 +1,4 @@
-package workflow // import "github.com/tilebox/tilebox-go/workflows/v1/workflow"
+package workflow
 
 // UpdateOptions contains workflow update options.
 type UpdateOptions struct {

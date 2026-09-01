@@ -1,4 +1,4 @@
-package query // import "github.com/tilebox/tilebox-go/query"
+package query
 
 import (
 	"fmt"

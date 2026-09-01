@@ -39,6 +39,9 @@ const (
 	// TelemetryQueryServiceQueryLogsInIntervalProcedure is the fully-qualified name of the
 	// TelemetryQueryService's QueryLogsInInterval RPC.
 	TelemetryQueryServiceQueryLogsInIntervalProcedure = "/workflows.v1.TelemetryQueryService/QueryLogsInInterval"
+	// TelemetryQueryServiceGetLogMessageCountsProcedure is the fully-qualified name of the
+	// TelemetryQueryService's GetLogMessageCounts RPC.
+	TelemetryQueryServiceGetLogMessageCountsProcedure = "/workflows.v1.TelemetryQueryService/GetLogMessageCounts"
 	// TelemetryQueryServiceQueryJobSpansProcedure is the fully-qualified name of the
 	// TelemetryQueryService's QueryJobSpans RPC.
 	TelemetryQueryServiceQueryJobSpansProcedure = "/workflows.v1.TelemetryQueryService/QueryJobSpans"
@@ -48,6 +51,7 @@ const (
 type TelemetryQueryServiceClient interface {
 	QueryJobLogs(context.Context, *connect.Request[v1.QueryJobLogsRequest]) (*connect.Response[v1.PaginatedLogsData], error)
 	QueryLogsInInterval(context.Context, *connect.Request[v1.QueryLogsInIntervalRequest]) (*connect.Response[v1.PaginatedLogsData], error)
+	GetLogMessageCounts(context.Context, *connect.Request[v1.GetLogMessageCountsRequest]) (*connect.Response[v1.GetLogMessageCountsResponse], error)
 	QueryJobSpans(context.Context, *connect.Request[v1.QueryJobSpansRequest]) (*connect.Response[v1.PaginatedSpansData], error)
 }
 
@@ -74,6 +78,12 @@ func NewTelemetryQueryServiceClient(httpClient connect.HTTPClient, baseURL strin
 			connect.WithSchema(telemetryQueryServiceMethods.ByName("QueryLogsInInterval")),
 			connect.WithClientOptions(opts...),
 		),
+		getLogMessageCounts: connect.NewClient[v1.GetLogMessageCountsRequest, v1.GetLogMessageCountsResponse](
+			httpClient,
+			baseURL+TelemetryQueryServiceGetLogMessageCountsProcedure,
+			connect.WithSchema(telemetryQueryServiceMethods.ByName("GetLogMessageCounts")),
+			connect.WithClientOptions(opts...),
+		),
 		queryJobSpans: connect.NewClient[v1.QueryJobSpansRequest, v1.PaginatedSpansData](
 			httpClient,
 			baseURL+TelemetryQueryServiceQueryJobSpansProcedure,
@@ -87,6 +97,7 @@ func NewTelemetryQueryServiceClient(httpClient connect.HTTPClient, baseURL strin
 type telemetryQueryServiceClient struct {
 	queryJobLogs        *connect.Client[v1.QueryJobLogsRequest, v1.PaginatedLogsData]
 	queryLogsInInterval *connect.Client[v1.QueryLogsInIntervalRequest, v1.PaginatedLogsData]
+	getLogMessageCounts *connect.Client[v1.GetLogMessageCountsRequest, v1.GetLogMessageCountsResponse]
 	queryJobSpans       *connect.Client[v1.QueryJobSpansRequest, v1.PaginatedSpansData]
 }
 
@@ -100,6 +111,11 @@ func (c *telemetryQueryServiceClient) QueryLogsInInterval(ctx context.Context, r
 	return c.queryLogsInInterval.CallUnary(ctx, req)
 }
 
+// GetLogMessageCounts calls workflows.v1.TelemetryQueryService.GetLogMessageCounts.
+func (c *telemetryQueryServiceClient) GetLogMessageCounts(ctx context.Context, req *connect.Request[v1.GetLogMessageCountsRequest]) (*connect.Response[v1.GetLogMessageCountsResponse], error) {
+	return c.getLogMessageCounts.CallUnary(ctx, req)
+}
+
 // QueryJobSpans calls workflows.v1.TelemetryQueryService.QueryJobSpans.
 func (c *telemetryQueryServiceClient) QueryJobSpans(ctx context.Context, req *connect.Request[v1.QueryJobSpansRequest]) (*connect.Response[v1.PaginatedSpansData], error) {
 	return c.queryJobSpans.CallUnary(ctx, req)
@@ -110,6 +126,7 @@ func (c *telemetryQueryServiceClient) QueryJobSpans(ctx context.Context, req *co
 type TelemetryQueryServiceHandler interface {
 	QueryJobLogs(context.Context, *connect.Request[v1.QueryJobLogsRequest]) (*connect.Response[v1.PaginatedLogsData], error)
 	QueryLogsInInterval(context.Context, *connect.Request[v1.QueryLogsInIntervalRequest]) (*connect.Response[v1.PaginatedLogsData], error)
+	GetLogMessageCounts(context.Context, *connect.Request[v1.GetLogMessageCountsRequest]) (*connect.Response[v1.GetLogMessageCountsResponse], error)
 	QueryJobSpans(context.Context, *connect.Request[v1.QueryJobSpansRequest]) (*connect.Response[v1.PaginatedSpansData], error)
 }
 
@@ -132,6 +149,12 @@ func NewTelemetryQueryServiceHandler(svc TelemetryQueryServiceHandler, opts ...c
 		connect.WithSchema(telemetryQueryServiceMethods.ByName("QueryLogsInInterval")),
 		connect.WithHandlerOptions(opts...),
 	)
+	telemetryQueryServiceGetLogMessageCountsHandler := connect.NewUnaryHandler(
+		TelemetryQueryServiceGetLogMessageCountsProcedure,
+		svc.GetLogMessageCounts,
+		connect.WithSchema(telemetryQueryServiceMethods.ByName("GetLogMessageCounts")),
+		connect.WithHandlerOptions(opts...),
+	)
 	telemetryQueryServiceQueryJobSpansHandler := connect.NewUnaryHandler(
 		TelemetryQueryServiceQueryJobSpansProcedure,
 		svc.QueryJobSpans,
@@ -144,6 +167,8 @@ func NewTelemetryQueryServiceHandler(svc TelemetryQueryServiceHandler, opts ...c
 			telemetryQueryServiceQueryJobLogsHandler.ServeHTTP(w, r)
 		case TelemetryQueryServiceQueryLogsInIntervalProcedure:
 			telemetryQueryServiceQueryLogsInIntervalHandler.ServeHTTP(w, r)
+		case TelemetryQueryServiceGetLogMessageCountsProcedure:
+			telemetryQueryServiceGetLogMessageCountsHandler.ServeHTTP(w, r)
 		case TelemetryQueryServiceQueryJobSpansProcedure:
 			telemetryQueryServiceQueryJobSpansHandler.ServeHTTP(w, r)
 		default:
@@ -161,6 +186,10 @@ func (UnimplementedTelemetryQueryServiceHandler) QueryJobLogs(context.Context, *
 
 func (UnimplementedTelemetryQueryServiceHandler) QueryLogsInInterval(context.Context, *connect.Request[v1.QueryLogsInIntervalRequest]) (*connect.Response[v1.PaginatedLogsData], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TelemetryQueryService.QueryLogsInInterval is not implemented"))
+}
+
+func (UnimplementedTelemetryQueryServiceHandler) GetLogMessageCounts(context.Context, *connect.Request[v1.GetLogMessageCountsRequest]) (*connect.Response[v1.GetLogMessageCountsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TelemetryQueryService.GetLogMessageCounts is not implemented"))
 }
 
 func (UnimplementedTelemetryQueryServiceHandler) QueryJobSpans(context.Context, *connect.Request[v1.QueryJobSpansRequest]) (*connect.Response[v1.PaginatedSpansData], error) {
