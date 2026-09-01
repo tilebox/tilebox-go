@@ -1,7 +1,7 @@
 // Package datasets provides a client for interacting with Tilebox Datasets.
 //
 // Documentation: https://docs.tilebox.com/datasets
-package datasets // import "github.com/tilebox/tilebox-go/datasets/v1"
+package datasets
 
 import (
 	"context"

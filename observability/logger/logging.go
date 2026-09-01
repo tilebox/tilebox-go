@@ -1,4 +1,4 @@
-package logger // import "github.com/tilebox/tilebox-go/observability/logger"
+package logger
 
 import (
 	"context"

@@ -24,8 +24,7 @@ func retryOnStatusUnavailable(ctx context.Context, resp *http.Response, err erro
 	}
 
 	if err != nil {
-		var v *url.Error
-		if errors.As(err, &v) {
+		if v, ok := errors.AsType[*url.Error](err); ok {
 			// Retry if the error was due to a connection refused.
 			if strings.Contains(v.Error(), "connect: connection refused") {
 				slog.InfoContext(ctx, "Auth client retry", slog.Any("error", v))

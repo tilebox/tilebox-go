@@ -1,4 +1,4 @@
-package job // import "github.com/tilebox/tilebox-go/workflows/v1/job"
+package job
 
 import (
 	"encoding/json"
@@ -152,8 +152,38 @@ func (f queryOptionFunc) ApplyQueryOption(cfg *QueryOptions) {
 	f(cfg)
 }
 
+// TaskListOptions contains options for listing one sibling collection in a job's task tree.
+type TaskListOptions struct {
+	// ParentTaskID selects the task whose children to list. Leave unset to list root tasks.
+	ParentTaskID *uuid.UUID
+	// Cursor starts the listing after a cursor returned for the same sibling collection.
+	Cursor *Cursor
+	// Limit is the maximum number of tasks to return.
+	// Leave unset or set to 0 to paginate through and return all tasks.
+	Limit int64
+}
+
+type TaskListOption interface {
+	ApplyTaskListOption(*TaskListOptions)
+}
+
+// TaskPageOptions contains options for listing one page in a job's task tree.
+type TaskPageOptions struct {
+	TaskListOptions
+
+	// PrefetchChildrenLimit is the maximum number of children to prefetch for each task in the page.
+	// Leave unset or set to 0 to disable child prefetching.
+	PrefetchChildrenLimit int64
+}
+
+type TaskPageOption interface {
+	ApplyTaskPageOption(*TaskPageOptions)
+}
+
 // TelemetryQueryOptions contains options for querying job observability.
 type TelemetryQueryOptions struct {
+	// TaskID filters observability records by task. Leave unset to return records for all tasks in the job.
+	TaskID *uuid.UUID
 	// Cursor starts the query after a cursor returned by a previous page.
 	Cursor *Cursor
 	// Limit is the maximum number of observability records to return.
@@ -168,16 +198,49 @@ type TelemetryQueryOption interface {
 	ApplyTelemetryQueryOption(*TelemetryQueryOptions)
 }
 
+// LogQueryOptions contains options for querying job logs.
+type LogQueryOptions struct {
+	TelemetryQueryOptions
+
+	// SeverityGroups filters logs by severity group. Leave unset to return logs of all severities.
+	SeverityGroups []LogSeverityGroup
+}
+
+type LogQueryOption interface {
+	ApplyLogQueryOption(*LogQueryOptions)
+}
+
 type sharedQueryOption interface {
 	QueryOption
 	TelemetryQueryOption
+	LogQueryOption
 }
 
 type SortDirectionOption = sharedQueryOption
 
-type LimitOption = sharedQueryOption
+type paginationOption interface {
+	sharedQueryOption
+	TaskListOption
+	TaskPageOption
+}
 
-type CursorOption = sharedQueryOption
+type LimitOption = paginationOption
+
+type CursorOption = paginationOption
+
+type taskCollectionOption interface {
+	TaskListOption
+	TaskPageOption
+}
+
+type ParentTaskIDOption = taskCollectionOption
+
+type telemetryQueryOption interface {
+	TelemetryQueryOption
+	LogQueryOption
+}
+
+type TaskIDOption = telemetryQueryOption
 
 // Cursor identifies where to continue a paginated query.
 //
@@ -207,6 +270,18 @@ func (o cursorOption) ApplyTelemetryQueryOption(cfg *TelemetryQueryOptions) {
 	cfg.Cursor = o.cursor
 }
 
+func (o cursorOption) ApplyLogQueryOption(cfg *LogQueryOptions) {
+	cfg.Cursor = o.cursor
+}
+
+func (o cursorOption) ApplyTaskListOption(cfg *TaskListOptions) {
+	cfg.Cursor = o.cursor
+}
+
+func (o cursorOption) ApplyTaskPageOption(cfg *TaskPageOptions) {
+	cfg.Cursor = o.cursor
+}
+
 type limitOption struct {
 	limit int64
 }
@@ -218,6 +293,24 @@ func (o limitOption) ApplyQueryOption(cfg *QueryOptions) {
 }
 
 func (o limitOption) ApplyTelemetryQueryOption(cfg *TelemetryQueryOptions) {
+	if o.limit > 0 {
+		cfg.Limit = o.limit
+	}
+}
+
+func (o limitOption) ApplyLogQueryOption(cfg *LogQueryOptions) {
+	if o.limit > 0 {
+		cfg.Limit = o.limit
+	}
+}
+
+func (o limitOption) ApplyTaskListOption(cfg *TaskListOptions) {
+	if o.limit > 0 {
+		cfg.Limit = o.limit
+	}
+}
+
+func (o limitOption) ApplyTaskPageOption(cfg *TaskPageOptions) {
 	if o.limit > 0 {
 		cfg.Limit = o.limit
 	}
@@ -237,6 +330,72 @@ func (o sortDirectionOption) ApplyTelemetryQueryOption(cfg *TelemetryQueryOption
 	if o.direction != 0 {
 		cfg.SortDirection = o.direction
 	}
+}
+
+func (o sortDirectionOption) ApplyLogQueryOption(cfg *LogQueryOptions) {
+	if o.direction != 0 {
+		cfg.SortDirection = o.direction
+	}
+}
+
+type taskIDOption struct {
+	taskID uuid.UUID
+}
+
+func (o taskIDOption) ApplyTelemetryQueryOption(cfg *TelemetryQueryOptions) {
+	cfg.TaskID = &o.taskID
+}
+
+func (o taskIDOption) ApplyLogQueryOption(cfg *LogQueryOptions) {
+	cfg.TaskID = &o.taskID
+}
+
+type parentTaskIDOption struct {
+	parentTaskID uuid.UUID
+}
+
+func (o parentTaskIDOption) ApplyTaskListOption(cfg *TaskListOptions) {
+	cfg.ParentTaskID = &o.parentTaskID
+}
+
+func (o parentTaskIDOption) ApplyTaskPageOption(cfg *TaskPageOptions) {
+	cfg.ParentTaskID = &o.parentTaskID
+}
+
+type prefetchChildrenOption struct {
+	limit int64
+}
+
+func (o prefetchChildrenOption) ApplyTaskPageOption(cfg *TaskPageOptions) {
+	if o.limit > 0 {
+		cfg.PrefetchChildrenLimit = o.limit
+	}
+}
+
+// LogSeverityGroup is a log severity group for use in query filters.
+type LogSeverityGroup int32
+
+// Log severity values for use in query filters.
+const (
+	_ LogSeverityGroup = iota
+	// LogSeverityTrace includes OpenTelemetry trace severities.
+	LogSeverityTrace
+	// LogSeverityDebug includes OpenTelemetry debug severities.
+	LogSeverityDebug
+	// LogSeverityInfo includes OpenTelemetry info severities.
+	LogSeverityInfo
+	// LogSeverityWarning includes OpenTelemetry warning severities.
+	LogSeverityWarning
+	// LogSeverityError includes OpenTelemetry error and fatal severities.
+	LogSeverityError
+)
+
+type logSeverityGroupsOption struct {
+	groups []LogSeverityGroup
+}
+
+func (o logSeverityGroupsOption) ApplyLogQueryOption(cfg *LogQueryOptions) {
+	cfg.SeverityGroups = append(cfg.SeverityGroups, o.groups...)
 }
 
 // SortDirection specifies the sort direction for job and observability query results.
@@ -317,4 +476,26 @@ func WithLimit(limit int64) LimitOption {
 // Defaults to the server default.
 func WithSortDirection(direction SortDirection) SortDirectionOption {
 	return sortDirectionOption{direction: direction}
+}
+
+// WithTaskID filters job logs or spans by task ID.
+func WithTaskID(taskID uuid.UUID) TaskIDOption {
+	return taskIDOption{taskID: taskID}
+}
+
+// WithParentTaskID lists the direct children of the specified task instead of root tasks.
+func WithParentTaskID(parentTaskID uuid.UUID) ParentTaskIDOption {
+	return parentTaskIDOption{parentTaskID: parentTaskID}
+}
+
+// WithPrefetchChildren includes the first page of children for each task in a manually requested task page.
+// The limit is applied separately to each child page.
+func WithPrefetchChildren(limit int64) TaskPageOption {
+	return prefetchChildrenOption{limit: limit}
+}
+
+// WithLogSeverityGroups filters logs by severity group. Logs matching any of the specified groups are returned.
+// If no groups are specified, logs of all severities are returned.
+func WithLogSeverityGroups(groups ...LogSeverityGroup) LogQueryOption {
+	return logSeverityGroupsOption{groups: groups}
 }

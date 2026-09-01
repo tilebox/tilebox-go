@@ -1,5 +1,5 @@
 // Package accounts provides a client for interacting with Tilebox Accounts.
-package accounts // import "github.com/tilebox/tilebox-go/accounts/v1"
+package accounts
 
 import (
 	"context"

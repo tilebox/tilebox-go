@@ -21,15 +21,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	JobService_SubmitJob_FullMethodName       = "/workflows.v1.JobService/SubmitJob"
-	JobService_GetJob_FullMethodName          = "/workflows.v1.JobService/GetJob"
-	JobService_GetJobProgress_FullMethodName  = "/workflows.v1.JobService/GetJobProgress"
-	JobService_RetryJob_FullMethodName        = "/workflows.v1.JobService/RetryJob"
-	JobService_CancelJob_FullMethodName       = "/workflows.v1.JobService/CancelJob"
-	JobService_VisualizeJob_FullMethodName    = "/workflows.v1.JobService/VisualizeJob"
-	JobService_QueryJobs_FullMethodName       = "/workflows.v1.JobService/QueryJobs"
-	JobService_GetJobPrototype_FullMethodName = "/workflows.v1.JobService/GetJobPrototype"
-	JobService_CloneJob_FullMethodName        = "/workflows.v1.JobService/CloneJob"
+	JobService_SubmitJob_FullMethodName         = "/workflows.v1.JobService/SubmitJob"
+	JobService_GetJob_FullMethodName            = "/workflows.v1.JobService/GetJob"
+	JobService_ListJobTasks_FullMethodName      = "/workflows.v1.JobService/ListJobTasks"
+	JobService_RetryJob_FullMethodName          = "/workflows.v1.JobService/RetryJob"
+	JobService_CancelJob_FullMethodName         = "/workflows.v1.JobService/CancelJob"
+	JobService_VisualizeJob_FullMethodName      = "/workflows.v1.JobService/VisualizeJob"
+	JobService_QueryJobs_FullMethodName         = "/workflows.v1.JobService/QueryJobs"
+	JobService_GetJobPrototype_FullMethodName   = "/workflows.v1.JobService/GetJobPrototype"
+	JobService_CloneJob_FullMethodName          = "/workflows.v1.JobService/CloneJob"
+	JobService_GetJobStateCounts_FullMethodName = "/workflows.v1.JobService/GetJobStateCounts"
+	JobService_GetTaskQueueStats_FullMethodName = "/workflows.v1.JobService/GetTaskQueueStats"
 )
 
 // JobServiceClient is the client API for JobService service.
@@ -40,13 +42,15 @@ const (
 type JobServiceClient interface {
 	SubmitJob(ctx context.Context, in *SubmitJobRequest, opts ...grpc.CallOption) (*Job, error)
 	GetJob(ctx context.Context, in *GetJobRequest, opts ...grpc.CallOption) (*Job, error)
-	GetJobProgress(ctx context.Context, in *GetJobProgressRequest, opts ...grpc.CallOption) (*Job, error)
+	ListJobTasks(ctx context.Context, in *ListJobTasksRequest, opts ...grpc.CallOption) (*ListJobTasksResponse, error)
 	RetryJob(ctx context.Context, in *RetryJobRequest, opts ...grpc.CallOption) (*RetryJobResponse, error)
 	CancelJob(ctx context.Context, in *CancelJobRequest, opts ...grpc.CallOption) (*CancelJobResponse, error)
 	VisualizeJob(ctx context.Context, in *VisualizeJobRequest, opts ...grpc.CallOption) (*Diagram, error)
 	QueryJobs(ctx context.Context, in *QueryJobsRequest, opts ...grpc.CallOption) (*QueryJobsResponse, error)
 	GetJobPrototype(ctx context.Context, in *GetJobPrototypeRequest, opts ...grpc.CallOption) (*GetJobPrototypeResponse, error)
 	CloneJob(ctx context.Context, in *CloneJobRequest, opts ...grpc.CallOption) (*Job, error)
+	GetJobStateCounts(ctx context.Context, in *GetJobStateCountsRequest, opts ...grpc.CallOption) (*GetJobStateCountsResponse, error)
+	GetTaskQueueStats(ctx context.Context, in *GetTaskQueueStatsRequest, opts ...grpc.CallOption) (*GetTaskQueueStatsResponse, error)
 }
 
 type jobServiceClient struct {
@@ -77,10 +81,10 @@ func (c *jobServiceClient) GetJob(ctx context.Context, in *GetJobRequest, opts .
 	return out, nil
 }
 
-func (c *jobServiceClient) GetJobProgress(ctx context.Context, in *GetJobProgressRequest, opts ...grpc.CallOption) (*Job, error) {
+func (c *jobServiceClient) ListJobTasks(ctx context.Context, in *ListJobTasksRequest, opts ...grpc.CallOption) (*ListJobTasksResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Job)
-	err := c.cc.Invoke(ctx, JobService_GetJobProgress_FullMethodName, in, out, cOpts...)
+	out := new(ListJobTasksResponse)
+	err := c.cc.Invoke(ctx, JobService_ListJobTasks_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -147,6 +151,26 @@ func (c *jobServiceClient) CloneJob(ctx context.Context, in *CloneJobRequest, op
 	return out, nil
 }
 
+func (c *jobServiceClient) GetJobStateCounts(ctx context.Context, in *GetJobStateCountsRequest, opts ...grpc.CallOption) (*GetJobStateCountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetJobStateCountsResponse)
+	err := c.cc.Invoke(ctx, JobService_GetJobStateCounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jobServiceClient) GetTaskQueueStats(ctx context.Context, in *GetTaskQueueStatsRequest, opts ...grpc.CallOption) (*GetTaskQueueStatsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTaskQueueStatsResponse)
+	err := c.cc.Invoke(ctx, JobService_GetTaskQueueStats_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // JobServiceServer is the server API for JobService service.
 // All implementations must embed UnimplementedJobServiceServer
 // for forward compatibility.
@@ -155,13 +179,15 @@ func (c *jobServiceClient) CloneJob(ctx context.Context, in *CloneJobRequest, op
 type JobServiceServer interface {
 	SubmitJob(context.Context, *SubmitJobRequest) (*Job, error)
 	GetJob(context.Context, *GetJobRequest) (*Job, error)
-	GetJobProgress(context.Context, *GetJobProgressRequest) (*Job, error)
+	ListJobTasks(context.Context, *ListJobTasksRequest) (*ListJobTasksResponse, error)
 	RetryJob(context.Context, *RetryJobRequest) (*RetryJobResponse, error)
 	CancelJob(context.Context, *CancelJobRequest) (*CancelJobResponse, error)
 	VisualizeJob(context.Context, *VisualizeJobRequest) (*Diagram, error)
 	QueryJobs(context.Context, *QueryJobsRequest) (*QueryJobsResponse, error)
 	GetJobPrototype(context.Context, *GetJobPrototypeRequest) (*GetJobPrototypeResponse, error)
 	CloneJob(context.Context, *CloneJobRequest) (*Job, error)
+	GetJobStateCounts(context.Context, *GetJobStateCountsRequest) (*GetJobStateCountsResponse, error)
+	GetTaskQueueStats(context.Context, *GetTaskQueueStatsRequest) (*GetTaskQueueStatsResponse, error)
 	mustEmbedUnimplementedJobServiceServer()
 }
 
@@ -178,8 +204,8 @@ func (UnimplementedJobServiceServer) SubmitJob(context.Context, *SubmitJobReques
 func (UnimplementedJobServiceServer) GetJob(context.Context, *GetJobRequest) (*Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetJob not implemented")
 }
-func (UnimplementedJobServiceServer) GetJobProgress(context.Context, *GetJobProgressRequest) (*Job, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetJobProgress not implemented")
+func (UnimplementedJobServiceServer) ListJobTasks(context.Context, *ListJobTasksRequest) (*ListJobTasksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListJobTasks not implemented")
 }
 func (UnimplementedJobServiceServer) RetryJob(context.Context, *RetryJobRequest) (*RetryJobResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RetryJob not implemented")
@@ -198,6 +224,12 @@ func (UnimplementedJobServiceServer) GetJobPrototype(context.Context, *GetJobPro
 }
 func (UnimplementedJobServiceServer) CloneJob(context.Context, *CloneJobRequest) (*Job, error) {
 	return nil, status.Error(codes.Unimplemented, "method CloneJob not implemented")
+}
+func (UnimplementedJobServiceServer) GetJobStateCounts(context.Context, *GetJobStateCountsRequest) (*GetJobStateCountsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetJobStateCounts not implemented")
+}
+func (UnimplementedJobServiceServer) GetTaskQueueStats(context.Context, *GetTaskQueueStatsRequest) (*GetTaskQueueStatsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTaskQueueStats not implemented")
 }
 func (UnimplementedJobServiceServer) mustEmbedUnimplementedJobServiceServer() {}
 func (UnimplementedJobServiceServer) testEmbeddedByValue()                    {}
@@ -256,20 +288,20 @@ func _JobService_GetJob_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _JobService_GetJobProgress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetJobProgressRequest)
+func _JobService_ListJobTasks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListJobTasksRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(JobServiceServer).GetJobProgress(ctx, in)
+		return srv.(JobServiceServer).ListJobTasks(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: JobService_GetJobProgress_FullMethodName,
+		FullMethod: JobService_ListJobTasks_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(JobServiceServer).GetJobProgress(ctx, req.(*GetJobProgressRequest))
+		return srv.(JobServiceServer).ListJobTasks(ctx, req.(*ListJobTasksRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -382,6 +414,42 @@ func _JobService_CloneJob_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _JobService_GetJobStateCounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobStateCountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).GetJobStateCounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_GetJobStateCounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).GetJobStateCounts(ctx, req.(*GetJobStateCountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JobService_GetTaskQueueStats_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaskQueueStatsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JobServiceServer).GetTaskQueueStats(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JobService_GetTaskQueueStats_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JobServiceServer).GetTaskQueueStats(ctx, req.(*GetTaskQueueStatsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // JobService_ServiceDesc is the grpc.ServiceDesc for JobService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -398,8 +466,8 @@ var JobService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _JobService_GetJob_Handler,
 		},
 		{
-			MethodName: "GetJobProgress",
-			Handler:    _JobService_GetJobProgress_Handler,
+			MethodName: "ListJobTasks",
+			Handler:    _JobService_ListJobTasks_Handler,
 		},
 		{
 			MethodName: "RetryJob",
@@ -424,6 +492,14 @@ var JobService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CloneJob",
 			Handler:    _JobService_CloneJob_Handler,
+		},
+		{
+			MethodName: "GetJobStateCounts",
+			Handler:    _JobService_GetJobStateCounts_Handler,
+		},
+		{
+			MethodName: "GetTaskQueueStats",
+			Handler:    _JobService_GetTaskQueueStats_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

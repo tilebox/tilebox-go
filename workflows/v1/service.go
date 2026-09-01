@@ -1,4 +1,4 @@
-package workflows // import "github.com/tilebox/tilebox-go/workflows/v1"
+package workflows
 
 import (
 	"context"
@@ -151,14 +151,15 @@ func (s *automationService) ListAutomations(ctx context.Context) (*workflowsv1.A
 type JobService interface {
 	SubmitJob(ctx context.Context, req *workflowsv1.SubmitJobRequest) (*workflowsv1.Job, error)
 	GetJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.Job, error)
+	ListJobTasks(ctx context.Context, jobID uuid.UUID, parentTaskID *tileboxv1.ID, page *tileboxv1.Pagination, prefetchChildren *workflowsv1.JobTaskChildrenPrefetch) (*workflowsv1.ListJobTasksResponse, error)
 	RetryJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.RetryJobResponse, error)
 	CancelJob(ctx context.Context, jobID uuid.UUID) error
 	QueryJobs(ctx context.Context, filters *workflowsv1.QueryFilters, page *tileboxv1.Pagination, sortDirection tileboxv1.SortDirection) (*workflowsv1.QueryJobsResponse, error)
 }
 
 type TelemetryService interface {
-	QueryJobLogs(ctx context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedLogsData, error)
-	QueryJobSpans(ctx context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error)
+	QueryJobLogs(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection, filters *workflowsv1.LogQueryFilters) (*workflowsv1.PaginatedLogsData, error)
+	QueryJobSpans(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error)
 }
 
 var _ JobService = &jobService{}
@@ -196,6 +197,22 @@ func (s *jobService) GetJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.
 		}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get job: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *jobService) ListJobTasks(ctx context.Context, jobID uuid.UUID, parentTaskID *tileboxv1.ID, page *tileboxv1.Pagination, prefetchChildren *workflowsv1.JobTaskChildrenPrefetch) (*workflowsv1.ListJobTasksResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/list_tasks", func(ctx context.Context) (*workflowsv1.ListJobTasksResponse, error) {
+		res, err := s.jobClient.ListJobTasks(ctx, connect.NewRequest(workflowsv1.ListJobTasksRequest_builder{
+			JobId:            tileboxv1.NewUUID(jobID),
+			ParentTaskId:     parentTaskID,
+			Page:             page,
+			PrefetchChildren: prefetchChildren,
+		}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to list job tasks: %w", err)
 		}
 
 		return res.Msg, nil
@@ -257,12 +274,14 @@ func newTelemetryService(telemetryClient workflowsv1connect.TelemetryQueryServic
 	}
 }
 
-func (s *telemetryService) QueryJobLogs(ctx context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedLogsData, error) {
+func (s *telemetryService) QueryJobLogs(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection, filters *workflowsv1.LogQueryFilters) (*workflowsv1.PaginatedLogsData, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/query_logs", func(ctx context.Context) (*workflowsv1.PaginatedLogsData, error) {
 		res, err := s.telemetryClient.QueryJobLogs(ctx, connect.NewRequest(workflowsv1.QueryJobLogsRequest_builder{
 			JobId:         tileboxv1.NewUUID(jobID),
+			TaskId:        taskID,
 			Page:          page,
 			SortDirection: sortDirection,
+			Filters:       filters,
 		}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to query job logs: %w", err)
@@ -272,10 +291,11 @@ func (s *telemetryService) QueryJobLogs(ctx context.Context, jobID uuid.UUID, pa
 	})
 }
 
-func (s *telemetryService) QueryJobSpans(ctx context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
+func (s *telemetryService) QueryJobSpans(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/query_spans", func(ctx context.Context) (*workflowsv1.PaginatedSpansData, error) {
 		res, err := s.telemetryClient.QueryJobSpans(ctx, connect.NewRequest(workflowsv1.QueryJobSpansRequest_builder{
 			JobId:         tileboxv1.NewUUID(jobID),
+			TaskId:        taskID,
 			Page:          page,
 			SortDirection: sortDirection,
 		}.Build()))

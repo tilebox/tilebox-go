@@ -323,9 +323,8 @@ func (r *PollingTaskRunner) executeTask(ctx context.Context, task *workflowsv1.T
 }
 
 func (r *PollingTaskRunner) failedTaskFromError(task *workflowsv1.Task, taskError error) *workflowsv1.TaskFailedRequest {
-	var executionError *TaskExecutionError
 	progressUpdates := []*workflowsv1.Progress(nil)
-	if errors.As(taskError, &executionError) {
+	if executionError, ok := errors.AsType[*TaskExecutionError](taskError); ok {
 		progressUpdates = executionError.ProgressUpdates
 	}
 	return workflowsv1.TaskFailedRequest_builder{

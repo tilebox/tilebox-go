@@ -1,4 +1,4 @@
-package tracer // import "github.com/tilebox/tilebox-go/observability/tracer"
+package tracer
 
 import (
 	"context"

@@ -17,6 +17,7 @@ import (
 	logsv1 "go.opentelemetry.io/proto/otlp/logs/v1"
 	resourcev1 "go.opentelemetry.io/proto/otlp/resource/v1"
 	tracev1 "go.opentelemetry.io/proto/otlp/trace/v1"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type mockJobService struct {
@@ -27,6 +28,11 @@ type mockJobService struct {
 	queryFilters  []*workflowsv1.QueryFilters
 	queryPageReqs []*tileboxv1.Pagination
 	querySortReqs []tileboxv1.SortDirection
+	taskPages     []*workflowsv1.ListJobTasksResponse
+	taskJobIDs    []uuid.UUID
+	taskParents   []*tileboxv1.ID
+	taskPageReqs  []*tileboxv1.Pagination
+	taskPrefetch  []*workflowsv1.JobTaskChildrenPrefetch
 }
 
 type mockTelemetryService struct {
@@ -37,7 +43,10 @@ type mockTelemetryService struct {
 	logPageReqs    []*tileboxv1.Pagination
 	spanPageReqs   []*tileboxv1.Pagination
 	logSortReqs    []*tileboxv1.SortDirection
+	logFilterReqs  []*workflowsv1.LogQueryFilters
 	spanSortReqs   []*tileboxv1.SortDirection
+	logTaskIDReqs  []*tileboxv1.ID
+	spanTaskIDReqs []*tileboxv1.ID
 	queryLogJobID  uuid.UUID
 	querySpanJobID uuid.UUID
 }
@@ -62,17 +71,30 @@ func (m *mockJobService) QueryJobs(_ context.Context, filters *workflowsv1.Query
 	return m.queryPages[pageIndex], nil
 }
 
-func (m *mockTelemetryService) QueryJobLogs(_ context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedLogsData, error) {
+func (m *mockJobService) ListJobTasks(_ context.Context, jobID uuid.UUID, parentTaskID *tileboxv1.ID, page *tileboxv1.Pagination, prefetchChildren *workflowsv1.JobTaskChildrenPrefetch) (*workflowsv1.ListJobTasksResponse, error) {
+	m.taskJobIDs = append(m.taskJobIDs, jobID)
+	m.taskParents = append(m.taskParents, parentTaskID)
+	m.taskPageReqs = append(m.taskPageReqs, page)
+	m.taskPrefetch = append(m.taskPrefetch, prefetchChildren)
+
+	pageIndex := len(m.taskPageReqs) - 1
+	return m.taskPages[pageIndex], nil
+}
+
+func (m *mockTelemetryService) QueryJobLogs(_ context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection, filters *workflowsv1.LogQueryFilters) (*workflowsv1.PaginatedLogsData, error) {
 	m.queryLogJobID = jobID
+	m.logTaskIDReqs = append(m.logTaskIDReqs, taskID)
 	m.logPageReqs = append(m.logPageReqs, page)
 	m.logSortReqs = append(m.logSortReqs, sortDirection)
+	m.logFilterReqs = append(m.logFilterReqs, filters)
 
 	pageIndex := len(m.logPageReqs) - 1
 	return m.logPages[pageIndex], nil
 }
 
-func (m *mockTelemetryService) QueryJobSpans(_ context.Context, jobID uuid.UUID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
+func (m *mockTelemetryService) QueryJobSpans(_ context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
 	m.querySpanJobID = jobID
+	m.spanTaskIDReqs = append(m.spanTaskIDReqs, taskID)
 	m.spanPageReqs = append(m.spanPageReqs, page)
 	m.spanSortReqs = append(m.spanSortReqs, sortDirection)
 
@@ -190,11 +212,137 @@ func Test_jobClient_Get(t *testing.T) {
 	assert.Equal(t, "progress-example", foundJob.Name)
 	assert.Equal(t, "0199614b-6102-1498-815b-3cb23f72b489", foundJob.ID.String())
 	assert.Equal(t, job.Completed, foundJob.State)
-	assert.Len(t, foundJob.TaskSummaries, 6)
 	require.Len(t, foundJob.Progress, 1)
 	assert.Empty(t, foundJob.Progress[0].Label)
 	assert.Equal(t, uint64(5), foundJob.Progress[0].Total)
 	assert.Equal(t, uint64(5), foundJob.Progress[0].Done)
+}
+
+func Test_jobClient_ListTasks(t *testing.T) {
+	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	parentTaskID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163c")
+	firstTaskID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163d")
+	secondTaskID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163e")
+	nextCursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b")
+	submittedAt := time.Date(2025, time.September, 16, 12, 0, 0, 0, time.UTC)
+	service := &mockJobService{
+		taskPages: []*workflowsv1.ListJobTasksResponse{
+			workflowsv1.ListJobTasksResponse_builder{
+				Page: workflowsv1.JobTaskPage_builder{
+					ParentTaskId: tileboxv1.NewUUID(parentTaskID),
+					Tasks: []*workflowsv1.TaskSummary{
+						workflowsv1.TaskSummary_builder{
+							Id:          tileboxv1.NewUUID(firstTaskID),
+							ParentId:    tileboxv1.NewUUID(parentTaskID),
+							Display:     "first task",
+							State:       workflowsv1.TaskState_TASK_STATE_RUNNING,
+							SubmittedAt: timestamppb.New(submittedAt),
+							Input:       []byte("input"),
+							RetryCount:  1,
+							MaxRetries:  3,
+							HasChildren: true,
+							ClusterSlug: "default",
+							Optional:    true,
+						}.Build(),
+					},
+					NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextCursorID)}.Build(),
+				}.Build(),
+			}.Build(),
+			workflowsv1.ListJobTasksResponse_builder{
+				Page: workflowsv1.JobTaskPage_builder{
+					ParentTaskId: tileboxv1.NewUUID(parentTaskID),
+					Tasks: []*workflowsv1.TaskSummary{
+						workflowsv1.TaskSummary_builder{Id: tileboxv1.NewUUID(secondTaskID)}.Build(),
+					},
+				}.Build(),
+			}.Build(),
+		},
+	}
+	client := jobClient{service: service}
+
+	tasks, err := Collect(client.ListTasks(context.Background(), jobID, job.WithParentTaskID(parentTaskID), job.WithLimit(2)))
+	require.NoError(t, err)
+	require.Len(t, tasks, 2)
+
+	assert.Equal(t, firstTaskID, tasks[0].ID)
+	require.NotNil(t, tasks[0].ParentID)
+	assert.Equal(t, parentTaskID, *tasks[0].ParentID)
+	assert.Equal(t, "first task", tasks[0].Display)
+	assert.Equal(t, TaskRunning, tasks[0].State)
+	assert.Equal(t, submittedAt, tasks[0].SubmittedAt)
+	assert.True(t, tasks[0].StartedAt.IsZero())
+	assert.True(t, tasks[0].StoppedAt.IsZero())
+	assert.Equal(t, []byte("input"), tasks[0].Input)
+	assert.Equal(t, int64(1), tasks[0].RetryCount)
+	assert.Equal(t, int64(3), tasks[0].MaxRetries)
+	assert.True(t, tasks[0].HasChildren)
+	assert.Equal(t, "default", tasks[0].ClusterSlug)
+	assert.True(t, tasks[0].Optional)
+	assert.Equal(t, secondTaskID, tasks[1].ID)
+	require.Len(t, service.taskPageReqs, 2)
+	assert.Equal(t, int64(2), service.taskPageReqs[0].GetLimit())
+	assert.Equal(t, int64(1), service.taskPageReqs[1].GetLimit())
+	assert.Equal(t, nextCursorID, service.taskPageReqs[1].GetStartingAfter().AsUUID())
+	assert.Equal(t, []uuid.UUID{jobID, jobID}, service.taskJobIDs)
+	assert.Equal(t, parentTaskID, service.taskParents[0].AsUUID())
+	assert.Equal(t, parentTaskID, service.taskParents[1].AsUUID())
+	assert.Equal(t, []*workflowsv1.JobTaskChildrenPrefetch{nil, nil}, service.taskPrefetch)
+}
+
+func Test_jobClient_ListTasksPage_WithPrefetch(t *testing.T) {
+	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	rootTaskID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163c")
+	childTaskID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163d")
+	rootCursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b")
+	childCursorID := uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75c")
+	service := &mockJobService{
+		taskPages: []*workflowsv1.ListJobTasksResponse{
+			workflowsv1.ListJobTasksResponse_builder{
+				Page: workflowsv1.JobTaskPage_builder{
+					Tasks: []*workflowsv1.TaskSummary{
+						workflowsv1.TaskSummary_builder{Id: tileboxv1.NewUUID(rootTaskID), HasChildren: true}.Build(),
+					},
+				}.Build(),
+				PrefetchedChildPages: []*workflowsv1.JobTaskPage{
+					workflowsv1.JobTaskPage_builder{
+						ParentTaskId: tileboxv1.NewUUID(rootTaskID),
+						Tasks: []*workflowsv1.TaskSummary{
+							workflowsv1.TaskSummary_builder{Id: tileboxv1.NewUUID(childTaskID), ParentId: tileboxv1.NewUUID(rootTaskID)}.Build(),
+						},
+						NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(childCursorID)}.Build(),
+					}.Build(),
+				},
+			}.Build(),
+		},
+	}
+	client := jobClient{service: service}
+
+	page, err := client.ListTasksPage(
+		context.Background(),
+		jobID,
+		job.WithCursor(job.NewCursor(rootCursorID)),
+		job.WithLimit(10),
+		job.WithPrefetchChildren(5),
+	)
+	require.NoError(t, err)
+	require.Len(t, page.Tasks, 1)
+	assert.Nil(t, page.ParentTaskID)
+	assert.Equal(t, rootTaskID, page.Tasks[0].ID)
+	require.Len(t, page.PrefetchedChildPages, 1)
+	childPage := page.PrefetchedChildPages[0]
+	require.NotNil(t, childPage.ParentTaskID)
+	assert.Equal(t, rootTaskID, *childPage.ParentTaskID)
+	require.Len(t, childPage.Tasks, 1)
+	assert.Equal(t, childTaskID, childPage.Tasks[0].ID)
+	require.NotNil(t, childPage.NextCursor)
+	assert.Equal(t, childCursorID, childPage.NextCursor.StartingAfter())
+	require.Len(t, service.taskPageReqs, 1)
+	assert.Equal(t, int64(10), service.taskPageReqs[0].GetLimit())
+	assert.Equal(t, rootCursorID, service.taskPageReqs[0].GetStartingAfter().AsUUID())
+	assert.Equal(t, []uuid.UUID{jobID}, service.taskJobIDs)
+	assert.Nil(t, service.taskParents[0])
+	require.NotNil(t, service.taskPrefetch[0])
+	assert.Equal(t, int64(5), service.taskPrefetch[0].GetLimit())
 }
 
 func Test_jobClient_Query(t *testing.T) {
@@ -375,6 +523,7 @@ func Test_jobClient_QueryLogs(t *testing.T) {
 
 func Test_jobClient_QueryLogs_WithOptions(t *testing.T) {
 	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	taskID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163c")
 	nextPage := tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(uuid.MustParse("01994da4-255e-740d-9df7-b8c1aa41c75b"))}.Build()
 	service := &mockTelemetryService{
 		logPages: []*workflowsv1.PaginatedLogsData{
@@ -389,7 +538,7 @@ func Test_jobClient_QueryLogs_WithOptions(t *testing.T) {
 	}
 	client := jobClient{telemetryService: service}
 
-	logs, err := Collect(client.QueryLogs(context.Background(), jobID, job.WithLimit(2), job.WithSortDirection(job.Descending)))
+	logs, err := Collect(client.QueryLogs(context.Background(), jobID, job.WithTaskID(taskID), job.WithLimit(2), job.WithSortDirection(job.Descending), job.WithLogSeverityGroups(job.LogSeverityWarning, job.LogSeverityError)))
 	require.NoError(t, err)
 	require.Len(t, logs, 2)
 
@@ -401,6 +550,15 @@ func Test_jobClient_QueryLogs_WithOptions(t *testing.T) {
 	require.Len(t, service.logSortReqs, 2)
 	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[0])
 	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING, *service.logSortReqs[1])
+	require.Len(t, service.logFilterReqs, 2)
+	assert.Equal(t, []workflowsv1.LogSeverityGroup{
+		workflowsv1.LogSeverityGroup_LOG_SEVERITY_GROUP_WARNING,
+		workflowsv1.LogSeverityGroup_LOG_SEVERITY_GROUP_ERROR,
+	}, service.logFilterReqs[0].GetSeverityLevels())
+	assert.Equal(t, service.logFilterReqs[0], service.logFilterReqs[1])
+	require.Len(t, service.logTaskIDReqs, 2)
+	assert.Equal(t, taskID, service.logTaskIDReqs[0].AsUUID())
+	assert.Equal(t, service.logTaskIDReqs[0], service.logTaskIDReqs[1])
 	assert.Equal(t, "first log", logs[0].Body)
 	assert.Equal(t, "second log", logs[1].Body)
 }
@@ -468,6 +626,7 @@ func Test_jobClient_QuerySpans(t *testing.T) {
 
 func Test_jobClient_QuerySpans_WithOptions(t *testing.T) {
 	jobID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163b")
+	taskID := uuid.MustParse("01994da3-779b-7d01-a570-2a04d0ac163c")
 	service := &mockTelemetryService{
 		spanPages: []*workflowsv1.PaginatedSpansData{
 			workflowsv1.PaginatedSpansData_builder{
@@ -477,7 +636,7 @@ func Test_jobClient_QuerySpans_WithOptions(t *testing.T) {
 	}
 	client := jobClient{telemetryService: service}
 
-	spans, err := Collect(client.QuerySpans(context.Background(), jobID, job.WithLimit(1), job.WithSortDirection(job.Ascending)))
+	spans, err := Collect(client.QuerySpans(context.Background(), jobID, job.WithTaskID(taskID), job.WithLimit(1), job.WithSortDirection(job.Ascending)))
 	require.NoError(t, err)
 	require.Len(t, spans, 1)
 
@@ -485,6 +644,8 @@ func Test_jobClient_QuerySpans_WithOptions(t *testing.T) {
 	assert.Equal(t, int64(1), service.spanPageReqs[0].GetLimit())
 	require.Len(t, service.spanSortReqs, 1)
 	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_ASCENDING, *service.spanSortReqs[0])
+	require.Len(t, service.spanTaskIDReqs, 1)
+	assert.Equal(t, taskID, service.spanTaskIDReqs[0].AsUUID())
 }
 
 func Test_jobClient_QuerySpansPage(t *testing.T) {

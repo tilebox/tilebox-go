@@ -1,4 +1,4 @@
-package cluster // import "github.com/tilebox/tilebox-go/workflows/v1/cluster"
+package cluster
 
 // CreateOptions contains cluster create options.
 type CreateOptions struct {
