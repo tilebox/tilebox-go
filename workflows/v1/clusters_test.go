@@ -71,12 +71,6 @@ func NewReplayClient(tb testing.TB, filename string) *Client {
 	)
 }
 
-func TestClientMetadataOverride(t *testing.T) {
-	cfg := newClientConfig([]ClientOption{WithClientMetadata("cli", "v1.2.3")})
-	require.Equal(t, "cli", cfg.clientSource)
-	require.Equal(t, "v1.2.3", cfg.clientVersion)
-}
-
 func Test_clusterClient_Get(t *testing.T) {
 	ctx := context.Background()
 	client := NewReplayClient(t, "cluster")

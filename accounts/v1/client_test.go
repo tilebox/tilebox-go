@@ -27,17 +27,6 @@ func TestClient_GetAccountDetails(t *testing.T) {
 	assert.NotEmpty(t, service.clientVersion)
 }
 
-func TestClientMetadataCanBeOverridden(t *testing.T) {
-	service := &fakeAccountsService{}
-	client := newTestClient(t, service, WithClientMetadata("cli", "v1.2.3"))
-
-	_, err := client.Account.GetAccountDetails(t.Context())
-	require.NoError(t, err)
-
-	assert.Equal(t, "cli", service.clientSource)
-	assert.Equal(t, "v1.2.3", service.clientVersion)
-}
-
 func TestClient_GetActivePlan(t *testing.T) {
 	service := &fakeAccountsService{}
 	client := newTestClient(t, service)

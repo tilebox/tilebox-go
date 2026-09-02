@@ -68,12 +68,6 @@ func NewReplayClient(tb testing.TB, filename string) *Client {
 	)
 }
 
-func TestClientMetadataOverride(t *testing.T) {
-	cfg := newClientConfig([]ClientOption{WithClientMetadata("cli", "v1.2.3")})
-	require.Equal(t, "cli", cfg.clientSource)
-	require.Equal(t, "v1.2.3", cfg.clientVersion)
-}
-
 func TestDataset_String(t *testing.T) {
 	genDataset := rapid.Custom(func(t *rapid.T) *Dataset {
 		return &Dataset{

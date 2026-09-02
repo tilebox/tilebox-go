@@ -61,8 +61,6 @@ type clientConfig struct {
 	httpClient     connect.HTTPClient
 	url            string
 	apiKey         string
-	clientSource   string
-	clientVersion  string
 	connectOptions []connect.ClientOption
 
 	tracerProvider trace.TracerProvider
@@ -101,15 +99,6 @@ func WithAPIKey(apiKey string) ClientOption {
 	}
 }
 
-// WithClientMetadata overrides the source and version sent with each request.
-// It is intended for wrappers such as the Tilebox CLI.
-func WithClientMetadata(source, version string) ClientOption {
-	return func(cfg *clientConfig) {
-		cfg.clientSource = source
-		cfg.clientVersion = version
-	}
-}
-
 // WithConnectClientOptions sets additional options for the connect.HTTPClient.
 func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
 	return func(cfg *clientConfig) {
@@ -128,8 +117,6 @@ func newClientConfig(options []ClientOption) *clientConfig {
 	cfg := &clientConfig{
 		url:            "https://api.tilebox.com",
 		apiKey:         os.Getenv("TILEBOX_API_KEY"),
-		clientSource:   "go_sdk",
-		clientVersion:  grpc.ClientVersion(),
 		tracerProvider: otel.GetTracerProvider(), // use the global tracer provider by default
 	}
 	for _, option := range options {
@@ -159,7 +146,7 @@ func newClientConfig(options []ClientOption) *clientConfig {
 func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, cfg *clientConfig) T {
 	// for on-orbit deployments, we also support requests without an API key, so we don't need to add an interceptor
 	// for those cases
-	interceptors := []connect.Interceptor{grpc.NewAddClientMetadataInterceptor(cfg.clientSource, cfg.clientVersion)}
+	interceptors := []connect.Interceptor{grpc.NewAddClientMetadataInterceptor("go_sdk", grpc.ClientVersion())}
 	if cfg.apiKey != "" {
 		interceptors = append(interceptors, grpc.NewAddAuthTokenInterceptor(func() string {
 			return cfg.apiKey
