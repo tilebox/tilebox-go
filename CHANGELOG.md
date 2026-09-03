@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `workflows`: Change `Client.NewPollingTaskRunner` to accept a resolved `*Cluster`, executor, and logger directly; it no longer fetches a cluster or accepts task-runner options.
+- `workflows`: Log recoverable task polling and result-reporting failures as warnings while they await retry.
+
+### Fixed
+
+- Retry recoverable HTTP transport failures, including EOFs, timeouts, and connection resets, with five total attempts and bounded exponential jitter.
+- Allow polling task runners to finish graceful shutdown after reporting an active task's pending result.
+
 ## [0.12.0] - 2026-09-01
 
 ### Added

@@ -167,6 +167,9 @@ func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error 
 
 			// check whether the runner should still request a new task
 			requestingNewTasks := r.requestNewTasks.Load()
+			if !requestingNewTasks && lastComputedTask == nil {
+				return nil
+			}
 			// and get a list of all known task identifiers we are requesting work for
 			taskIdentifiersCapableOfRunning := r.executor.TaskIdentifiers()
 
@@ -213,6 +216,9 @@ func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error 
 				switch outcome {
 				case reportSucceeded:
 					currentTaskLogContext = ctx
+					if !requestingNewTasks {
+						return nil
+					}
 				case reportRetryNow:
 					continue
 				case reportRetryLater:
@@ -236,7 +242,7 @@ func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error 
 				taskResponse, err := r.service.NextTask(ctx, nil, nextTaskToRun)
 				if err != nil {
 					// easy retry case, since we don't have a task result to report anyway
-					logError(r.logger, ctx, err, "failed to request next task, will retry")
+					logFailure(r.logger, ctx, slog.LevelWarn, err, "failed to request next task, will retry")
 					if r.idle(ctx, randomFallbackIdleDuration()) {
 						return nil
 					}
@@ -250,7 +256,7 @@ func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error 
 			task := work.GetNextTask()
 			work = nil
 			if isEmpty(task.GetId()) {
-				logError(r.logger, ctx, nil, "got a task without an ID - skipping to the next task")
+				logFailure(r.logger, ctx, slog.LevelError, nil, "got a task without an ID - skipping to the next task")
 				continue
 			}
 			currentTaskLogContext = taskContextForLogs(ctx, task)
@@ -392,7 +398,11 @@ func (r *PollingTaskRunner) reportPendingFailure(ctx, logCtx context.Context, pe
 		taskFailedSimplified: taskFailedSimplified,
 	}
 
-	logError(r.logger, logCtx, err, "failed to report task failure back to Tilebox", slog.Int("retry_count", retryAttempt), slog.Int("max_retries", maxTaskFailedRetries), slog.Bool("request_simplified", taskFailedSimplified), slog.Bool("resetting_runner", resetRunnerState))
+	logLevel := slog.LevelWarn
+	if resetRunnerState {
+		logLevel = slog.LevelError
+	}
+	logFailure(r.logger, logCtx, logLevel, err, "failed to report task failure back to Tilebox", slog.Int("retry_count", retryAttempt), slog.Int("max_retries", maxTaskFailedRetries), slog.Bool("request_simplified", taskFailedSimplified), slog.Bool("resetting_runner", resetRunnerState))
 	if simplifiedRequest && !resetRunnerState {
 		return pendingRetry, reportRetryNow
 	}
@@ -413,28 +423,28 @@ func (r *PollingTaskRunner) reportPendingComputed(ctx, logCtx context.Context, p
 		return taskResponse, pendingReport{}, reportSucceeded
 	}
 	if shouldRetryRPCAfterTimeout(err) {
-		logError(r.logger, logCtx, err, "failed to report computed task, will retry", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
+		logFailure(r.logger, logCtx, slog.LevelWarn, err, "failed to report computed task, will retry", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
 		return nil, pending, reportRetryLater
 	}
 
 	if nextTaskToRun != nil {
-		logError(r.logger, logCtx, err, "failed to report computed task and request next task due to request error, retrying without new work request", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
+		logFailure(r.logger, logCtx, slog.LevelWarn, err, "failed to report computed task and request next task due to request error, retrying without new work request", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
 		taskResponse, err = r.service.NextTask(ctx, computedTask, nil)
 		if err == nil {
 			return taskResponse, pendingReport{}, reportSucceeded
 		}
 		if shouldRetryRPCAfterTimeout(err) || !shouldFailComputedTaskForRPC(err) {
-			logError(r.logger, logCtx, err, "failed to report computed task without requesting next task, will retry", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
+			logFailure(r.logger, logCtx, slog.LevelWarn, err, "failed to report computed task without requesting next task, will retry", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
 			return nil, pending, reportRetryLater
 		}
 	}
 
 	if !shouldFailComputedTaskForRPC(err) {
-		logError(r.logger, logCtx, err, "failed to report computed task due to request error, will retry", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
+		logFailure(r.logger, logCtx, slog.LevelWarn, err, "failed to report computed task due to request error, will retry", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
 		return nil, pending, reportRetryLater
 	}
 
-	logError(r.logger, logCtx, err, "failed to report computed task due to invalid payload, will report task as failed", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
+	logFailure(r.logger, logCtx, slog.LevelError, err, "failed to report computed task due to invalid payload, will report task as failed", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
 
 	return nil, pendingReport{
 		result:               workflowsv1.ExecuteTaskResponse_builder{FailedTask: failedTaskFromComputedTaskRequestError(computedTask, err)}.Build(),
@@ -484,7 +494,7 @@ func (r *PollingTaskRunner) extendTaskLease(ctx context.Context, taskID uuid.UUI
 		r.logger.DebugContext(ctx, "extending task lease", slog.String("task_id", taskID.String()), slog.Duration("lease", lease), slog.Duration("wait", wait))
 		extension, err := r.service.ExtendTaskLease(ctx, taskID, 2*lease)
 		if err != nil {
-			logError(r.logger, ctx, err, "failed to extend task lease", slog.String("task_id", taskID.String()))
+			logFailure(r.logger, ctx, slog.LevelError, err, "failed to extend task lease", slog.String("task_id", taskID.String()))
 			return
 		}
 		if extension.GetLease() == nil {
@@ -560,7 +570,7 @@ func (r *PollingTaskRunner) idle(ctx context.Context, duration time.Duration) bo
 	}
 }
 
-func logError(logger *slog.Logger, ctx context.Context, err error, msg string, args ...any) {
+func logFailure(logger *slog.Logger, ctx context.Context, level slog.Level, err error, msg string, args ...any) {
 	switch {
 	case errors.Is(err, context.Canceled):
 		return
@@ -573,5 +583,5 @@ func logError(logger *slog.Logger, ctx context.Context, err error, msg string, a
 	fields := make([]any, 0, len(args)+1)
 	fields = append(fields, slog.Any("error", err))
 	fields = append(fields, args...)
-	logger.ErrorContext(ctx, msg, fields...)
+	logger.Log(ctx, level, msg, fields...)
 }

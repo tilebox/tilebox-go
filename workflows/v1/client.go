@@ -2,7 +2,7 @@ package workflows
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log/slog"
 	"net"
 	"net/http"
@@ -80,22 +80,15 @@ func (c *Client) NewTaskRunner(ctx context.Context, options ...runner.Option) (*
 	return newTaskRunner(ctx, c.taskService, c.Clusters, c.tracer, options...)
 }
 
-// NewPollingTaskRunner creates a polling task runner for custom task executors.
-func (c *Client) NewPollingTaskRunner(ctx context.Context, executor TaskExecutor, options ...runner.Option) (*PollingTaskRunner, error) {
-	opts := &runner.Options{
-		ClusterSlug:   "",
-		Logger:        slog.Default(),
-		MeterProvider: otel.GetMeterProvider(),
+// NewPollingTaskRunner creates a polling task runner for a resolved cluster and custom task executor.
+func (c *Client) NewPollingTaskRunner(cluster *Cluster, executor TaskExecutor, logger *slog.Logger) (*PollingTaskRunner, error) {
+	if cluster == nil {
+		return nil, errors.New("cluster is required")
 	}
-	for _, option := range options {
-		option(opts)
+	if strings.TrimSpace(cluster.Slug) == "" {
+		return nil, errors.New("cluster slug is required")
 	}
-
-	cluster, err := c.Clusters.Get(ctx, opts.ClusterSlug)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get cluster: %w", err)
-	}
-	return NewPollingTaskRunner(c.taskService, cluster.Slug, executor, opts.Logger), nil
+	return NewPollingTaskRunner(c.taskService, cluster.Slug, executor, logger), nil
 }
 
 // clientConfig contains the configuration for Tilebox Workflows client.
