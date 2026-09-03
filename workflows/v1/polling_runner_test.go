@@ -1,9 +1,11 @@
 package workflows
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
@@ -135,6 +137,58 @@ func TestPollingTaskRunnerDoesNotFailComputedTaskWhenCombinedNextTaskRequestIsIn
 	assert.Equal(t, taskID, service.computedTasks[0].GetId().AsUUID())
 }
 
+func TestPollingTaskRunnerStopsAfterReportingPendingComputedTask(t *testing.T) {
+	taskID := uuid.New()
+	taskDisplay := "Python task"
+	task := workflowsv1.Task_builder{
+		Id: tileboxv1.NewUUID(taskID),
+		Identifier: workflowsv1.TaskIdentifier_builder{
+			Name:    "python.Task",
+			Version: "v1.0",
+		}.Build(),
+		State:   workflowsv1.TaskState_TASK_STATE_RUNNING,
+		Display: &taskDisplay,
+		Lease: workflowsv1.TaskLease_builder{
+			Lease:                             durationpb.New(5 * time.Minute),
+			RecommendedWaitUntilNextExtension: durationpb.New(5 * time.Minute),
+		}.Build(),
+	}.Build()
+	service := &requestErrorTaskService{nextTask: task}
+	executionStarted := make(chan struct{})
+	finishExecution := make(chan struct{})
+	executor := &blockingComputedResponseExecutor{
+		executionStarted: executionStarted,
+		finishExecution:  finishExecution,
+		response: workflowsv1.ExecuteTaskResponse_builder{
+			ComputedTask: workflowsv1.ComputedTask_builder{Id: tileboxv1.NewUUID(taskID), Display: taskDisplay}.Build(),
+		}.Build(),
+	}
+	runner := NewPollingTaskRunner(service, "default", executor, slog.Default())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := make(chan error, 1)
+	go func() {
+		done <- runner.RunForever(ctx)
+	}()
+
+	<-executionStarted
+	runner.StopRequestingNewTasks()
+	close(finishExecution)
+
+	select {
+	case err := <-done:
+		require.NoError(t, err)
+	case <-time.After(time.Second):
+		cancel()
+		require.Fail(t, "runner did not stop after reporting its pending result")
+	}
+	require.Len(t, service.computedTasks, 1)
+	assert.Equal(t, taskID, service.computedTasks[0].GetId().AsUUID())
+	require.Len(t, service.nextTaskRequests, 2)
+	assert.NotNil(t, service.nextTaskRequests[0])
+	assert.Nil(t, service.nextTaskRequests[1])
+}
+
 func TestPollingTaskRunnerRetriesTaskFailedRequestErrorOnceAsWorkflowFailure(t *testing.T) {
 	taskID := uuid.New()
 	taskDisplay := "Python task"
@@ -226,6 +280,7 @@ func TestPollingTaskRunnerStopsRetryingTaskFailedAfterSecondRequestError(t *test
 
 func TestPollingTaskRunnerResetsTaskFailedAfterMaxRetryableErrors(t *testing.T) {
 	taskID := uuid.New()
+	var logs bytes.Buffer
 	service := &requestErrorTaskService{
 		taskFailedErrors: []error{
 			connect.NewError(connect.CodeUnavailable, errors.New("unavailable 1")),
@@ -233,7 +288,7 @@ func TestPollingTaskRunnerResetsTaskFailedAfterMaxRetryableErrors(t *testing.T) 
 			connect.NewError(connect.CodeUnavailable, errors.New("unavailable 3")),
 		},
 	}
-	runner := NewPollingTaskRunner(service, "default", &failedResponseExecutor{}, slog.Default())
+	runner := NewPollingTaskRunner(service, "default", &failedResponseExecutor{}, slog.New(slog.NewTextHandler(&logs, nil)))
 	pending := pendingReport{
 		result: workflowsv1.ExecuteTaskResponse_builder{
 			FailedTask: workflowsv1.TaskFailedRequest_builder{
@@ -251,6 +306,8 @@ func TestPollingTaskRunnerResetsTaskFailedAfterMaxRetryableErrors(t *testing.T) 
 	_, outcome = runner.reportPendingFailure(context.Background(), context.Background(), pending)
 	assert.Equal(t, reportResetRunner, outcome)
 	require.Len(t, service.taskFailedRequests, maxTaskFailedRetries)
+	assert.Equal(t, 2, strings.Count(logs.String(), "level=WARN"))
+	assert.Equal(t, 1, strings.Count(logs.String(), "level=ERROR"))
 }
 
 type failedResponseExecutor struct {
@@ -267,8 +324,27 @@ func (e *failedResponseExecutor) ExecuteTask(context.Context, *workflowsv1.Task)
 	return e.response, nil
 }
 
+type blockingComputedResponseExecutor struct {
+	executionStarted chan<- struct{}
+	finishExecution  <-chan struct{}
+	response         *workflowsv1.ExecuteTaskResponse
+}
+
+func (e *blockingComputedResponseExecutor) TaskIdentifiers() []*workflowsv1.TaskIdentifier {
+	return []*workflowsv1.TaskIdentifier{
+		workflowsv1.TaskIdentifier_builder{Name: "python.Task", Version: "v1.0"}.Build(),
+	}
+}
+
+func (e *blockingComputedResponseExecutor) ExecuteTask(context.Context, *workflowsv1.Task) (*workflowsv1.ExecuteTaskResponse, error) {
+	close(e.executionStarted)
+	<-e.finishExecution
+	return e.response, nil
+}
+
 type requestErrorTaskService struct {
 	computedTasks                 []*workflowsv1.ComputedTask
+	nextTaskRequests              []*workflowsv1.NextTaskToRun
 	nextTask                      *workflowsv1.Task
 	nextTaskComputedAndRequestErr error
 	nextTaskComputedTaskErr       error
@@ -279,6 +355,7 @@ type requestErrorTaskService struct {
 var _ TaskService = &requestErrorTaskService{}
 
 func (s *requestErrorTaskService) NextTask(_ context.Context, computedTask *workflowsv1.ComputedTask, nextTaskToRun *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, error) {
+	s.nextTaskRequests = append(s.nextTaskRequests, nextTaskToRun)
 	if computedTask != nil && nextTaskToRun != nil && s.nextTaskComputedAndRequestErr != nil {
 		return nil, s.nextTaskComputedAndRequestErr
 	}

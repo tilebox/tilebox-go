@@ -4,33 +4,31 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"log/slog"
+	"math/rand/v2"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
 	"connectrpc.com/connect"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-// retryOnStatusUnavailable provides a retry policy for retrying requests if the server is unavailable.
-func retryOnStatusUnavailable(ctx context.Context, resp *http.Response, err error) (bool, error) {
+// shouldRetryTransientRequest retries recoverable transport failures, including EOFs, timeouts, and connection resets,
+// as well as transient HTTP statuses. retryablehttp's standard policy excludes permanent transport configuration and
+// certificate errors.
+func shouldRetryTransientRequest(ctx context.Context, resp *http.Response, err error) (bool, error) {
 	// do not retry on context.Canceled or context.DeadlineExceeded
 	if ctx.Err() != nil {
 		return false, ctx.Err()
 	}
 
 	if err != nil {
-		if v, ok := errors.AsType[*url.Error](err); ok {
-			// Retry if the error was due to a connection refused.
-			if strings.Contains(v.Error(), "connect: connection refused") {
-				slog.InfoContext(ctx, "Auth client retry", slog.Any("error", v))
-				return true, v
-			}
+		shouldRetry, policyErr := retryablehttp.ErrorPropagatedRetryPolicy(ctx, resp, err)
+		if shouldRetry {
+			slog.InfoContext(ctx, "HTTP client retry", slog.Any("error", err))
 		}
+		return shouldRetry, policyErr
 	}
 
 	if resp != nil {
@@ -52,7 +50,7 @@ func retryOnStatusUnavailable(ctx context.Context, resp *http.Response, err erro
 		}
 
 		if resp.StatusCode == http.StatusTooManyRequests || resp.StatusCode >= 500 {
-			slog.InfoContext(ctx, "Auth client retry",
+			slog.InfoContext(ctx, "HTTP client retry",
 				slog.String("status", resp.Status),
 				slog.Int("status_code", resp.StatusCode),
 				slog.String("protocol", resp.Proto),
@@ -68,9 +66,23 @@ func RetryHTTPClient() connect.HTTPClient {
 	retryClient.Logger = nil
 	retryClient.RetryWaitMin = 20 * time.Millisecond
 	retryClient.RetryWaitMax = 10 * time.Second
-	retryClient.RetryMax = 5
-	retryClient.Backoff = retryablehttp.LinearJitterBackoff
-	retryClient.CheckRetry = retryOnStatusUnavailable
+	retryClient.RetryMax = 4 // Five total attempts: the initial request plus four retries.
+	retryClient.Backoff = exponentialJitterBackoff
+	retryClient.CheckRetry = shouldRetryTransientRequest
 
 	return retryClient.StandardClient()
+}
+
+func exponentialJitterBackoff(minimum, maximum time.Duration, attempt int, _ *http.Response) time.Duration {
+	upperBound := minimum
+	for range attempt {
+		if upperBound >= maximum/2 {
+			upperBound = maximum
+			break
+		}
+		upperBound *= 2
+	}
+
+	lowerBound := upperBound / 2
+	return lowerBound + rand.N(upperBound-lowerBound+1)
 }
