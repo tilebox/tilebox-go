@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/datasets/v1/field"
 	"github.com/tilebox/tilebox-go/internal/grpc"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
@@ -66,6 +67,13 @@ func NewReplayClient(tb testing.TB, filename string) *Client {
 		WithAPIKey("key"),
 		WithHTTPClient(httpClient),
 	)
+}
+
+func TestClientMetadataOverride(t *testing.T) {
+	metadata := client.Metadata{Name: "cli", Version: "v1.2.3"}
+	cfg := newClientConfig([]ClientOption{WithClientMetadata(metadata)})
+
+	require.Equal(t, metadata, cfg.clientMetadata)
 }
 
 func TestDataset_String(t *testing.T) {

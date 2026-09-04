@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tilebox/tilebox-go/client"
 	accountsv1alpha1 "github.com/tilebox/tilebox-go/protogen/accounts/v1alpha1"
 	"github.com/tilebox/tilebox-go/protogen/accounts/v1alpha1/accountsv1alpha1connect"
 )
@@ -23,8 +24,18 @@ func TestClient_GetAccountDetails(t *testing.T) {
 	assert.Equal(t, "Test User", details.GetUserName())
 	assert.Equal(t, "test-organization", details.GetOrganizationSlug())
 	assert.Equal(t, "Bearer test-api-key", service.authorization)
-	assert.Equal(t, "go_sdk", service.clientSource)
-	assert.NotEmpty(t, service.clientVersion)
+	assert.Contains(t, service.clientMetadata, `name="go"`)
+	assert.Contains(t, service.clientMetadata, `runtime="go"`)
+}
+
+func TestClientMetadataCanBeOverridden(t *testing.T) {
+	service := &fakeAccountsService{}
+	client := newTestClient(t, service, WithClientMetadata(client.Metadata{Name: "cli", Version: "v1.2.3"}))
+
+	_, err := client.Account.GetAccountDetails(t.Context())
+	require.NoError(t, err)
+
+	assert.Equal(t, `name="cli", version="v1.2.3"`, service.clientMetadata)
 }
 
 func TestClient_GetActivePlan(t *testing.T) {
@@ -92,16 +103,14 @@ func newTestClient(t *testing.T, service *fakeAccountsService, options ...Client
 }
 
 type fakeAccountsService struct {
-	authorization string
-	clientSource  string
-	clientVersion string
-	historyDays   uint64
+	authorization  string
+	clientMetadata string
+	historyDays    uint64
 }
 
 func (s *fakeAccountsService) GetAccountDetails(_ context.Context, request *connect.Request[accountsv1alpha1.GetAccountDetailsRequest]) (*connect.Response[accountsv1alpha1.AccountDetails], error) {
 	s.authorization = request.Header().Get("Authorization")
-	s.clientSource = request.Header().Get("Tilebox-Client-Source")
-	s.clientVersion = request.Header().Get("Tilebox-Client-Version")
+	s.clientMetadata = request.Header().Get("Tilebox-Client")
 	return connect.NewResponse(accountsv1alpha1.AccountDetails_builder{
 		UserName:         "Test User",
 		OrganizationSlug: "test-organization",

@@ -2,16 +2,11 @@ package grpc
 
 import (
 	"context"
-	"runtime/debug"
 
 	"connectrpc.com/connect"
 )
 
-const (
-	ClientSourceHeader  = "Tilebox-Client-Source"
-	ClientVersionHeader = "Tilebox-Client-Version"
-	modulePath          = "github.com/tilebox/tilebox-go"
-)
+const ClientHeader = "Tilebox-Client"
 
 type addAuthTokenInterceptor struct {
 	connect.Interceptor
@@ -33,39 +28,18 @@ func (at *addAuthTokenInterceptor) WrapUnary(next connect.UnaryFunc) connect.Una
 type addClientMetadataInterceptor struct {
 	connect.Interceptor
 
-	source  string
-	version string
+	headerValue string
 }
 
-func NewAddClientMetadataInterceptor(source, version string) connect.Interceptor {
-	return &addClientMetadataInterceptor{source: source, version: version}
+func NewAddClientMetadataInterceptor(headerValue string) connect.Interceptor {
+	return &addClientMetadataInterceptor{headerValue: headerValue}
 }
 
 func (i *addClientMetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
 	return func(ctx context.Context, request connect.AnyRequest) (connect.AnyResponse, error) {
-		if request.Header().Get(ClientSourceHeader) == "" {
-			request.Header().Set(ClientSourceHeader, i.source)
-		}
-		if request.Header().Get(ClientVersionHeader) == "" {
-			request.Header().Set(ClientVersionHeader, i.version)
+		if i.headerValue != "" {
+			request.Header().Set(ClientHeader, i.headerValue)
 		}
 		return next(ctx, request)
 	}
-}
-
-// ClientVersion returns the tilebox-go module version embedded in the running binary.
-func ClientVersion() string {
-	buildInfo, ok := debug.ReadBuildInfo()
-	if !ok {
-		return "dev"
-	}
-	if buildInfo.Main.Path == modulePath && buildInfo.Main.Version != "(devel)" {
-		return buildInfo.Main.Version
-	}
-	for _, dependency := range buildInfo.Deps {
-		if dependency.Path == modulePath {
-			return dependency.Version
-		}
-	}
-	return "dev"
 }

@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added `Tilebox-Client` HTTP header to outgoing API requests, with overrides for SDK wrappers.
+- Added a structured `Tilebox-Client` header with automatically detected SDK, runtime, OS, execution environment, invoker, and cloud metadata. SDK wrappers can replace the metadata with `WithClientMetadata` and `client.NewMetadata`.
+
+### Removed
+
+- Removed the legacy client metadata from dataset list requests.
 
 ### Changed
 

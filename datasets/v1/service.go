@@ -3,8 +3,6 @@ package datasets
 import (
 	"context"
 	"fmt"
-	"runtime/debug"
-	"strings"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
@@ -91,9 +89,7 @@ func (s *datasetService) GetDataset(ctx context.Context, slug string) (*datasets
 func (s *datasetService) ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/list", func(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
 		res, err := s.datasetClient.ListDatasets(ctx, connect.NewRequest(
-			datasetsv1.ListDatasetsRequest_builder{
-				ClientInfo: clientInfo(),
-			}.Build(),
+			datasetsv1.ListDatasetsRequest_builder{}.Build(),
 		))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list datasets: %w", err)
@@ -101,27 +97,6 @@ func (s *datasetService) ListDatasets(ctx context.Context) (*datasetsv1.ListData
 
 		return res.Msg, nil
 	})
-}
-
-func clientInfo() *datasetsv1.ClientInfo {
-	var packages []*datasetsv1.Package
-	buildInfo, ok := debug.ReadBuildInfo()
-	if ok {
-		for _, dep := range buildInfo.Deps {
-			if strings.HasPrefix(dep.Path, "github.com/tilebox/") {
-				packages = append(packages, datasetsv1.Package_builder{
-					Name:    dep.Path,
-					Version: dep.Version,
-				}.Build())
-			}
-		}
-	}
-
-	return datasetsv1.ClientInfo_builder{
-		Name:        "Go",
-		Environment: "Tilebox Go Client",
-		Packages:    packages,
-	}.Build()
 }
 
 type CollectionService interface {
