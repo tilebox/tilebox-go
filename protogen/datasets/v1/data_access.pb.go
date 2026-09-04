@@ -139,8 +139,10 @@ const (
 	SpatialFilterMode_SPATIAL_FILTER_MODE_UNSPECIFIED SpatialFilterMode = 0
 	// Any geometry that intersects the filter geometry is included.
 	SpatialFilterMode_SPATIAL_FILTER_MODE_INTERSECTS SpatialFilterMode = 1
-	// Only geometries fully contained within the filter geometry are included.
-	SpatialFilterMode_SPATIAL_FILTER_MODE_CONTAINS SpatialFilterMode = 2
+	// Only datapoint geometries fully contained within the filter geometry are included.
+	SpatialFilterMode_SPATIAL_FILTER_MODE_FILTER_CONTAINS_GEOMETRY SpatialFilterMode = 2
+	// Only datapoint geometries that fully contain the filter geometry are included.
+	SpatialFilterMode_SPATIAL_FILTER_MODE_GEOMETRY_CONTAINS_FILTER SpatialFilterMode = 3
 )
 
 // Enum value maps for SpatialFilterMode.
@@ -148,12 +150,14 @@ var (
 	SpatialFilterMode_name = map[int32]string{
 		0: "SPATIAL_FILTER_MODE_UNSPECIFIED",
 		1: "SPATIAL_FILTER_MODE_INTERSECTS",
-		2: "SPATIAL_FILTER_MODE_CONTAINS",
+		2: "SPATIAL_FILTER_MODE_FILTER_CONTAINS_GEOMETRY",
+		3: "SPATIAL_FILTER_MODE_GEOMETRY_CONTAINS_FILTER",
 	}
 	SpatialFilterMode_value = map[string]int32{
-		"SPATIAL_FILTER_MODE_UNSPECIFIED": 0,
-		"SPATIAL_FILTER_MODE_INTERSECTS":  1,
-		"SPATIAL_FILTER_MODE_CONTAINS":    2,
+		"SPATIAL_FILTER_MODE_UNSPECIFIED":              0,
+		"SPATIAL_FILTER_MODE_INTERSECTS":               1,
+		"SPATIAL_FILTER_MODE_FILTER_CONTAINS_GEOMETRY": 2,
+		"SPATIAL_FILTER_MODE_GEOMETRY_CONTAINS_FILTER": 3,
 	}
 )
 
@@ -1263,7 +1267,7 @@ type SpatialFilter_builder struct {
 
 	// The geometry to filter by.
 	Geometry *Geometry
-	// Whether to filter by intersection or containment.
+	// How to compare datapoint geometries with the filter geometry.
 	Mode SpatialFilterMode
 	// Coordinate system in which to perform geometry calculations.
 	CoordinateSystem SpatialCoordinateSystem
@@ -1623,11 +1627,12 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"#FIELD_COMPARISON_OPERATOR_LESS_THAN\x10\x03\x120\n" +
 	",FIELD_COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL\x10\x04\x12*\n" +
 	"&FIELD_COMPARISON_OPERATOR_GREATER_THAN\x10\x05\x123\n" +
-	"/FIELD_COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL\x10\x06*~\n" +
+	"/FIELD_COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL\x10\x06*\xc0\x01\n" +
 	"\x11SpatialFilterMode\x12#\n" +
 	"\x1fSPATIAL_FILTER_MODE_UNSPECIFIED\x10\x00\x12\"\n" +
-	"\x1eSPATIAL_FILTER_MODE_INTERSECTS\x10\x01\x12 \n" +
-	"\x1cSPATIAL_FILTER_MODE_CONTAINS\x10\x02*\x96\x01\n" +
+	"\x1eSPATIAL_FILTER_MODE_INTERSECTS\x10\x01\x120\n" +
+	",SPATIAL_FILTER_MODE_FILTER_CONTAINS_GEOMETRY\x10\x02\x120\n" +
+	",SPATIAL_FILTER_MODE_GEOMETRY_CONTAINS_FILTER\x10\x03*\x96\x01\n" +
 	"\x17SpatialCoordinateSystem\x12)\n" +
 	"%SPATIAL_COORDINATE_SYSTEM_UNSPECIFIED\x10\x00\x12'\n" +
 	"#SPATIAL_COORDINATE_SYSTEM_CARTESIAN\x10\x01\x12'\n" +

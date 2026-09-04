@@ -475,171 +475,6 @@ func (b0 UpdateDatasetRequest_builder) Build() *UpdateDatasetRequest {
 	return m0
 }
 
-// ClientInfo contains information about the client requesting datasets, useful for us to gather usage data
-type ClientInfo struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name"`
-	xxx_hidden_Environment string                 `protobuf:"bytes,2,opt,name=environment"`
-	xxx_hidden_Packages    *[]*Package            `protobuf:"bytes,3,rep,name=packages"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *ClientInfo) Reset() {
-	*x = ClientInfo{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[3]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ClientInfo) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ClientInfo) ProtoMessage() {}
-
-func (x *ClientInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[3]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ClientInfo) GetName() string {
-	if x != nil {
-		return x.xxx_hidden_Name
-	}
-	return ""
-}
-
-func (x *ClientInfo) GetEnvironment() string {
-	if x != nil {
-		return x.xxx_hidden_Environment
-	}
-	return ""
-}
-
-func (x *ClientInfo) GetPackages() []*Package {
-	if x != nil {
-		if x.xxx_hidden_Packages != nil {
-			return *x.xxx_hidden_Packages
-		}
-	}
-	return nil
-}
-
-func (x *ClientInfo) SetName(v string) {
-	x.xxx_hidden_Name = v
-}
-
-func (x *ClientInfo) SetEnvironment(v string) {
-	x.xxx_hidden_Environment = v
-}
-
-func (x *ClientInfo) SetPackages(v []*Package) {
-	x.xxx_hidden_Packages = &v
-}
-
-type ClientInfo_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// name of the client, e.g. "python"
-	Name string
-	// environment the client is running in, e.g. "JupyterLab using python 3.11.4"
-	Environment string
-	// list of packages installed on the client
-	Packages []*Package
-}
-
-func (b0 ClientInfo_builder) Build() *ClientInfo {
-	m0 := &ClientInfo{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Name = b.Name
-	x.xxx_hidden_Environment = b.Environment
-	x.xxx_hidden_Packages = &b.Packages
-	return m0
-}
-
-// Package contains information about the installed version of a given package on the client
-type Package struct {
-	state              protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name    string                 `protobuf:"bytes,1,opt,name=name"`
-	xxx_hidden_Version string                 `protobuf:"bytes,2,opt,name=version"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
-}
-
-func (x *Package) Reset() {
-	*x = Package{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[4]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Package) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Package) ProtoMessage() {}
-
-func (x *Package) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[4]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *Package) GetName() string {
-	if x != nil {
-		return x.xxx_hidden_Name
-	}
-	return ""
-}
-
-func (x *Package) GetVersion() string {
-	if x != nil {
-		return x.xxx_hidden_Version
-	}
-	return ""
-}
-
-func (x *Package) SetName(v string) {
-	x.xxx_hidden_Name = v
-}
-
-func (x *Package) SetVersion(v string) {
-	x.xxx_hidden_Version = v
-}
-
-type Package_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// package name
-	Name string
-	// package version
-	Version string
-}
-
-func (b0 Package_builder) Build() *Package {
-	m0 := &Package{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Name = b.Name
-	x.xxx_hidden_Version = b.Version
-	return m0
-}
-
 // DeleteDatasetRequest is used to delete a dataset
 type DeleteDatasetRequest struct {
 	state         protoimpl.MessageState `protogen:"opaque.v1"`
@@ -650,7 +485,7 @@ type DeleteDatasetRequest struct {
 
 func (x *DeleteDatasetRequest) Reset() {
 	*x = DeleteDatasetRequest{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[5]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -662,7 +497,7 @@ func (x *DeleteDatasetRequest) String() string {
 func (*DeleteDatasetRequest) ProtoMessage() {}
 
 func (x *DeleteDatasetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[5]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -720,7 +555,7 @@ type DeleteDatasetResponse struct {
 
 func (x *DeleteDatasetResponse) Reset() {
 	*x = DeleteDatasetResponse{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[6]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -732,7 +567,7 @@ func (x *DeleteDatasetResponse) String() string {
 func (*DeleteDatasetResponse) ProtoMessage() {}
 
 func (x *DeleteDatasetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[6]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -771,15 +606,14 @@ func (b0 DeleteDatasetResponse_builder) Build() *DeleteDatasetResponse {
 
 // ListDatasetsRequest is used to request a list of datasets
 type ListDatasetsRequest struct {
-	state                 protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_ClientInfo *ClientInfo            `protobuf:"bytes,1,opt,name=client_info,json=clientInfo"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"opaque.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ListDatasetsRequest) Reset() {
 	*x = ListDatasetsRequest{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[7]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -791,7 +625,7 @@ func (x *ListDatasetsRequest) String() string {
 func (*ListDatasetsRequest) ProtoMessage() {}
 
 func (x *ListDatasetsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[7]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -802,40 +636,15 @@ func (x *ListDatasetsRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ListDatasetsRequest) GetClientInfo() *ClientInfo {
-	if x != nil {
-		return x.xxx_hidden_ClientInfo
-	}
-	return nil
-}
-
-func (x *ListDatasetsRequest) SetClientInfo(v *ClientInfo) {
-	x.xxx_hidden_ClientInfo = v
-}
-
-func (x *ListDatasetsRequest) HasClientInfo() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_ClientInfo != nil
-}
-
-func (x *ListDatasetsRequest) ClearClientInfo() {
-	x.xxx_hidden_ClientInfo = nil
-}
-
 type ListDatasetsRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// some information about the Tilebox client requesting the datasets
-	ClientInfo *ClientInfo
 }
 
 func (b0 ListDatasetsRequest_builder) Build() *ListDatasetsRequest {
 	m0 := &ListDatasetsRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_ClientInfo = b.ClientInfo
 	return m0
 }
 
@@ -855,7 +664,7 @@ type ListDatasetsResponse struct {
 
 func (x *ListDatasetsResponse) Reset() {
 	*x = ListDatasetsResponse{}
-	mi := &file_datasets_v1_datasets_proto_msgTypes[8]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -867,7 +676,7 @@ func (x *ListDatasetsResponse) String() string {
 func (*ListDatasetsResponse) ProtoMessage() {}
 
 func (x *ListDatasetsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_datasets_proto_msgTypes[8]
+	mi := &file_datasets_v1_datasets_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1002,22 +811,12 @@ const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\x04type\x18\x03 \x01(\v2\x18.datasets.v1.DatasetTypeB\x05\xaa\x01\x02\b\x01R\x04type\x12(\n" +
 	"\asummary\x18\x04 \x01(\tB\x0e\xbaH\x06r\x04\x18І\x03\xaa\x01\x02\b\x01R\asummary\x12>\n" +
 	"\tcode_name\x18\x05 \x01(\tB!\xbaH\x19r\x17\x10\x01\x18d2\x11^[a-z][a-z0-9_]*$\xaa\x01\x02\b\x01R\bcodeName\x120\n" +
-	"\vdescription\x18\x06 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\"t\n" +
-	"\n" +
-	"ClientInfo\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12 \n" +
-	"\venvironment\x18\x02 \x01(\tR\venvironment\x120\n" +
-	"\bpackages\x18\x03 \x03(\v2\x14.datasets.v1.PackageR\bpackages\"7\n" +
-	"\aPackage\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x18\n" +
-	"\aversion\x18\x02 \x01(\tR\aversion\">\n" +
+	"\vdescription\x18\x06 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\">\n" +
 	"\x14DeleteDatasetRequest\x12&\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\"1\n" +
 	"\x15DeleteDatasetResponse\x12\x18\n" +
-	"\atrashed\x18\x01 \x01(\bR\atrashed\"O\n" +
-	"\x13ListDatasetsRequest\x128\n" +
-	"\vclient_info\x18\x01 \x01(\v2\x17.datasets.v1.ClientInfoR\n" +
-	"clientInfo\"\x86\x02\n" +
+	"\atrashed\x18\x01 \x01(\bR\atrashed\"\x15\n" +
+	"\x13ListDatasetsRequest\"\x86\x02\n" +
 	"\x14ListDatasetsResponse\x120\n" +
 	"\bdatasets\x18\x01 \x03(\v2\x14.datasets.v1.DatasetR\bdatasets\x121\n" +
 	"\x06groups\x18\x02 \x03(\v2\x19.datasets.v1.DatasetGroupR\x06groups\x12%\n" +
@@ -1033,47 +832,43 @@ const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\fListDatasets\x12 .datasets.v1.ListDatasetsRequest\x1a!.datasets.v1.ListDatasetsResponse\"\x00B\xb1\x01\n" +
 	"\x0fcom.datasets.v1B\rDatasetsProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_datasets_v1_datasets_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_datasets_v1_datasets_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_datasets_v1_datasets_proto_goTypes = []any{
 	(*CreateDatasetRequest)(nil),  // 0: datasets.v1.CreateDatasetRequest
 	(*GetDatasetRequest)(nil),     // 1: datasets.v1.GetDatasetRequest
 	(*UpdateDatasetRequest)(nil),  // 2: datasets.v1.UpdateDatasetRequest
-	(*ClientInfo)(nil),            // 3: datasets.v1.ClientInfo
-	(*Package)(nil),               // 4: datasets.v1.Package
-	(*DeleteDatasetRequest)(nil),  // 5: datasets.v1.DeleteDatasetRequest
-	(*DeleteDatasetResponse)(nil), // 6: datasets.v1.DeleteDatasetResponse
-	(*ListDatasetsRequest)(nil),   // 7: datasets.v1.ListDatasetsRequest
-	(*ListDatasetsResponse)(nil),  // 8: datasets.v1.ListDatasetsResponse
-	(*DatasetType)(nil),           // 9: datasets.v1.DatasetType
-	(*v1.ID)(nil),                 // 10: tilebox.v1.ID
-	(*Dataset)(nil),               // 11: datasets.v1.Dataset
-	(*DatasetGroup)(nil),          // 12: datasets.v1.DatasetGroup
+	(*DeleteDatasetRequest)(nil),  // 3: datasets.v1.DeleteDatasetRequest
+	(*DeleteDatasetResponse)(nil), // 4: datasets.v1.DeleteDatasetResponse
+	(*ListDatasetsRequest)(nil),   // 5: datasets.v1.ListDatasetsRequest
+	(*ListDatasetsResponse)(nil),  // 6: datasets.v1.ListDatasetsResponse
+	(*DatasetType)(nil),           // 7: datasets.v1.DatasetType
+	(*v1.ID)(nil),                 // 8: tilebox.v1.ID
+	(*Dataset)(nil),               // 9: datasets.v1.Dataset
+	(*DatasetGroup)(nil),          // 10: datasets.v1.DatasetGroup
 }
 var file_datasets_v1_datasets_proto_depIdxs = []int32{
-	9,  // 0: datasets.v1.CreateDatasetRequest.type:type_name -> datasets.v1.DatasetType
-	10, // 1: datasets.v1.GetDatasetRequest.id:type_name -> tilebox.v1.ID
-	10, // 2: datasets.v1.UpdateDatasetRequest.id:type_name -> tilebox.v1.ID
-	9,  // 3: datasets.v1.UpdateDatasetRequest.type:type_name -> datasets.v1.DatasetType
-	4,  // 4: datasets.v1.ClientInfo.packages:type_name -> datasets.v1.Package
-	10, // 5: datasets.v1.DeleteDatasetRequest.id:type_name -> tilebox.v1.ID
-	3,  // 6: datasets.v1.ListDatasetsRequest.client_info:type_name -> datasets.v1.ClientInfo
-	11, // 7: datasets.v1.ListDatasetsResponse.datasets:type_name -> datasets.v1.Dataset
-	12, // 8: datasets.v1.ListDatasetsResponse.groups:type_name -> datasets.v1.DatasetGroup
-	0,  // 9: datasets.v1.DatasetService.CreateDataset:input_type -> datasets.v1.CreateDatasetRequest
-	1,  // 10: datasets.v1.DatasetService.GetDataset:input_type -> datasets.v1.GetDatasetRequest
-	2,  // 11: datasets.v1.DatasetService.UpdateDataset:input_type -> datasets.v1.UpdateDatasetRequest
-	5,  // 12: datasets.v1.DatasetService.DeleteDataset:input_type -> datasets.v1.DeleteDatasetRequest
-	7,  // 13: datasets.v1.DatasetService.ListDatasets:input_type -> datasets.v1.ListDatasetsRequest
-	11, // 14: datasets.v1.DatasetService.CreateDataset:output_type -> datasets.v1.Dataset
-	11, // 15: datasets.v1.DatasetService.GetDataset:output_type -> datasets.v1.Dataset
-	11, // 16: datasets.v1.DatasetService.UpdateDataset:output_type -> datasets.v1.Dataset
-	6,  // 17: datasets.v1.DatasetService.DeleteDataset:output_type -> datasets.v1.DeleteDatasetResponse
-	8,  // 18: datasets.v1.DatasetService.ListDatasets:output_type -> datasets.v1.ListDatasetsResponse
-	14, // [14:19] is the sub-list for method output_type
-	9,  // [9:14] is the sub-list for method input_type
-	9,  // [9:9] is the sub-list for extension type_name
-	9,  // [9:9] is the sub-list for extension extendee
-	0,  // [0:9] is the sub-list for field type_name
+	7,  // 0: datasets.v1.CreateDatasetRequest.type:type_name -> datasets.v1.DatasetType
+	8,  // 1: datasets.v1.GetDatasetRequest.id:type_name -> tilebox.v1.ID
+	8,  // 2: datasets.v1.UpdateDatasetRequest.id:type_name -> tilebox.v1.ID
+	7,  // 3: datasets.v1.UpdateDatasetRequest.type:type_name -> datasets.v1.DatasetType
+	8,  // 4: datasets.v1.DeleteDatasetRequest.id:type_name -> tilebox.v1.ID
+	9,  // 5: datasets.v1.ListDatasetsResponse.datasets:type_name -> datasets.v1.Dataset
+	10, // 6: datasets.v1.ListDatasetsResponse.groups:type_name -> datasets.v1.DatasetGroup
+	0,  // 7: datasets.v1.DatasetService.CreateDataset:input_type -> datasets.v1.CreateDatasetRequest
+	1,  // 8: datasets.v1.DatasetService.GetDataset:input_type -> datasets.v1.GetDatasetRequest
+	2,  // 9: datasets.v1.DatasetService.UpdateDataset:input_type -> datasets.v1.UpdateDatasetRequest
+	3,  // 10: datasets.v1.DatasetService.DeleteDataset:input_type -> datasets.v1.DeleteDatasetRequest
+	5,  // 11: datasets.v1.DatasetService.ListDatasets:input_type -> datasets.v1.ListDatasetsRequest
+	9,  // 12: datasets.v1.DatasetService.CreateDataset:output_type -> datasets.v1.Dataset
+	9,  // 13: datasets.v1.DatasetService.GetDataset:output_type -> datasets.v1.Dataset
+	9,  // 14: datasets.v1.DatasetService.UpdateDataset:output_type -> datasets.v1.Dataset
+	4,  // 15: datasets.v1.DatasetService.DeleteDataset:output_type -> datasets.v1.DeleteDatasetResponse
+	6,  // 16: datasets.v1.DatasetService.ListDatasets:output_type -> datasets.v1.ListDatasetsResponse
+	12, // [12:17] is the sub-list for method output_type
+	7,  // [7:12] is the sub-list for method input_type
+	7,  // [7:7] is the sub-list for extension type_name
+	7,  // [7:7] is the sub-list for extension extendee
+	0,  // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_datasets_proto_init() }
@@ -1089,7 +884,7 @@ func file_datasets_v1_datasets_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_datasets_proto_rawDesc), len(file_datasets_v1_datasets_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -202,7 +202,8 @@ type SubmitJobRequest_builder struct {
 	Tasks *TaskSubmissions
 	// The name of the job.
 	JobName string
-	// Tracing information for the job. This is used to propagate tracing information to the workers that execute the job.
+	// Optional. Tracing information for the job. If omitted, the service generates a new trace parent.
+	// This is used to propagate tracing information to the workers that execute the job.
 	TraceParent string
 	// Optional. The ID of the automation that submits this job.
 	AutomationId *v1.ID
@@ -2448,11 +2449,11 @@ var File_workflows_v1_job_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xce\x03\n" +
+	"\x16workflows/v1/job.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1egoogle/protobuf/duration.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1aworkflows/v1/diagram.proto\"\xc5\x03\n" +
 	"\x10SubmitJobRequest\x123\n" +
 	"\x05tasks\x18\x05 \x01(\v2\x1d.workflows.v1.TaskSubmissionsR\x05tasks\x12\"\n" +
-	"\bjob_name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\ajobName\x12*\n" +
-	"\ftrace_parent\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vtraceParent\x123\n" +
+	"\bjob_name\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\ajobName\x12!\n" +
+	"\ftrace_parent\x18\x03 \x01(\tR\vtraceParent\x123\n" +
 	"\rautomation_id\x18\x04 \x01(\v2\x0e.tilebox.v1.IDR\fautomationId\x12R\n" +
 	"\flegacy_tasks\x18\x01 \x03(\v2\".workflows.v1.SingleTaskSubmissionB\v\xbaH\x06\x92\x01\x03\x10\xe8\a\x18\x01R\vlegacyTasks:\xab\x01\xbaH\xa7\x01\x1a\xa4\x01\n" +
 	"!submit_job_request.tasks_required\x12$At least one task must be submitted.\x1aY(this.tasks != null && this.tasks.task_groups.size() > 0) || this.legacy_tasks.size() > 0\">\n" +
