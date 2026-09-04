@@ -10,10 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added a structured `Tilebox-Client` header with automatically detected SDK, runtime, OS, execution environment, invoker, and cloud metadata. SDK wrappers can replace the metadata with `WithClientMetadata` and `client.NewMetadata`.
+- `datasets`: Added `GEOMETRY_CONTAINS_FILTER` spatial filter mode to datapoint queries.
 
 ### Removed
 
-- Removed the legacy client metadata from dataset list requests.
+- `datasets`: Removed the legacy client metadata from dataset list requests.
 
 ### Changed
 
