@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a structured `Tilebox-Client` header with automatically detected SDK, runtime, OS, execution environment, invoker, and cloud metadata. SDK wrappers can replace the metadata with `WithClientMetadata` and `client.NewMetadata`.
+
+### Removed
+
+- Removed the legacy client metadata from dataset list requests.
+
 ### Changed
 
 - `workflows`: Change `Client.NewPollingTaskRunner` to accept a resolved `*Cluster`, executor, and logger directly; it no longer fetches a cluster or accepts task-runner options.

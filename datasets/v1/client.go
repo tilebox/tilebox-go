@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"connectrpc.com/connect"
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/internal/grpc"
 	"github.com/tilebox/tilebox-go/protogen/datasets/v1/datasetsv1connect"
 	"go.opentelemetry.io/otel"
@@ -61,6 +62,7 @@ type clientConfig struct {
 	httpClient     connect.HTTPClient
 	url            string
 	apiKey         string
+	clientMetadata client.Metadata
 	connectOptions []connect.ClientOption
 
 	tracerProvider trace.TracerProvider
@@ -99,6 +101,14 @@ func WithAPIKey(apiKey string) ClientOption {
 	}
 }
 
+// WithClientMetadata replaces the automatically detected metadata sent with each request.
+// Wrappers such as the Tilebox CLI can use this to identify themselves as the client.
+func WithClientMetadata(metadata client.Metadata) ClientOption {
+	return func(cfg *clientConfig) {
+		cfg.clientMetadata = metadata
+	}
+}
+
 // WithConnectClientOptions sets additional options for the connect.HTTPClient.
 func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
 	return func(cfg *clientConfig) {
@@ -117,6 +127,7 @@ func newClientConfig(options []ClientOption) *clientConfig {
 	cfg := &clientConfig{
 		url:            "https://api.tilebox.com",
 		apiKey:         os.Getenv("TILEBOX_API_KEY"),
+		clientMetadata: client.DefaultMetadata(),
 		tracerProvider: otel.GetTracerProvider(), // use the global tracer provider by default
 	}
 	for _, option := range options {
@@ -146,7 +157,7 @@ func newClientConfig(options []ClientOption) *clientConfig {
 func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, cfg *clientConfig) T {
 	// for on-orbit deployments, we also support requests without an API key, so we don't need to add an interceptor
 	// for those cases
-	interceptors := make([]connect.Interceptor, 0)
+	interceptors := []connect.Interceptor{grpc.NewAddClientMetadataInterceptor(cfg.clientMetadata.HeaderValue())}
 	if cfg.apiKey != "" {
 		interceptors = append(interceptors, grpc.NewAddAuthTokenInterceptor(func() string {
 			return cfg.apiKey
