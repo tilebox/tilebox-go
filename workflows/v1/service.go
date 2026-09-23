@@ -379,14 +379,15 @@ type WorkflowService interface {
 	ListClusters(ctx context.Context) (*workflowsv1.ListClustersResponse, error)
 
 	CreateWorkflow(ctx context.Context, name, description string) (*workflowsv1.Workflow, error)
-	ListWorkflows(ctx context.Context) (*workflowsv1.ListWorkflowsResponse, error)
+	ListWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListWorkflowsResponse, error)
+	ListPublicWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListPublicWorkflowsResponse, error)
 	GetWorkflow(ctx context.Context, slug string) (*workflowsv1.Workflow, error)
 	UpdateWorkflow(ctx context.Context, slug string, name, description *string) (*workflowsv1.Workflow, error)
 	DeleteWorkflow(ctx context.Context, slug string) error
 	PublishWorkflowRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*workflowsv1.WorkflowRelease, error)
 	UnpublishWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error
 	DeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.DeployWorkflowReleaseResponse, error)
-	UndeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.UndeployWorkflowReleaseResponse, error)
+	UndeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID *uuid.UUID, clusterSlugs []string) (*workflowsv1.UndeployWorkflowReleaseResponse, error)
 }
 
 var _ WorkflowService = &workflowService{}
@@ -484,11 +485,22 @@ func (s *workflowService) CreateWorkflow(ctx context.Context, name, description 
 	})
 }
 
-func (s *workflowService) ListWorkflows(ctx context.Context) (*workflowsv1.ListWorkflowsResponse, error) {
+func (s *workflowService) ListWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListWorkflowsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/list", func(ctx context.Context) (*workflowsv1.ListWorkflowsResponse, error) {
-		res, err := s.workflowClient.ListWorkflows(ctx, connect.NewRequest(&workflowsv1.ListWorkflowsRequest{}))
+		res, err := s.workflowClient.ListWorkflows(ctx, connect.NewRequest(workflowsv1.ListWorkflowsRequest_builder{Page: page}.Build()))
 		if err != nil {
 			return nil, fmt.Errorf("failed to list workflows: %w", err)
+		}
+
+		return res.Msg, nil
+	})
+}
+
+func (s *workflowService) ListPublicWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListPublicWorkflowsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/list_public", func(ctx context.Context) (*workflowsv1.ListPublicWorkflowsResponse, error) {
+		res, err := s.workflowClient.ListPublicWorkflows(ctx, connect.NewRequest(workflowsv1.ListPublicWorkflowsRequest_builder{Page: page}.Build()))
+		if err != nil {
+			return nil, fmt.Errorf("failed to list public workflows: %w", err)
 		}
 
 		return res.Msg, nil
@@ -585,11 +597,16 @@ func (s *workflowService) DeployWorkflowRelease(ctx context.Context, workflowSlu
 	})
 }
 
-func (s *workflowService) UndeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.UndeployWorkflowReleaseResponse, error) {
+func (s *workflowService) UndeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID *uuid.UUID, clusterSlugs []string) (*workflowsv1.UndeployWorkflowReleaseResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/undeploy_release", func(ctx context.Context) (*workflowsv1.UndeployWorkflowReleaseResponse, error) {
+		var releaseIDProto *tileboxv1.ID
+		if releaseID != nil {
+			// NewUUID treats uuid.Nil as absent, which would unintentionally remove all releases.
+			releaseIDProto = tileboxv1.ID_builder{Uuid: releaseID[:]}.Build()
+		}
 		res, err := s.workflowClient.UndeployWorkflowRelease(ctx, connect.NewRequest(workflowsv1.UndeployWorkflowReleaseRequest_builder{
 			WorkflowSlug: workflowSlug,
-			ReleaseId:    tileboxv1.NewUUID(releaseID),
+			ReleaseId:    releaseIDProto,
 			ClusterSlugs: clusterSlugs,
 		}.Build()))
 		if err != nil {

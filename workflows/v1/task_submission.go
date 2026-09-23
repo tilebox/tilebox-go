@@ -5,7 +5,7 @@ import (
 	"slices"
 
 	"github.com/cespare/xxhash/v2"
-	mapset "github.com/deckarep/golang-set/v2"
+	mapset "github.com/deckarep/golang-set/v3"
 	"github.com/samber/lo"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 )
