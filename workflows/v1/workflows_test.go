@@ -50,12 +50,174 @@ func TestWorkflowClient_List(t *testing.T) {
 	}
 	client := workflowClient{service: service}
 
-	workflows, err := client.List(ctx)
+	workflows, err := Collect(client.List(ctx))
 	require.NoError(t, err)
 
 	require.Len(t, workflows, 2)
 	assert.Equal(t, "one", workflows[0].Slug)
 	assert.Equal(t, "two", workflows[1].Slug)
+}
+
+func TestWorkflowClient_ListAndListPublic_Paginate(t *testing.T) {
+	nextID := uuid.New()
+	owned := &pagingWorkflowService{owned: []*workflowsv1.ListWorkflowsResponse{
+		workflowsv1.ListWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Slug: "one"}.Build()}, NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextID)}.Build()}.Build(),
+		workflowsv1.ListWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Slug: "two"}.Build()}}.Build(),
+	}}
+	client := workflowClient{service: owned}
+
+	workflows, err := Collect(client.List(context.Background()))
+	require.NoError(t, err)
+	assert.Equal(t, []string{"one", "two"}, []string{workflows[0].Slug, workflows[1].Slug})
+	require.Len(t, owned.ownedPages, 2)
+	assert.Equal(t, nextID, owned.ownedPages[1].GetStartingAfter().AsUUID())
+
+	public := &pagingWorkflowService{public: []*workflowsv1.ListPublicWorkflowsResponse{
+		workflowsv1.ListPublicWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Slug: "tilebox:example"}.Build()}, NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextID)}.Build()}.Build(),
+		workflowsv1.ListPublicWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Slug: "other:example"}.Build()}}.Build(),
+	}}
+	client.service = public
+	workflows, err = Collect(client.ListPublic(context.Background()))
+	require.NoError(t, err)
+	require.Len(t, workflows, 2)
+	assert.Equal(t, "tilebox:example", workflows[0].Slug)
+	assert.Equal(t, "other:example", workflows[1].Slug)
+	require.Len(t, public.publicPages, 2)
+	assert.Equal(t, nextID, public.publicPages[1].GetStartingAfter().AsUUID())
+	assert.Empty(t, workflows[0].Releases)
+}
+
+func TestWorkflowClient_ListIterators(t *testing.T) {
+	for _, public := range []bool{false, true} {
+		for _, test := range []struct {
+			name      string
+			limit     int64
+			stopEarly bool
+			want      []string
+			calls     int
+		}{
+			{name: "unlimited", want: []string{"one", "two", "three", "four"}, calls: 2},
+			{name: "negative limit", limit: -1, want: []string{"one", "two", "three", "four"}, calls: 2},
+			{name: "within page", limit: 1, want: []string{"one"}, calls: 1},
+			{name: "page boundary", limit: 2, want: []string{"one", "two"}, calls: 1},
+			{name: "across pages", limit: 3, want: []string{"one", "two", "three"}, calls: 2},
+			{name: "early stop", stopEarly: true, want: []string{"one"}, calls: 1},
+		} {
+			prefix := "owned/"
+			if public {
+				prefix = "public/"
+			}
+			t.Run(prefix+test.name, func(t *testing.T) {
+				startID, nextID := uuid.New(), uuid.New()
+				pages := [][]*workflowsv1.Workflow{
+					{workflowsv1.Workflow_builder{Slug: "one"}.Build(), workflowsv1.Workflow_builder{Slug: "two"}.Build()},
+					{workflowsv1.Workflow_builder{Slug: "three"}.Build(), workflowsv1.Workflow_builder{Slug: "four"}.Build()},
+				}
+				service := &pagingWorkflowService{}
+				for i, items := range pages {
+					var next *tileboxv1.Pagination
+					if i == 0 {
+						next = tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextID)}.Build()
+					}
+					service.owned = append(service.owned, workflowsv1.ListWorkflowsResponse_builder{Workflows: items, NextPage: next}.Build())
+					service.public = append(service.public, workflowsv1.ListPublicWorkflowsResponse_builder{Workflows: items, NextPage: next}.Build())
+				}
+				client := workflowClient{service: service}
+				list := client.List
+				requests := &service.ownedPages
+				if public {
+					list = client.ListPublic
+					requests = &service.publicPages
+				}
+				sequence := list(context.Background(), workflow.WithLimit(test.limit), workflow.WithCursor(workflow.NewCursor(startID)))
+				require.Empty(t, *requests, "creating an iterator must not fetch pages")
+				var slugs []string
+				for item, err := range sequence {
+					require.NoError(t, err)
+					slugs = append(slugs, item.Slug)
+					if test.stopEarly {
+						break
+					}
+				}
+				assert.Equal(t, test.want, slugs)
+				require.Len(t, *requests, test.calls)
+				assert.Equal(t, startID, (*requests)[0].GetStartingAfter().AsUUID())
+				if test.limit > 0 {
+					assert.Equal(t, test.limit, (*requests)[0].GetLimit())
+				}
+				if test.calls == 2 {
+					assert.Equal(t, nextID, (*requests)[1].GetStartingAfter().AsUUID())
+					if test.limit > 0 {
+						assert.Equal(t, test.limit-2, (*requests)[1].GetLimit())
+					}
+				}
+			})
+		}
+	}
+}
+
+func TestWorkflowClient_List_StopsOnLaterPageError(t *testing.T) {
+	for _, public := range []bool{false, true} {
+		service := &pagingWorkflowService{err: errors.New("second page failed")}
+		next := tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(uuid.New())}.Build()
+		service.owned = []*workflowsv1.ListWorkflowsResponse{workflowsv1.ListWorkflowsResponse_builder{NextPage: next}.Build()}
+		service.public = []*workflowsv1.ListPublicWorkflowsResponse{workflowsv1.ListPublicWorkflowsResponse_builder{NextPage: next}.Build()}
+		client := workflowClient{service: service}
+		list := client.List
+		if public {
+			list = client.ListPublic
+		}
+		count := 0
+		for item, err := range list(context.Background()) {
+			assert.Nil(t, item)
+			require.ErrorIs(t, err, service.err)
+			count++
+		}
+		assert.Equal(t, 1, count, "yield an error once, even when the consumer continues")
+	}
+}
+
+func TestWorkflowService_ListTransport(t *testing.T) {
+	connectClient := &fakeWorkflowsConnectClient{}
+	service := newWorkflowService(connectClient, noop.NewTracerProvider().Tracer("test"))
+	client := workflowClient{service: service}
+	cursorID := uuid.New()
+	_, err := client.ListPage(context.Background(), workflow.WithLimit(37), workflow.WithCursor(workflow.NewCursor(cursorID)))
+	require.NoError(t, err)
+	assert.Equal(t, int64(37), connectClient.listWorkflowsRequest.GetPage().GetLimit())
+	assert.Equal(t, cursorID, connectClient.listWorkflowsRequest.GetPage().GetStartingAfter().AsUUID())
+	_, err = client.ListPublicPage(context.Background(), workflow.WithLimit(13), workflow.WithCursor(workflow.NewCursor(cursorID)))
+	require.NoError(t, err)
+	assert.Equal(t, int64(13), connectClient.listPublicWorkflowsRequest.GetPage().GetLimit())
+	assert.Equal(t, cursorID, connectClient.listPublicWorkflowsRequest.GetPage().GetStartingAfter().AsUUID())
+}
+
+func TestWorkflowClient_UndeployRelease_OptionalIDTransport(t *testing.T) {
+	releaseID := uuid.New()
+	for _, test := range []struct {
+		name    string
+		options []workflow.UndeployOption
+		wantID  *uuid.UUID
+	}{
+		{name: "all releases"},
+		{name: "specific release", options: []workflow.UndeployOption{workflow.WithReleaseID(releaseID)}, wantID: &releaseID},
+		{name: "explicit zero is not omission", options: []workflow.UndeployOption{workflow.WithReleaseID(uuid.Nil)}, wantID: &uuid.Nil},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			transport := &fakeWorkflowsConnectClient{}
+			client := workflowClient{service: newWorkflowService(transport, noop.NewTracerProvider().Tracer("test"))}
+			_, err := client.UndeployRelease(context.Background(), "tilebox:example", []string{"dev", "prod"}, test.options...)
+			require.NoError(t, err)
+			request := transport.undeployWorkflowReleaseRequest
+			require.NotNil(t, request)
+			assert.Equal(t, "tilebox:example", request.GetWorkflowSlug())
+			assert.Equal(t, []string{"dev", "prod"}, request.GetClusterSlugs())
+			assert.Equal(t, test.wantID != nil, request.HasReleaseId())
+			if test.wantID != nil {
+				assert.Equal(t, *test.wantID, request.GetReleaseId().AsUUID())
+			}
+		})
+	}
 }
 
 func TestWorkflowClient_Get(t *testing.T) {
@@ -250,17 +412,32 @@ func TestWorkflowClient_UndeployRelease(t *testing.T) {
 	}
 	client := workflowClient{service: service}
 
-	deployment, err := client.UndeployRelease(ctx, "agentic-workflow", releaseID, []string{"dev"})
+	deployment, err := client.UndeployRelease(ctx, "agentic-workflow", []string{"dev"}, workflow.WithReleaseID(releaseID))
 	require.NoError(t, err)
 
 	assert.Equal(t, "agentic-workflow", service.undeployWorkflowSlug)
-	assert.Equal(t, releaseID, service.undeployReleaseID)
+	require.NotNil(t, service.undeployReleaseID)
+	assert.Equal(t, releaseID, *service.undeployReleaseID)
 	assert.Equal(t, []string{"dev"}, service.undeployClusterSlugs)
 	require.NotNil(t, deployment.Release)
 	assert.Equal(t, releaseID, deployment.Release.ID)
 	require.Len(t, deployment.Clusters, 1)
 	assert.Equal(t, "dev", deployment.Clusters[0].Slug)
 	assert.Equal(t, "Dev", deployment.Clusters[0].Name)
+}
+
+func TestWorkflowClient_UndeployRelease_PreservesNilRelease(t *testing.T) {
+	service := &fakeWorkflowService{
+		undeployWorkflowReleaseResponse: workflowsv1.UndeployWorkflowReleaseResponse_builder{
+			Clusters: []*workflowsv1.Cluster{workflowsv1.Cluster_builder{Slug: "dev"}.Build()},
+		}.Build(),
+	}
+
+	deployment, err := (workflowClient{service: service}).UndeployRelease(context.Background(), "agentic-workflow", []string{"dev"})
+	require.NoError(t, err)
+	assert.Nil(t, service.undeployReleaseID)
+	assert.Nil(t, deployment.Release)
+	require.Len(t, deployment.Clusters, 1)
 }
 
 func TestProtoToCluster_MapsDeployedWorkflows(t *testing.T) {
@@ -322,6 +499,7 @@ type fakeWorkflowService struct {
 	cluster                         *workflowsv1.Cluster
 	workflow                        *workflowsv1.Workflow
 	listWorkflowsResponse           *workflowsv1.ListWorkflowsResponse
+	listPublicWorkflowsResponse     *workflowsv1.ListPublicWorkflowsResponse
 	workflowRelease                 *workflowsv1.WorkflowRelease
 	deployWorkflowReleaseResponse   *workflowsv1.DeployWorkflowReleaseResponse
 	undeployWorkflowReleaseResponse *workflowsv1.UndeployWorkflowReleaseResponse
@@ -354,8 +532,38 @@ type fakeWorkflowService struct {
 	deployClusterSlugs []string
 
 	undeployWorkflowSlug string
-	undeployReleaseID    uuid.UUID
+	undeployReleaseID    *uuid.UUID
 	undeployClusterSlugs []string
+}
+
+type pagingWorkflowService struct {
+	WorkflowService
+
+	owned       []*workflowsv1.ListWorkflowsResponse
+	public      []*workflowsv1.ListPublicWorkflowsResponse
+	ownedPages  []*tileboxv1.Pagination
+	publicPages []*tileboxv1.Pagination
+	err         error
+}
+
+func (s *pagingWorkflowService) ListWorkflows(_ context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListWorkflowsResponse, error) {
+	s.ownedPages = append(s.ownedPages, page)
+	if len(s.owned) == 0 {
+		return nil, s.err
+	}
+	response := s.owned[0]
+	s.owned = s.owned[1:]
+	return response, nil
+}
+
+func (s *pagingWorkflowService) ListPublicWorkflows(_ context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListPublicWorkflowsResponse, error) {
+	s.publicPages = append(s.publicPages, page)
+	if len(s.public) == 0 {
+		return nil, s.err
+	}
+	response := s.public[0]
+	s.public = s.public[1:]
+	return response, nil
 }
 
 func (s *fakeWorkflowService) CreateCluster(_ context.Context, name, description, slug string) (*workflowsv1.Cluster, error) {
@@ -390,8 +598,12 @@ func (s *fakeWorkflowService) CreateWorkflow(_ context.Context, name, descriptio
 	return s.workflow, s.err
 }
 
-func (s *fakeWorkflowService) ListWorkflows(context.Context) (*workflowsv1.ListWorkflowsResponse, error) {
+func (s *fakeWorkflowService) ListWorkflows(context.Context, *tileboxv1.Pagination) (*workflowsv1.ListWorkflowsResponse, error) {
 	return s.listWorkflowsResponse, s.err
+}
+
+func (s *fakeWorkflowService) ListPublicWorkflows(context.Context, *tileboxv1.Pagination) (*workflowsv1.ListPublicWorkflowsResponse, error) {
+	return s.listPublicWorkflowsResponse, s.err
 }
 
 func (s *fakeWorkflowService) GetWorkflow(_ context.Context, slug string) (*workflowsv1.Workflow, error) {
@@ -431,7 +643,7 @@ func (s *fakeWorkflowService) DeployWorkflowRelease(_ context.Context, workflowS
 	return s.deployWorkflowReleaseResponse, s.err
 }
 
-func (s *fakeWorkflowService) UndeployWorkflowRelease(_ context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.UndeployWorkflowReleaseResponse, error) {
+func (s *fakeWorkflowService) UndeployWorkflowRelease(_ context.Context, workflowSlug string, releaseID *uuid.UUID, clusterSlugs []string) (*workflowsv1.UndeployWorkflowReleaseResponse, error) {
 	s.undeployWorkflowSlug = workflowSlug
 	s.undeployReleaseID = releaseID
 	s.undeployClusterSlugs = clusterSlugs

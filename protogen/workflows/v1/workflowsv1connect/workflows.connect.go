@@ -56,6 +56,9 @@ const (
 	// WorkflowsServiceListWorkflowsProcedure is the fully-qualified name of the WorkflowsService's
 	// ListWorkflows RPC.
 	WorkflowsServiceListWorkflowsProcedure = "/workflows.v1.WorkflowsService/ListWorkflows"
+	// WorkflowsServiceListPublicWorkflowsProcedure is the fully-qualified name of the
+	// WorkflowsService's ListPublicWorkflows RPC.
+	WorkflowsServiceListPublicWorkflowsProcedure = "/workflows.v1.WorkflowsService/ListPublicWorkflows"
 	// WorkflowsServiceGetWorkflowProcedure is the fully-qualified name of the WorkflowsService's
 	// GetWorkflow RPC.
 	WorkflowsServiceGetWorkflowProcedure = "/workflows.v1.WorkflowsService/GetWorkflow"
@@ -88,6 +91,7 @@ type WorkflowsServiceClient interface {
 	ListClusters(context.Context, *connect.Request[v1.ListClustersRequest]) (*connect.Response[v1.ListClustersResponse], error)
 	CreateWorkflow(context.Context, *connect.Request[v1.CreateWorkflowRequest]) (*connect.Response[v1.Workflow], error)
 	ListWorkflows(context.Context, *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error)
+	ListPublicWorkflows(context.Context, *connect.Request[v1.ListPublicWorkflowsRequest]) (*connect.Response[v1.ListPublicWorkflowsResponse], error)
 	GetWorkflow(context.Context, *connect.Request[v1.GetWorkflowRequest]) (*connect.Response[v1.Workflow], error)
 	UpdateWorkflow(context.Context, *connect.Request[v1.UpdateWorkflowRequest]) (*connect.Response[v1.Workflow], error)
 	DeleteWorkflow(context.Context, *connect.Request[v1.DeleteWorkflowRequest]) (*connect.Response[v1.DeleteWorkflowResponse], error)
@@ -150,6 +154,12 @@ func NewWorkflowsServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(workflowsServiceMethods.ByName("ListWorkflows")),
 			connect.WithClientOptions(opts...),
 		),
+		listPublicWorkflows: connect.NewClient[v1.ListPublicWorkflowsRequest, v1.ListPublicWorkflowsResponse](
+			httpClient,
+			baseURL+WorkflowsServiceListPublicWorkflowsProcedure,
+			connect.WithSchema(workflowsServiceMethods.ByName("ListPublicWorkflows")),
+			connect.WithClientOptions(opts...),
+		),
 		getWorkflow: connect.NewClient[v1.GetWorkflowRequest, v1.Workflow](
 			httpClient,
 			baseURL+WorkflowsServiceGetWorkflowProcedure,
@@ -204,6 +214,7 @@ type workflowsServiceClient struct {
 	listClusters             *connect.Client[v1.ListClustersRequest, v1.ListClustersResponse]
 	createWorkflow           *connect.Client[v1.CreateWorkflowRequest, v1.Workflow]
 	listWorkflows            *connect.Client[v1.ListWorkflowsRequest, v1.ListWorkflowsResponse]
+	listPublicWorkflows      *connect.Client[v1.ListPublicWorkflowsRequest, v1.ListPublicWorkflowsResponse]
 	getWorkflow              *connect.Client[v1.GetWorkflowRequest, v1.Workflow]
 	updateWorkflow           *connect.Client[v1.UpdateWorkflowRequest, v1.Workflow]
 	deleteWorkflow           *connect.Client[v1.DeleteWorkflowRequest, v1.DeleteWorkflowResponse]
@@ -246,6 +257,11 @@ func (c *workflowsServiceClient) CreateWorkflow(ctx context.Context, req *connec
 // ListWorkflows calls workflows.v1.WorkflowsService.ListWorkflows.
 func (c *workflowsServiceClient) ListWorkflows(ctx context.Context, req *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error) {
 	return c.listWorkflows.CallUnary(ctx, req)
+}
+
+// ListPublicWorkflows calls workflows.v1.WorkflowsService.ListPublicWorkflows.
+func (c *workflowsServiceClient) ListPublicWorkflows(ctx context.Context, req *connect.Request[v1.ListPublicWorkflowsRequest]) (*connect.Response[v1.ListPublicWorkflowsResponse], error) {
+	return c.listPublicWorkflows.CallUnary(ctx, req)
 }
 
 // GetWorkflow calls workflows.v1.WorkflowsService.GetWorkflow.
@@ -292,6 +308,7 @@ type WorkflowsServiceHandler interface {
 	ListClusters(context.Context, *connect.Request[v1.ListClustersRequest]) (*connect.Response[v1.ListClustersResponse], error)
 	CreateWorkflow(context.Context, *connect.Request[v1.CreateWorkflowRequest]) (*connect.Response[v1.Workflow], error)
 	ListWorkflows(context.Context, *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error)
+	ListPublicWorkflows(context.Context, *connect.Request[v1.ListPublicWorkflowsRequest]) (*connect.Response[v1.ListPublicWorkflowsResponse], error)
 	GetWorkflow(context.Context, *connect.Request[v1.GetWorkflowRequest]) (*connect.Response[v1.Workflow], error)
 	UpdateWorkflow(context.Context, *connect.Request[v1.UpdateWorkflowRequest]) (*connect.Response[v1.Workflow], error)
 	DeleteWorkflow(context.Context, *connect.Request[v1.DeleteWorkflowRequest]) (*connect.Response[v1.DeleteWorkflowResponse], error)
@@ -348,6 +365,12 @@ func NewWorkflowsServiceHandler(svc WorkflowsServiceHandler, opts ...connect.Han
 		WorkflowsServiceListWorkflowsProcedure,
 		svc.ListWorkflows,
 		connect.WithSchema(workflowsServiceMethods.ByName("ListWorkflows")),
+		connect.WithHandlerOptions(opts...),
+	)
+	workflowsServiceListPublicWorkflowsHandler := connect.NewUnaryHandler(
+		WorkflowsServiceListPublicWorkflowsProcedure,
+		svc.ListPublicWorkflows,
+		connect.WithSchema(workflowsServiceMethods.ByName("ListPublicWorkflows")),
 		connect.WithHandlerOptions(opts...),
 	)
 	workflowsServiceGetWorkflowHandler := connect.NewUnaryHandler(
@@ -408,6 +431,8 @@ func NewWorkflowsServiceHandler(svc WorkflowsServiceHandler, opts ...connect.Han
 			workflowsServiceCreateWorkflowHandler.ServeHTTP(w, r)
 		case WorkflowsServiceListWorkflowsProcedure:
 			workflowsServiceListWorkflowsHandler.ServeHTTP(w, r)
+		case WorkflowsServiceListPublicWorkflowsProcedure:
+			workflowsServiceListPublicWorkflowsHandler.ServeHTTP(w, r)
 		case WorkflowsServiceGetWorkflowProcedure:
 			workflowsServiceGetWorkflowHandler.ServeHTTP(w, r)
 		case WorkflowsServiceUpdateWorkflowProcedure:
@@ -457,6 +482,10 @@ func (UnimplementedWorkflowsServiceHandler) CreateWorkflow(context.Context, *con
 
 func (UnimplementedWorkflowsServiceHandler) ListWorkflows(context.Context, *connect.Request[v1.ListWorkflowsRequest]) (*connect.Response[v1.ListWorkflowsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkflowsService.ListWorkflows is not implemented"))
+}
+
+func (UnimplementedWorkflowsServiceHandler) ListPublicWorkflows(context.Context, *connect.Request[v1.ListPublicWorkflowsRequest]) (*connect.Response[v1.ListPublicWorkflowsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkflowsService.ListPublicWorkflows is not implemented"))
 }
 
 func (UnimplementedWorkflowsServiceHandler) GetWorkflow(context.Context, *connect.Request[v1.GetWorkflowRequest]) (*connect.Response[v1.Workflow], error) {

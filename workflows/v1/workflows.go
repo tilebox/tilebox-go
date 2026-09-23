@@ -4,16 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"iter"
 	"time"
 
 	"github.com/google/uuid"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	workflowoptions "github.com/tilebox/tilebox-go/workflows/v1/workflow"
 )
 
 // Workflow represents a logical grouping for a set of tasks.
 type Workflow struct {
-	// Slug is the unique identifier of the workflow within the namespace.
+	// Slug is the workflow reference: a local slug for owned workflows or namespace:slug for shared workflows.
 	Slug string
 	// Name is the human-readable name of the workflow.
 	Name string
@@ -21,6 +23,12 @@ type Workflow struct {
 	Description string
 	// Releases are the immutable releases published for this workflow.
 	Releases []*WorkflowRelease
+}
+
+// WorkflowPage is one page of owned or public workflows.
+type WorkflowPage struct {
+	Workflows  []*Workflow
+	NextCursor *workflowoptions.Cursor
 }
 
 // WorkflowRelease represents an immutable release of a workflow.
@@ -72,6 +80,8 @@ type Path struct {
 // WorkflowReleaseDeployment is the result of deploying or undeploying a workflow release.
 type WorkflowReleaseDeployment struct {
 	// Release is the workflow release that was deployed or undeployed.
+	// For undeployment, it is present only when exactly one release was removed,
+	// and may contain only its ID.
 	Release *WorkflowRelease
 	// Clusters are the clusters affected by the deployment operation.
 	Clusters []*Cluster
@@ -103,29 +113,42 @@ type WorkflowClient interface {
 	// Create creates a new workflow with the given name.
 	Create(ctx context.Context, name string, options ...WorkflowOption) (*Workflow, error)
 
-	// List returns all workflows.
-	List(ctx context.Context) ([]*Workflow, error)
+	// List lazily iterates over workflows owned by the authenticated organization, fetching pages as needed.
+	List(ctx context.Context, options ...workflowoptions.ListOption) iter.Seq2[*Workflow, error]
 
-	// Get returns a workflow by its slug.
+	// ListPage returns one page of workflows owned by the authenticated organization.
+	ListPage(ctx context.Context, options ...workflowoptions.ListOption) (*WorkflowPage, error)
+
+	// ListPublic lazily iterates over public workflow summaries, fetching pages as needed.
+	// Public summaries do not include releases or privately shared workflows.
+	ListPublic(ctx context.Context, options ...workflowoptions.ListOption) iter.Seq2[*Workflow, error]
+
+	// ListPublicPage returns one page of public workflow summaries. Public summaries do not include releases.
+	ListPublicPage(ctx context.Context, options ...workflowoptions.ListOption) (*WorkflowPage, error)
+
+	// Get returns a workflow by its local slug or shared namespace:slug reference.
 	Get(ctx context.Context, slug string) (*Workflow, error)
 
-	// Update updates an existing workflow by its slug.
+	// Update updates an owned workflow by its slug. Sharing does not grant mutation permission.
 	Update(ctx context.Context, slug string, options ...workflowoptions.UpdateOption) (*Workflow, error)
 
-	// Delete deletes a workflow by its slug.
+	// Delete deletes an owned workflow by its slug. Sharing does not grant mutation permission.
 	Delete(ctx context.Context, slug string) error
 
-	// PublishRelease publishes a new immutable release for a workflow.
+	// PublishRelease publishes a new immutable release for an owned workflow.
 	PublishRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*WorkflowRelease, error)
 
-	// UnpublishRelease unpublishes a workflow release.
+	// UnpublishRelease unpublishes a release from an owned workflow.
 	UnpublishRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error
 
-	// DeployRelease deploys a workflow release to clusters.
+	// DeployRelease deploys an owned or shared workflow release to owned clusters.
+	// Shared workflows use namespace:slug; uuid.Nil selects the latest release.
 	DeployRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error)
 
-	// UndeployRelease undeploys a workflow release from clusters.
-	UndeployRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error)
+	// UndeployRelease removes deployments from owned clusters.
+	// Shared workflows use namespace:slug. By default, all releases on the selected clusters are removed;
+	// workflow.WithReleaseID restricts removal to just one release.
+	UndeployRelease(ctx context.Context, workflowSlug string, clusterSlugs []string, options ...workflowoptions.UndeployOption) (*WorkflowReleaseDeployment, error)
 }
 
 var _ WorkflowClient = &workflowClient{}
@@ -144,18 +167,30 @@ func (c workflowClient) Create(ctx context.Context, name string, options ...Work
 	return protoToWorkflow(response), nil
 }
 
-func (c workflowClient) List(ctx context.Context) ([]*Workflow, error) {
-	response, err := c.service.ListWorkflows(ctx)
+func (c workflowClient) List(ctx context.Context, options ...workflowoptions.ListOption) iter.Seq2[*Workflow, error] {
+	return c.iterateWorkflows(ctx, c.ListPage, options...)
+}
+
+func (c workflowClient) ListPage(ctx context.Context, options ...workflowoptions.ListOption) (*WorkflowPage, error) {
+	applied := workflowoptions.NewListOptions(options...)
+	response, err := c.service.ListWorkflows(ctx, paginationFromOptions(applied.Limit, applied.Cursor))
 	if err != nil {
 		return nil, err
 	}
+	return protoToWorkflowPage(response.GetWorkflows(), response.GetNextPage()), nil
+}
 
-	workflows := make([]*Workflow, len(response.GetWorkflows()))
-	for i, workflow := range response.GetWorkflows() {
-		workflows[i] = protoToWorkflow(workflow)
+func (c workflowClient) ListPublic(ctx context.Context, options ...workflowoptions.ListOption) iter.Seq2[*Workflow, error] {
+	return c.iterateWorkflows(ctx, c.ListPublicPage, options...)
+}
+
+func (c workflowClient) ListPublicPage(ctx context.Context, options ...workflowoptions.ListOption) (*WorkflowPage, error) {
+	applied := workflowoptions.NewListOptions(options...)
+	response, err := c.service.ListPublicWorkflows(ctx, paginationFromOptions(applied.Limit, applied.Cursor))
+	if err != nil {
+		return nil, err
 	}
-
-	return workflows, nil
+	return protoToWorkflowPage(response.GetWorkflows(), response.GetNextPage()), nil
 }
 
 func (c workflowClient) Get(ctx context.Context, slug string) (*Workflow, error) {
@@ -203,13 +238,54 @@ func (c workflowClient) DeployRelease(ctx context.Context, workflowSlug string, 
 	return protoToWorkflowReleaseDeployment(response.GetRelease(), response.GetClusters()), nil
 }
 
-func (c workflowClient) UndeployRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error) {
-	response, err := c.service.UndeployWorkflowRelease(ctx, workflowSlug, releaseID, clusterSlugs)
+func (c workflowClient) UndeployRelease(ctx context.Context, workflowSlug string, clusterSlugs []string, options ...workflowoptions.UndeployOption) (*WorkflowReleaseDeployment, error) {
+	applied := workflowoptions.NewUndeployOptions(options...)
+	response, err := c.service.UndeployWorkflowRelease(ctx, workflowSlug, applied.ReleaseID, clusterSlugs)
 	if err != nil {
 		return nil, err
 	}
 
 	return protoToWorkflowReleaseDeployment(response.GetRelease(), response.GetClusters()), nil
+}
+
+func (c workflowClient) iterateWorkflows(ctx context.Context, listPage func(context.Context, ...workflowoptions.ListOption) (*WorkflowPage, error), options ...workflowoptions.ListOption) iter.Seq2[*Workflow, error] {
+	applied := workflowoptions.NewListOptions(options...)
+	return func(yield func(*Workflow, error) bool) {
+		cursor := applied.Cursor
+		remaining := applied.Limit
+		for {
+			// Rely on the backend to cap the remaining total to its maximum page size;
+			// non-positive limits are omitted from the request, using the backend default.
+			page, err := listPage(ctx, workflowoptions.WithCursor(cursor), workflowoptions.WithLimit(remaining))
+			if err != nil {
+				yield(nil, err)
+				return
+			}
+			for _, workflow := range page.Workflows {
+				if !yield(workflow, nil) {
+					return
+				}
+				if applied.Limit > 0 {
+					remaining--
+					if remaining == 0 {
+						return
+					}
+				}
+			}
+			cursor = page.NextCursor
+			if cursor == nil {
+				return
+			}
+		}
+	}
+}
+
+func protoToWorkflowPage(protoWorkflows []*workflowsv1.Workflow, nextPage *tileboxv1.Pagination) *WorkflowPage {
+	workflows := make([]*Workflow, len(protoWorkflows))
+	for i, workflow := range protoWorkflows {
+		workflows[i] = protoToWorkflow(workflow)
+	}
+	return &WorkflowPage{Workflows: workflows, NextCursor: cursorFromPagination(nextPage)}
 }
 
 func protoToWorkflow(workflow *workflowsv1.Workflow) *Workflow {

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-09-23
+
+### Added
+
+- `workflows`: Added paginated owned and public workflow listing with `ListPage`, `ListPublic`, and `ListPublicPage`.
+
+### Changed
+
+- `workflows`: `List` and `ListPublic` return lazy auto-paginating iterators with cursor and total-limit options, consistent with other paginated queries. Use `workflows.Collect` to collect results into a slice.
+- `workflows`: `UndeployRelease` now accepts cluster slugs followed by options instead of a positional release ID. Omit `workflow.WithReleaseID` to remove all deployed releases on the selected clusters, or provide it to remove a specific release.
+
 ## [0.13.0] - 2026-09-04
 
 ### Added
@@ -198,7 +209,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/tilebox/tilebox-go/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/tilebox/tilebox-go/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/tilebox/tilebox-go/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/tilebox/tilebox-go/compare/v0.11.0...v0.11.1
