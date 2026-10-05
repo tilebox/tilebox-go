@@ -37,18 +37,6 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AutomationServiceListStorageLocationsProcedure is the fully-qualified name of the
-	// AutomationService's ListStorageLocations RPC.
-	AutomationServiceListStorageLocationsProcedure = "/workflows.v1.AutomationService/ListStorageLocations"
-	// AutomationServiceGetStorageLocationProcedure is the fully-qualified name of the
-	// AutomationService's GetStorageLocation RPC.
-	AutomationServiceGetStorageLocationProcedure = "/workflows.v1.AutomationService/GetStorageLocation"
-	// AutomationServiceCreateStorageLocationProcedure is the fully-qualified name of the
-	// AutomationService's CreateStorageLocation RPC.
-	AutomationServiceCreateStorageLocationProcedure = "/workflows.v1.AutomationService/CreateStorageLocation"
-	// AutomationServiceDeleteStorageLocationProcedure is the fully-qualified name of the
-	// AutomationService's DeleteStorageLocation RPC.
-	AutomationServiceDeleteStorageLocationProcedure = "/workflows.v1.AutomationService/DeleteStorageLocation"
 	// AutomationServiceListAutomationsProcedure is the fully-qualified name of the AutomationService's
 	// ListAutomations RPC.
 	AutomationServiceListAutomationsProcedure = "/workflows.v1.AutomationService/ListAutomations"
@@ -68,14 +56,6 @@ const (
 
 // AutomationServiceClient is a client for the workflows.v1.AutomationService service.
 type AutomationServiceClient interface {
-	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
-	ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error)
-	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error)
-	// CreateStorageLocation creates a new storage bucket.
-	CreateStorageLocation(context.Context, *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error)
-	// DeleteStorageLocation deletes a storage location.
-	DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error)
 	// ListAutomations lists all the automations that are currently registered in a namespace.
 	ListAutomations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error)
 	// GetAutomation gets an automation by its ID.
@@ -99,30 +79,6 @@ func NewAutomationServiceClient(httpClient connect.HTTPClient, baseURL string, o
 	baseURL = strings.TrimRight(baseURL, "/")
 	automationServiceMethods := v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods()
 	return &automationServiceClient{
-		listStorageLocations: connect.NewClient[emptypb.Empty, v1.StorageLocations](
-			httpClient,
-			baseURL+AutomationServiceListStorageLocationsProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("ListStorageLocations")),
-			connect.WithClientOptions(opts...),
-		),
-		getStorageLocation: connect.NewClient[v11.ID, v1.StorageLocation](
-			httpClient,
-			baseURL+AutomationServiceGetStorageLocationProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("GetStorageLocation")),
-			connect.WithClientOptions(opts...),
-		),
-		createStorageLocation: connect.NewClient[v1.StorageLocation, v1.StorageLocation](
-			httpClient,
-			baseURL+AutomationServiceCreateStorageLocationProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("CreateStorageLocation")),
-			connect.WithClientOptions(opts...),
-		),
-		deleteStorageLocation: connect.NewClient[v11.ID, emptypb.Empty](
-			httpClient,
-			baseURL+AutomationServiceDeleteStorageLocationProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("DeleteStorageLocation")),
-			connect.WithClientOptions(opts...),
-		),
 		listAutomations: connect.NewClient[emptypb.Empty, v1.Automations](
 			httpClient,
 			baseURL+AutomationServiceListAutomationsProcedure,
@@ -158,35 +114,11 @@ func NewAutomationServiceClient(httpClient connect.HTTPClient, baseURL string, o
 
 // automationServiceClient implements AutomationServiceClient.
 type automationServiceClient struct {
-	listStorageLocations  *connect.Client[emptypb.Empty, v1.StorageLocations]
-	getStorageLocation    *connect.Client[v11.ID, v1.StorageLocation]
-	createStorageLocation *connect.Client[v1.StorageLocation, v1.StorageLocation]
-	deleteStorageLocation *connect.Client[v11.ID, emptypb.Empty]
-	listAutomations       *connect.Client[emptypb.Empty, v1.Automations]
-	getAutomation         *connect.Client[v11.ID, v1.AutomationPrototype]
-	createAutomation      *connect.Client[v1.AutomationPrototype, v1.AutomationPrototype]
-	updateAutomation      *connect.Client[v1.AutomationPrototype, v1.AutomationPrototype]
-	deleteAutomation      *connect.Client[v1.DeleteAutomationRequest, emptypb.Empty]
-}
-
-// ListStorageLocations calls workflows.v1.AutomationService.ListStorageLocations.
-func (c *automationServiceClient) ListStorageLocations(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error) {
-	return c.listStorageLocations.CallUnary(ctx, req)
-}
-
-// GetStorageLocation calls workflows.v1.AutomationService.GetStorageLocation.
-func (c *automationServiceClient) GetStorageLocation(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error) {
-	return c.getStorageLocation.CallUnary(ctx, req)
-}
-
-// CreateStorageLocation calls workflows.v1.AutomationService.CreateStorageLocation.
-func (c *automationServiceClient) CreateStorageLocation(ctx context.Context, req *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error) {
-	return c.createStorageLocation.CallUnary(ctx, req)
-}
-
-// DeleteStorageLocation calls workflows.v1.AutomationService.DeleteStorageLocation.
-func (c *automationServiceClient) DeleteStorageLocation(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error) {
-	return c.deleteStorageLocation.CallUnary(ctx, req)
+	listAutomations  *connect.Client[emptypb.Empty, v1.Automations]
+	getAutomation    *connect.Client[v11.ID, v1.AutomationPrototype]
+	createAutomation *connect.Client[v1.AutomationPrototype, v1.AutomationPrototype]
+	updateAutomation *connect.Client[v1.AutomationPrototype, v1.AutomationPrototype]
+	deleteAutomation *connect.Client[v1.DeleteAutomationRequest, emptypb.Empty]
 }
 
 // ListAutomations calls workflows.v1.AutomationService.ListAutomations.
@@ -216,14 +148,6 @@ func (c *automationServiceClient) DeleteAutomation(ctx context.Context, req *con
 
 // AutomationServiceHandler is an implementation of the workflows.v1.AutomationService service.
 type AutomationServiceHandler interface {
-	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
-	ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error)
-	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error)
-	// CreateStorageLocation creates a new storage bucket.
-	CreateStorageLocation(context.Context, *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error)
-	// DeleteStorageLocation deletes a storage location.
-	DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error)
 	// ListAutomations lists all the automations that are currently registered in a namespace.
 	ListAutomations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error)
 	// GetAutomation gets an automation by its ID.
@@ -243,30 +167,6 @@ type AutomationServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewAutomationServiceHandler(svc AutomationServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	automationServiceMethods := v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods()
-	automationServiceListStorageLocationsHandler := connect.NewUnaryHandler(
-		AutomationServiceListStorageLocationsProcedure,
-		svc.ListStorageLocations,
-		connect.WithSchema(automationServiceMethods.ByName("ListStorageLocations")),
-		connect.WithHandlerOptions(opts...),
-	)
-	automationServiceGetStorageLocationHandler := connect.NewUnaryHandler(
-		AutomationServiceGetStorageLocationProcedure,
-		svc.GetStorageLocation,
-		connect.WithSchema(automationServiceMethods.ByName("GetStorageLocation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	automationServiceCreateStorageLocationHandler := connect.NewUnaryHandler(
-		AutomationServiceCreateStorageLocationProcedure,
-		svc.CreateStorageLocation,
-		connect.WithSchema(automationServiceMethods.ByName("CreateStorageLocation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	automationServiceDeleteStorageLocationHandler := connect.NewUnaryHandler(
-		AutomationServiceDeleteStorageLocationProcedure,
-		svc.DeleteStorageLocation,
-		connect.WithSchema(automationServiceMethods.ByName("DeleteStorageLocation")),
-		connect.WithHandlerOptions(opts...),
-	)
 	automationServiceListAutomationsHandler := connect.NewUnaryHandler(
 		AutomationServiceListAutomationsProcedure,
 		svc.ListAutomations,
@@ -299,14 +199,6 @@ func NewAutomationServiceHandler(svc AutomationServiceHandler, opts ...connect.H
 	)
 	return "/workflows.v1.AutomationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case AutomationServiceListStorageLocationsProcedure:
-			automationServiceListStorageLocationsHandler.ServeHTTP(w, r)
-		case AutomationServiceGetStorageLocationProcedure:
-			automationServiceGetStorageLocationHandler.ServeHTTP(w, r)
-		case AutomationServiceCreateStorageLocationProcedure:
-			automationServiceCreateStorageLocationHandler.ServeHTTP(w, r)
-		case AutomationServiceDeleteStorageLocationProcedure:
-			automationServiceDeleteStorageLocationHandler.ServeHTTP(w, r)
 		case AutomationServiceListAutomationsProcedure:
 			automationServiceListAutomationsHandler.ServeHTTP(w, r)
 		case AutomationServiceGetAutomationProcedure:
@@ -325,22 +217,6 @@ func NewAutomationServiceHandler(svc AutomationServiceHandler, opts ...connect.H
 
 // UnimplementedAutomationServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAutomationServiceHandler struct{}
-
-func (UnimplementedAutomationServiceHandler) ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.ListStorageLocations is not implemented"))
-}
-
-func (UnimplementedAutomationServiceHandler) GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.GetStorageLocation is not implemented"))
-}
-
-func (UnimplementedAutomationServiceHandler) CreateStorageLocation(context.Context, *connect.Request[v1.StorageLocation]) (*connect.Response[v1.StorageLocation], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.CreateStorageLocation is not implemented"))
-}
-
-func (UnimplementedAutomationServiceHandler) DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.DeleteStorageLocation is not implemented"))
-}
 
 func (UnimplementedAutomationServiceHandler) ListAutomations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.ListAutomations is not implemented"))

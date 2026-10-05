@@ -2,40 +2,11 @@ package workflows
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/google/uuid"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 )
-
-// StorageType is the kind of storage location used by automation triggers.
-type StorageType string
-
-const (
-	StorageTypeUnspecified StorageType = "unspecified"
-	StorageTypeGCS         StorageType = "gcs"
-	StorageTypeS3          StorageType = "s3"
-	StorageTypeFS          StorageType = "fs"
-)
-
-func (t StorageType) String() string {
-	return string(t)
-}
-
-func (t StorageType) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.String())
-}
-
-// StorageLocation is a storage location available for automation storage event triggers.
-type StorageLocation struct {
-	// ID is the unique identifier of the storage location.
-	ID uuid.UUID
-	// Location is the storage-system-specific location identifier.
-	Location string
-	// Type is the kind of storage location.
-	Type StorageType
-}
 
 // Automation represents an automation prototype that can submit tasks from storage or cron triggers.
 type Automation struct {
@@ -93,12 +64,6 @@ type AutomationClient interface {
 
 	// Get returns an automation by ID.
 	Get(ctx context.Context, automationID uuid.UUID) (*Automation, error)
-
-	// GetStorageLocation returns a storage location by ID.
-	GetStorageLocation(ctx context.Context, storageLocationID uuid.UUID) (*StorageLocation, error)
-
-	// ListStorageLocations returns all storage locations available for automation triggers.
-	ListStorageLocations(ctx context.Context) ([]*StorageLocation, error)
 }
 
 var _ AutomationClient = &automationClient{}
@@ -128,29 +93,6 @@ func (c automationClient) Get(ctx context.Context, automationID uuid.UUID) (*Aut
 	}
 
 	return protoToAutomation(response), nil
-}
-
-func (c automationClient) GetStorageLocation(ctx context.Context, storageLocationID uuid.UUID) (*StorageLocation, error) {
-	response, err := c.service.GetStorageLocation(ctx, storageLocationID)
-	if err != nil {
-		return nil, err
-	}
-
-	return protoToStorageLocation(response), nil
-}
-
-func (c automationClient) ListStorageLocations(ctx context.Context) ([]*StorageLocation, error) {
-	response, err := c.service.ListStorageLocations(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	locations := make([]*StorageLocation, len(response.GetLocations()))
-	for i, location := range response.GetLocations() {
-		locations[i] = protoToStorageLocation(location)
-	}
-
-	return locations, nil
 }
 
 func protoToAutomation(automation *workflowsv1.AutomationPrototype) *Automation {
@@ -216,32 +158,6 @@ func protoToCronTrigger(trigger *workflowsv1.CronTrigger) *CronTrigger {
 	return &CronTrigger{
 		ID:       protoIDToUUID(trigger.GetId()),
 		Schedule: trigger.GetSchedule(),
-	}
-}
-
-func protoToStorageLocation(location *workflowsv1.StorageLocation) *StorageLocation {
-	if location == nil {
-		return nil
-	}
-	return &StorageLocation{
-		ID:       protoIDToUUID(location.GetId()),
-		Location: location.GetLocation(),
-		Type:     protoToStorageType(location.GetType()),
-	}
-}
-
-func protoToStorageType(storageType workflowsv1.StorageType) StorageType {
-	switch storageType {
-	case workflowsv1.StorageType_STORAGE_TYPE_UNSPECIFIED:
-		return StorageTypeUnspecified
-	case workflowsv1.StorageType_STORAGE_TYPE_GCS:
-		return StorageTypeGCS
-	case workflowsv1.StorageType_STORAGE_TYPE_S3:
-		return StorageTypeS3
-	case workflowsv1.StorageType_STORAGE_TYPE_FS:
-		return StorageTypeFS
-	default:
-		return StorageTypeUnspecified
 	}
 }
 

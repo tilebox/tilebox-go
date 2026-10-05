@@ -27,259 +27,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// StorageType specifies a kind of storage bucket that we support.
-type StorageType int32
-
-const (
-	StorageType_STORAGE_TYPE_UNSPECIFIED StorageType = 0
-	// Google Cloud Storage
-	StorageType_STORAGE_TYPE_GCS StorageType = 1
-	// Amazon Web Services S3
-	StorageType_STORAGE_TYPE_S3 StorageType = 2
-	// Local filesystem
-	StorageType_STORAGE_TYPE_FS StorageType = 3
-)
-
-// Enum value maps for StorageType.
-var (
-	StorageType_name = map[int32]string{
-		0: "STORAGE_TYPE_UNSPECIFIED",
-		1: "STORAGE_TYPE_GCS",
-		2: "STORAGE_TYPE_S3",
-		3: "STORAGE_TYPE_FS",
-	}
-	StorageType_value = map[string]int32{
-		"STORAGE_TYPE_UNSPECIFIED": 0,
-		"STORAGE_TYPE_GCS":         1,
-		"STORAGE_TYPE_S3":          2,
-		"STORAGE_TYPE_FS":          3,
-	}
-)
-
-func (x StorageType) Enum() *StorageType {
-	p := new(StorageType)
-	*p = x
-	return p
-}
-
-func (x StorageType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (StorageType) Descriptor() protoreflect.EnumDescriptor {
-	return file_workflows_v1_automation_proto_enumTypes[0].Descriptor()
-}
-
-func (StorageType) Type() protoreflect.EnumType {
-	return &file_workflows_v1_automation_proto_enumTypes[0]
-}
-
-func (x StorageType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// StorageEventType specifies the type of event that triggered the task.
-type StorageEventType int32
-
-const (
-	StorageEventType_STORAGE_EVENT_TYPE_UNSPECIFIED StorageEventType = 0
-	StorageEventType_STORAGE_EVENT_TYPE_CREATED     StorageEventType = 1
-)
-
-// Enum value maps for StorageEventType.
-var (
-	StorageEventType_name = map[int32]string{
-		0: "STORAGE_EVENT_TYPE_UNSPECIFIED",
-		1: "STORAGE_EVENT_TYPE_CREATED",
-	}
-	StorageEventType_value = map[string]int32{
-		"STORAGE_EVENT_TYPE_UNSPECIFIED": 0,
-		"STORAGE_EVENT_TYPE_CREATED":     1,
-	}
-)
-
-func (x StorageEventType) Enum() *StorageEventType {
-	p := new(StorageEventType)
-	*p = x
-	return p
-}
-
-func (x StorageEventType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (StorageEventType) Descriptor() protoreflect.EnumDescriptor {
-	return file_workflows_v1_automation_proto_enumTypes[1].Descriptor()
-}
-
-func (StorageEventType) Type() protoreflect.EnumType {
-	return &file_workflows_v1_automation_proto_enumTypes[1]
-}
-
-func (x StorageEventType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Storage location is some kind of storage that can contain data files or objects and be used as a trigger source.
-type StorageLocation struct {
-	state               protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id       *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_Location string                 `protobuf:"bytes,2,opt,name=location"`
-	xxx_hidden_Type     StorageType            `protobuf:"varint,3,opt,name=type,enum=workflows.v1.StorageType"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
-}
-
-func (x *StorageLocation) Reset() {
-	*x = StorageLocation{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StorageLocation) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StorageLocation) ProtoMessage() {}
-
-func (x *StorageLocation) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *StorageLocation) GetId() *v1.ID {
-	if x != nil {
-		return x.xxx_hidden_Id
-	}
-	return nil
-}
-
-func (x *StorageLocation) GetLocation() string {
-	if x != nil {
-		return x.xxx_hidden_Location
-	}
-	return ""
-}
-
-func (x *StorageLocation) GetType() StorageType {
-	if x != nil {
-		return x.xxx_hidden_Type
-	}
-	return StorageType_STORAGE_TYPE_UNSPECIFIED
-}
-
-func (x *StorageLocation) SetId(v *v1.ID) {
-	x.xxx_hidden_Id = v
-}
-
-func (x *StorageLocation) SetLocation(v string) {
-	x.xxx_hidden_Location = v
-}
-
-func (x *StorageLocation) SetType(v StorageType) {
-	x.xxx_hidden_Type = v
-}
-
-func (x *StorageLocation) HasId() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_Id != nil
-}
-
-func (x *StorageLocation) ClearId() {
-	x.xxx_hidden_Id = nil
-}
-
-type StorageLocation_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// Unique identifier for the storage location
-	Id *v1.ID
-	// A unique identifier for the storage location in the storage system
-	Location string
-	// The type of the storage location, e.g. GCS, S3, FS
-	Type StorageType
-}
-
-func (b0 StorageLocation_builder) Build() *StorageLocation {
-	m0 := &StorageLocation{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Id = b.Id
-	x.xxx_hidden_Location = b.Location
-	x.xxx_hidden_Type = b.Type
-	return m0
-}
-
-// Buckets is a list of storage buckets
-type StorageLocations struct {
-	state                protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Locations *[]*StorageLocation    `protobuf:"bytes,1,rep,name=locations"`
-	unknownFields        protoimpl.UnknownFields
-	sizeCache            protoimpl.SizeCache
-}
-
-func (x *StorageLocations) Reset() {
-	*x = StorageLocations{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[1]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StorageLocations) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StorageLocations) ProtoMessage() {}
-
-func (x *StorageLocations) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[1]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *StorageLocations) GetLocations() []*StorageLocation {
-	if x != nil {
-		if x.xxx_hidden_Locations != nil {
-			return *x.xxx_hidden_Locations
-		}
-	}
-	return nil
-}
-
-func (x *StorageLocations) SetLocations(v []*StorageLocation) {
-	x.xxx_hidden_Locations = &v
-}
-
-type StorageLocations_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	Locations []*StorageLocation
-}
-
-func (b0 StorageLocations_builder) Build() *StorageLocations {
-	m0 := &StorageLocations{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Locations = &b.Locations
-	return m0
-}
-
 // AutomationPrototype is a task prototype that can result in many submitted tasks. Task submissions are triggered by
 // NRT triggers, such as bucket triggers or cron triggers.
 type AutomationPrototype struct {
@@ -296,7 +43,7 @@ type AutomationPrototype struct {
 
 func (x *AutomationPrototype) Reset() {
 	*x = AutomationPrototype{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[2]
+	mi := &file_workflows_v1_automation_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -308,7 +55,7 @@ func (x *AutomationPrototype) String() string {
 func (*AutomationPrototype) ProtoMessage() {}
 
 func (x *AutomationPrototype) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[2]
+	mi := &file_workflows_v1_automation_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -453,7 +200,7 @@ type Automations struct {
 
 func (x *Automations) Reset() {
 	*x = Automations{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[3]
+	mi := &file_workflows_v1_automation_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -465,7 +212,7 @@ func (x *Automations) String() string {
 func (*Automations) ProtoMessage() {}
 
 func (x *Automations) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[3]
+	mi := &file_workflows_v1_automation_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +263,7 @@ type StorageEventTrigger struct {
 
 func (x *StorageEventTrigger) Reset() {
 	*x = StorageEventTrigger{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[4]
+	mi := &file_workflows_v1_automation_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -528,7 +275,7 @@ func (x *StorageEventTrigger) String() string {
 func (*StorageEventTrigger) ProtoMessage() {}
 
 func (x *StorageEventTrigger) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[4]
+	mi := &file_workflows_v1_automation_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -627,7 +374,7 @@ type CronTrigger struct {
 
 func (x *CronTrigger) Reset() {
 	*x = CronTrigger{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[5]
+	mi := &file_workflows_v1_automation_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -639,7 +386,7 @@ func (x *CronTrigger) String() string {
 func (*CronTrigger) ProtoMessage() {}
 
 func (x *CronTrigger) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[5]
+	mi := &file_workflows_v1_automation_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -738,7 +485,7 @@ type Automation struct {
 
 func (x *Automation) Reset() {
 	*x = Automation{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[6]
+	mi := &file_workflows_v1_automation_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -750,7 +497,7 @@ func (x *Automation) String() string {
 func (*Automation) ProtoMessage() {}
 
 func (x *Automation) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[6]
+	mi := &file_workflows_v1_automation_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -808,106 +555,6 @@ func (b0 Automation_builder) Build() *Automation {
 	return m0
 }
 
-// TriggeredStorageEvent contains the details of the concrete event that triggered a storage event trigger.
-type TriggeredStorageEvent struct {
-	state                        protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_StorageLocationId *v1.ID                 `protobuf:"bytes,1,opt,name=storage_location_id,json=storageLocationId"`
-	xxx_hidden_Type              StorageEventType       `protobuf:"varint,2,opt,name=type,enum=workflows.v1.StorageEventType"`
-	xxx_hidden_Location          string                 `protobuf:"bytes,3,opt,name=location"`
-	unknownFields                protoimpl.UnknownFields
-	sizeCache                    protoimpl.SizeCache
-}
-
-func (x *TriggeredStorageEvent) Reset() {
-	*x = TriggeredStorageEvent{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TriggeredStorageEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TriggeredStorageEvent) ProtoMessage() {}
-
-func (x *TriggeredStorageEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *TriggeredStorageEvent) GetStorageLocationId() *v1.ID {
-	if x != nil {
-		return x.xxx_hidden_StorageLocationId
-	}
-	return nil
-}
-
-func (x *TriggeredStorageEvent) GetType() StorageEventType {
-	if x != nil {
-		return x.xxx_hidden_Type
-	}
-	return StorageEventType_STORAGE_EVENT_TYPE_UNSPECIFIED
-}
-
-func (x *TriggeredStorageEvent) GetLocation() string {
-	if x != nil {
-		return x.xxx_hidden_Location
-	}
-	return ""
-}
-
-func (x *TriggeredStorageEvent) SetStorageLocationId(v *v1.ID) {
-	x.xxx_hidden_StorageLocationId = v
-}
-
-func (x *TriggeredStorageEvent) SetType(v StorageEventType) {
-	x.xxx_hidden_Type = v
-}
-
-func (x *TriggeredStorageEvent) SetLocation(v string) {
-	x.xxx_hidden_Location = v
-}
-
-func (x *TriggeredStorageEvent) HasStorageLocationId() bool {
-	if x == nil {
-		return false
-	}
-	return x.xxx_hidden_StorageLocationId != nil
-}
-
-func (x *TriggeredStorageEvent) ClearStorageLocationId() {
-	x.xxx_hidden_StorageLocationId = nil
-}
-
-type TriggeredStorageEvent_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	// The storage location that triggered the task
-	StorageLocationId *v1.ID
-	// The type of the storage event, e.g. created
-	Type StorageEventType
-	// The object that triggered the task, e.g. a file name in a directory or object name in a bucket
-	Location string
-}
-
-func (b0 TriggeredStorageEvent_builder) Build() *TriggeredStorageEvent {
-	m0 := &TriggeredStorageEvent{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_StorageLocationId = b.StorageLocationId
-	x.xxx_hidden_Type = b.Type
-	x.xxx_hidden_Location = b.Location
-	return m0
-}
-
 // TriggeredCronEvent contains the details of a concrete event that triggered a cron trigger.
 type TriggeredCronEvent struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
@@ -918,7 +565,7 @@ type TriggeredCronEvent struct {
 
 func (x *TriggeredCronEvent) Reset() {
 	*x = TriggeredCronEvent{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[8]
+	mi := &file_workflows_v1_automation_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -930,7 +577,7 @@ func (x *TriggeredCronEvent) String() string {
 func (*TriggeredCronEvent) ProtoMessage() {}
 
 func (x *TriggeredCronEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[8]
+	mi := &file_workflows_v1_automation_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -989,7 +636,7 @@ type DeleteAutomationRequest struct {
 
 func (x *DeleteAutomationRequest) Reset() {
 	*x = DeleteAutomationRequest{}
-	mi := &file_workflows_v1_automation_proto_msgTypes[9]
+	mi := &file_workflows_v1_automation_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1001,7 +648,7 @@ func (x *DeleteAutomationRequest) String() string {
 func (*DeleteAutomationRequest) ProtoMessage() {}
 
 func (x *DeleteAutomationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_automation_proto_msgTypes[9]
+	mi := &file_workflows_v1_automation_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1067,15 +714,7 @@ var File_workflows_v1_automation_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\n" +
-	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\"\x9c\x01\n" +
-	"\x0fStorageLocation\x12&\n" +
-	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12&\n" +
-	"\blocation\x18\x02 \x01(\tB\n" +
-	"\xbaH\ar\x05 \x01(\x80\x04R\blocation\x129\n" +
-	"\x04type\x18\x03 \x01(\x0e2\x19.workflows.v1.StorageTypeB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type\"O\n" +
-	"\x10StorageLocations\x12;\n" +
-	"\tlocations\x18\x01 \x03(\v2\x1d.workflows.v1.StorageLocationR\tlocations\"\x90\x03\n" +
+	"\x1dworkflows/v1/automation.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\x1a#workflows/v1/storage_location.proto\"\x90\x03\n" +
 	"\x13AutomationPrototype\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1e\n" +
 	"\x04name\x18\x02 \x01(\tB\n" +
@@ -1099,30 +738,14 @@ const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\n" +
 	"Automation\x12#\n" +
 	"\rtrigger_event\x18\x01 \x01(\fR\ftriggerEvent\x12\x12\n" +
-	"\x04args\x18\x02 \x01(\fR\x04args\"\xa7\x01\n" +
-	"\x15TriggeredStorageEvent\x12>\n" +
-	"\x13storage_location_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x11storageLocationId\x122\n" +
-	"\x04type\x18\x02 \x01(\x0e2\x1e.workflows.v1.StorageEventTypeR\x04type\x12\x1a\n" +
-	"\blocation\x18\x03 \x01(\tR\blocation\"S\n" +
+	"\x04args\x18\x02 \x01(\fR\x04args\"S\n" +
 	"\x12TriggeredCronEvent\x12=\n" +
 	"\ftrigger_time\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\vtriggerTime\"w\n" +
 	"\x17DeleteAutomationRequest\x12;\n" +
 	"\rautomation_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\fautomationId\x12\x1f\n" +
 	"\vcancel_jobs\x18\x02 \x01(\bR\n" +
-	"cancelJobs*k\n" +
-	"\vStorageType\x12\x1c\n" +
-	"\x18STORAGE_TYPE_UNSPECIFIED\x10\x00\x12\x14\n" +
-	"\x10STORAGE_TYPE_GCS\x10\x01\x12\x13\n" +
-	"\x0fSTORAGE_TYPE_S3\x10\x02\x12\x13\n" +
-	"\x0fSTORAGE_TYPE_FS\x10\x03*V\n" +
-	"\x10StorageEventType\x12\"\n" +
-	"\x1eSTORAGE_EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
-	"\x1aSTORAGE_EVENT_TYPE_CREATED\x10\x012\xd1\x05\n" +
-	"\x11AutomationService\x12N\n" +
-	"\x14ListStorageLocations\x12\x16.google.protobuf.Empty\x1a\x1e.workflows.v1.StorageLocations\x12C\n" +
-	"\x12GetStorageLocation\x12\x0e.tilebox.v1.ID\x1a\x1d.workflows.v1.StorageLocation\x12U\n" +
-	"\x15CreateStorageLocation\x12\x1d.workflows.v1.StorageLocation\x1a\x1d.workflows.v1.StorageLocation\x12?\n" +
-	"\x15DeleteStorageLocation\x12\x0e.tilebox.v1.ID\x1a\x16.google.protobuf.Empty\x12D\n" +
+	"cancelJobs2\xa4\x03\n" +
+	"\x11AutomationService\x12D\n" +
 	"\x0fListAutomations\x12\x16.google.protobuf.Empty\x1a\x19.workflows.v1.Automations\x12B\n" +
 	"\rGetAutomation\x12\x0e.tilebox.v1.ID\x1a!.workflows.v1.AutomationPrototype\x12X\n" +
 	"\x10CreateAutomation\x12!.workflows.v1.AutomationPrototype\x1a!.workflows.v1.AutomationPrototype\x12X\n" +
@@ -1130,66 +753,48 @@ const file_workflows_v1_automation_proto_rawDesc = "" +
 	"\x10DeleteAutomation\x12%.workflows.v1.DeleteAutomationRequest\x1a\x16.google.protobuf.EmptyB\xba\x01\n" +
 	"\x10com.workflows.v1B\x0fAutomationProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_workflows_v1_automation_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_workflows_v1_automation_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_workflows_v1_automation_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_workflows_v1_automation_proto_goTypes = []any{
-	(StorageType)(0),                // 0: workflows.v1.StorageType
-	(StorageEventType)(0),           // 1: workflows.v1.StorageEventType
-	(*StorageLocation)(nil),         // 2: workflows.v1.StorageLocation
-	(*StorageLocations)(nil),        // 3: workflows.v1.StorageLocations
-	(*AutomationPrototype)(nil),     // 4: workflows.v1.AutomationPrototype
-	(*Automations)(nil),             // 5: workflows.v1.Automations
-	(*StorageEventTrigger)(nil),     // 6: workflows.v1.StorageEventTrigger
-	(*CronTrigger)(nil),             // 7: workflows.v1.CronTrigger
-	(*Automation)(nil),              // 8: workflows.v1.Automation
-	(*TriggeredStorageEvent)(nil),   // 9: workflows.v1.TriggeredStorageEvent
-	(*TriggeredCronEvent)(nil),      // 10: workflows.v1.TriggeredCronEvent
-	(*DeleteAutomationRequest)(nil), // 11: workflows.v1.DeleteAutomationRequest
-	(*v1.ID)(nil),                   // 12: tilebox.v1.ID
-	(*SingleTaskSubmission)(nil),    // 13: workflows.v1.SingleTaskSubmission
-	(*timestamppb.Timestamp)(nil),   // 14: google.protobuf.Timestamp
-	(*emptypb.Empty)(nil),           // 15: google.protobuf.Empty
+	(*AutomationPrototype)(nil),     // 0: workflows.v1.AutomationPrototype
+	(*Automations)(nil),             // 1: workflows.v1.Automations
+	(*StorageEventTrigger)(nil),     // 2: workflows.v1.StorageEventTrigger
+	(*CronTrigger)(nil),             // 3: workflows.v1.CronTrigger
+	(*Automation)(nil),              // 4: workflows.v1.Automation
+	(*TriggeredCronEvent)(nil),      // 5: workflows.v1.TriggeredCronEvent
+	(*DeleteAutomationRequest)(nil), // 6: workflows.v1.DeleteAutomationRequest
+	(*v1.ID)(nil),                   // 7: tilebox.v1.ID
+	(*SingleTaskSubmission)(nil),    // 8: workflows.v1.SingleTaskSubmission
+	(*StorageLocation)(nil),         // 9: workflows.v1.StorageLocation
+	(*timestamppb.Timestamp)(nil),   // 10: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),           // 11: google.protobuf.Empty
 }
 var file_workflows_v1_automation_proto_depIdxs = []int32{
-	12, // 0: workflows.v1.StorageLocation.id:type_name -> tilebox.v1.ID
-	0,  // 1: workflows.v1.StorageLocation.type:type_name -> workflows.v1.StorageType
-	2,  // 2: workflows.v1.StorageLocations.locations:type_name -> workflows.v1.StorageLocation
-	12, // 3: workflows.v1.AutomationPrototype.id:type_name -> tilebox.v1.ID
-	13, // 4: workflows.v1.AutomationPrototype.prototype:type_name -> workflows.v1.SingleTaskSubmission
-	6,  // 5: workflows.v1.AutomationPrototype.storage_event_triggers:type_name -> workflows.v1.StorageEventTrigger
-	7,  // 6: workflows.v1.AutomationPrototype.cron_triggers:type_name -> workflows.v1.CronTrigger
-	4,  // 7: workflows.v1.Automations.automations:type_name -> workflows.v1.AutomationPrototype
-	12, // 8: workflows.v1.StorageEventTrigger.id:type_name -> tilebox.v1.ID
-	2,  // 9: workflows.v1.StorageEventTrigger.storage_location:type_name -> workflows.v1.StorageLocation
-	12, // 10: workflows.v1.CronTrigger.id:type_name -> tilebox.v1.ID
-	14, // 11: workflows.v1.CronTrigger.next_scheduled_at:type_name -> google.protobuf.Timestamp
-	12, // 12: workflows.v1.TriggeredStorageEvent.storage_location_id:type_name -> tilebox.v1.ID
-	1,  // 13: workflows.v1.TriggeredStorageEvent.type:type_name -> workflows.v1.StorageEventType
-	14, // 14: workflows.v1.TriggeredCronEvent.trigger_time:type_name -> google.protobuf.Timestamp
-	12, // 15: workflows.v1.DeleteAutomationRequest.automation_id:type_name -> tilebox.v1.ID
-	15, // 16: workflows.v1.AutomationService.ListStorageLocations:input_type -> google.protobuf.Empty
-	12, // 17: workflows.v1.AutomationService.GetStorageLocation:input_type -> tilebox.v1.ID
-	2,  // 18: workflows.v1.AutomationService.CreateStorageLocation:input_type -> workflows.v1.StorageLocation
-	12, // 19: workflows.v1.AutomationService.DeleteStorageLocation:input_type -> tilebox.v1.ID
-	15, // 20: workflows.v1.AutomationService.ListAutomations:input_type -> google.protobuf.Empty
-	12, // 21: workflows.v1.AutomationService.GetAutomation:input_type -> tilebox.v1.ID
-	4,  // 22: workflows.v1.AutomationService.CreateAutomation:input_type -> workflows.v1.AutomationPrototype
-	4,  // 23: workflows.v1.AutomationService.UpdateAutomation:input_type -> workflows.v1.AutomationPrototype
-	11, // 24: workflows.v1.AutomationService.DeleteAutomation:input_type -> workflows.v1.DeleteAutomationRequest
-	3,  // 25: workflows.v1.AutomationService.ListStorageLocations:output_type -> workflows.v1.StorageLocations
-	2,  // 26: workflows.v1.AutomationService.GetStorageLocation:output_type -> workflows.v1.StorageLocation
-	2,  // 27: workflows.v1.AutomationService.CreateStorageLocation:output_type -> workflows.v1.StorageLocation
-	15, // 28: workflows.v1.AutomationService.DeleteStorageLocation:output_type -> google.protobuf.Empty
-	5,  // 29: workflows.v1.AutomationService.ListAutomations:output_type -> workflows.v1.Automations
-	4,  // 30: workflows.v1.AutomationService.GetAutomation:output_type -> workflows.v1.AutomationPrototype
-	4,  // 31: workflows.v1.AutomationService.CreateAutomation:output_type -> workflows.v1.AutomationPrototype
-	4,  // 32: workflows.v1.AutomationService.UpdateAutomation:output_type -> workflows.v1.AutomationPrototype
-	15, // 33: workflows.v1.AutomationService.DeleteAutomation:output_type -> google.protobuf.Empty
-	25, // [25:34] is the sub-list for method output_type
-	16, // [16:25] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	7,  // 0: workflows.v1.AutomationPrototype.id:type_name -> tilebox.v1.ID
+	8,  // 1: workflows.v1.AutomationPrototype.prototype:type_name -> workflows.v1.SingleTaskSubmission
+	2,  // 2: workflows.v1.AutomationPrototype.storage_event_triggers:type_name -> workflows.v1.StorageEventTrigger
+	3,  // 3: workflows.v1.AutomationPrototype.cron_triggers:type_name -> workflows.v1.CronTrigger
+	0,  // 4: workflows.v1.Automations.automations:type_name -> workflows.v1.AutomationPrototype
+	7,  // 5: workflows.v1.StorageEventTrigger.id:type_name -> tilebox.v1.ID
+	9,  // 6: workflows.v1.StorageEventTrigger.storage_location:type_name -> workflows.v1.StorageLocation
+	7,  // 7: workflows.v1.CronTrigger.id:type_name -> tilebox.v1.ID
+	10, // 8: workflows.v1.CronTrigger.next_scheduled_at:type_name -> google.protobuf.Timestamp
+	10, // 9: workflows.v1.TriggeredCronEvent.trigger_time:type_name -> google.protobuf.Timestamp
+	7,  // 10: workflows.v1.DeleteAutomationRequest.automation_id:type_name -> tilebox.v1.ID
+	11, // 11: workflows.v1.AutomationService.ListAutomations:input_type -> google.protobuf.Empty
+	7,  // 12: workflows.v1.AutomationService.GetAutomation:input_type -> tilebox.v1.ID
+	0,  // 13: workflows.v1.AutomationService.CreateAutomation:input_type -> workflows.v1.AutomationPrototype
+	0,  // 14: workflows.v1.AutomationService.UpdateAutomation:input_type -> workflows.v1.AutomationPrototype
+	6,  // 15: workflows.v1.AutomationService.DeleteAutomation:input_type -> workflows.v1.DeleteAutomationRequest
+	1,  // 16: workflows.v1.AutomationService.ListAutomations:output_type -> workflows.v1.Automations
+	0,  // 17: workflows.v1.AutomationService.GetAutomation:output_type -> workflows.v1.AutomationPrototype
+	0,  // 18: workflows.v1.AutomationService.CreateAutomation:output_type -> workflows.v1.AutomationPrototype
+	0,  // 19: workflows.v1.AutomationService.UpdateAutomation:output_type -> workflows.v1.AutomationPrototype
+	11, // 20: workflows.v1.AutomationService.DeleteAutomation:output_type -> google.protobuf.Empty
+	16, // [16:21] is the sub-list for method output_type
+	11, // [11:16] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_automation_proto_init() }
@@ -1198,19 +803,19 @@ func file_workflows_v1_automation_proto_init() {
 		return
 	}
 	file_workflows_v1_core_proto_init()
+	file_workflows_v1_storage_location_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_automation_proto_rawDesc), len(file_workflows_v1_automation_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   10,
+			NumEnums:      0,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_workflows_v1_automation_proto_goTypes,
 		DependencyIndexes: file_workflows_v1_automation_proto_depIdxs,
-		EnumInfos:         file_workflows_v1_automation_proto_enumTypes,
 		MessageInfos:      file_workflows_v1_automation_proto_msgTypes,
 	}.Build()
 	File_workflows_v1_automation_proto = out.File

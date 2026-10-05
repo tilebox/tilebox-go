@@ -9,6 +9,7 @@ import (
 	context "context"
 	errors "errors"
 	v1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
+	v11 "go.opentelemetry.io/proto/otlp/logs/v1"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	http "net/http"
 	strings "strings"
@@ -43,6 +44,8 @@ const (
 	// WorkerServiceExecuteTaskProcedure is the fully-qualified name of the WorkerService's ExecuteTask
 	// RPC.
 	WorkerServiceExecuteTaskProcedure = "/workflows.v1.WorkerService/ExecuteTask"
+	// WorkerServiceWatchLogsProcedure is the fully-qualified name of the WorkerService's WatchLogs RPC.
+	WorkerServiceWatchLogsProcedure = "/workflows.v1.WorkerService/WatchLogs"
 	// WorkerServiceShutdownWorkerProcedure is the fully-qualified name of the WorkerService's
 	// ShutdownWorker RPC.
 	WorkerServiceShutdownWorkerProcedure = "/workflows.v1.WorkerService/ShutdownWorker"
@@ -60,8 +63,21 @@ type WorkerServiceClient interface {
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
 	ExecuteTask(context.Context, *connect.Request[v1.Task]) (*connect.Response[v1.ExecuteTaskResponse], error)
+	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
+	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
+	// The runner sends one request; the worker sends buffered startup records followed by live records in enqueue
+	// order. The stream stays open until shutdown, cancellation, or a connection failure, even while no tasks run.
+	// Only one subscriber is allowed per runtime; concurrent subscriptions fail with ALREADY_EXISTS.
+	// Delivery is best-effort with bounded buffering: slow or disconnected subscribers must not block tasks.
+	// Buffer overflow is reported as a warning record when delivery resumes. There is no acknowledgement or replay
+	// of delivered records. Canceling this stream does not shut down the worker or disable its API log exports.
+	// Messages use the log body, severity, trace/span IDs, and attributes from the OpenTelemetry log model;
+	// exception details use exception.type, exception.message, and exception.stacktrace attributes.
+	// buf:lint:ignore RPC_NO_SERVER_STREAMING
+	WatchLogs(context.Context, *connect.Request[emptypb.Empty]) (*connect.ServerStreamForClient[v11.LogRecord], error)
 	// Gracefully shuts down the worker runtime. After receiving this request, the worker runtime will
-	// cleanly shut down.
+	// finish task cleanup, flush API logs, and drain buffered WatchLogs records within a bounded deadline.
+	// The log stream ends before the worker stops its RPC server; an open subscription must not prevent shutdown.
 	ShutdownWorker(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error)
 }
 
@@ -94,6 +110,12 @@ func NewWorkerServiceClient(httpClient connect.HTTPClient, baseURL string, opts 
 			connect.WithSchema(workerServiceMethods.ByName("ExecuteTask")),
 			connect.WithClientOptions(opts...),
 		),
+		watchLogs: connect.NewClient[emptypb.Empty, v11.LogRecord](
+			httpClient,
+			baseURL+WorkerServiceWatchLogsProcedure,
+			connect.WithSchema(workerServiceMethods.ByName("WatchLogs")),
+			connect.WithClientOptions(opts...),
+		),
 		shutdownWorker: connect.NewClient[emptypb.Empty, emptypb.Empty](
 			httpClient,
 			baseURL+WorkerServiceShutdownWorkerProcedure,
@@ -108,6 +130,7 @@ type workerServiceClient struct {
 	listRegisteredTasks *connect.Client[emptypb.Empty, v1.TaskIdentifiers]
 	initializeWorker    *connect.Client[v1.InitializeRunnerRequest, v1.InitializeRunnerResponse]
 	executeTask         *connect.Client[v1.Task, v1.ExecuteTaskResponse]
+	watchLogs           *connect.Client[emptypb.Empty, v11.LogRecord]
 	shutdownWorker      *connect.Client[emptypb.Empty, emptypb.Empty]
 }
 
@@ -124,6 +147,11 @@ func (c *workerServiceClient) InitializeWorker(ctx context.Context, req *connect
 // ExecuteTask calls workflows.v1.WorkerService.ExecuteTask.
 func (c *workerServiceClient) ExecuteTask(ctx context.Context, req *connect.Request[v1.Task]) (*connect.Response[v1.ExecuteTaskResponse], error) {
 	return c.executeTask.CallUnary(ctx, req)
+}
+
+// WatchLogs calls workflows.v1.WorkerService.WatchLogs.
+func (c *workerServiceClient) WatchLogs(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.ServerStreamForClient[v11.LogRecord], error) {
+	return c.watchLogs.CallServerStream(ctx, req)
 }
 
 // ShutdownWorker calls workflows.v1.WorkerService.ShutdownWorker.
@@ -143,8 +171,21 @@ type WorkerServiceHandler interface {
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
 	ExecuteTask(context.Context, *connect.Request[v1.Task]) (*connect.Response[v1.ExecuteTaskResponse], error)
+	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
+	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
+	// The runner sends one request; the worker sends buffered startup records followed by live records in enqueue
+	// order. The stream stays open until shutdown, cancellation, or a connection failure, even while no tasks run.
+	// Only one subscriber is allowed per runtime; concurrent subscriptions fail with ALREADY_EXISTS.
+	// Delivery is best-effort with bounded buffering: slow or disconnected subscribers must not block tasks.
+	// Buffer overflow is reported as a warning record when delivery resumes. There is no acknowledgement or replay
+	// of delivered records. Canceling this stream does not shut down the worker or disable its API log exports.
+	// Messages use the log body, severity, trace/span IDs, and attributes from the OpenTelemetry log model;
+	// exception details use exception.type, exception.message, and exception.stacktrace attributes.
+	// buf:lint:ignore RPC_NO_SERVER_STREAMING
+	WatchLogs(context.Context, *connect.Request[emptypb.Empty], *connect.ServerStream[v11.LogRecord]) error
 	// Gracefully shuts down the worker runtime. After receiving this request, the worker runtime will
-	// cleanly shut down.
+	// finish task cleanup, flush API logs, and drain buffered WatchLogs records within a bounded deadline.
+	// The log stream ends before the worker stops its RPC server; an open subscription must not prevent shutdown.
 	ShutdownWorker(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error)
 }
 
@@ -173,6 +214,12 @@ func NewWorkerServiceHandler(svc WorkerServiceHandler, opts ...connect.HandlerOp
 		connect.WithSchema(workerServiceMethods.ByName("ExecuteTask")),
 		connect.WithHandlerOptions(opts...),
 	)
+	workerServiceWatchLogsHandler := connect.NewServerStreamHandler(
+		WorkerServiceWatchLogsProcedure,
+		svc.WatchLogs,
+		connect.WithSchema(workerServiceMethods.ByName("WatchLogs")),
+		connect.WithHandlerOptions(opts...),
+	)
 	workerServiceShutdownWorkerHandler := connect.NewUnaryHandler(
 		WorkerServiceShutdownWorkerProcedure,
 		svc.ShutdownWorker,
@@ -187,6 +234,8 @@ func NewWorkerServiceHandler(svc WorkerServiceHandler, opts ...connect.HandlerOp
 			workerServiceInitializeWorkerHandler.ServeHTTP(w, r)
 		case WorkerServiceExecuteTaskProcedure:
 			workerServiceExecuteTaskHandler.ServeHTTP(w, r)
+		case WorkerServiceWatchLogsProcedure:
+			workerServiceWatchLogsHandler.ServeHTTP(w, r)
 		case WorkerServiceShutdownWorkerProcedure:
 			workerServiceShutdownWorkerHandler.ServeHTTP(w, r)
 		default:
@@ -208,6 +257,10 @@ func (UnimplementedWorkerServiceHandler) InitializeWorker(context.Context, *conn
 
 func (UnimplementedWorkerServiceHandler) ExecuteTask(context.Context, *connect.Request[v1.Task]) (*connect.Response[v1.ExecuteTaskResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkerService.ExecuteTask is not implemented"))
+}
+
+func (UnimplementedWorkerServiceHandler) WatchLogs(context.Context, *connect.Request[emptypb.Empty], *connect.ServerStream[v11.LogRecord]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkerService.WatchLogs is not implemented"))
 }
 
 func (UnimplementedWorkerServiceHandler) ShutdownWorker(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error) {

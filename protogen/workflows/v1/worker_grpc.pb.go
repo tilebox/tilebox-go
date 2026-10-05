@@ -8,6 +8,7 @@ package workflowsv1
 
 import (
 	context "context"
+	v1 "go.opentelemetry.io/proto/otlp/logs/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,6 +24,7 @@ const (
 	WorkerService_ListRegisteredTasks_FullMethodName = "/workflows.v1.WorkerService/ListRegisteredTasks"
 	WorkerService_InitializeWorker_FullMethodName    = "/workflows.v1.WorkerService/InitializeWorker"
 	WorkerService_ExecuteTask_FullMethodName         = "/workflows.v1.WorkerService/ExecuteTask"
+	WorkerService_WatchLogs_FullMethodName           = "/workflows.v1.WorkerService/WatchLogs"
 	WorkerService_ShutdownWorker_FullMethodName      = "/workflows.v1.WorkerService/ShutdownWorker"
 )
 
@@ -42,8 +44,21 @@ type WorkerServiceClient interface {
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
 	ExecuteTask(ctx context.Context, in *Task, opts ...grpc.CallOption) (*ExecuteTaskResponse, error)
+	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
+	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
+	// The runner sends one request; the worker sends buffered startup records followed by live records in enqueue
+	// order. The stream stays open until shutdown, cancellation, or a connection failure, even while no tasks run.
+	// Only one subscriber is allowed per runtime; concurrent subscriptions fail with ALREADY_EXISTS.
+	// Delivery is best-effort with bounded buffering: slow or disconnected subscribers must not block tasks.
+	// Buffer overflow is reported as a warning record when delivery resumes. There is no acknowledgement or replay
+	// of delivered records. Canceling this stream does not shut down the worker or disable its API log exports.
+	// Messages use the log body, severity, trace/span IDs, and attributes from the OpenTelemetry log model;
+	// exception details use exception.type, exception.message, and exception.stacktrace attributes.
+	// buf:lint:ignore RPC_NO_SERVER_STREAMING
+	WatchLogs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v1.LogRecord], error)
 	// Gracefully shuts down the worker runtime. After receiving this request, the worker runtime will
-	// cleanly shut down.
+	// finish task cleanup, flush API logs, and drain buffered WatchLogs records within a bounded deadline.
+	// The log stream ends before the worker stops its RPC server; an open subscription must not prevent shutdown.
 	ShutdownWorker(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
@@ -85,6 +100,25 @@ func (c *workerServiceClient) ExecuteTask(ctx context.Context, in *Task, opts ..
 	return out, nil
 }
 
+func (c *workerServiceClient) WatchLogs(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[v1.LogRecord], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &WorkerService_ServiceDesc.Streams[0], WorkerService_WatchLogs_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[emptypb.Empty, v1.LogRecord]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type WorkerService_WatchLogsClient = grpc.ServerStreamingClient[v1.LogRecord]
+
 func (c *workerServiceClient) ShutdownWorker(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(emptypb.Empty)
@@ -111,8 +145,21 @@ type WorkerServiceServer interface {
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
 	ExecuteTask(context.Context, *Task) (*ExecuteTaskResponse, error)
+	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
+	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
+	// The runner sends one request; the worker sends buffered startup records followed by live records in enqueue
+	// order. The stream stays open until shutdown, cancellation, or a connection failure, even while no tasks run.
+	// Only one subscriber is allowed per runtime; concurrent subscriptions fail with ALREADY_EXISTS.
+	// Delivery is best-effort with bounded buffering: slow or disconnected subscribers must not block tasks.
+	// Buffer overflow is reported as a warning record when delivery resumes. There is no acknowledgement or replay
+	// of delivered records. Canceling this stream does not shut down the worker or disable its API log exports.
+	// Messages use the log body, severity, trace/span IDs, and attributes from the OpenTelemetry log model;
+	// exception details use exception.type, exception.message, and exception.stacktrace attributes.
+	// buf:lint:ignore RPC_NO_SERVER_STREAMING
+	WatchLogs(*emptypb.Empty, grpc.ServerStreamingServer[v1.LogRecord]) error
 	// Gracefully shuts down the worker runtime. After receiving this request, the worker runtime will
-	// cleanly shut down.
+	// finish task cleanup, flush API logs, and drain buffered WatchLogs records within a bounded deadline.
+	// The log stream ends before the worker stops its RPC server; an open subscription must not prevent shutdown.
 	ShutdownWorker(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	mustEmbedUnimplementedWorkerServiceServer()
 }
@@ -132,6 +179,9 @@ func (UnimplementedWorkerServiceServer) InitializeWorker(context.Context, *Initi
 }
 func (UnimplementedWorkerServiceServer) ExecuteTask(context.Context, *Task) (*ExecuteTaskResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExecuteTask not implemented")
+}
+func (UnimplementedWorkerServiceServer) WatchLogs(*emptypb.Empty, grpc.ServerStreamingServer[v1.LogRecord]) error {
+	return status.Error(codes.Unimplemented, "method WatchLogs not implemented")
 }
 func (UnimplementedWorkerServiceServer) ShutdownWorker(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method ShutdownWorker not implemented")
@@ -211,6 +261,17 @@ func _WorkerService_ExecuteTask_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorkerService_WatchLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(emptypb.Empty)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(WorkerServiceServer).WatchLogs(m, &grpc.GenericServerStream[emptypb.Empty, v1.LogRecord]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type WorkerService_WatchLogsServer = grpc.ServerStreamingServer[v1.LogRecord]
+
 func _WorkerService_ShutdownWorker_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -253,6 +314,12 @@ var WorkerService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _WorkerService_ShutdownWorker_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchLogs",
+			Handler:       _WorkerService_WatchLogs_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "workflows/v1/worker.proto",
 }
