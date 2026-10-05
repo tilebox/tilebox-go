@@ -26,10 +26,11 @@ const (
 
 // Client is a Tilebox Workflows client.
 type Client struct {
-	Jobs        JobClient
-	Clusters    ClusterClient
-	Workflows   WorkflowClient
-	Automations AutomationClient
+	Jobs             JobClient
+	Clusters         ClusterClient
+	Workflows        WorkflowClient
+	Automations      AutomationClient
+	StorageLocations StorageLocationClient
 
 	// Used by NewTaskRunner
 	taskService TaskService
@@ -55,16 +56,18 @@ func NewClient(options ...ClientOption) *Client {
 	taskConnectClient := newConnectClient(workflowsv1connect.NewTaskServiceClient, cfg)
 	workflowConnectClient := newConnectClient(workflowsv1connect.NewWorkflowsServiceClient, cfg)
 	automationConnectClient := newConnectClient(workflowsv1connect.NewAutomationServiceClient, cfg)
+	storageLocationConnectClient := newConnectClient(workflowsv1connect.NewStorageLocationServiceClient, cfg)
 
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
 	workflowService := newWorkflowService(workflowConnectClient, tracer)
 	automationService := &automationService{automationClient: automationConnectClient, tracer: tracer}
 
 	return &Client{
-		Jobs:        &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
-		Clusters:    &clusterClient{service: workflowService},
-		Workflows:   &workflowClient{service: workflowService},
-		Automations: &automationClient{service: automationService},
+		Jobs:             &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
+		Clusters:         &clusterClient{service: workflowService},
+		Workflows:        &workflowClient{service: workflowService},
+		Automations:      &automationClient{service: automationService},
+		StorageLocations: &storageLocationClient{service: &storageLocationService{client: storageLocationConnectClient, tracer: tracer}},
 
 		taskService: newTaskService(taskConnectClient, tracer),
 		tracer:      tracer,

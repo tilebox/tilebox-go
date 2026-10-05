@@ -18,11 +18,6 @@ import (
 )
 
 type _automationService interface {
-	CreateStorageLocation(ctx context.Context, location string, storageType workflowsv1.StorageType) (*workflowsv1.StorageLocation, error)
-	GetStorageLocation(ctx context.Context, storageLocationID uuid.UUID) (*workflowsv1.StorageLocation, error)
-	DeleteStorageLocation(ctx context.Context, storageLocationID uuid.UUID) error
-	ListStorageLocations(ctx context.Context) (*workflowsv1.StorageLocations, error)
-
 	CreateAutomation(ctx context.Context, automation *workflowsv1.AutomationPrototype) (*workflowsv1.AutomationPrototype, error)
 	GetAutomation(ctx context.Context, automationID uuid.UUID) (*workflowsv1.AutomationPrototype, error)
 	UpdateAutomation(ctx context.Context, automation *workflowsv1.AutomationPrototype) (*workflowsv1.AutomationPrototype, error)
@@ -35,57 +30,6 @@ var _ _automationService = &automationService{}
 type automationService struct {
 	automationClient workflowsv1connect.AutomationServiceClient
 	tracer           trace.Tracer
-}
-
-func (s *automationService) CreateStorageLocation(ctx context.Context, location string, storageType workflowsv1.StorageType) (*workflowsv1.StorageLocation, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/create", func(ctx context.Context) (*workflowsv1.StorageLocation, error) {
-		res, err := s.automationClient.CreateStorageLocation(ctx, connect.NewRequest(workflowsv1.StorageLocation_builder{
-			Location: location,
-			Type:     storageType,
-		}.Build()))
-		if err != nil {
-			return nil, fmt.Errorf("failed to create storage location: %w", err)
-		}
-
-		return res.Msg, nil
-	})
-}
-
-func (s *automationService) GetStorageLocation(ctx context.Context, storageLocationID uuid.UUID) (*workflowsv1.StorageLocation, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/get", func(ctx context.Context) (*workflowsv1.StorageLocation, error) {
-		res, err := s.automationClient.GetStorageLocation(ctx, connect.NewRequest(
-			tileboxv1.NewUUID(storageLocationID),
-		))
-		if err != nil {
-			return nil, fmt.Errorf("failed to get storage location: %w", err)
-		}
-
-		return res.Msg, nil
-	})
-}
-
-func (s *automationService) DeleteStorageLocation(ctx context.Context, storageLocationID uuid.UUID) error {
-	return observability.WithSpan(ctx, s.tracer, "workflows/storage_locations/delete", func(ctx context.Context) error {
-		_, err := s.automationClient.DeleteStorageLocation(ctx, connect.NewRequest(
-			tileboxv1.NewUUID(storageLocationID),
-		))
-		if err != nil {
-			return fmt.Errorf("failed to delete storage location: %w", err)
-		}
-
-		return nil
-	})
-}
-
-func (s *automationService) ListStorageLocations(ctx context.Context) (*workflowsv1.StorageLocations, error) {
-	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/list", func(ctx context.Context) (*workflowsv1.StorageLocations, error) {
-		res, err := s.automationClient.ListStorageLocations(ctx, connect.NewRequest(&emptypb.Empty{}))
-		if err != nil {
-			return nil, fmt.Errorf("failed to list storage locations: %w", err)
-		}
-
-		return res.Msg, nil
-	})
 }
 
 func (s *automationService) CreateAutomation(ctx context.Context, automation *workflowsv1.AutomationPrototype) (*workflowsv1.AutomationPrototype, error) {

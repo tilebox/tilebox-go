@@ -9,6 +9,7 @@ package workflowsv1
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
 	v1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
+	v11 "go.opentelemetry.io/proto/otlp/logs/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -212,8 +213,8 @@ func (b0 InitializeRunnerRequest_builder) Build() *InitializeRunnerRequest {
 // TileboxAPIConnection is a message containing the information needed for a worker runtime to connect to the Tilebox
 // API, to e.g. export observability data to (logs and traces). It's the credentials that the tilebox-cli locally
 // uses to connect to the Tilebox API, and is passed down to the worker runtimes so that they can also connect to the
-// Tilebox API in the same way. Since this only is done on a local machine, via a unix socket, and not in a shared
-// environment or over the internet, this is safe to do.
+// Tilebox API in the same way. These credentials must only be sent over a trusted local runtime connection,
+// using a Unix socket or an authenticated loopback TCP connection, never an exposed network listener.
 type TileboxAPIConnection struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Url         *string                `protobuf:"bytes,1,opt,name=url"`
@@ -472,7 +473,7 @@ var File_workflows_v1_worker_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_worker_proto_rawDesc = "" +
 	"\n" +
-	"\x19workflows/v1/worker.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\x1a\x17workflows/v1/task.proto\x1a\x1cworkflows/v1/workflows.proto\"\x99\x02\n" +
+	"\x19workflows/v1/worker.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a&opentelemetry/proto/logs/v1/logs.proto\x1a\x13tilebox/v1/id.proto\x1a\x17workflows/v1/core.proto\x1a\x17workflows/v1/task.proto\x1a\x1cworkflows/v1/workflows.proto\"\x99\x02\n" +
 	"\x17InitializeRunnerRequest\x12+\n" +
 	"\trunner_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\brunnerId\x12!\n" +
 	"\ftrace_parent\x18\x02 \x01(\tR\vtraceParent\x12/\n" +
@@ -488,11 +489,12 @@ const file_workflows_v1_worker_proto_rawDesc = "" +
 	"\vfailed_task\x18\x02 \x01(\v2\x1f.workflows.v1.TaskFailedRequestR\n" +
 	"failedTask:!\xbaH\x1e\"\x1c\n" +
 	"\rcomputed_task\n" +
-	"\vfailed_task2\xce\x02\n" +
+	"\vfailed_task2\x9d\x03\n" +
 	"\rWorkerService\x12L\n" +
 	"\x13ListRegisteredTasks\x12\x16.google.protobuf.Empty\x1a\x1d.workflows.v1.TaskIdentifiers\x12c\n" +
 	"\x10InitializeWorker\x12%.workflows.v1.InitializeRunnerRequest\x1a&.workflows.v1.InitializeRunnerResponse\"\x00\x12F\n" +
-	"\vExecuteTask\x12\x12.workflows.v1.Task\x1a!.workflows.v1.ExecuteTaskResponse\"\x00\x12B\n" +
+	"\vExecuteTask\x12\x12.workflows.v1.Task\x1a!.workflows.v1.ExecuteTaskResponse\"\x00\x12M\n" +
+	"\tWatchLogs\x12\x16.google.protobuf.Empty\x1a&.opentelemetry.proto.logs.v1.LogRecord0\x01\x12B\n" +
 	"\x0eShutdownWorker\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\"\x00B\xb1\x01\n" +
 	"\x10com.workflows.v1B\vWorkerProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1b\beditionsp\xe8\a"
 
@@ -510,6 +512,7 @@ var file_workflows_v1_worker_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),            // 9: google.protobuf.Empty
 	(*Task)(nil),                     // 10: workflows.v1.Task
 	(*TaskIdentifiers)(nil),          // 11: workflows.v1.TaskIdentifiers
+	(*v11.LogRecord)(nil),            // 12: opentelemetry.proto.logs.v1.LogRecord
 }
 var file_workflows_v1_worker_proto_depIdxs = []int32{
 	4,  // 0: workflows.v1.InitializeRunnerRequest.runner_id:type_name -> tilebox.v1.ID
@@ -521,13 +524,15 @@ var file_workflows_v1_worker_proto_depIdxs = []int32{
 	9,  // 6: workflows.v1.WorkerService.ListRegisteredTasks:input_type -> google.protobuf.Empty
 	0,  // 7: workflows.v1.WorkerService.InitializeWorker:input_type -> workflows.v1.InitializeRunnerRequest
 	10, // 8: workflows.v1.WorkerService.ExecuteTask:input_type -> workflows.v1.Task
-	9,  // 9: workflows.v1.WorkerService.ShutdownWorker:input_type -> google.protobuf.Empty
-	11, // 10: workflows.v1.WorkerService.ListRegisteredTasks:output_type -> workflows.v1.TaskIdentifiers
-	2,  // 11: workflows.v1.WorkerService.InitializeWorker:output_type -> workflows.v1.InitializeRunnerResponse
-	3,  // 12: workflows.v1.WorkerService.ExecuteTask:output_type -> workflows.v1.ExecuteTaskResponse
-	9,  // 13: workflows.v1.WorkerService.ShutdownWorker:output_type -> google.protobuf.Empty
-	10, // [10:14] is the sub-list for method output_type
-	6,  // [6:10] is the sub-list for method input_type
+	9,  // 9: workflows.v1.WorkerService.WatchLogs:input_type -> google.protobuf.Empty
+	9,  // 10: workflows.v1.WorkerService.ShutdownWorker:input_type -> google.protobuf.Empty
+	11, // 11: workflows.v1.WorkerService.ListRegisteredTasks:output_type -> workflows.v1.TaskIdentifiers
+	2,  // 12: workflows.v1.WorkerService.InitializeWorker:output_type -> workflows.v1.InitializeRunnerResponse
+	3,  // 13: workflows.v1.WorkerService.ExecuteTask:output_type -> workflows.v1.ExecuteTaskResponse
+	12, // 14: workflows.v1.WorkerService.WatchLogs:output_type -> opentelemetry.proto.logs.v1.LogRecord
+	9,  // 15: workflows.v1.WorkerService.ShutdownWorker:output_type -> google.protobuf.Empty
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
 	6,  // [6:6] is the sub-list for extension type_name
 	6,  // [6:6] is the sub-list for extension extendee
 	0,  // [0:6] is the sub-list for field type_name

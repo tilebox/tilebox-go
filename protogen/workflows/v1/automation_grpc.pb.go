@@ -23,15 +23,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AutomationService_ListStorageLocations_FullMethodName  = "/workflows.v1.AutomationService/ListStorageLocations"
-	AutomationService_GetStorageLocation_FullMethodName    = "/workflows.v1.AutomationService/GetStorageLocation"
-	AutomationService_CreateStorageLocation_FullMethodName = "/workflows.v1.AutomationService/CreateStorageLocation"
-	AutomationService_DeleteStorageLocation_FullMethodName = "/workflows.v1.AutomationService/DeleteStorageLocation"
-	AutomationService_ListAutomations_FullMethodName       = "/workflows.v1.AutomationService/ListAutomations"
-	AutomationService_GetAutomation_FullMethodName         = "/workflows.v1.AutomationService/GetAutomation"
-	AutomationService_CreateAutomation_FullMethodName      = "/workflows.v1.AutomationService/CreateAutomation"
-	AutomationService_UpdateAutomation_FullMethodName      = "/workflows.v1.AutomationService/UpdateAutomation"
-	AutomationService_DeleteAutomation_FullMethodName      = "/workflows.v1.AutomationService/DeleteAutomation"
+	AutomationService_ListAutomations_FullMethodName  = "/workflows.v1.AutomationService/ListAutomations"
+	AutomationService_GetAutomation_FullMethodName    = "/workflows.v1.AutomationService/GetAutomation"
+	AutomationService_CreateAutomation_FullMethodName = "/workflows.v1.AutomationService/CreateAutomation"
+	AutomationService_UpdateAutomation_FullMethodName = "/workflows.v1.AutomationService/UpdateAutomation"
+	AutomationService_DeleteAutomation_FullMethodName = "/workflows.v1.AutomationService/DeleteAutomation"
 )
 
 // AutomationServiceClient is the client API for AutomationService service.
@@ -42,14 +38,6 @@ const (
 // - Bucket triggers, which triggers tasks when an object is uploaded to a storage bucket that matches a glob pattern
 // - Cron triggers, which triggers tasks on a schedule
 type AutomationServiceClient interface {
-	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
-	ListStorageLocations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StorageLocations, error)
-	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*StorageLocation, error)
-	// CreateStorageLocation creates a new storage bucket.
-	CreateStorageLocation(ctx context.Context, in *StorageLocation, opts ...grpc.CallOption) (*StorageLocation, error)
-	// DeleteStorageLocation deletes a storage location.
-	DeleteStorageLocation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// ListAutomations lists all the automations that are currently registered in a namespace.
 	ListAutomations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Automations, error)
 	// GetAutomation gets an automation by its ID.
@@ -68,46 +56,6 @@ type automationServiceClient struct {
 
 func NewAutomationServiceClient(cc grpc.ClientConnInterface) AutomationServiceClient {
 	return &automationServiceClient{cc}
-}
-
-func (c *automationServiceClient) ListStorageLocations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StorageLocations, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StorageLocations)
-	err := c.cc.Invoke(ctx, AutomationService_ListStorageLocations_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *automationServiceClient) GetStorageLocation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*StorageLocation, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StorageLocation)
-	err := c.cc.Invoke(ctx, AutomationService_GetStorageLocation_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *automationServiceClient) CreateStorageLocation(ctx context.Context, in *StorageLocation, opts ...grpc.CallOption) (*StorageLocation, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StorageLocation)
-	err := c.cc.Invoke(ctx, AutomationService_CreateStorageLocation_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *automationServiceClient) DeleteStorageLocation(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(emptypb.Empty)
-	err := c.cc.Invoke(ctx, AutomationService_DeleteStorageLocation_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *automationServiceClient) ListAutomations(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Automations, error) {
@@ -168,14 +116,6 @@ func (c *automationServiceClient) DeleteAutomation(ctx context.Context, in *Dele
 // - Bucket triggers, which triggers tasks when an object is uploaded to a storage bucket that matches a glob pattern
 // - Cron triggers, which triggers tasks on a schedule
 type AutomationServiceServer interface {
-	// ListStorageLocations lists all the storage buckets that are available for use as bucket triggers.
-	ListStorageLocations(context.Context, *emptypb.Empty) (*StorageLocations, error)
-	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(context.Context, *v1.ID) (*StorageLocation, error)
-	// CreateStorageLocation creates a new storage bucket.
-	CreateStorageLocation(context.Context, *StorageLocation) (*StorageLocation, error)
-	// DeleteStorageLocation deletes a storage location.
-	DeleteStorageLocation(context.Context, *v1.ID) (*emptypb.Empty, error)
 	// ListAutomations lists all the automations that are currently registered in a namespace.
 	ListAutomations(context.Context, *emptypb.Empty) (*Automations, error)
 	// GetAutomation gets an automation by its ID.
@@ -196,18 +136,6 @@ type AutomationServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAutomationServiceServer struct{}
 
-func (UnimplementedAutomationServiceServer) ListStorageLocations(context.Context, *emptypb.Empty) (*StorageLocations, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListStorageLocations not implemented")
-}
-func (UnimplementedAutomationServiceServer) GetStorageLocation(context.Context, *v1.ID) (*StorageLocation, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetStorageLocation not implemented")
-}
-func (UnimplementedAutomationServiceServer) CreateStorageLocation(context.Context, *StorageLocation) (*StorageLocation, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateStorageLocation not implemented")
-}
-func (UnimplementedAutomationServiceServer) DeleteStorageLocation(context.Context, *v1.ID) (*emptypb.Empty, error) {
-	return nil, status.Error(codes.Unimplemented, "method DeleteStorageLocation not implemented")
-}
 func (UnimplementedAutomationServiceServer) ListAutomations(context.Context, *emptypb.Empty) (*Automations, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListAutomations not implemented")
 }
@@ -242,78 +170,6 @@ func RegisterAutomationServiceServer(s grpc.ServiceRegistrar, srv AutomationServ
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&AutomationService_ServiceDesc, srv)
-}
-
-func _AutomationService_ListStorageLocations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AutomationServiceServer).ListStorageLocations(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AutomationService_ListStorageLocations_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AutomationServiceServer).ListStorageLocations(ctx, req.(*emptypb.Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AutomationService_GetStorageLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.ID)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AutomationServiceServer).GetStorageLocation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AutomationService_GetStorageLocation_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AutomationServiceServer).GetStorageLocation(ctx, req.(*v1.ID))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AutomationService_CreateStorageLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StorageLocation)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AutomationServiceServer).CreateStorageLocation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AutomationService_CreateStorageLocation_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AutomationServiceServer).CreateStorageLocation(ctx, req.(*StorageLocation))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _AutomationService_DeleteStorageLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(v1.ID)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AutomationServiceServer).DeleteStorageLocation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AutomationService_DeleteStorageLocation_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AutomationServiceServer).DeleteStorageLocation(ctx, req.(*v1.ID))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _AutomationService_ListAutomations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -413,22 +269,6 @@ var AutomationService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "workflows.v1.AutomationService",
 	HandlerType: (*AutomationServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "ListStorageLocations",
-			Handler:    _AutomationService_ListStorageLocations_Handler,
-		},
-		{
-			MethodName: "GetStorageLocation",
-			Handler:    _AutomationService_GetStorageLocation_Handler,
-		},
-		{
-			MethodName: "CreateStorageLocation",
-			Handler:    _AutomationService_CreateStorageLocation_Handler,
-		},
-		{
-			MethodName: "DeleteStorageLocation",
-			Handler:    _AutomationService_DeleteStorageLocation_Handler,
-		},
 		{
 			MethodName: "ListAutomations",
 			Handler:    _AutomationService_ListAutomations_Handler,
