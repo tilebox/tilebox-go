@@ -33,11 +33,11 @@ type StorageType int32
 const (
 	StorageType_STORAGE_TYPE_UNSPECIFIED StorageType = 0
 	// Google Cloud Storage bucket
-	StorageType_STORAGE_TYPE_GCS_BUCKET StorageType = 1
+	StorageType_STORAGE_TYPE_GCS StorageType = 1
 	// Amazon Web Services S3 bucket
-	StorageType_STORAGE_TYPE_AWS_S3_BUCKET StorageType = 2
-	// Local filesystem
-	StorageType_STORAGE_TYPE_FILESYSTEM StorageType = 3
+	StorageType_STORAGE_TYPE_AWS_S3 StorageType = 2
+	// Local directory
+	StorageType_STORAGE_TYPE_LOCAL StorageType = 3
 	// Azure Blob Storage container
 	StorageType_STORAGE_TYPE_AZURE_BLOB StorageType = 4
 )
@@ -46,17 +46,17 @@ const (
 var (
 	StorageType_name = map[int32]string{
 		0: "STORAGE_TYPE_UNSPECIFIED",
-		1: "STORAGE_TYPE_GCS_BUCKET",
-		2: "STORAGE_TYPE_AWS_S3_BUCKET",
-		3: "STORAGE_TYPE_FILESYSTEM",
+		1: "STORAGE_TYPE_GCS",
+		2: "STORAGE_TYPE_AWS_S3",
+		3: "STORAGE_TYPE_LOCAL",
 		4: "STORAGE_TYPE_AZURE_BLOB",
 	}
 	StorageType_value = map[string]int32{
-		"STORAGE_TYPE_UNSPECIFIED":   0,
-		"STORAGE_TYPE_GCS_BUCKET":    1,
-		"STORAGE_TYPE_AWS_S3_BUCKET": 2,
-		"STORAGE_TYPE_FILESYSTEM":    3,
-		"STORAGE_TYPE_AZURE_BLOB":    4,
+		"STORAGE_TYPE_UNSPECIFIED": 0,
+		"STORAGE_TYPE_GCS":         1,
+		"STORAGE_TYPE_AWS_S3":      2,
+		"STORAGE_TYPE_LOCAL":       3,
+		"STORAGE_TYPE_AZURE_BLOB":  4,
 	}
 )
 
@@ -93,6 +93,13 @@ const (
 	StorageSubscriptionType_STORAGE_SUBSCRIPTION_TYPE_GOOGLE_PUBSUB StorageSubscriptionType = 2
 	// Azure Event Grid delivering notifications from an Azure Blob Storage container.
 	StorageSubscriptionType_STORAGE_SUBSCRIPTION_TYPE_AZURE_EVENT_GRID StorageSubscriptionType = 3
+	// Storage notifications sent by the Tilebox CLI. Typically for local storage locations. No delivery configuration is required.
+	// POST JSON containing object_path and optional RFC3339 event_time to /v1/storage-notifications/tilebox-cli/<subscription-id>.
+	// object_path is relative to the directory root and uses slash separators, without dot or parent components.
+	// Authenticate with Authorization: Bearer <api-key>; the organization must manage the storage location.
+	// The standalone on-orbit runtime does not require authentication.
+	// Successful deliveries return 204 after jobs and history are committed. Retries can create duplicate jobs.
+	StorageSubscriptionType_STORAGE_SUBSCRIPTION_TYPE_TILEBOX_CLI StorageSubscriptionType = 4
 )
 
 // Enum value maps for StorageSubscriptionType.
@@ -102,12 +109,14 @@ var (
 		1: "STORAGE_SUBSCRIPTION_TYPE_AWS_SNS",
 		2: "STORAGE_SUBSCRIPTION_TYPE_GOOGLE_PUBSUB",
 		3: "STORAGE_SUBSCRIPTION_TYPE_AZURE_EVENT_GRID",
+		4: "STORAGE_SUBSCRIPTION_TYPE_TILEBOX_CLI",
 	}
 	StorageSubscriptionType_value = map[string]int32{
 		"STORAGE_SUBSCRIPTION_TYPE_UNSPECIFIED":      0,
 		"STORAGE_SUBSCRIPTION_TYPE_AWS_SNS":          1,
 		"STORAGE_SUBSCRIPTION_TYPE_GOOGLE_PUBSUB":    2,
 		"STORAGE_SUBSCRIPTION_TYPE_AZURE_EVENT_GRID": 3,
+		"STORAGE_SUBSCRIPTION_TYPE_TILEBOX_CLI":      4,
 	}
 )
 
@@ -175,7 +184,7 @@ func (x StorageEventType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// StorageLocation identifies a bucket, container, or filesystem directory whose objects can trigger automations.
+// StorageLocation identifies a bucket, container, or local directory whose objects can trigger automations.
 type StorageLocation struct {
 	state                protoimpl.MessageState    `protogen:"opaque.v1"`
 	xxx_hidden_Id        *v1.ID                    `protobuf:"bytes,1,opt,name=id"`
@@ -330,7 +339,7 @@ type StorageLocationReference struct {
 	xxx_hidden_AwsS3Bucket *AWSS3BucketReference  `protobuf:"bytes,1,opt,name=aws_s3_bucket,json=awsS3Bucket"`
 	xxx_hidden_GcsBucket   *GCSBucketReference    `protobuf:"bytes,2,opt,name=gcs_bucket,json=gcsBucket"`
 	xxx_hidden_AzureBlob   *AzureBlobReference    `protobuf:"bytes,3,opt,name=azure_blob,json=azureBlob"`
-	xxx_hidden_Filesystem  *FilesystemReference   `protobuf:"bytes,4,opt,name=filesystem"`
+	xxx_hidden_Local       *LocalReference        `protobuf:"bytes,4,opt,name=local"`
 	xxx_hidden_Type        StorageType            `protobuf:"varint,5,opt,name=type,enum=workflows.v1.StorageType"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
@@ -382,9 +391,9 @@ func (x *StorageLocationReference) GetAzureBlob() *AzureBlobReference {
 	return nil
 }
 
-func (x *StorageLocationReference) GetFilesystem() *FilesystemReference {
+func (x *StorageLocationReference) GetLocal() *LocalReference {
 	if x != nil {
-		return x.xxx_hidden_Filesystem
+		return x.xxx_hidden_Local
 	}
 	return nil
 }
@@ -408,8 +417,8 @@ func (x *StorageLocationReference) SetAzureBlob(v *AzureBlobReference) {
 	x.xxx_hidden_AzureBlob = v
 }
 
-func (x *StorageLocationReference) SetFilesystem(v *FilesystemReference) {
-	x.xxx_hidden_Filesystem = v
+func (x *StorageLocationReference) SetLocal(v *LocalReference) {
+	x.xxx_hidden_Local = v
 }
 
 func (x *StorageLocationReference) SetType(v StorageType) {
@@ -437,11 +446,11 @@ func (x *StorageLocationReference) HasAzureBlob() bool {
 	return x.xxx_hidden_AzureBlob != nil
 }
 
-func (x *StorageLocationReference) HasFilesystem() bool {
+func (x *StorageLocationReference) HasLocal() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_Filesystem != nil
+	return x.xxx_hidden_Local != nil
 }
 
 func (x *StorageLocationReference) ClearAwsS3Bucket() {
@@ -456,8 +465,8 @@ func (x *StorageLocationReference) ClearAzureBlob() {
 	x.xxx_hidden_AzureBlob = nil
 }
 
-func (x *StorageLocationReference) ClearFilesystem() {
-	x.xxx_hidden_Filesystem = nil
+func (x *StorageLocationReference) ClearLocal() {
+	x.xxx_hidden_Local = nil
 }
 
 type StorageLocationReference_builder struct {
@@ -466,7 +475,7 @@ type StorageLocationReference_builder struct {
 	AwsS3Bucket *AWSS3BucketReference
 	GcsBucket   *GCSBucketReference
 	AzureBlob   *AzureBlobReference
-	Filesystem  *FilesystemReference
+	Local       *LocalReference
 	Type        StorageType
 }
 
@@ -477,7 +486,7 @@ func (b0 StorageLocationReference_builder) Build() *StorageLocationReference {
 	x.xxx_hidden_AwsS3Bucket = b.AwsS3Bucket
 	x.xxx_hidden_GcsBucket = b.GcsBucket
 	x.xxx_hidden_AzureBlob = b.AzureBlob
-	x.xxx_hidden_Filesystem = b.Filesystem
+	x.xxx_hidden_Local = b.Local
 	x.xxx_hidden_Type = b.Type
 	return m0
 }
@@ -730,28 +739,28 @@ func (b0 AzureBlobReference_builder) Build() *AzureBlobReference {
 	return m0
 }
 
-// FilesystemReference identifies a directory monitored by a filesystem notifier.
-type FilesystemReference struct {
+// LocalReference identifies a local directory monitored by the Tilebox CLI.
+type LocalReference struct {
 	state           protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Path string                 `protobuf:"bytes,1,opt,name=path"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
 
-func (x *FilesystemReference) Reset() {
-	*x = FilesystemReference{}
+func (x *LocalReference) Reset() {
+	*x = LocalReference{}
 	mi := &file_workflows_v1_storage_location_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *FilesystemReference) String() string {
+func (x *LocalReference) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*FilesystemReference) ProtoMessage() {}
+func (*LocalReference) ProtoMessage() {}
 
-func (x *FilesystemReference) ProtoReflect() protoreflect.Message {
+func (x *LocalReference) ProtoReflect() protoreflect.Message {
 	mi := &file_workflows_v1_storage_location_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -763,25 +772,25 @@ func (x *FilesystemReference) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *FilesystemReference) GetPath() string {
+func (x *LocalReference) GetPath() string {
 	if x != nil {
 		return x.xxx_hidden_Path
 	}
 	return ""
 }
 
-func (x *FilesystemReference) SetPath(v string) {
+func (x *LocalReference) SetPath(v string) {
 	x.xxx_hidden_Path = v
 }
 
-type FilesystemReference_builder struct {
+type LocalReference_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Path string
 }
 
-func (b0 FilesystemReference_builder) Build() *FilesystemReference {
-	m0 := &FilesystemReference{}
+func (b0 LocalReference_builder) Build() *LocalReference {
+	m0 := &LocalReference{}
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Path = b.Path
@@ -1582,7 +1591,8 @@ type StorageSubscription_builder struct {
 	Id                *v1.ID
 	StorageLocationId *v1.ID
 	Type              StorageSubscriptionType
-	// HTTPS endpoint to configure as the provider's notification delivery URL.
+	// Notification delivery URL: HTTPS for the hosted API, HTTP for standalone on-orbit.
+	// With a Unix-socket listener, on-orbit returns a relative path to use over that socket.
 	Endpoint       string
 	CreatedAt      *timestamppb.Timestamp
 	AwsSns         *AWSSNSStorageSubscription
@@ -2061,7 +2071,7 @@ type StorageSubscriptionEvent_builder struct {
 
 	// Unique identifier of the received event.
 	Id *v1.ID
-	// Object key within the bucket or container.
+	// Object key within the bucket or container, or path relative to the local directory root.
 	ObjectKey string
 	Type      StorageEventType
 	// Provider event time, absent when unavailable.
@@ -2439,26 +2449,23 @@ const file_workflows_v1_storage_location_proto_rawDesc = "" +
 	"\blocation\x18\x02 \x01(\tB\x02\x18\x01R\blocation\x121\n" +
 	"\x04type\x18\x03 \x01(\x0e2\x19.workflows.v1.StorageTypeB\x02\x18\x01R\x04type\x12\x1c\n" +
 	"\x04name\x18\x04 \x01(\tB\b\xbaH\x05r\x03(\x80\bR\x04name\x12D\n" +
-	"\treference\x18\x05 \x01(\v2&.workflows.v1.StorageLocationReferenceR\treference\"\xab\x05\n" +
+	"\treference\x18\x05 \x01(\v2&.workflows.v1.StorageLocationReferenceR\treference\"\x92\x05\n" +
 	"\x18StorageLocationReference\x12F\n" +
 	"\raws_s3_bucket\x18\x01 \x01(\v2\".workflows.v1.AWSS3BucketReferenceR\vawsS3Bucket\x12?\n" +
 	"\n" +
 	"gcs_bucket\x18\x02 \x01(\v2 .workflows.v1.GCSBucketReferenceR\tgcsBucket\x12?\n" +
 	"\n" +
-	"azure_blob\x18\x03 \x01(\v2 .workflows.v1.AzureBlobReferenceR\tazureBlob\x12A\n" +
-	"\n" +
-	"filesystem\x18\x04 \x01(\v2!.workflows.v1.FilesystemReferenceR\n" +
-	"filesystem\x129\n" +
+	"azure_blob\x18\x03 \x01(\v2 .workflows.v1.AzureBlobReferenceR\tazureBlob\x122\n" +
+	"\x05local\x18\x04 \x01(\v2\x1c.workflows.v1.LocalReferenceR\x05local\x129\n" +
 	"\x04type\x18\x05 \x01(\x0e2\x19.workflows.v1.StorageTypeB\n" +
-	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type:\xc6\x02\xbaH\xc2\x02\x1a\x88\x02\n" +
-	"\x1fstorage_location_reference.type\x123The storage type must match the provider reference.\x1a\xaf\x01(this.type == 1 && has(this.gcs_bucket)) || (this.type == 2 && has(this.aws_s3_bucket)) || (this.type == 3 && has(this.filesystem)) || (this.type == 4 && has(this.azure_blob))\"5\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type:\xbc\x02\xbaH\xb8\x02\x1a\x83\x02\n" +
+	"\x1fstorage_location_reference.type\x123The storage type must match the provider reference.\x1a\xaa\x01(this.type == 1 && has(this.gcs_bucket)) || (this.type == 2 && has(this.aws_s3_bucket)) || (this.type == 3 && has(this.local)) || (this.type == 4 && has(this.azure_blob))\"0\n" +
 	"\raws_s3_bucket\n" +
 	"\n" +
 	"gcs_bucket\n" +
 	"\n" +
 	"azure_blob\n" +
-	"\n" +
-	"filesystem\x10\x01\"]\n" +
+	"\x05local\x10\x01\"]\n" +
 	"\x14AWSS3BucketReference\x12!\n" +
 	"\x06bucket\x18\x01 \x01(\tB\t\xbaH\x06r\x04 \x01(?R\x06bucket\x12\"\n" +
 	"\x06region\x18\x02 \x01(\tB\n" +
@@ -2474,8 +2481,8 @@ const file_workflows_v1_storage_location_proto_rawDesc = "" +
 	"\x1bstorage_account_resource_id\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05 \x01(\x80\x10R\x18storageAccountResourceId\x12'\n" +
 	"\tcontainer\x18\x02 \x01(\tB\t\xbaH\x06r\x04 \x01(?R\tcontainer\x12 \n" +
-	"\x06region\x18\x03 \x01(\tB\b\xbaH\x05r\x03(\x80\x01R\x06region\"5\n" +
-	"\x13FilesystemReference\x12\x1e\n" +
+	"\x06region\x18\x03 \x01(\tB\b\xbaH\x05r\x03(\x80\x01R\x06region\"0\n" +
+	"\x0eLocalReference\x12\x1e\n" +
 	"\x04path\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05 \x01(\x80\x04R\x04path\"\x8d\x01\n" +
 	"\fTriggeredJob\x12%\n" +
@@ -2505,7 +2512,7 @@ const file_workflows_v1_storage_location_proto_rawDesc = "" +
 	"!AzureEventGridStorageSubscription\x127\n" +
 	"\x15webhook_secret_header\x18\x01 \x01(\tB\x03\xe0A\x03R\x13webhookSecretHeader\x12*\n" +
 	"\x0ewebhook_secret\x18\x02 \x01(\tB\x03\xe0A\x03R\rwebhookSecret\x123\n" +
-	"\x13webhook_secret_hash\x18\x03 \x01(\fB\x03\xe0A\x03R\x11webhookSecretHash\"\xad\x06\n" +
+	"\x13webhook_secret_hash\x18\x03 \x01(\fB\x03\xe0A\x03R\x11webhookSecretHash\"\x90\a\n" +
 	"\x13StorageSubscription\x12#\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x03\xe0A\x03R\x02id\x12>\n" +
 	"\x13storage_location_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x11storageLocationId\x12E\n" +
@@ -2516,22 +2523,22 @@ const file_workflows_v1_storage_location_proto_rawDesc = "" +
 	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\tcreatedAt\x12@\n" +
 	"\aaws_sns\x18\a \x01(\v2'.workflows.v1.AWSSNSStorageSubscriptionR\x06awsSns\x12R\n" +
 	"\rgoogle_pubsub\x18\b \x01(\v2-.workflows.v1.GooglePubSubStorageSubscriptionR\fgooglePubsub\x12Y\n" +
-	"\x10azure_event_grid\x18\t \x01(\v2/.workflows.v1.AzureEventGridStorageSubscriptionR\x0eazureEventGrid:\x97\x02\xbaH\x93\x02\x1a\xe2\x01\n" +
-	"\x19storage_subscription.type\x12<The subscription type must match the delivery configuration.\x1a\x86\x01(this.type == 1 && has(this.aws_sns)) || (this.type == 2 && has(this.google_pubsub)) || (this.type == 3 && has(this.azure_event_grid))\",\n" +
+	"\x10azure_event_grid\x18\t \x01(\v2/.workflows.v1.AzureEventGridStorageSubscriptionR\x0eazureEventGrid:\xfa\x02\xbaH\xf6\x02\x1a\xc7\x02\n" +
+	"\x19storage_subscription.type\x12<The subscription type must match the delivery configuration.\x1a\xeb\x01(this.type == 1 && has(this.aws_sns)) || (this.type == 2 && has(this.google_pubsub)) || (this.type == 3 && has(this.azure_event_grid)) || (this.type == 4 && !has(this.aws_sns) && !has(this.google_pubsub) && !has(this.azure_event_grid))\"*\n" +
 	"\aaws_sns\n" +
 	"\rgoogle_pubsub\n" +
-	"\x10azure_event_grid\x10\x01\"\xcb\x05\n" +
+	"\x10azure_event_grid\"\xae\x06\n" +
 	" CreateStorageSubscriptionRequest\x12F\n" +
 	"\x13storage_location_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x11storageLocationId\x12E\n" +
 	"\x04type\x18\x02 \x01(\x0e2%.workflows.v1.StorageSubscriptionTypeB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04type\x12@\n" +
 	"\aaws_sns\x18\x03 \x01(\v2'.workflows.v1.AWSSNSStorageSubscriptionR\x06awsSns\x12R\n" +
 	"\rgoogle_pubsub\x18\x04 \x01(\v2-.workflows.v1.GooglePubSubStorageSubscriptionR\fgooglePubsub\x12Y\n" +
-	"\x10azure_event_grid\x18\x05 \x01(\v2/.workflows.v1.AzureEventGridStorageSubscriptionR\x0eazureEventGrid:\xa6\x02\xbaH\xa2\x02\x1a\xf1\x01\n" +
-	"(create_storage_subscription_request.type\x12<The subscription type must match the delivery configuration.\x1a\x86\x01(this.type == 1 && has(this.aws_sns)) || (this.type == 2 && has(this.google_pubsub)) || (this.type == 3 && has(this.azure_event_grid))\",\n" +
+	"\x10azure_event_grid\x18\x05 \x01(\v2/.workflows.v1.AzureEventGridStorageSubscriptionR\x0eazureEventGrid:\x89\x03\xbaH\x85\x03\x1a\xd6\x02\n" +
+	"(create_storage_subscription_request.type\x12<The subscription type must match the delivery configuration.\x1a\xeb\x01(this.type == 1 && has(this.aws_sns)) || (this.type == 2 && has(this.google_pubsub)) || (this.type == 3 && has(this.azure_event_grid)) || (this.type == 4 && !has(this.aws_sns) && !has(this.google_pubsub) && !has(this.azure_event_grid))\"*\n" +
 	"\aaws_sns\n" +
 	"\rgoogle_pubsub\n" +
-	"\x10azure_event_grid\x10\x01\"i\n" +
+	"\x10azure_event_grid\"i\n" +
 	"\x1fListStorageSubscriptionsRequest\x12F\n" +
 	"\x13storage_location_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x11storageLocationId\"_\n" +
 	"\x14StorageSubscriptions\x12G\n" +
@@ -2560,18 +2567,19 @@ const file_workflows_v1_storage_location_proto_rawDesc = "" +
 	"\x15TriggeredStorageEvent\x12>\n" +
 	"\x13storage_location_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x11storageLocationId\x122\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x1e.workflows.v1.StorageEventTypeR\x04type\x12\x1a\n" +
-	"\blocation\x18\x03 \x01(\tR\blocation*\xa2\x01\n" +
+	"\blocation\x18\x03 \x01(\tR\blocation*\x8f\x01\n" +
 	"\vStorageType\x12\x1c\n" +
-	"\x18STORAGE_TYPE_UNSPECIFIED\x10\x00\x12\x1b\n" +
-	"\x17STORAGE_TYPE_GCS_BUCKET\x10\x01\x12\x1e\n" +
-	"\x1aSTORAGE_TYPE_AWS_S3_BUCKET\x10\x02\x12\x1b\n" +
-	"\x17STORAGE_TYPE_FILESYSTEM\x10\x03\x12\x1b\n" +
-	"\x17STORAGE_TYPE_AZURE_BLOB\x10\x04*\xc8\x01\n" +
+	"\x18STORAGE_TYPE_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10STORAGE_TYPE_GCS\x10\x01\x12\x17\n" +
+	"\x13STORAGE_TYPE_AWS_S3\x10\x02\x12\x16\n" +
+	"\x12STORAGE_TYPE_LOCAL\x10\x03\x12\x1b\n" +
+	"\x17STORAGE_TYPE_AZURE_BLOB\x10\x04*\xf3\x01\n" +
 	"\x17StorageSubscriptionType\x12)\n" +
 	"%STORAGE_SUBSCRIPTION_TYPE_UNSPECIFIED\x10\x00\x12%\n" +
 	"!STORAGE_SUBSCRIPTION_TYPE_AWS_SNS\x10\x01\x12+\n" +
 	"'STORAGE_SUBSCRIPTION_TYPE_GOOGLE_PUBSUB\x10\x02\x12.\n" +
-	"*STORAGE_SUBSCRIPTION_TYPE_AZURE_EVENT_GRID\x10\x03*V\n" +
+	"*STORAGE_SUBSCRIPTION_TYPE_AZURE_EVENT_GRID\x10\x03\x12)\n" +
+	"%STORAGE_SUBSCRIPTION_TYPE_TILEBOX_CLI\x10\x04*V\n" +
 	"\x10StorageEventType\x12\"\n" +
 	"\x1eSTORAGE_EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aSTORAGE_EVENT_TYPE_CREATED\x10\x012\xa5\a\n" +
@@ -2599,7 +2607,7 @@ var file_workflows_v1_storage_location_proto_goTypes = []any{
 	(*AWSS3BucketReference)(nil),                 // 5: workflows.v1.AWSS3BucketReference
 	(*GCSBucketReference)(nil),                   // 6: workflows.v1.GCSBucketReference
 	(*AzureBlobReference)(nil),                   // 7: workflows.v1.AzureBlobReference
-	(*FilesystemReference)(nil),                  // 8: workflows.v1.FilesystemReference
+	(*LocalReference)(nil),                       // 8: workflows.v1.LocalReference
 	(*TriggeredJob)(nil),                         // 9: workflows.v1.TriggeredJob
 	(*TriggeredJobs)(nil),                        // 10: workflows.v1.TriggeredJobs
 	(*CreateStorageLocationRequest)(nil),         // 11: workflows.v1.CreateStorageLocationRequest
@@ -2628,7 +2636,7 @@ var file_workflows_v1_storage_location_proto_depIdxs = []int32{
 	5,  // 3: workflows.v1.StorageLocationReference.aws_s3_bucket:type_name -> workflows.v1.AWSS3BucketReference
 	6,  // 4: workflows.v1.StorageLocationReference.gcs_bucket:type_name -> workflows.v1.GCSBucketReference
 	7,  // 5: workflows.v1.StorageLocationReference.azure_blob:type_name -> workflows.v1.AzureBlobReference
-	8,  // 6: workflows.v1.StorageLocationReference.filesystem:type_name -> workflows.v1.FilesystemReference
+	8,  // 6: workflows.v1.StorageLocationReference.local:type_name -> workflows.v1.LocalReference
 	0,  // 7: workflows.v1.StorageLocationReference.type:type_name -> workflows.v1.StorageType
 	25, // 8: workflows.v1.TriggeredJob.job_id:type_name -> tilebox.v1.ID
 	25, // 9: workflows.v1.TriggeredJob.automation_id:type_name -> tilebox.v1.ID

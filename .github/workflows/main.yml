@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: go build -v ./...
       - name: Run Tests
-        run: go test -v ./... | go-junit-report -set-exit-code > test-report.xml
+        run: go test -v ./... 2>&1 | tee /dev/stderr | go-junit-report -set-exit-code > test-report.xml
       - name: Test Summary
         uses: test-summary/action@v2
         with:

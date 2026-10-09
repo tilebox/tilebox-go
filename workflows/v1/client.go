@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/tilebox/tilebox-go/client"
@@ -63,11 +64,15 @@ func NewClient(options ...ClientOption) *Client {
 	automationService := &automationService{automationClient: automationConnectClient, tracer: tracer}
 
 	return &Client{
-		Jobs:             &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
-		Clusters:         &clusterClient{service: workflowService},
-		Workflows:        &workflowClient{service: workflowService},
-		Automations:      &automationClient{service: automationService},
-		StorageLocations: &storageLocationClient{service: &storageLocationService{client: storageLocationConnectClient, tracer: tracer}},
+		Jobs:        &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
+		Clusters:    &clusterClient{service: workflowService},
+		Workflows:   &workflowClient{service: workflowService},
+		Automations: &automationClient{service: automationService},
+		StorageLocations: &storageLocationClient{
+			service:    &storageLocationService{client: storageLocationConnectClient, tracer: tracer},
+			httpClient: cfg.notificationHTTPClient, baseURL: cfg.url, apiKey: cfg.apiKey,
+			clientMetadata: cfg.clientMetadata.HeaderValue(),
+		},
 
 		taskService: newTaskService(taskConnectClient, tracer),
 		tracer:      tracer,
@@ -97,11 +102,12 @@ func (c *Client) NewPollingTaskRunner(cluster *Cluster, executor TaskExecutor, l
 
 // clientConfig contains the configuration for Tilebox Workflows client.
 type clientConfig struct {
-	httpClient     connect.HTTPClient
-	url            string
-	apiKey         string
-	clientMetadata client.Metadata
-	connectOptions []connect.ClientOption
+	httpClient             connect.HTTPClient
+	notificationHTTPClient connect.HTTPClient
+	url                    string
+	apiKey                 string
+	clientMetadata         client.Metadata
+	connectOptions         []connect.ClientOption
 
 	tracerProvider trace.TracerProvider
 	disableTracing bool
@@ -182,11 +188,17 @@ func newClientConfig(options []ClientOption) *clientConfig {
 		option(cfg)
 	}
 
+	cfg.notificationHTTPClient = cfg.httpClient
 	// if no http client is set by the user, we use a default one
 	if cfg.httpClient == nil {
 		// if the URL looks like an HTTP URL, we use a retrying HTTP client
 		if strings.HasPrefix(cfg.url, "https://") || strings.HasPrefix(cfg.url, "http://") {
 			cfg.httpClient = grpc.RetryHTTPClient()
+			// Notifications are not idempotent. Do not retry or follow redirects.
+			cfg.notificationHTTPClient = &http.Client{
+				Timeout:       30 * time.Second,
+				CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse },
+			}
 		} else { // we connect to a unix socket
 			address := cfg.url // we copy the url to a temporary variable so that we can modify cfg.url after
 			dial := func(ctx context.Context, _ string, _ string) (net.Conn, error) {
@@ -195,6 +207,10 @@ func newClientConfig(options []ClientOption) *clientConfig {
 			}
 			transport := &http.Transport{DialContext: dial}
 			cfg.httpClient = &http.Client{Transport: transport}
+			cfg.notificationHTTPClient = &http.Client{
+				Transport: transport, Timeout: 30 * time.Second,
+				CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse },
+			}
 			cfg.url = "http://localhost" // connect requires a dummy url starting with http://
 		}
 	}

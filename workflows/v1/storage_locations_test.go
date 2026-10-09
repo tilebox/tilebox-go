@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -29,10 +30,10 @@ func TestStorageLocationReferences(t *testing.T) {
 		wire      *workflowsv1.StorageLocationReference
 	}{
 		{
-			name:      "s3",
-			reference: &StorageLocationReference{Type: StorageTypeS3, AWSS3Bucket: &AWSS3BucketReference{Bucket: "imagery", Region: "eu-west-1"}},
+			name:      "aws-s3",
+			reference: &StorageLocationReference{Type: StorageTypeAWSS3, AWSS3Bucket: &AWSS3BucketReference{Bucket: "imagery", Region: "eu-west-1"}},
 			wire: workflowsv1.StorageLocationReference_builder{
-				Type:        workflowsv1.StorageType_STORAGE_TYPE_AWS_S3_BUCKET,
+				Type:        workflowsv1.StorageType_STORAGE_TYPE_AWS_S3,
 				AwsS3Bucket: workflowsv1.AWSS3BucketReference_builder{Bucket: "imagery", Region: "eu-west-1"}.Build(),
 			}.Build(),
 		},
@@ -40,12 +41,12 @@ func TestStorageLocationReferences(t *testing.T) {
 			name:      "gcs",
 			reference: &StorageLocationReference{Type: StorageTypeGCS, GCSBucket: &GCSBucketReference{Bucket: "scenes", ProjectID: "my-project", Location: "EUR4"}},
 			wire: workflowsv1.StorageLocationReference_builder{
-				Type:      workflowsv1.StorageType_STORAGE_TYPE_GCS_BUCKET,
+				Type:      workflowsv1.StorageType_STORAGE_TYPE_GCS,
 				GcsBucket: workflowsv1.GCSBucketReference_builder{Bucket: "scenes", ProjectId: "my-project", Location: "EUR4"}.Build(),
 			}.Build(),
 		},
 		{
-			name: "azure",
+			name: "azure-blob",
 			reference: &StorageLocationReference{Type: StorageTypeAzureBlob, AzureBlob: &AzureBlobReference{
 				StorageAccountResourceID: "/subscriptions/sub/resourceGroups/group/providers/Microsoft.Storage/storageAccounts/account", Container: "tiles", Region: "westeurope",
 			}},
@@ -57,11 +58,11 @@ func TestStorageLocationReferences(t *testing.T) {
 			}.Build(),
 		},
 		{
-			name:      "filesystem",
-			reference: &StorageLocationReference{Type: StorageTypeFS, Filesystem: &FilesystemReference{Path: "/data/incoming"}},
+			name:      "local",
+			reference: &StorageLocationReference{Type: StorageTypeLocal, Local: &LocalReference{Path: "/data/incoming"}},
 			wire: workflowsv1.StorageLocationReference_builder{
-				Type:       workflowsv1.StorageType_STORAGE_TYPE_FILESYSTEM,
-				Filesystem: workflowsv1.FilesystemReference_builder{Path: "/data/incoming"}.Build(),
+				Type:  workflowsv1.StorageType_STORAGE_TYPE_LOCAL,
+				Local: workflowsv1.LocalReference_builder{Path: "/data/incoming"}.Build(),
 			}.Build(),
 		},
 		{name: "nil"},
@@ -71,6 +72,12 @@ func TestStorageLocationReferences(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.True(t, proto.Equal(tt.wire, tt.reference.toProto()))
 			assert.Equal(t, tt.reference, protoToStorageLocationReference(tt.wire))
+			if tt.reference != nil {
+				assert.Equal(t, tt.name, tt.reference.Type.String())
+				encoded, err := json.Marshal(tt.reference.Type)
+				require.NoError(t, err)
+				assert.JSONEq(t, strconv.Quote(tt.name), string(encoded))
+			}
 		})
 	}
 	assert.Equal(t, StorageTypeUnspecified, protoToStorageType(workflowsv1.StorageType(99)))
@@ -83,12 +90,12 @@ func TestStorageLocationClientRPCs(t *testing.T) {
 	subscriptionID := uuid.MustParse("019e4f3c-4646-7312-b8fe-2e7fa83c1547")
 	cursorID := uuid.MustParse("019e4f3c-4646-7312-b8fe-2e7fa83c1548")
 	reference := workflowsv1.StorageLocationReference_builder{
-		Type:        workflowsv1.StorageType_STORAGE_TYPE_AWS_S3_BUCKET,
+		Type:        workflowsv1.StorageType_STORAGE_TYPE_AWS_S3,
 		AwsS3Bucket: workflowsv1.AWSS3BucketReference_builder{Bucket: "input", Region: "eu-central-1"}.Build(),
 	}.Build()
 	wireLocation := workflowsv1.StorageLocation_builder{Id: tileboxv1.NewUUID(locationID), Name: "Input", Reference: reference}.Build()
 	location := &StorageLocation{ID: locationID, Name: "Input", Reference: &StorageLocationReference{
-		Type: StorageTypeS3, AWSS3Bucket: &AWSS3BucketReference{Bucket: "input", Region: "eu-central-1"},
+		Type: StorageTypeAWSS3, AWSS3Bucket: &AWSS3BucketReference{Bucket: "input", Region: "eu-central-1"},
 	}}
 	wireSubscription := workflowsv1.StorageSubscription_builder{
 		Id: tileboxv1.NewUUID(subscriptionID), StorageLocationId: tileboxv1.NewUUID(locationID),

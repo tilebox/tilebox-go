@@ -78,6 +78,15 @@ func TestStorageSubscriptionProviders(t *testing.T) {
 				WebhookSecretHeader: "X-Tilebox-Webhook-Secret", WebhookSecret: webhookSecret,
 			}},
 		},
+		{
+			name:   "tilebox cli",
+			config: StorageSubscriptionConfig{Type: StorageSubscriptionTypeTileboxCLI},
+			request: workflowsv1.CreateStorageSubscriptionRequest_builder{
+				StorageLocationId: tileboxv1.NewUUID(locationID), Type: workflowsv1.StorageSubscriptionType_STORAGE_SUBSCRIPTION_TYPE_TILEBOX_CLI,
+			}.Build(),
+			response: workflowsv1.StorageSubscription_builder{Type: workflowsv1.StorageSubscriptionType_STORAGE_SUBSCRIPTION_TYPE_TILEBOX_CLI}.Build(),
+			want:     &StorageSubscription{Type: StorageSubscriptionTypeTileboxCLI},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

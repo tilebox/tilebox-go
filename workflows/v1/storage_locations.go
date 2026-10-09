@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"iter"
+	"time"
 
+	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
@@ -17,9 +19,9 @@ type StorageType string
 const (
 	StorageTypeUnspecified StorageType = "unspecified"
 	StorageTypeGCS         StorageType = "gcs"
-	StorageTypeS3          StorageType = "s3"
-	StorageTypeFS          StorageType = "fs"
-	StorageTypeAzureBlob   StorageType = "azure_blob"
+	StorageTypeAWSS3       StorageType = "aws-s3"
+	StorageTypeLocal       StorageType = "local"
+	StorageTypeAzureBlob   StorageType = "azure-blob"
 )
 
 func (t StorageType) String() string {
@@ -44,7 +46,7 @@ type StorageLocationReference struct {
 	AWSS3Bucket *AWSS3BucketReference
 	GCSBucket   *GCSBucketReference
 	AzureBlob   *AzureBlobReference
-	Filesystem  *FilesystemReference
+	Local       *LocalReference
 }
 
 // AWSS3BucketReference identifies an S3 bucket and its region.
@@ -70,8 +72,8 @@ type AzureBlobReference struct {
 	Region string
 }
 
-// FilesystemReference identifies a directory monitored by a filesystem notifier.
-type FilesystemReference struct {
+// LocalReference identifies a local directory monitored by the Tilebox CLI.
+type LocalReference struct {
 	Path string
 }
 
@@ -96,6 +98,12 @@ type StorageLocationClient interface {
 	ListSubscriptions(ctx context.Context, storageLocationID uuid.UUID) ([]*StorageSubscription, error)
 	// DeleteSubscription stops accepting notifications without deleting provider resources.
 	DeleteSubscription(ctx context.Context, subscriptionID uuid.UUID) error
+	// NotifyObjectCreated sends one file-ready event to a TILEBOX_CLI subscription.
+	// objectPath must be relative to the location root and use slash separators.
+	// A zero eventTime omits the timestamp. Delivery is not idempotent: an error may
+	// mean delivery succeeded but its response was lost. The default transport does
+	// not retry; a transport supplied with WithHTTPClient controls its own retries.
+	NotifyObjectCreated(ctx context.Context, subscriptionID uuid.UUID, objectPath string, eventTime time.Time) error
 	// ListSubscriptionEvents lazily iterates over a location's events, newest receipt first.
 	ListSubscriptionEvents(ctx context.Context, storageLocationID uuid.UUID, options ...storagelocation.ListOption) iter.Seq2[*StorageSubscriptionEvent, error]
 	// ListSubscriptionEventsPage returns one page of a location's events, newest receipt first.
@@ -105,7 +113,11 @@ type StorageLocationClient interface {
 var _ StorageLocationClient = &storageLocationClient{}
 
 type storageLocationClient struct {
-	service _storageLocationService
+	service        _storageLocationService
+	httpClient     connect.HTTPClient
+	baseURL        string
+	apiKey         string
+	clientMetadata string
 }
 
 func (c storageLocationClient) Create(ctx context.Context, name string, reference *StorageLocationReference) (*StorageLocation, error) {
@@ -253,8 +265,8 @@ func protoToStorageLocationReference(reference *workflowsv1.StorageLocationRefer
 	if blob := reference.GetAzureBlob(); blob != nil {
 		result.AzureBlob = &AzureBlobReference{StorageAccountResourceID: blob.GetStorageAccountResourceId(), Container: blob.GetContainer(), Region: blob.GetRegion()}
 	}
-	if filesystem := reference.GetFilesystem(); filesystem != nil {
-		result.Filesystem = &FilesystemReference{Path: filesystem.GetPath()}
+	if local := reference.GetLocal(); local != nil {
+		result.Local = &LocalReference{Path: local.GetPath()}
 	}
 	return result
 }
@@ -273,8 +285,8 @@ func (r *StorageLocationReference) toProto() *workflowsv1.StorageLocationReferen
 	if r.AzureBlob != nil {
 		result.AzureBlob = workflowsv1.AzureBlobReference_builder{StorageAccountResourceId: r.AzureBlob.StorageAccountResourceID, Container: r.AzureBlob.Container, Region: r.AzureBlob.Region}.Build()
 	}
-	if r.Filesystem != nil {
-		result.Filesystem = workflowsv1.FilesystemReference_builder{Path: r.Filesystem.Path}.Build()
+	if r.Local != nil {
+		result.Local = workflowsv1.LocalReference_builder{Path: r.Local.Path}.Build()
 	}
 	return result.Build()
 }
@@ -283,12 +295,12 @@ func protoToStorageType(storageType workflowsv1.StorageType) StorageType {
 	switch storageType {
 	case workflowsv1.StorageType_STORAGE_TYPE_UNSPECIFIED:
 		return StorageTypeUnspecified
-	case workflowsv1.StorageType_STORAGE_TYPE_GCS_BUCKET:
+	case workflowsv1.StorageType_STORAGE_TYPE_GCS:
 		return StorageTypeGCS
-	case workflowsv1.StorageType_STORAGE_TYPE_AWS_S3_BUCKET:
-		return StorageTypeS3
-	case workflowsv1.StorageType_STORAGE_TYPE_FILESYSTEM:
-		return StorageTypeFS
+	case workflowsv1.StorageType_STORAGE_TYPE_AWS_S3:
+		return StorageTypeAWSS3
+	case workflowsv1.StorageType_STORAGE_TYPE_LOCAL:
+		return StorageTypeLocal
 	case workflowsv1.StorageType_STORAGE_TYPE_AZURE_BLOB:
 		return StorageTypeAzureBlob
 	default:
@@ -299,11 +311,11 @@ func protoToStorageType(storageType workflowsv1.StorageType) StorageType {
 func (t StorageType) toProto() workflowsv1.StorageType {
 	switch t {
 	case StorageTypeGCS:
-		return workflowsv1.StorageType_STORAGE_TYPE_GCS_BUCKET
-	case StorageTypeS3:
-		return workflowsv1.StorageType_STORAGE_TYPE_AWS_S3_BUCKET
-	case StorageTypeFS:
-		return workflowsv1.StorageType_STORAGE_TYPE_FILESYSTEM
+		return workflowsv1.StorageType_STORAGE_TYPE_GCS
+	case StorageTypeAWSS3:
+		return workflowsv1.StorageType_STORAGE_TYPE_AWS_S3
+	case StorageTypeLocal:
+		return workflowsv1.StorageType_STORAGE_TYPE_LOCAL
 	case StorageTypeAzureBlob:
 		return workflowsv1.StorageType_STORAGE_TYPE_AZURE_BLOB
 	case StorageTypeUnspecified:
