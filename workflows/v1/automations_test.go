@@ -19,7 +19,7 @@ func TestAutomationStorageLocationReference(t *testing.T) {
 				StorageLocation: workflowsv1.StorageLocation_builder{
 					Id: tileboxv1.NewUUID(storageLocationID), Name: "Imagery",
 					Reference: workflowsv1.StorageLocationReference_builder{
-						Type:      workflowsv1.StorageType_STORAGE_TYPE_GCS_BUCKET,
+						Type:      workflowsv1.StorageType_STORAGE_TYPE_GCS,
 						GcsBucket: workflowsv1.GCSBucketReference_builder{Bucket: "bucket", ProjectId: "project", Location: "EU"}.Build(),
 					}.Build(),
 				}.Build(),
