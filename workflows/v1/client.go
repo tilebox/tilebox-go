@@ -62,6 +62,7 @@ func NewClient(options ...ClientOption) *Client {
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
 	workflowService := newWorkflowService(workflowConnectClient, tracer)
 	automationService := &automationService{automationClient: automationConnectClient, tracer: tracer}
+	storageLocationService := &storageLocationService{client: storageLocationConnectClient, tracer: tracer}
 
 	return &Client{
 		Jobs:        &jobClient{service: newJobService(jobConnectClient, tracer), telemetryService: newTelemetryService(telemetryConnectClient, tracer)},
@@ -69,7 +70,7 @@ func NewClient(options ...ClientOption) *Client {
 		Workflows:   &workflowClient{service: workflowService},
 		Automations: &automationClient{service: automationService},
 		StorageLocations: &storageLocationClient{
-			service:    &storageLocationService{client: storageLocationConnectClient, tracer: tracer},
+			service:    storageLocationService,
 			httpClient: cfg.notificationHTTPClient, baseURL: cfg.url, apiKey: cfg.apiKey,
 			clientMetadata: cfg.clientMetadata.HeaderValue(),
 		},
