@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
 )
@@ -14,7 +15,7 @@ import (
 func main() {
 	ctx := context.Background()
 	workflows.ConfigureConsoleLogging(slog.LevelInfo)
-	client := workflows.NewClient()
+	client := workflows.NewClient(client.New())
 	jobID := uuid.MustParse("019e070c-63ba-1c7e-5f1d-65be3e22d52a")
 
 	fmt.Println("Log messages:")                             //nolint:forbidigo // This example intentionally prints query results to stdout.

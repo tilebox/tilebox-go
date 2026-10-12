@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
@@ -43,7 +45,8 @@ func (t *ProgressSubTask) Execute(ctx context.Context) error {
 func main() {
 	ctx := context.Background()
 	workflows.ConfigureConsoleLogging(slog.LevelDebug)
-	client := workflows.NewClient()
+	workflows.ConfigureTileboxTelemetry(ctx, "https://api.tilebox.com", os.Getenv("TILEBOX_API_KEY"))
+	client := workflows.NewClient(client.New())
 
 	job, err := client.Jobs.Submit(ctx, "progress-example",
 		[]workflows.Task{&ProgressRootTask{N: 5}},

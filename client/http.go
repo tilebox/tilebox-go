@@ -1,4 +1,4 @@
-package grpc
+package client
 
 import (
 	"bytes"
@@ -9,7 +9,6 @@ import (
 	"math/rand/v2"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 
 	"connectrpc.com/connect/v2/connecthttp"
@@ -64,34 +63,53 @@ func shouldRetryTransientRequest(ctx context.Context, resp *http.Response, err e
 	return false, err
 }
 
-// NewHTTPClient returns a pooled client and the Connect base URL. Socket paths
-// retain HTTP/1 and no retries for compatibility with older deployments.
-func NewHTTPClient(baseURL string) (connecthttp.HTTPClient, string) {
-	transport := http.DefaultTransport.(*http.Transport).Clone()
-	transport.ForceAttemptHTTP2 = true
-	transport.MaxIdleConns = 100
-	transport.MaxIdleConnsPerHost = 10
-	transport.IdleConnTimeout = 90 * time.Second
-	client := &http.Client{Transport: transport, CheckRedirect: noRedirects}
-	if !strings.HasPrefix(baseURL, "https://") && !strings.HasPrefix(baseURL, "http://") {
-		transport.ForceAttemptHTTP2 = false
-		transport.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
-			return (&net.Dialer{Timeout: 30 * time.Second, KeepAlive: 30 * time.Second}).DialContext(ctx, "unix", baseURL)
-		}
-		return client, "http://localhost"
-	}
-	return newRetryHTTPClient(client), baseURL
+// RetryPolicy controls retries of transient network errors and HTTP 429/5xx
+// responses, except Connect resource_exhausted errors. It does not retry RPC
+// errors carried in gRPC trailers. Waits use exponential equal jitter, starting
+// between MinWait/2 and MinWait, doubling each retry, and capped at MaxWait.
+type RetryPolicy struct {
+	MaxRetries int
+	MinWait    time.Duration
+	MaxWait    time.Duration
 }
 
-// NonRetryHTTPClient shares the connection pool while giving notifications an
-// independent timeout and preventing retries and redirects. The client must
-// have been returned by NewHTTPClient, not a custom option.
-func NonRetryHTTPClient(client connecthttp.HTTPClient, timeout time.Duration) *http.Client {
-	if retryClient, ok := client.(*retryHTTPClient); ok {
-		client = retryClient.client.HTTPClient
+// DefaultRetryPolicy permits four retries (five attempts total).
+func DefaultRetryPolicy() RetryPolicy {
+	return RetryPolicy{MaxRetries: 4, MinWait: 20 * time.Millisecond, MaxWait: 10 * time.Second}
+}
+
+// NewHTTPTransport creates an independent connection pool with HTTP/2 over TLS
+// and HTTP/1.1 fallback. It never reads or modifies http.DefaultTransport.
+// Configure it before use; a transport can be shared by multiple clients.
+func NewHTTPTransport() *http.Transport {
+	return &http.Transport{
+		Proxy:                 http.ProxyFromEnvironment,
+		DialContext:           (&net.Dialer{Timeout: 30 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		MaxIdleConnsPerHost:   10,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: time.Second,
 	}
-	base := client.(*http.Client)
-	return &http.Client{Transport: base.Transport, Timeout: timeout, CheckRedirect: noRedirects}
+}
+
+func newHTTPClient(socketPath string, transport http.RoundTripper, policy RetryPolicy) connecthttp.HTTPClient {
+	var owned *http.Transport
+	if transport == nil {
+		owned = NewHTTPTransport()
+		transport = owned
+	}
+	httpClient := &http.Client{Transport: transport, CheckRedirect: noRedirects}
+	if socketPath != "" && owned != nil {
+		dialer := &net.Dialer{Timeout: 30 * time.Second, KeepAlive: 30 * time.Second}
+		owned.Proxy = nil
+		owned.ForceAttemptHTTP2 = false
+		owned.DialContext = func(ctx context.Context, _, _ string) (net.Conn, error) {
+			return dialer.DialContext(ctx, "unix", socketPath)
+		}
+	}
+	return NewRetryHTTPClient(httpClient, policy)
 }
 
 func noRedirects(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse }
@@ -121,13 +139,23 @@ func (client *retryHTTPClient) Do(request *http.Request) (*http.Response, error)
 	return client.client.Do(retryRequest)
 }
 
-func newRetryHTTPClient(httpClient *http.Client) connecthttp.HTTPClient {
+// NewRetryHTTPClient applies the SDK's replay-aware retry policy to an HTTP client.
+// It preserves the supplied client's transport, per-attempt timeout, and redirect
+// policy. Use a request context deadline to bound all attempts and backoff together.
+// A zero policy returns the supplied client unchanged. Invalid retry limits panic.
+func NewRetryHTTPClient(httpClient *http.Client, policy RetryPolicy) connecthttp.HTTPClient {
+	if policy.MaxRetries < 0 || (policy.MaxRetries > 0 && (policy.MinWait <= 0 || policy.MaxWait < policy.MinWait)) {
+		panic("client: retries require MaxRetries >= 0 and 0 < MinWait <= MaxWait")
+	}
+	if policy.MaxRetries == 0 {
+		return httpClient
+	}
 	retryClient := retryablehttp.NewClient()
 	retryClient.HTTPClient = httpClient
 	retryClient.Logger = nil
-	retryClient.RetryWaitMin = 20 * time.Millisecond
-	retryClient.RetryWaitMax = 10 * time.Second
-	retryClient.RetryMax = 4 // Five total attempts: the initial request plus four retries.
+	retryClient.RetryWaitMin = policy.MinWait
+	retryClient.RetryWaitMax = policy.MaxWait
+	retryClient.RetryMax = policy.MaxRetries
 	retryClient.Backoff = exponentialJitterBackoff
 	retryClient.CheckRetry = shouldRetryTransientRequest
 

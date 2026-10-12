@@ -1,4 +1,4 @@
-package grpc
+package client
 
 import (
 	"bytes"
@@ -17,6 +17,7 @@ import (
 	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tilebox/tilebox-go/internal/grpc"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -72,7 +73,7 @@ func TestRetryHTTPClientMakesFiveTotalAttempts(t *testing.T) {
 	request, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL, nil)
 	require.NoError(t, err)
 
-	client, _ := NewHTTPClient(server.URL)
+	client := newHTTPClient("", nil, DefaultRetryPolicy())
 	response, err := client.Do(request)
 	if response != nil {
 		t.Cleanup(func() { require.NoError(t, response.Body.Close()) })
@@ -134,7 +135,7 @@ func TestRetryHTTPClientReplaysPOST(t *testing.T) {
 			request, err := http.NewRequestWithContext(t.Context(), http.MethodPost, server.URL, strings.NewReader("the complete POST payload"))
 			require.NoError(t, err)
 			request.Header.Set("X-Test", "preserved")
-			client, _ := NewHTTPClient(server.URL)
+			client := newHTTPClient("", nil, DefaultRetryPolicy())
 			response, err := client.Do(request)
 			require.NoError(t, err)
 			defer response.Body.Close()
@@ -166,8 +167,7 @@ func TestRetryHTTPClientReplaysConnectPayload(t *testing.T) {
 	connecthttp.Mount(mux, rpcServer)
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
-	httpClient, url := NewHTTPClient(server.URL)
-	client := connect.NewClient(connecthttp.NewTransport(httpClient, url, connecthttp.WithSendGzip()))
+	client := New(WithURL(server.URL), WithTransportOptions(connecthttp.WithSendGzip()))
 	request := wrapperspb.String(strings.Repeat("tilebox", 1024))
 	var response wrapperspb.StringValue
 	require.NoError(t, client.CallUnary(t.Context(), spec, request, &response))
@@ -192,13 +192,13 @@ func TestRetryHTTPClientStreamingPassesThrough(t *testing.T) {
 	request, err := http.NewRequestWithContext(t.Context(), http.MethodPost, "http://localhost", body)
 	require.NoError(t, err)
 	attempts := 0
-	client := newRetryHTTPClient(&http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+	client := NewRetryHTTPClient(&http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		attempts++
 		assert.Same(t, request, r)
 		assert.Zero(t, body.reads)
 		_ = r.Body.Close()
 		return &http.Response{StatusCode: http.StatusServiceUnavailable, Body: http.NoBody}, nil
-	})})
+	})}, DefaultRetryPolicy())
 	response, err := client.Do(request)
 	require.NoError(t, err)
 	defer response.Body.Close()
@@ -210,10 +210,10 @@ func TestRetryHTTPClientCancellationDuringBackoff(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	var attempts atomic.Int32
-	client := newRetryHTTPClient(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+	client := NewRetryHTTPClient(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
 		attempts.Add(1)
 		return &http.Response{StatusCode: http.StatusServiceUnavailable, Body: http.NoBody}, nil
-	})}).(*retryHTTPClient)
+	})}, DefaultRetryPolicy()).(*retryHTTPClient)
 	client.client.Backoff = func(time.Duration, time.Duration, int, *http.Response) time.Duration {
 		cancel()
 		return time.Hour
@@ -242,14 +242,11 @@ func TestHTTPClientTLSProtocols(t *testing.T) {
 			server.EnableHTTP2 = http2
 			server.StartTLS()
 			t.Cleanup(server.Close)
-			client, baseURL := NewHTTPClient(server.URL)
-			assert.Equal(t, server.URL, baseURL)
-			notifications := NonRetryHTTPClient(client, 30*time.Second)
-			transport := notifications.Transport.(*http.Transport)
+			transport := NewHTTPTransport()
 			transport.TLSClientConfig = server.Client().Transport.(*http.Transport).TLSClientConfig.Clone()
 			t.Cleanup(transport.CloseIdleConnections)
-			assert.Same(t, transport, client.(*retryHTTPClient).client.HTTPClient.Transport)
-			request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, baseURL, nil)
+			client := newHTTPClient("", transport, DefaultRetryPolicy())
+			request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
 			require.NoError(t, err)
 			response, err := client.Do(request)
 			require.NoError(t, err)
@@ -278,11 +275,11 @@ func TestRecordRoundTripperClosesOriginalBody(t *testing.T) {
 	var recording bytes.Buffer
 	request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, "http://localhost", nil)
 	require.NoError(t, err)
-	response, err := NewRecordRoundTripper(&recording).RoundTrip(request)
+	response, err := grpc.NewRecordRoundTripper(&recording).RoundTrip(request)
 	require.NoError(t, err)
 	assert.True(t, body.closed)
 	require.NoError(t, response.Body.Close())
-	replayed, err := NewReplayRoundTripper(&recording).RoundTrip(request)
+	replayed, err := grpc.NewReplayRoundTripper(&recording).RoundTrip(request)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, replayed.StatusCode)
 	require.NoError(t, replayed.Body.Close())
@@ -295,8 +292,8 @@ func TestHTTPClientsDoNotFollowRedirects(t *testing.T) {
 		http.Redirect(w, r, "/target", http.StatusTemporaryRedirect)
 	}))
 	t.Cleanup(server.Close)
-	client, _ := NewHTTPClient(server.URL)
-	for _, current := range []connecthttp.HTTPClient{client, NonRetryHTTPClient(client, 30*time.Second)} {
+	for _, policy := range []RetryPolicy{DefaultRetryPolicy(), {}} {
+		current := newHTTPClient("", nil, policy)
 		request, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
 		require.NoError(t, err)
 		response, err := current.Do(request)

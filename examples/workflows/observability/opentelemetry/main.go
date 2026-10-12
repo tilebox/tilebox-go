@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/observability"
 	"github.com/tilebox/tilebox-go/observability/logger"
 	"github.com/tilebox/tilebox-go/observability/tracer"
@@ -68,7 +70,8 @@ func main() {
 	}
 	otel.SetTracerProvider(tileboxTracerProvider) // set the tilebox tracer provider as the global OTEL tracer provider
 
-	client := workflows.NewClient()
+	workflows.ConfigureTileboxTelemetry(ctx, "https://api.tilebox.com", os.Getenv("TILEBOX_API_KEY"))
+	client := workflows.NewClient(client.New())
 
 	job, err := client.Jobs.Submit(ctx, "OpenTelemetry Observability",
 		[]workflows.Task{&MyOpenTelemetryTask{}},

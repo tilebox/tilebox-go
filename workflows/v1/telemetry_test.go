@@ -8,12 +8,32 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.opentelemetry.io/otel"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 var initialDefaultSlogLogger = slog.Default()
+
+func TestConfigureTileboxTelemetrySkipsMissingCredentialsOrNonHTTPURL(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		apiURL string
+		apiKey string
+	}{
+		{name: "missing key", apiURL: "https://api.tilebox.com"},
+		{name: "non HTTP URL", apiURL: "unix:///tmp/tilebox", apiKey: "test-key"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			provider := otel.GetTracerProvider()
+			defaultLogger := slog.Default()
+			ConfigureTileboxTelemetry(context.Background(), test.apiURL, test.apiKey)
+			assert.Same(t, provider, otel.GetTracerProvider())
+			assert.Same(t, defaultLogger, slog.Default())
+		})
+	}
+}
 
 type recordingSlogHandler struct {
 	name    string

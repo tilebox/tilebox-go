@@ -1,4 +1,4 @@
-package grpc
+package client
 
 import (
 	"context"
@@ -13,10 +13,11 @@ import (
 
 func TestClientHeadersInterceptor(t *testing.T) {
 	for _, test := range []struct {
-		name, apiKey, metadata, wantAuth, wantMetadata string
+		name, apiKey, wantAuth, wantMetadata string
+		metadata                             Metadata
 	}{
-		{"SDK headers", "sdk-key", `name="cli"`, "Bearer sdk-key", `name="cli"`},
-		{"caller headers", "", "", "Bearer caller-key", `name="caller"`},
+		{"SDK headers", "sdk-key", "Bearer sdk-key", `name="cli"`, Metadata{Name: "cli"}},
+		{"caller headers", "", "Bearer caller-key", `name="caller"`, Metadata{}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			for _, streamType := range []connect.StreamType{
@@ -37,7 +38,7 @@ func TestClientHeadersInterceptor(t *testing.T) {
 						return stream.Send(wrapperspb.String(info.RequestHeader().Get("Authorization") + "|" +
 							info.RequestHeader().Get(ClientHeader) + "|" + info.RequestHeader().Get("X-Custom") + "|" + request.GetValue()))
 					}})
-					client := connect.NewClient(connectinprocess.New(server), NewClientHeadersInterceptor(test.apiKey, test.metadata))
+					client := New(WithTransport(connectinprocess.New(server)), WithAPIKey(test.apiKey), WithClientMetadata(test.metadata))
 					ctx, info := connect.NewClientContext(t.Context())
 					info.RequestHeader().Set("Authorization", "Bearer caller-key")
 					info.RequestHeader().Set(ClientHeader, `name="caller"`)

@@ -32,7 +32,7 @@ func TestClient_GetAccountDetails(t *testing.T) {
 
 func TestClientMetadataCanBeOverridden(t *testing.T) {
 	service := &fakeAccountsService{}
-	client := newTestClient(t, service, WithClientMetadata(client.Metadata{Name: "cli", Version: "v1.2.3"}))
+	client := newTestClient(t, service, client.WithClientMetadata(client.Metadata{Name: "cli", Version: "v1.2.3"}))
 
 	_, err := client.Account.GetAccountDetails(t.Context())
 	require.NoError(t, err)
@@ -52,9 +52,9 @@ func TestClientInterceptorsAndCallMetadata(t *testing.T) {
 		}
 	}
 	service := &fakeAccountsService{}
-	client := newTestClient(t, service, WithHTTPClient(nil),
-		WithInterceptors(addHeader("A")), WithInterceptors(addHeader("B")),
-		WithTransportOptions(connecthttp.WithSendGzip()),
+	client := newTestClient(t, service, client.WithHTTPClient(nil),
+		client.WithInterceptors(addHeader("A")), client.WithInterceptors(addHeader("B")),
+		client.WithTransportOptions(connecthttp.WithSendGzip()),
 	)
 	ctx, info := connect.NewClientContext(t.Context())
 	info.RequestHeader().Set("X-Caller", "caller-")
@@ -68,17 +68,20 @@ func TestClientInterceptorsAndCallMetadata(t *testing.T) {
 
 func TestClientResponseLimit(t *testing.T) {
 	for _, test := range []struct {
-		name    string
-		options []ClientOption
+		name      string
+		options   []client.Option
+		wantError bool
 	}{
-		{name: "default"},
-		{name: "larger limit", options: []ClientOption{WithTransportOptions(connecthttp.WithReadMaxBytes(8 << 20))}},
+		{name: "default", options: []client.Option{client.WithHTTPClient(nil)}},
+		{name: "custom HTTP client"},
+		{name: "explicit limit", options: []client.Option{client.WithTransportOptions(connecthttp.WithReadMaxBytes(4 << 20))}, wantError: true},
+		{name: "larger limit", options: []client.Option{client.WithTransportOptions(connecthttp.WithReadMaxBytes(8 << 20))}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			service := &fakeAccountsService{userName: strings.Repeat("x", (4<<20)+1)}
+			service := &fakeAccountsService{userName: strings.Repeat("x", 5<<20)}
 			client := newTestClient(t, service, test.options...)
 			details, err := client.Account.GetAccountDetails(t.Context())
-			if test.name == "default" {
+			if test.wantError {
 				require.Error(t, err)
 				assert.Equal(t, connect.CodeResourceExhausted, connect.CodeOf(err))
 			} else {
@@ -132,7 +135,7 @@ func TestClient_GetUsageReport(t *testing.T) {
 	}
 }
 
-func newTestClient(t *testing.T, service *fakeAccountsService, options ...ClientOption) *Client {
+func newTestClient(t *testing.T, service *fakeAccountsService, options ...client.Option) *Client {
 	t.Helper()
 
 	mux := http.NewServeMux()
@@ -144,13 +147,12 @@ func newTestClient(t *testing.T, service *fakeAccountsService, options ...Client
 	server := httptest.NewServer(mux)
 	t.Cleanup(server.Close)
 
-	options = append([]ClientOption{
-		WithURL(server.URL),
-		WithHTTPClient(server.Client()),
-		WithAPIKey("test-api-key"),
-		WithDisableTracing(),
+	options = append([]client.Option{
+		client.WithURL(server.URL),
+		client.WithHTTPClient(server.Client()),
+		client.WithAPIKey("test-api-key"),
 	}, options...)
-	return NewClient(options...)
+	return NewClient(client.New(options...), WithDisableTracing())
 }
 
 type fakeAccountsService struct {

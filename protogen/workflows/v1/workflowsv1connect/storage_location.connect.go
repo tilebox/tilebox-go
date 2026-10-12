@@ -58,6 +58,9 @@ const (
 	// StorageLocationServiceListStorageSubscriptionEventsProcedure is the procedure name of the
 	// StorageLocationService's ListStorageSubscriptionEvents RPC.
 	StorageLocationServiceListStorageSubscriptionEventsProcedure = "/workflows.v1.StorageLocationService/ListStorageSubscriptionEvents"
+	// StorageLocationServiceNotifyObjectCreatedProcedure is the procedure name of the
+	// StorageLocationService's NotifyObjectCreated RPC.
+	StorageLocationServiceNotifyObjectCreatedProcedure = "/workflows.v1.StorageLocationService/NotifyObjectCreated"
 )
 
 var (
@@ -131,6 +134,13 @@ var (
 			Procedure:  StorageLocationServiceListStorageSubscriptionEventsProcedure,
 		}
 	})
+	storageLocationServiceNotifyObjectCreatedSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("NotifyObjectCreated"),
+			Procedure:  StorageLocationServiceNotifyObjectCreatedProcedure,
+		}
+	})
 )
 
 // StorageLocationServiceClient is a client for the workflows.v1.StorageLocationService service.
@@ -155,6 +165,9 @@ type StorageLocationServiceClient interface {
 	DeleteStorageSubscription(context.Context, *v11.ID) (*emptypb.Empty, error)
 	// ListStorageSubscriptionEvents lists received object notifications and the jobs they triggered.
 	ListStorageSubscriptionEvents(context.Context, *v1.ListStorageSubscriptionEventsRequest) (*v1.StorageSubscriptionEvents, error)
+	// NotifyObjectCreated delivers a storage event of a local storage location. Typically called by the Tilebox CLI
+	// during the `tilebox storage-location watch` command. The subscription must be of type TILEBOX_CLI.
+	NotifyObjectCreated(context.Context, *v1.NotifyObjectCreatedRequest) (*emptypb.Empty, error)
 }
 
 // NewStorageLocationServiceClient constructs a client for the workflows.v1.StorageLocationService
@@ -186,6 +199,9 @@ type StorageLocationServiceHandler interface {
 	DeleteStorageSubscription(context.Context, *v11.ID) (*emptypb.Empty, error)
 	// ListStorageSubscriptionEvents lists received object notifications and the jobs they triggered.
 	ListStorageSubscriptionEvents(context.Context, *v1.ListStorageSubscriptionEventsRequest) (*v1.StorageSubscriptionEvents, error)
+	// NotifyObjectCreated delivers a storage event of a local storage location. Typically called by the Tilebox CLI
+	// during the `tilebox storage-location watch` command. The subscription must be of type TILEBOX_CLI.
+	NotifyObjectCreated(context.Context, *v1.NotifyObjectCreatedRequest) (*emptypb.Empty, error)
 }
 
 // RegisterStorageLocationServiceHandler registers svc as the workflows.v1.StorageLocationService
@@ -203,6 +219,7 @@ func RegisterStorageLocationServiceHandler(server *connect.Server, svc StorageLo
 		connect.Method{Spec: storageLocationServiceGetStorageSubscriptionSpec(), Handler: adapter.getStorageSubscription},
 		connect.Method{Spec: storageLocationServiceDeleteStorageSubscriptionSpec(), Handler: adapter.deleteStorageSubscription},
 		connect.Method{Spec: storageLocationServiceListStorageSubscriptionEventsSpec(), Handler: adapter.listStorageSubscriptionEvents},
+		connect.Method{Spec: storageLocationServiceNotifyObjectCreatedSpec(), Handler: adapter.notifyObjectCreated},
 	)
 }
 
@@ -247,6 +264,10 @@ func (UnimplementedStorageLocationServiceHandler) DeleteStorageSubscription(cont
 
 func (UnimplementedStorageLocationServiceHandler) ListStorageSubscriptionEvents(context.Context, *v1.ListStorageSubscriptionEventsRequest) (*v1.StorageSubscriptionEvents, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.ListStorageSubscriptionEvents is not implemented")
+}
+
+func (UnimplementedStorageLocationServiceHandler) NotifyObjectCreated(context.Context, *v1.NotifyObjectCreatedRequest) (*emptypb.Empty, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.NotifyObjectCreated is not implemented")
 }
 
 type storageLocationServiceClient struct {
@@ -328,6 +349,14 @@ func (c *storageLocationServiceClient) DeleteStorageSubscription(ctx context.Con
 func (c *storageLocationServiceClient) ListStorageSubscriptionEvents(ctx context.Context, req *v1.ListStorageSubscriptionEventsRequest) (*v1.StorageSubscriptionEvents, error) {
 	var res v1.StorageSubscriptionEvents
 	if err := c.client.CallUnary(ctx, storageLocationServiceListStorageSubscriptionEventsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) NotifyObjectCreated(ctx context.Context, req *v1.NotifyObjectCreatedRequest) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+	if err := c.client.CallUnary(ctx, storageLocationServiceNotifyObjectCreatedSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -449,6 +478,18 @@ func (h storageLocationServiceHandler) listStorageSubscriptionEvents(ctx context
 		return err
 	}
 	res, err := h.svc.ListStorageSubscriptionEvents(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) notifyObjectCreated(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.NotifyObjectCreatedRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.NotifyObjectCreated(ctx, &req)
 	if err != nil {
 		return err
 	}

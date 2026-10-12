@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/datasets/v1"
 	"github.com/tilebox/tilebox-go/datasets/v1/field"
 	stacv1 "github.com/tilebox/tilebox-go/protogen/datasets/stac/v1"
@@ -13,7 +14,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create a Tilebox Datasets client
-	client := datasets.NewClient()
+	client := datasets.NewClient(client.New())
 
 	fields := make([]datasets.Field, 0, 5)
 	fields = append(fields,

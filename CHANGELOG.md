@@ -7,12 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Configure retries with `client.WithRetryPolicy`. Defaults remain four retries (five attempts), exponential jitter starting at 10–20 ms, and a 10-second maximum wait. Transient network failures and HTTP 429/5xx are retried, except Connect `resource_exhausted` responses. `client.RetryPolicy{}` disables retries; non-replayable request bodies are not retried.
+- Unix socket connections now use the same configurable retry policy as HTTP connections.
+- Customize TLS, proxies, or connection pools with `client.NewHTTPTransport` and `client.WithHTTPTransport` while retaining SDK retries. `client.WithHTTPClient` replaces all HTTP behavior, including retries; `client.WithTransport` accepts a native Connect transport and bypasses HTTP configuration entirely.
+- Use `client.NewRetryHTTPClient(httpClient, policy)` to apply SDK retries to a custom HTTP client.
+- `workflows`: Workflow results include `Summary` and optional, read-only `Presentation` metadata (image URL, alt text, imagery types, use cases, and dataset labels). Set the summary on create with `workflows.WithSummary` or on update with `workflow.WithSummary`. Create omits the Markdown description unless `workflows.WithDescription` is supplied. Update leaves omitted fields unchanged; an empty summary or description clears that field.
+
 ### Changed
 
-- Migrate the runtime and generated RPC clients to Connect-Go v2. Generated methods accept and return protobuf messages directly; headers and trailers use context-carried `connect.CallInfo`.
-- Replace `WithConnectClientOptions` with `WithTransportOptions(...connecthttp.Option)` and `WithInterceptors(...connect.ClientInterceptor)` in Accounts, Datasets, and Workflows.
-- Use the Connect v2 default 4 MiB response message limit. Set `connecthttp.WithReadMaxBytes` through `WithTransportOptions` for larger responses.
-- Share RPC transports and interceptor chains across services, negotiate HTTP/2 for HTTPS, and reuse replayable request bodies without extra buffering. Default HTTP clients no longer follow redirects.
+- **Breaking:** Upgraded to Connect-Go v2. Consumers inspecting RPC errors must import `connectrpc.com/connect/v2`. Generated RPC methods accept and return protobuf messages directly; use `connect.NewClientContext` to set request headers and read response headers or trailers.
+- **Breaking:** Accounts, Datasets, and Workflows constructors now require a shared `*connect.Client`. For example, replace `datasets.NewClient(datasets.WithAPIKey(key))` with `datasets.NewClient(client.New(client.WithAPIKey(key)))`. Reuse the same `client.New(...)` result across domains to share connections and interceptors. The default endpoint and `TILEBOX_API_KEY` lookup are unchanged.
+- **Breaking:** Move `WithURL`, `WithAPIKey`, `WithClientMetadata`, and `WithHTTPClient` options from domain packages to `client`. Replace `WithConnectClientOptions` with `client.WithTransportOptions(...connecthttp.Option)` and `client.WithInterceptors(...connect.ClientInterceptor)`.
+- **Breaking:** Client construction no longer enables Tilebox trace/log export. Call `workflows.ConfigureTileboxTelemetry(ctx, apiURL, apiKey)` before constructing domain clients to enable it. Existing global OpenTelemetry providers still supply client tracing. `WithDisableTracing` remains available; `WithDisableLogging` is removed.
+- **Breaking:** Default HTTP clients no longer follow redirects. Configure the final API URL with `client.WithURL`; a redirect now fails the RPC instead of changing its destination or request method. Custom clients supplied through `client.WithHTTPClient` retain their own redirect policy.
 
 ## [0.15.1] - 2026-10-09
 

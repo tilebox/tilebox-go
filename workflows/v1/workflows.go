@@ -19,10 +19,23 @@ type Workflow struct {
 	Slug string
 	// Name is the human-readable name of the workflow.
 	Name string
-	// Description is the workflow description.
+	// Summary is a short text summary of the workflow.
+	Summary string
+	// Description is the longer Markdown description, or empty if absent.
 	Description string
 	// Releases are the immutable releases published for this workflow.
 	Releases []*WorkflowRelease
+	// Presentation is gallery metadata for public workflows, or nil if absent.
+	Presentation *WorkflowPresentation
+}
+
+// WorkflowPresentation contains display metadata for the public workflow gallery.
+type WorkflowPresentation struct {
+	ImageURL      string
+	ImageAlt      string
+	ImageryTypes  []string
+	UseCases      []string
+	DatasetLabels []string
 }
 
 // WorkflowPage is one page of owned or public workflows.
@@ -88,16 +101,25 @@ type WorkflowReleaseDeployment struct {
 }
 
 type workflowOptions struct {
-	description string
+	summary     string
+	description *string
 }
 
 // WorkflowOption configures workflow create requests.
 type WorkflowOption func(*workflowOptions)
 
-// WithDescription sets the workflow description.
+// WithSummary sets the workflow's short text summary.
+func WithSummary(summary string) WorkflowOption {
+	return func(options *workflowOptions) {
+		options.summary = summary
+	}
+}
+
+// WithDescription sets the workflow's optional Markdown description.
+// Without this option the description is omitted; an empty string is sent explicitly.
 func WithDescription(description string) WorkflowOption {
 	return func(options *workflowOptions) {
-		options.description = description
+		options.description = &description
 	}
 }
 
@@ -159,7 +181,7 @@ type workflowClient struct {
 
 func (c workflowClient) Create(ctx context.Context, name string, options ...WorkflowOption) (*Workflow, error) {
 	appliedOptions := applyWorkflowOptions(options...)
-	response, err := c.service.CreateWorkflow(ctx, name, appliedOptions.description)
+	response, err := c.service.CreateWorkflow(ctx, name, appliedOptions.summary, appliedOptions.description)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +226,7 @@ func (c workflowClient) Get(ctx context.Context, slug string) (*Workflow, error)
 
 func (c workflowClient) Update(ctx context.Context, slug string, options ...workflowoptions.UpdateOption) (*Workflow, error) {
 	appliedOptions := workflowoptions.NewUpdateOptions(options...)
-	response, err := c.service.UpdateWorkflow(ctx, slug, appliedOptions.Name, appliedOptions.Description)
+	response, err := c.service.UpdateWorkflow(ctx, slug, appliedOptions.Name, appliedOptions.Summary, appliedOptions.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -299,10 +321,25 @@ func protoToWorkflow(workflow *workflowsv1.Workflow) *Workflow {
 	}
 
 	return &Workflow{
-		Slug:        workflow.GetSlug(),
-		Name:        workflow.GetName(),
-		Description: workflow.GetDescription(),
-		Releases:    releases,
+		Slug:         workflow.GetSlug(),
+		Name:         workflow.GetName(),
+		Summary:      workflow.GetSummary(),
+		Description:  workflow.GetDescription(),
+		Releases:     releases,
+		Presentation: protoToWorkflowPresentation(workflow.GetPresentation()),
+	}
+}
+
+func protoToWorkflowPresentation(presentation *workflowsv1.WorkflowPresentation) *WorkflowPresentation {
+	if presentation == nil {
+		return nil
+	}
+	return &WorkflowPresentation{
+		ImageURL:      presentation.GetImageUrl(),
+		ImageAlt:      presentation.GetImageAlt(),
+		ImageryTypes:  presentation.GetImageryType(),
+		UseCases:      presentation.GetUseCase(),
+		DatasetLabels: presentation.GetDatasetLabel(),
 	}
 }
 

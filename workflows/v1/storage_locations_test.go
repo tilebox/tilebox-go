@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
@@ -22,6 +23,7 @@ import (
 	"github.com/tilebox/tilebox-go/workflows/v1/storagelocation"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestStorageLocationReferences(t *testing.T) {
@@ -164,6 +166,25 @@ func TestStorageLocationClientRPCs(t *testing.T) {
 			},
 		},
 		{
+			method: "NotifyObjectCreated",
+			request: workflowsv1.NotifyObjectCreatedRequest_builder{
+				StorageSubscriptionId: tileboxv1.NewUUID(subscriptionID), ObjectPath: "incoming/\u96ea %20.tif",
+			}.Build(), response: &emptypb.Empty{},
+			call: func(c StorageLocationClient) (any, error) {
+				return nil, c.NotifyObjectCreated(t.Context(), subscriptionID, "incoming/\u96ea %20.tif", time.Time{})
+			},
+		},
+		{
+			method: "NotifyObjectCreated",
+			request: workflowsv1.NotifyObjectCreatedRequest_builder{
+				StorageSubscriptionId: tileboxv1.NewUUID(subscriptionID), ObjectPath: "with-time.tif",
+				EventTime: &timestamppb.Timestamp{Seconds: 1_700_000_123, Nanos: 456789123},
+			}.Build(), response: &emptypb.Empty{},
+			call: func(c StorageLocationClient) (any, error) {
+				return nil, c.NotifyObjectCreated(t.Context(), subscriptionID, "with-time.tif", time.Unix(1_700_000_123, 456789123))
+			},
+		},
+		{
 			method: "ListStorageSubscriptionEvents",
 			request: workflowsv1.ListStorageSubscriptionEventsRequest_builder{
 				StorageLocationId: tileboxv1.NewUUID(locationID), Page: tileboxv1.Pagination_builder{Limit: proto.Int64(7), StartingAfter: tileboxv1.NewUUID(cursorID)}.Build(),
@@ -207,8 +228,8 @@ func TestStorageLocationClientRPCs(t *testing.T) {
 				mux.ServeHTTP(w, r)
 			}))
 			t.Cleanup(server.Close)
-			c := NewClient(WithURL(server.URL), WithHTTPClient(server.Client()), WithAPIKey("test-key"),
-				WithClientMetadata(client.Metadata{Name: "test", Version: "1"}), WithDisableTracing(), WithDisableLogging())
+			c := NewClient(client.New(client.WithURL(server.URL), client.WithHTTPClient(server.Client()), client.WithAPIKey("test-key"),
+				client.WithClientMetadata(client.Metadata{Name: "test", Version: "1"})), WithDisableTracing())
 			result, err := tt.call(c.StorageLocations)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, result)
@@ -272,6 +293,10 @@ func (s storageLocationRPCService) DeleteStorageSubscription(ctx context.Context
 
 func (s storageLocationRPCService) ListStorageSubscriptionEvents(ctx context.Context, request *workflowsv1.ListStorageSubscriptionEventsRequest) (*workflowsv1.StorageSubscriptionEvents, error) {
 	return storageLocationRPCResponse[*workflowsv1.StorageSubscriptionEvents](s, ctx, request)
+}
+
+func (s storageLocationRPCService) NotifyObjectCreated(ctx context.Context, request *workflowsv1.NotifyObjectCreatedRequest) (*emptypb.Empty, error) {
+	return storageLocationRPCResponse[*emptypb.Empty](s, ctx, request)
 }
 
 type storageEventsService struct {

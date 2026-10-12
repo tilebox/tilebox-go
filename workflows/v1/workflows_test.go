@@ -3,39 +3,85 @@ package workflows
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
+	"connectrpc.com/connect/v2/connectinprocess"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tilebox/tilebox-go/client"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
+	"github.com/tilebox/tilebox-go/protogen/workflows/v1/workflowsv1connect"
 	"github.com/tilebox/tilebox-go/workflows/v1/workflow"
 	"go.opentelemetry.io/otel/trace/noop"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestWorkflowClient_Create(t *testing.T) {
-	ctx := context.Background()
-	service := &fakeWorkflowService{
-		workflow: workflowsv1.Workflow_builder{
-			Slug:        "agentic-workflow",
-			Name:        "Agentic Workflow",
-			Description: "Description",
-		}.Build(),
+	for _, test := range []struct {
+		name             string
+		options          []WorkflowOption
+		summary          string
+		description      string
+		hasDescription   bool
+		presentation     *workflowsv1.WorkflowPresentation
+		wantPresentation *WorkflowPresentation
+	}{
+		{name: "omitted description"},
+		{name: "explicit empty description", options: []WorkflowOption{WithDescription("")}, hasDescription: true},
+		{
+			name:    "summary and Markdown description",
+			options: []WorkflowOption{WithSummary("Detect changes"), WithDescription("# Changes\nLonger description.")},
+			summary: "Detect changes", description: "# Changes\nLonger description.", hasDescription: true,
+			presentation: workflowsv1.WorkflowPresentation_builder{
+				ImageUrl: "https://example.com/changes.png", ImageAlt: "Change detection preview",
+				ImageryType: []string{"optical", "radar"}, UseCase: []string{"change-detection"},
+				DatasetLabel: []string{"Sentinel-2 L2A · 10 m", "Sentinel-1"},
+			}.Build(),
+			wantPresentation: &WorkflowPresentation{
+				ImageURL: "https://example.com/changes.png", ImageAlt: "Change detection preview",
+				ImageryTypes: []string{"optical", "radar"}, UseCases: []string{"change-detection"},
+				DatasetLabels: []string{"Sentinel-2 L2A · 10 m", "Sentinel-1"},
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			server := connect.NewServer()
+			var request workflowsv1.CreateWorkflowRequest
+			server.Register(connect.Method{
+				Spec: connect.Spec{Procedure: workflowsv1connect.WorkflowsServiceCreateWorkflowProcedure, StreamType: connect.StreamTypeUnary},
+				Handler: func(_ context.Context, _ connect.Spec, stream connect.ServerStream) error {
+					if err := stream.Receive(&request); err != nil {
+						return err
+					}
+					return stream.Send(workflowsv1.Workflow_builder{
+						Slug: "change-detection", Name: "Change Detection", Summary: "Returned summary",
+						Description: test.description, Presentation: test.presentation,
+					}.Build())
+				},
+			})
+			workflows := NewClient(client.New(client.WithTransport(connectinprocess.New(server))))
+			createdWorkflow, err := workflows.Workflows.Create(t.Context(), "Change Detection", test.options...)
+			require.NoError(t, err)
+			assert.Equal(t, "Change Detection", request.GetName())
+			assert.Equal(t, test.summary, request.GetSummary())
+			assert.Equal(t, test.hasDescription, request.HasDescription())
+			assert.Equal(t, test.description, request.GetDescription())
+			assert.Equal(t, "change-detection", createdWorkflow.Slug)
+			assert.Equal(t, "Change Detection", createdWorkflow.Name)
+			assert.Equal(t, "Returned summary", createdWorkflow.Summary)
+			assert.Equal(t, test.description, createdWorkflow.Description)
+			assert.Equal(t, test.wantPresentation, createdWorkflow.Presentation)
+		})
 	}
-	client := workflowClient{service: service}
-
-	workflow, err := client.Create(ctx, "Agentic Workflow", WithDescription("Description"))
-	require.NoError(t, err)
-
-	assert.Equal(t, "Agentic Workflow", service.createName)
-	assert.Equal(t, "Description", service.createDescription)
-	assert.Equal(t, "agentic-workflow", workflow.Slug)
-	assert.Equal(t, "Agentic Workflow", workflow.Name)
-	assert.Equal(t, "Description", workflow.Description)
 }
 
 func TestWorkflowClient_List(t *testing.T) {
@@ -235,49 +281,59 @@ func TestWorkflowClient_Get(t *testing.T) {
 }
 
 func TestWorkflowClient_Update(t *testing.T) {
-	ctx := context.Background()
-	service := &fakeWorkflowService{
-		workflow: workflowsv1.Workflow_builder{
-			Slug:        "agentic-workflow",
-			Name:        "Agentic Workflow",
-			Description: "Updated description",
-		}.Build(),
+	for _, test := range []struct {
+		name        string
+		options     []workflow.UpdateOption
+		wantName    *string
+		summary     *string
+		description *string
+	}{
+		{name: "omit all"},
+		{name: "name only", options: []workflow.UpdateOption{workflow.WithName("Renamed")}, wantName: new("Renamed")},
+		{name: "summary only", options: []workflow.UpdateOption{workflow.WithSummary("Short summary")}, summary: new("Short summary")},
+		{name: "description only", options: []workflow.UpdateOption{workflow.WithDescription("# Details")}, description: new("# Details")},
+		{
+			name:    "clear summary and description",
+			options: []workflow.UpdateOption{workflow.WithSummary(""), workflow.WithDescription("")},
+			summary: new(""), description: new(""),
+		},
+		{
+			name:     "all fields",
+			options:  []workflow.UpdateOption{workflow.WithName("Renamed"), workflow.WithSummary("Short summary"), workflow.WithDescription("# Details")},
+			wantName: new("Renamed"), summary: new("Short summary"), description: new("# Details"),
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			server := connect.NewServer()
+			var request workflowsv1.UpdateWorkflowRequest
+			server.Register(connect.Method{
+				Spec: connect.Spec{Procedure: workflowsv1connect.WorkflowsServiceUpdateWorkflowProcedure, StreamType: connect.StreamTypeUnary},
+				Handler: func(_ context.Context, _ connect.Spec, stream connect.ServerStream) error {
+					if err := stream.Receive(&request); err != nil {
+						return err
+					}
+					return stream.Send(workflowsv1.Workflow_builder{
+						Slug: "agentic-workflow", Name: "Returned name", Summary: "Returned summary", Description: "Returned description",
+					}.Build())
+				},
+			})
+			mux := http.NewServeMux()
+			connecthttp.Mount(mux, server)
+			httpServer := httptest.NewServer(mux)
+			t.Cleanup(httpServer.Close)
+			workflows := NewClient(client.New(client.WithURL(httpServer.URL), client.WithHTTPClient(httpServer.Client())))
+			updated, err := workflows.Workflows.Update(t.Context(), "agentic-workflow", test.options...)
+			require.NoError(t, err)
+			want := workflowsv1.UpdateWorkflowRequest_builder{
+				WorkflowSlug: "agentic-workflow", Name: test.wantName, Summary: test.summary, Description: test.description,
+			}.Build()
+			assert.True(t, proto.Equal(want, &request), "want %v, got %v", want, &request)
+			assert.Equal(t, "agentic-workflow", updated.Slug)
+			assert.Equal(t, "Returned name", updated.Name)
+			assert.Equal(t, "Returned summary", updated.Summary)
+			assert.Equal(t, "Returned description", updated.Description)
+		})
 	}
-	client := workflowClient{service: service}
-
-	updatedWorkflow, err := client.Update(ctx, "agentic-workflow", workflow.WithName("Agentic Workflow"), workflow.WithDescription("Updated description"))
-	require.NoError(t, err)
-
-	assert.Equal(t, "agentic-workflow", service.updateWorkflowSlug)
-	require.NotNil(t, service.updateWorkflowName)
-	require.NotNil(t, service.updateWorkflowDescription)
-	assert.Equal(t, "Agentic Workflow", *service.updateWorkflowName)
-	assert.Equal(t, "Updated description", *service.updateWorkflowDescription)
-	assert.Equal(t, "agentic-workflow", updatedWorkflow.Slug)
-	assert.Equal(t, "Agentic Workflow", updatedWorkflow.Name)
-	assert.Equal(t, "Updated description", updatedWorkflow.Description)
-}
-
-func Test_workflowService_UpdateWorkflow_PreservesOptionalPresence(t *testing.T) {
-	ctx := context.Background()
-	connectClient := &fakeWorkflowsConnectClient{}
-	service := newWorkflowService(connectClient, noop.NewTracerProvider().Tracer("test"))
-
-	_, err := service.UpdateWorkflow(ctx, "agentic-workflow", nil, nil)
-	require.NoError(t, err)
-	require.NotNil(t, connectClient.updateWorkflowRequest)
-	assert.Equal(t, "agentic-workflow", connectClient.updateWorkflowRequest.GetWorkflowSlug())
-	assert.False(t, connectClient.updateWorkflowRequest.HasName())
-	assert.False(t, connectClient.updateWorkflowRequest.HasDescription())
-
-	connectClient.updateWorkflowRequest = nil
-	emptyDescription := ""
-	_, err = service.UpdateWorkflow(ctx, "agentic-workflow", nil, &emptyDescription)
-	require.NoError(t, err)
-	require.NotNil(t, connectClient.updateWorkflowRequest)
-	assert.False(t, connectClient.updateWorkflowRequest.HasName())
-	assert.True(t, connectClient.updateWorkflowRequest.HasDescription())
-	assert.Empty(t, connectClient.updateWorkflowRequest.GetDescription())
 }
 
 func TestWorkflowClient_Delete(t *testing.T) {
@@ -512,13 +568,8 @@ type fakeWorkflowService struct {
 	updateClusterName        *string
 	updateClusterDescription *string
 
-	createName                string
-	createDescription         string
-	getSlug                   string
-	updateWorkflowSlug        string
-	updateWorkflowName        *string
-	updateWorkflowDescription *string
-	deleteWorkflowSlug        string
+	getSlug            string
+	deleteWorkflowSlug string
 
 	publishWorkflowSlug string
 	publishArtifactID   uuid.UUID
@@ -592,9 +643,7 @@ func (s *fakeWorkflowService) ListClusters(context.Context) (*workflowsv1.ListCl
 	return nil, errors.New("not implemented")
 }
 
-func (s *fakeWorkflowService) CreateWorkflow(_ context.Context, name, description string) (*workflowsv1.Workflow, error) {
-	s.createName = name
-	s.createDescription = description
+func (s *fakeWorkflowService) CreateWorkflow(context.Context, string, string, *string) (*workflowsv1.Workflow, error) {
 	return s.workflow, s.err
 }
 
@@ -611,10 +660,7 @@ func (s *fakeWorkflowService) GetWorkflow(_ context.Context, slug string) (*work
 	return s.workflow, s.err
 }
 
-func (s *fakeWorkflowService) UpdateWorkflow(_ context.Context, slug string, name, description *string) (*workflowsv1.Workflow, error) {
-	s.updateWorkflowSlug = slug
-	s.updateWorkflowName = name
-	s.updateWorkflowDescription = description
+func (s *fakeWorkflowService) UpdateWorkflow(context.Context, string, *string, *string, *string) (*workflowsv1.Workflow, error) {
 	return s.workflow, s.err
 }
 

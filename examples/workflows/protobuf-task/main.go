@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 
+	"github.com/tilebox/tilebox-go/client"
 	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 	"google.golang.org/protobuf/proto"
@@ -65,7 +67,8 @@ func (t *SpawnWorkflowTreeTask) Execute(ctx context.Context) error {
 func main() {
 	ctx := context.Background()
 	workflows.ConfigureConsoleLogging(slog.LevelInfo)
-	client := workflows.NewClient()
+	workflows.ConfigureTileboxTelemetry(ctx, "https://api.tilebox.com", os.Getenv("TILEBOX_API_KEY"))
+	client := workflows.NewClient(client.New())
 
 	job, err := client.Jobs.Submit(ctx, "spawn-workflow-tree",
 		[]workflows.Task{

@@ -319,11 +319,11 @@ type WorkflowService interface {
 	DeleteCluster(ctx context.Context, slug string) error
 	ListClusters(ctx context.Context) (*workflowsv1.ListClustersResponse, error)
 
-	CreateWorkflow(ctx context.Context, name, description string) (*workflowsv1.Workflow, error)
+	CreateWorkflow(ctx context.Context, name, summary string, description *string) (*workflowsv1.Workflow, error)
 	ListWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListWorkflowsResponse, error)
 	ListPublicWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListPublicWorkflowsResponse, error)
 	GetWorkflow(ctx context.Context, slug string) (*workflowsv1.Workflow, error)
-	UpdateWorkflow(ctx context.Context, slug string, name, description *string) (*workflowsv1.Workflow, error)
+	UpdateWorkflow(ctx context.Context, slug string, name, summary, description *string) (*workflowsv1.Workflow, error)
 	DeleteWorkflow(ctx context.Context, slug string) error
 	PublishWorkflowRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*workflowsv1.WorkflowRelease, error)
 	UnpublishWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error
@@ -412,10 +412,11 @@ func (s *workflowService) ListClusters(ctx context.Context) (*workflowsv1.ListCl
 	})
 }
 
-func (s *workflowService) CreateWorkflow(ctx context.Context, name, description string) (*workflowsv1.Workflow, error) {
+func (s *workflowService) CreateWorkflow(ctx context.Context, name, summary string, description *string) (*workflowsv1.Workflow, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/create", func(ctx context.Context) (*workflowsv1.Workflow, error) {
 		res, err := s.workflowClient.CreateWorkflow(ctx, workflowsv1.CreateWorkflowRequest_builder{
 			Name:        name,
+			Summary:     summary,
 			Description: description,
 		}.Build())
 		if err != nil {
@@ -461,11 +462,12 @@ func (s *workflowService) GetWorkflow(ctx context.Context, slug string) (*workfl
 	})
 }
 
-func (s *workflowService) UpdateWorkflow(ctx context.Context, slug string, name, description *string) (*workflowsv1.Workflow, error) {
+func (s *workflowService) UpdateWorkflow(ctx context.Context, slug string, name, summary, description *string) (*workflowsv1.Workflow, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/update", func(ctx context.Context) (*workflowsv1.Workflow, error) {
 		res, err := s.workflowClient.UpdateWorkflow(ctx, workflowsv1.UpdateWorkflowRequest_builder{
 			WorkflowSlug: slug,
 			Name:         name,
+			Summary:      summary,
 			Description:  description,
 		}.Build())
 		if err != nil {

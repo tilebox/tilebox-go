@@ -24,6 +24,7 @@ type _storageLocationService interface {
 	ListStorageSubscriptions(context.Context, uuid.UUID) (*workflowsv1.StorageSubscriptions, error)
 	DeleteStorageSubscription(context.Context, uuid.UUID) error
 	ListStorageSubscriptionEvents(context.Context, uuid.UUID, *tileboxv1.Pagination) (*workflowsv1.StorageSubscriptionEvents, error)
+	NotifyObjectCreated(context.Context, *workflowsv1.NotifyObjectCreatedRequest) error
 }
 
 var _ _storageLocationService = &storageLocationService{}
@@ -31,6 +32,16 @@ var _ _storageLocationService = &storageLocationService{}
 type storageLocationService struct {
 	client workflowsv1connect.StorageLocationServiceClient
 	tracer trace.Tracer
+}
+
+func (s *storageLocationService) NotifyObjectCreated(ctx context.Context, request *workflowsv1.NotifyObjectCreatedRequest) error {
+	return observability.WithSpan(ctx, s.tracer, "workflows/storage_subscriptions/notify_object_created", func(ctx context.Context) error {
+		_, err := s.client.NotifyObjectCreated(ctx, request)
+		if err != nil {
+			return fmt.Errorf("failed to notify object created (delivery may have succeeded): %w", err)
+		}
+		return nil
+	})
 }
 
 func (s *storageLocationService) CreateStorageLocation(ctx context.Context, request *workflowsv1.CreateStorageLocationRequest) (*workflowsv1.StorageLocation, error) {
