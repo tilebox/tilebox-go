@@ -1,13 +1,10 @@
 package datasets
 
 import (
-	"context"
-	"net"
-	"net/http"
 	"os"
-	"strings"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/internal/grpc"
 	"github.com/tilebox/tilebox-go/protogen/datasets/v1/datasetsv1connect"
@@ -30,16 +27,20 @@ type Client struct {
 // By default, the returned Client is configured with:
 //   - "https://api.tilebox.com" as the URL
 //   - environment variable TILEBOX_API_KEY as the API key
-//   - a grpc.RetryHTTPClient HTTP client
+//   - a pooled HTTP/2-capable client with transient-error retries
 //   - the global tracer provider
 //
 // The passed options are used to override these default values and configure the returned Client appropriately.
 func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
-	datasetConnectClient := newConnectClient(datasetsv1connect.NewDatasetServiceClient, cfg)
-	collectionConnectClient := newConnectClient(datasetsv1connect.NewCollectionServiceClient, cfg)
-	dataAccessConnectClient := newConnectClient(datasetsv1connect.NewDataAccessServiceClient, cfg)
-	dataIngestionConnectClient := newConnectClient(datasetsv1connect.NewDataIngestionServiceClient, cfg)
+	rpcClient := connect.NewClient(
+		connecthttp.NewTransport(cfg.httpClient, cfg.url, cfg.transportOptions...),
+		cfg.interceptors...,
+	)
+	datasetConnectClient := datasetsv1connect.NewDatasetServiceClient(rpcClient)
+	collectionConnectClient := datasetsv1connect.NewCollectionServiceClient(rpcClient)
+	dataAccessConnectClient := datasetsv1connect.NewDataAccessServiceClient(rpcClient)
+	dataIngestionConnectClient := datasetsv1connect.NewDataIngestionServiceClient(rpcClient)
 
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
 
@@ -59,11 +60,12 @@ func NewClient(options ...ClientOption) *Client {
 
 // clientConfig contains the configuration for Tilebox Datasets client.
 type clientConfig struct {
-	httpClient     connect.HTTPClient
-	url            string
-	apiKey         string
-	clientMetadata client.Metadata
-	connectOptions []connect.ClientOption
+	httpClient       connecthttp.HTTPClient
+	url              string
+	apiKey           string
+	clientMetadata   client.Metadata
+	transportOptions []connecthttp.Option
+	interceptors     []connect.ClientInterceptor
 
 	tracerProvider trace.TracerProvider
 }
@@ -74,10 +76,10 @@ type clientConfig struct {
 // configuration.
 type ClientOption func(*clientConfig)
 
-// WithHTTPClient sets the connect.HTTPClient to use for the client.
+// WithHTTPClient sets the HTTP client, including its connection pool and retry policy.
 //
-// Defaults to grpc.RetryHTTPClient.
-func WithHTTPClient(httpClient connect.HTTPClient) ClientOption {
+// By default, HTTPS uses HTTP/2 with HTTP/1.1 fallback and transient-error retries.
+func WithHTTPClient(httpClient connecthttp.HTTPClient) ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.httpClient = httpClient
 	}
@@ -109,10 +111,19 @@ func WithClientMetadata(metadata client.Metadata) ClientOption {
 	}
 }
 
-// WithConnectClientOptions sets additional options for the connect.HTTPClient.
-func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
+// WithTransportOptions configures the RPC wire protocol, compression, and message limits.
+// Defaults to binary Connect with a 4 MiB response message limit.
+func WithTransportOptions(options ...connecthttp.Option) ClientOption {
 	return func(cfg *clientConfig) {
-		cfg.connectOptions = append(cfg.connectOptions, options...)
+		cfg.transportOptions = append(cfg.transportOptions, options...)
+	}
+}
+
+// WithInterceptors adds client interceptors in outermost-first order, before the
+// SDK sets authentication and client metadata headers.
+func WithInterceptors(interceptors ...connect.ClientInterceptor) ClientOption {
+	return func(cfg *clientConfig) {
+		cfg.interceptors = append(cfg.interceptors, interceptors...)
 	}
 }
 
@@ -134,40 +145,10 @@ func newClientConfig(options []ClientOption) *clientConfig {
 		option(cfg)
 	}
 
-	// if no http client is set by the user, we use a default one
 	if cfg.httpClient == nil {
-		// if the URL looks like an HTTP URL, we use a retrying HTTP client
-		if strings.HasPrefix(cfg.url, "https://") || strings.HasPrefix(cfg.url, "http://") {
-			cfg.httpClient = grpc.RetryHTTPClient()
-		} else { // we connect to a unix socket
-			address := cfg.url // we copy the url to a temporary variable so that we can modify cfg.url after
-			dial := func(ctx context.Context, _ string, _ string) (net.Conn, error) {
-				var d net.Dialer
-				return d.DialContext(ctx, "unix", address)
-			}
-			transport := &http.Transport{DialContext: dial}
-			cfg.httpClient = &http.Client{Transport: transport}
-			cfg.url = "http://localhost" // connect requires a dummy url starting with http://
-		}
+		cfg.httpClient, cfg.url = grpc.NewHTTPClient(cfg.url)
 	}
+	cfg.interceptors = append(cfg.interceptors, grpc.NewClientHeadersInterceptor(cfg.apiKey, cfg.clientMetadata.HeaderValue()))
 
 	return cfg
-}
-
-func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, cfg *clientConfig) T {
-	// for on-orbit deployments, we also support requests without an API key, so we don't need to add an interceptor
-	// for those cases
-	interceptors := []connect.Interceptor{grpc.NewAddClientMetadataInterceptor(cfg.clientMetadata.HeaderValue())}
-	if cfg.apiKey != "" {
-		interceptors = append(interceptors, grpc.NewAddAuthTokenInterceptor(func() string {
-			return cfg.apiKey
-		}))
-	}
-
-	return newClientFunc(
-		cfg.httpClient,
-		cfg.url,
-		connect.WithClientOptions(cfg.connectOptions...),
-		connect.WithInterceptors(interceptors...),
-	)
 }

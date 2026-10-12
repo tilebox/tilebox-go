@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"net"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/internal/grpc"
 	"github.com/tilebox/tilebox-go/protogen/workflows/v1/workflowsv1connect"
@@ -43,7 +42,7 @@ type Client struct {
 // By default, the returned Client is configured with:
 //   - "https://api.tilebox.com" as the URL
 //   - environment variable TILEBOX_API_KEY as the API key
-//   - a grpc.RetryHTTPClient HTTP client
+//   - a pooled HTTP/2-capable client with transient-error retries
 //   - the global tracer provider
 //   - Tilebox OpenTelemetry exporters when an API key and HTTP(S) API URL are configured
 //
@@ -52,12 +51,16 @@ func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
 	configureTileboxTelemetry(context.Background(), cfg)
 
-	jobConnectClient := newConnectClient(workflowsv1connect.NewJobServiceClient, cfg)
-	telemetryConnectClient := newConnectClient(workflowsv1connect.NewTelemetryQueryServiceClient, cfg)
-	taskConnectClient := newConnectClient(workflowsv1connect.NewTaskServiceClient, cfg)
-	workflowConnectClient := newConnectClient(workflowsv1connect.NewWorkflowsServiceClient, cfg)
-	automationConnectClient := newConnectClient(workflowsv1connect.NewAutomationServiceClient, cfg)
-	storageLocationConnectClient := newConnectClient(workflowsv1connect.NewStorageLocationServiceClient, cfg)
+	rpcClient := connect.NewClient(
+		connecthttp.NewTransport(cfg.httpClient, cfg.url, cfg.transportOptions...),
+		cfg.interceptors...,
+	)
+	jobConnectClient := workflowsv1connect.NewJobServiceClient(rpcClient)
+	telemetryConnectClient := workflowsv1connect.NewTelemetryQueryServiceClient(rpcClient)
+	taskConnectClient := workflowsv1connect.NewTaskServiceClient(rpcClient)
+	workflowConnectClient := workflowsv1connect.NewWorkflowsServiceClient(rpcClient)
+	automationConnectClient := workflowsv1connect.NewAutomationServiceClient(rpcClient)
+	storageLocationConnectClient := workflowsv1connect.NewStorageLocationServiceClient(rpcClient)
 
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
 	workflowService := newWorkflowService(workflowConnectClient, tracer)
@@ -103,12 +106,13 @@ func (c *Client) NewPollingTaskRunner(cluster *Cluster, executor TaskExecutor, l
 
 // clientConfig contains the configuration for Tilebox Workflows client.
 type clientConfig struct {
-	httpClient             connect.HTTPClient
-	notificationHTTPClient connect.HTTPClient
+	httpClient             connecthttp.HTTPClient
+	notificationHTTPClient connecthttp.HTTPClient
 	url                    string
 	apiKey                 string
 	clientMetadata         client.Metadata
-	connectOptions         []connect.ClientOption
+	transportOptions       []connecthttp.Option
+	interceptors           []connect.ClientInterceptor
 
 	tracerProvider trace.TracerProvider
 	disableTracing bool
@@ -121,10 +125,10 @@ type clientConfig struct {
 // configuration.
 type ClientOption func(*clientConfig)
 
-// WithHTTPClient sets the connect.HTTPClient to use for the client.
+// WithHTTPClient sets the HTTP client, including its connection pool and retry policy.
 //
-// Defaults to grpc.RetryHTTPClient.
-func WithHTTPClient(httpClient connect.HTTPClient) ClientOption {
+// By default, HTTPS uses HTTP/2 with HTTP/1.1 fallback and transient-error retries.
+func WithHTTPClient(httpClient connecthttp.HTTPClient) ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.httpClient = httpClient
 	}
@@ -156,10 +160,19 @@ func WithClientMetadata(metadata client.Metadata) ClientOption {
 	}
 }
 
-// WithConnectClientOptions sets additional options for the connect.HTTPClient.
-func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
+// WithTransportOptions configures the RPC wire protocol, compression, and message limits.
+// Defaults to binary Connect with a 4 MiB response message limit.
+func WithTransportOptions(options ...connecthttp.Option) ClientOption {
 	return func(cfg *clientConfig) {
-		cfg.connectOptions = append(cfg.connectOptions, options...)
+		cfg.transportOptions = append(cfg.transportOptions, options...)
+	}
+}
+
+// WithInterceptors adds client interceptors in outermost-first order, before the
+// SDK sets authentication and client metadata headers.
+func WithInterceptors(interceptors ...connect.ClientInterceptor) ClientOption {
+	return func(cfg *clientConfig) {
+		cfg.interceptors = append(cfg.interceptors, interceptors...)
 	}
 }
 
@@ -190,49 +203,12 @@ func newClientConfig(options []ClientOption) *clientConfig {
 	}
 
 	cfg.notificationHTTPClient = cfg.httpClient
-	// if no http client is set by the user, we use a default one
 	if cfg.httpClient == nil {
-		// if the URL looks like an HTTP URL, we use a retrying HTTP client
-		if strings.HasPrefix(cfg.url, "https://") || strings.HasPrefix(cfg.url, "http://") {
-			cfg.httpClient = grpc.RetryHTTPClient()
-			// Notifications are not idempotent. Do not retry or follow redirects.
-			cfg.notificationHTTPClient = &http.Client{
-				Timeout:       30 * time.Second,
-				CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse },
-			}
-		} else { // we connect to a unix socket
-			address := cfg.url // we copy the url to a temporary variable so that we can modify cfg.url after
-			dial := func(ctx context.Context, _ string, _ string) (net.Conn, error) {
-				var d net.Dialer
-				return d.DialContext(ctx, "unix", address)
-			}
-			transport := &http.Transport{DialContext: dial}
-			cfg.httpClient = &http.Client{Transport: transport}
-			cfg.notificationHTTPClient = &http.Client{
-				Transport: transport, Timeout: 30 * time.Second,
-				CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse },
-			}
-			cfg.url = "http://localhost" // connect requires a dummy url starting with http://
-		}
+		cfg.httpClient, cfg.url = grpc.NewHTTPClient(cfg.url)
+		// Notifications are not idempotent. Share the pool, but never retry them.
+		cfg.notificationHTTPClient = grpc.NonRetryHTTPClient(cfg.httpClient, 30*time.Second)
 	}
+	cfg.interceptors = append(cfg.interceptors, grpc.NewClientHeadersInterceptor(cfg.apiKey, cfg.clientMetadata.HeaderValue()))
 
 	return cfg
-}
-
-func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, cfg *clientConfig) T {
-	// for on-orbit deployments, we also support requests without an API key, so we don't need to add an interceptor
-	// for those cases
-	interceptors := []connect.Interceptor{grpc.NewAddClientMetadataInterceptor(cfg.clientMetadata.HeaderValue())}
-	if cfg.apiKey != "" {
-		interceptors = append(interceptors, grpc.NewAddAuthTokenInterceptor(func() string {
-			return cfg.apiKey
-		}))
-	}
-
-	return newClientFunc(
-		cfg.httpClient,
-		cfg.url,
-		connect.WithClientOptions(cfg.connectOptions...),
-		connect.WithInterceptors(interceptors...),
-	)
 }

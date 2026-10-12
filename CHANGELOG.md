@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Migrate the runtime and generated RPC clients to Connect-Go v2. Generated methods accept and return protobuf messages directly; headers and trailers use context-carried `connect.CallInfo`.
+- Replace `WithConnectClientOptions` with `WithTransportOptions(...connecthttp.Option)` and `WithInterceptors(...connect.ClientInterceptor)` in Accounts, Datasets, and Workflows.
+- Use the Connect v2 default 4 MiB response message limit. Set `connecthttp.WithReadMaxBytes` through `WithTransportOptions` for larger responses.
+- Share RPC transports and interceptor chains across services, negotiate HTTP/2 for HTTPS, and reuse replayable request bodies without extra buffering. Default HTTP clients no longer follow redirects.
+
 ## [0.15.1] - 2026-10-09
 
 ### Changed

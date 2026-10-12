@@ -3,43 +3,25 @@ package grpc
 import (
 	"context"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2"
 )
 
 const ClientHeader = "Tilebox-Client"
 
-type addAuthTokenInterceptor struct {
-	connect.Interceptor
-
-	token func() string
-}
-
-func NewAddAuthTokenInterceptor(token func() string) connect.Interceptor {
-	return &addAuthTokenInterceptor{token: token}
-}
-
-func (at *addAuthTokenInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
-	return func(ctx context.Context, request connect.AnyRequest) (connect.AnyResponse, error) {
-		request.Header().Set("Authorization", "Bearer "+at.token())
-		return next(ctx, request)
-	}
-}
-
-type addClientMetadataInterceptor struct {
-	connect.Interceptor
-
-	headerValue string
-}
-
-func NewAddClientMetadataInterceptor(headerValue string) connect.Interceptor {
-	return &addClientMetadataInterceptor{headerValue: headerValue}
-}
-
-func (i *addClientMetadataInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
-	return func(ctx context.Context, request connect.AnyRequest) (connect.AnyResponse, error) {
-		if i.headerValue != "" {
-			request.Header().Set(ClientHeader, i.headerValue)
+// NewClientHeadersInterceptor sets SDK-owned headers for every RPC type.
+// An empty API key leaves caller-provided authentication intact for deployments
+// with custom authentication or no authentication.
+func NewClientHeadersInterceptor(apiKey, metadata string) connect.ClientInterceptor {
+	return func(next connect.ClientFunc) connect.ClientFunc {
+		return func(ctx context.Context, spec connect.Spec) (connect.ClientStream, error) {
+			info, _ := connect.CallInfoForClientContext(ctx)
+			if apiKey != "" {
+				info.RequestHeader().Set("Authorization", "Bearer "+apiKey)
+			}
+			if metadata != "" {
+				info.RequestHeader().Set(ClientHeader, metadata)
+			}
+			return next(ctx, spec)
 		}
-		return next(ctx, request)
 	}
 }

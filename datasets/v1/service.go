@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
@@ -36,66 +35,60 @@ func newDatasetsService(datasetClient datasetsv1connect.DatasetServiceClient, tr
 
 func (s *datasetService) CreateDataset(ctx context.Context, codeName string, name string, datasetType *datasetsv1.DatasetType, options datasetOptions) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/create", func(ctx context.Context) (*datasetsv1.Dataset, error) {
-		res, err := s.datasetClient.CreateDataset(ctx, connect.NewRequest(
-			datasetsv1.CreateDatasetRequest_builder{
-				CodeName:    codeName,
-				Name:        name,
-				Type:        datasetType,
-				Summary:     optionalString(options.summary),
-				Description: optionalString(options.description),
-			}.Build(),
-		))
+		res, err := s.datasetClient.CreateDataset(ctx, datasetsv1.CreateDatasetRequest_builder{
+			CodeName:    codeName,
+			Name:        name,
+			Type:        datasetType,
+			Summary:     optionalString(options.summary),
+			Description: optionalString(options.description),
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to create dataset: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *datasetService) UpdateDataset(ctx context.Context, id uuid.UUID, codeName string, name string, datasetType *datasetsv1.DatasetType, options datasetOptions) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/update", func(ctx context.Context) (*datasetsv1.Dataset, error) {
-		res, err := s.datasetClient.UpdateDataset(ctx, connect.NewRequest(datasetsv1.UpdateDatasetRequest_builder{
+		res, err := s.datasetClient.UpdateDataset(ctx, datasetsv1.UpdateDatasetRequest_builder{
 			Id:          tileboxv1.NewUUID(id),
 			CodeName:    &codeName,
 			Name:        &name,
 			Type:        datasetType,
 			Summary:     options.summary,
 			Description: options.description,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to update dataset: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *datasetService) GetDataset(ctx context.Context, slug string) (*datasetsv1.Dataset, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/get", func(ctx context.Context) (*datasetsv1.Dataset, error) {
-		res, err := s.datasetClient.GetDataset(ctx, connect.NewRequest(
-			datasetsv1.GetDatasetRequest_builder{
-				Slug: slug,
-			}.Build(),
-		))
+		res, err := s.datasetClient.GetDataset(ctx, datasetsv1.GetDatasetRequest_builder{
+			Slug: slug,
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get dataset: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *datasetService) ListDatasets(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/list", func(ctx context.Context) (*datasetsv1.ListDatasetsResponse, error) {
-		res, err := s.datasetClient.ListDatasets(ctx, connect.NewRequest(
-			datasetsv1.ListDatasetsRequest_builder{}.Build(),
-		))
+		res, err := s.datasetClient.ListDatasets(ctx, datasetsv1.ListDatasetsRequest_builder{}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to list datasets: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
@@ -122,46 +115,40 @@ func newCollectionService(collectionClient datasetsv1connect.CollectionServiceCl
 
 func (s *collectionService) CreateCollection(ctx context.Context, datasetID uuid.UUID, name string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/create", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
-		res, err := s.collectionClient.CreateCollection(ctx, connect.NewRequest(
-			datasetsv1.CreateCollectionRequest_builder{
-				DatasetId: tileboxv1.NewUUID(datasetID),
-				Name:      name,
-			}.Build(),
-		))
+		res, err := s.collectionClient.CreateCollection(ctx, datasetsv1.CreateCollectionRequest_builder{
+			DatasetId: tileboxv1.NewUUID(datasetID),
+			Name:      name,
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to create collection: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *collectionService) GetCollectionByName(ctx context.Context, datasetID uuid.UUID, name string) (*datasetsv1.CollectionInfo, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/get", func(ctx context.Context) (*datasetsv1.CollectionInfo, error) {
-		res, err := s.collectionClient.GetCollectionByName(ctx, connect.NewRequest(
-			datasetsv1.GetCollectionByNameRequest_builder{
-				CollectionName:   name,
-				WithAvailability: true,
-				WithCount:        true,
-				DatasetId:        tileboxv1.NewUUID(datasetID),
-			}.Build(),
-		))
+		res, err := s.collectionClient.GetCollectionByName(ctx, datasetsv1.GetCollectionByNameRequest_builder{
+			CollectionName:   name,
+			WithAvailability: true,
+			WithCount:        true,
+			DatasetId:        tileboxv1.NewUUID(datasetID),
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get collection: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid.UUID, collectionID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "datasets/collections/delete", func(ctx context.Context) error {
-		_, err := s.collectionClient.DeleteCollection(ctx, connect.NewRequest(
-			datasetsv1.DeleteCollectionRequest_builder{
-				CollectionId: tileboxv1.NewUUID(collectionID),
-				DatasetId:    tileboxv1.NewUUID(datasetID),
-			}.Build(),
-		))
+		_, err := s.collectionClient.DeleteCollection(ctx, datasetsv1.DeleteCollectionRequest_builder{
+			CollectionId: tileboxv1.NewUUID(collectionID),
+			DatasetId:    tileboxv1.NewUUID(datasetID),
+		}.Build())
 		if err != nil {
 			return fmt.Errorf("failed to delete collection: %w", err)
 		}
@@ -172,18 +159,16 @@ func (s *collectionService) DeleteCollection(ctx context.Context, datasetID uuid
 
 func (s *collectionService) ListCollections(ctx context.Context, datasetID uuid.UUID) (*datasetsv1.ListCollectionsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/collections/list", func(ctx context.Context) (*datasetsv1.ListCollectionsResponse, error) {
-		res, err := s.collectionClient.ListCollections(ctx, connect.NewRequest(
-			datasetsv1.ListCollectionsRequest_builder{
-				DatasetId:        tileboxv1.NewUUID(datasetID),
-				WithAvailability: true,
-				WithCount:        true,
-			}.Build(),
-		))
+		res, err := s.collectionClient.ListCollections(ctx, datasetsv1.ListCollectionsRequest_builder{
+			DatasetId:        tileboxv1.NewUUID(datasetID),
+			WithAvailability: true,
+			WithCount:        true,
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to list collections: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
@@ -208,38 +193,34 @@ func newDataAccessService(dataAccessClient datasetsv1connect.DataAccessServiceCl
 
 func (s *dataAccessService) Query(ctx context.Context, datasetID uuid.UUID, collectionIDs []uuid.UUID, filters *datasetsv1.QueryFilters, page *tileboxv1.Pagination, skipData bool) (*datasetsv1.QueryResultPage, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/query", func(ctx context.Context) (*datasetsv1.QueryResultPage, error) {
-		res, err := s.dataAccessClient.Query(ctx, connect.NewRequest(
-			datasetsv1.QueryRequest_builder{
-				DatasetId:     tileboxv1.NewUUID(datasetID),
-				CollectionIds: tileboxv1.NewUUIDSlice(collectionIDs),
-				Filters:       filters,
-				Page:          page,
-				SkipData:      skipData,
-			}.Build(),
-		))
+		res, err := s.dataAccessClient.Query(ctx, datasetsv1.QueryRequest_builder{
+			DatasetId:     tileboxv1.NewUUID(datasetID),
+			CollectionIds: tileboxv1.NewUUIDSlice(collectionIDs),
+			Filters:       filters,
+			Page:          page,
+			SkipData:      skipData,
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to query datpoints: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *dataAccessService) QueryByID(ctx context.Context, datasetID uuid.UUID, collectionIDs []uuid.UUID, datapointID uuid.UUID, skipData bool) (*datasetsv1.Any, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/get", func(ctx context.Context) (*datasetsv1.Any, error) {
-		res, err := s.dataAccessClient.QueryByID(ctx, connect.NewRequest(
-			datasetsv1.QueryByIDRequest_builder{
-				DatasetId:     tileboxv1.NewUUID(datasetID),
-				CollectionIds: tileboxv1.NewUUIDSlice(collectionIDs),
-				Id:            tileboxv1.NewUUID(datapointID),
-				SkipData:      skipData,
-			}.Build(),
-		))
+		res, err := s.dataAccessClient.QueryByID(ctx, datasetsv1.QueryByIDRequest_builder{
+			DatasetId:     tileboxv1.NewUUID(datasetID),
+			CollectionIds: tileboxv1.NewUUIDSlice(collectionIDs),
+			Id:            tileboxv1.NewUUID(datapointID),
+			SkipData:      skipData,
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to query datapoint by id: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
@@ -264,33 +245,29 @@ func newDataIngestionService(dataIngestionClient datasetsv1connect.DataIngestion
 
 func (s *dataIngestionService) Ingest(ctx context.Context, collectionID uuid.UUID, datapoints [][]byte, allowExisting bool) (*datasetsv1.IngestResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/ingest", func(ctx context.Context) (*datasetsv1.IngestResponse, error) {
-		res, err := s.dataIngestionClient.Ingest(ctx, connect.NewRequest(
-			datasetsv1.IngestRequest_builder{
-				CollectionId:  tileboxv1.NewUUID(collectionID),
-				Values:        datapoints,
-				AllowExisting: allowExisting,
-			}.Build(),
-		))
+		res, err := s.dataIngestionClient.Ingest(ctx, datasetsv1.IngestRequest_builder{
+			CollectionId:  tileboxv1.NewUUID(collectionID),
+			Values:        datapoints,
+			AllowExisting: allowExisting,
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to ingest datapoints: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *dataIngestionService) Delete(ctx context.Context, collectionID uuid.UUID, datapointIDs []uuid.UUID) (*datasetsv1.DeleteResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "datasets/datapoints/delete", func(ctx context.Context) (*datasetsv1.DeleteResponse, error) {
-		res, err := s.dataIngestionClient.Delete(ctx, connect.NewRequest(
-			datasetsv1.DeleteRequest_builder{
-				CollectionId: tileboxv1.NewUUID(collectionID),
-				DatapointIds: tileboxv1.NewUUIDSlice(datapointIDs),
-			}.Build(),
-		))
+		res, err := s.dataIngestionClient.Delete(ctx, datasetsv1.DeleteRequest_builder{
+			CollectionId: tileboxv1.NewUUID(collectionID),
+			DatapointIds: tileboxv1.NewUUIDSlice(datapointIDs),
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to delete datapoints: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }

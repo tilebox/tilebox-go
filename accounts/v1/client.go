@@ -2,13 +2,10 @@
 package accounts
 
 import (
-	"context"
-	"net"
-	"net/http"
 	"os"
-	"strings"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/internal/grpc"
 	"github.com/tilebox/tilebox-go/protogen/accounts/v1alpha1/accountsv1alpha1connect"
@@ -30,14 +27,18 @@ type Client struct {
 // By default, the returned Client is configured with:
 //   - "https://api.tilebox.com" as the URL
 //   - environment variable TILEBOX_API_KEY as the API key
-//   - a grpc.RetryHTTPClient HTTP client
+//   - a pooled HTTP/2-capable client with transient-error retries
 //   - the global tracer provider
 //
 // The passed options are used to override these default values and configure the returned Client appropriately.
 func NewClient(options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
-	accountConnectClient := newConnectClient(accountsv1alpha1connect.NewAccountServiceClient, cfg)
-	billingConnectClient := newConnectClient(accountsv1alpha1connect.NewBillingServiceClient, cfg)
+	rpcClient := connect.NewClient(
+		connecthttp.NewTransport(cfg.httpClient, cfg.url, cfg.transportOptions...),
+		cfg.interceptors...,
+	)
+	accountConnectClient := accountsv1alpha1connect.NewAccountServiceClient(rpcClient)
+	billingConnectClient := accountsv1alpha1connect.NewBillingServiceClient(rpcClient)
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
 
 	return &Client{
@@ -54,11 +55,12 @@ func NewClient(options ...ClientOption) *Client {
 
 // clientConfig contains the configuration for a Tilebox Accounts client.
 type clientConfig struct {
-	httpClient     connect.HTTPClient
-	url            string
-	apiKey         string
-	clientMetadata client.Metadata
-	connectOptions []connect.ClientOption
+	httpClient       connecthttp.HTTPClient
+	url              string
+	apiKey           string
+	clientMetadata   client.Metadata
+	transportOptions []connecthttp.Option
+	interceptors     []connect.ClientInterceptor
 
 	tracerProvider trace.TracerProvider
 }
@@ -66,10 +68,10 @@ type clientConfig struct {
 // ClientOption configures a client.
 type ClientOption func(*clientConfig)
 
-// WithHTTPClient sets the connect.HTTPClient to use for the client.
+// WithHTTPClient sets the HTTP client, including its connection pool and retry policy.
 //
-// Defaults to grpc.RetryHTTPClient.
-func WithHTTPClient(httpClient connect.HTTPClient) ClientOption {
+// By default, HTTPS uses HTTP/2 with HTTP/1.1 fallback and transient-error retries.
+func WithHTTPClient(httpClient connecthttp.HTTPClient) ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.httpClient = httpClient
 	}
@@ -101,10 +103,19 @@ func WithClientMetadata(metadata client.Metadata) ClientOption {
 	}
 }
 
-// WithConnectClientOptions sets additional options for the connect.HTTPClient.
-func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
+// WithTransportOptions configures the RPC wire protocol, compression, and message limits.
+// Defaults to binary Connect with a 4 MiB response message limit.
+func WithTransportOptions(options ...connecthttp.Option) ClientOption {
 	return func(cfg *clientConfig) {
-		cfg.connectOptions = append(cfg.connectOptions, options...)
+		cfg.transportOptions = append(cfg.transportOptions, options...)
+	}
+}
+
+// WithInterceptors adds client interceptors in outermost-first order, before the
+// SDK sets authentication and client metadata headers.
+func WithInterceptors(interceptors ...connect.ClientInterceptor) ClientOption {
+	return func(cfg *clientConfig) {
+		cfg.interceptors = append(cfg.interceptors, interceptors...)
 	}
 }
 
@@ -127,35 +138,9 @@ func newClientConfig(options []ClientOption) *clientConfig {
 	}
 
 	if cfg.httpClient == nil {
-		if strings.HasPrefix(cfg.url, "https://") || strings.HasPrefix(cfg.url, "http://") {
-			cfg.httpClient = grpc.RetryHTTPClient()
-		} else {
-			address := cfg.url
-			dial := func(ctx context.Context, _ string, _ string) (net.Conn, error) {
-				var dialer net.Dialer
-				return dialer.DialContext(ctx, "unix", address)
-			}
-			transport := &http.Transport{DialContext: dial}
-			cfg.httpClient = &http.Client{Transport: transport}
-			cfg.url = "http://localhost"
-		}
+		cfg.httpClient, cfg.url = grpc.NewHTTPClient(cfg.url)
 	}
+	cfg.interceptors = append(cfg.interceptors, grpc.NewClientHeadersInterceptor(cfg.apiKey, cfg.clientMetadata.HeaderValue()))
 
 	return cfg
-}
-
-func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, options ...connect.ClientOption) T, cfg *clientConfig) T {
-	interceptors := []connect.Interceptor{grpc.NewAddClientMetadataInterceptor(cfg.clientMetadata.HeaderValue())}
-	if cfg.apiKey != "" {
-		interceptors = append(interceptors, grpc.NewAddAuthTokenInterceptor(func() string {
-			return cfg.apiKey
-		}))
-	}
-
-	return newClientFunc(
-		cfg.httpClient,
-		cfg.url,
-		connect.WithClientOptions(cfg.connectOptions...),
-		connect.WithInterceptors(interceptors...),
-	)
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/internal/span"
 	"github.com/tilebox/tilebox-go/observability"
@@ -34,45 +33,43 @@ type automationService struct {
 
 func (s *automationService) CreateAutomation(ctx context.Context, automation *workflowsv1.AutomationPrototype) (*workflowsv1.AutomationPrototype, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/automations/create", func(ctx context.Context) (*workflowsv1.AutomationPrototype, error) {
-		res, err := s.automationClient.CreateAutomation(ctx, connect.NewRequest(automation))
+		res, err := s.automationClient.CreateAutomation(ctx, automation)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create automation: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *automationService) GetAutomation(ctx context.Context, automationID uuid.UUID) (*workflowsv1.AutomationPrototype, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/automations/get", func(ctx context.Context) (*workflowsv1.AutomationPrototype, error) {
-		res, err := s.automationClient.GetAutomation(ctx, connect.NewRequest(
-			tileboxv1.NewUUID(automationID),
-		))
+		res, err := s.automationClient.GetAutomation(ctx, tileboxv1.NewUUID(automationID))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get automation: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *automationService) UpdateAutomation(ctx context.Context, automation *workflowsv1.AutomationPrototype) (*workflowsv1.AutomationPrototype, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/automations/update", func(ctx context.Context) (*workflowsv1.AutomationPrototype, error) {
-		res, err := s.automationClient.UpdateAutomation(ctx, connect.NewRequest(automation))
+		res, err := s.automationClient.UpdateAutomation(ctx, automation)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update automation: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *automationService) DeleteAutomation(ctx context.Context, automationID uuid.UUID, cancelJobs bool) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/automations/delete", func(ctx context.Context) error {
-		_, err := s.automationClient.DeleteAutomation(ctx, connect.NewRequest(workflowsv1.DeleteAutomationRequest_builder{
+		_, err := s.automationClient.DeleteAutomation(ctx, workflowsv1.DeleteAutomationRequest_builder{
 			AutomationId: tileboxv1.NewUUID(automationID),
 			CancelJobs:   cancelJobs,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return fmt.Errorf("failed to delete automation: %w", err)
 		}
@@ -83,12 +80,12 @@ func (s *automationService) DeleteAutomation(ctx context.Context, automationID u
 
 func (s *automationService) ListAutomations(ctx context.Context) (*workflowsv1.Automations, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/automations/list", func(ctx context.Context) (*workflowsv1.Automations, error) {
-		res, err := s.automationClient.ListAutomations(ctx, connect.NewRequest(&emptypb.Empty{}))
+		res, err := s.automationClient.ListAutomations(ctx, &emptypb.Empty{})
 		if err != nil {
 			return nil, fmt.Errorf("failed to list automations: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
@@ -125,62 +122,62 @@ func (s *jobService) SubmitJob(ctx context.Context, req *workflowsv1.SubmitJobRe
 		traceParent := span.GetTraceParentOfCurrentSpan(ctx)
 		req.SetTraceParent(traceParent)
 
-		res, err := s.jobClient.SubmitJob(ctx, connect.NewRequest(req))
+		res, err := s.jobClient.SubmitJob(ctx, req)
 		if err != nil {
 			return nil, fmt.Errorf("failed to submit job: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *jobService) GetJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.Job, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/get", func(ctx context.Context) (*workflowsv1.Job, error) {
-		res, err := s.jobClient.GetJob(ctx, connect.NewRequest(workflowsv1.GetJobRequest_builder{
+		res, err := s.jobClient.GetJob(ctx, workflowsv1.GetJobRequest_builder{
 			JobId: tileboxv1.NewUUID(jobID),
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get job: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *jobService) ListJobTasks(ctx context.Context, jobID uuid.UUID, parentTaskID *tileboxv1.ID, page *tileboxv1.Pagination, prefetchChildren *workflowsv1.JobTaskChildrenPrefetch) (*workflowsv1.ListJobTasksResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/list_tasks", func(ctx context.Context) (*workflowsv1.ListJobTasksResponse, error) {
-		res, err := s.jobClient.ListJobTasks(ctx, connect.NewRequest(workflowsv1.ListJobTasksRequest_builder{
+		res, err := s.jobClient.ListJobTasks(ctx, workflowsv1.ListJobTasksRequest_builder{
 			JobId:            tileboxv1.NewUUID(jobID),
 			ParentTaskId:     parentTaskID,
 			Page:             page,
 			PrefetchChildren: prefetchChildren,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to list job tasks: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *jobService) RetryJob(ctx context.Context, jobID uuid.UUID) (*workflowsv1.RetryJobResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/retry", func(ctx context.Context) (*workflowsv1.RetryJobResponse, error) {
-		res, err := s.jobClient.RetryJob(ctx, connect.NewRequest(workflowsv1.RetryJobRequest_builder{
+		res, err := s.jobClient.RetryJob(ctx, workflowsv1.RetryJobRequest_builder{
 			JobId: tileboxv1.NewUUID(jobID),
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to retry job: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *jobService) CancelJob(ctx context.Context, jobID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/jobs/cancel", func(ctx context.Context) error {
-		_, err := s.jobClient.CancelJob(ctx, connect.NewRequest(workflowsv1.CancelJobRequest_builder{
+		_, err := s.jobClient.CancelJob(ctx, workflowsv1.CancelJobRequest_builder{
 			JobId: tileboxv1.NewUUID(jobID),
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return fmt.Errorf("failed to cancel job: %w", err)
 		}
@@ -191,16 +188,16 @@ func (s *jobService) CancelJob(ctx context.Context, jobID uuid.UUID) error {
 
 func (s *jobService) QueryJobs(ctx context.Context, filters *workflowsv1.QueryFilters, page *tileboxv1.Pagination, sortDirection tileboxv1.SortDirection) (*workflowsv1.QueryJobsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/query", func(ctx context.Context) (*workflowsv1.QueryJobsResponse, error) {
-		res, err := s.jobClient.QueryJobs(ctx, connect.NewRequest(workflowsv1.QueryJobsRequest_builder{
+		res, err := s.jobClient.QueryJobs(ctx, workflowsv1.QueryJobsRequest_builder{
 			Filters:       filters,
 			Page:          page,
 			SortDirection: sortDirection,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to query jobs: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
@@ -220,34 +217,34 @@ func newTelemetryService(telemetryClient workflowsv1connect.TelemetryQueryServic
 
 func (s *telemetryService) QueryJobLogs(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection, filters *workflowsv1.LogQueryFilters) (*workflowsv1.PaginatedLogsData, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/query_logs", func(ctx context.Context) (*workflowsv1.PaginatedLogsData, error) {
-		res, err := s.telemetryClient.QueryJobLogs(ctx, connect.NewRequest(workflowsv1.QueryJobLogsRequest_builder{
+		res, err := s.telemetryClient.QueryJobLogs(ctx, workflowsv1.QueryJobLogsRequest_builder{
 			JobId:         tileboxv1.NewUUID(jobID),
 			TaskId:        taskID,
 			Page:          page,
 			SortDirection: sortDirection,
 			Filters:       filters,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to query job logs: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *telemetryService) QueryJobSpans(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/query_spans", func(ctx context.Context) (*workflowsv1.PaginatedSpansData, error) {
-		res, err := s.telemetryClient.QueryJobSpans(ctx, connect.NewRequest(workflowsv1.QueryJobSpansRequest_builder{
+		res, err := s.telemetryClient.QueryJobSpans(ctx, workflowsv1.QueryJobSpansRequest_builder{
 			JobId:         tileboxv1.NewUUID(jobID),
 			TaskId:        taskID,
 			Page:          page,
 			SortDirection: sortDirection,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to query job spans: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
@@ -273,45 +270,45 @@ func newTaskService(taskClient workflowsv1connect.TaskServiceClient, tracer trac
 
 func (s *taskService) NextTask(ctx context.Context, computedTask *workflowsv1.ComputedTask, nextTaskToRun *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/tasks/next", func(ctx context.Context) (*workflowsv1.NextTaskResponse, error) {
-		res, err := s.taskClient.NextTask(ctx, connect.NewRequest(workflowsv1.NextTaskRequest_builder{
+		res, err := s.taskClient.NextTask(ctx, workflowsv1.NextTaskRequest_builder{
 			ComputedTask:  computedTask,
 			NextTaskToRun: nextTaskToRun,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get next task: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *taskService) TaskFailed(ctx context.Context, taskID uuid.UUID, display string, wasWorkflowError bool, progressUpdates []*workflowsv1.Progress) (*workflowsv1.TaskStateResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/tasks/failed", func(ctx context.Context) (*workflowsv1.TaskStateResponse, error) {
-		res, err := s.taskClient.TaskFailed(ctx, connect.NewRequest(workflowsv1.TaskFailedRequest_builder{
+		res, err := s.taskClient.TaskFailed(ctx, workflowsv1.TaskFailedRequest_builder{
 			TaskId:           tileboxv1.NewUUID(taskID),
 			Display:          display,
 			WasWorkflowError: wasWorkflowError,
 			ProgressUpdates:  progressUpdates,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to mark task as failed: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *taskService) ExtendTaskLease(ctx context.Context, taskID uuid.UUID, requestedLease time.Duration) (*workflowsv1.TaskLease, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/tasks/lease", func(ctx context.Context) (*workflowsv1.TaskLease, error) {
-		res, err := s.taskClient.ExtendTaskLease(ctx, connect.NewRequest(workflowsv1.TaskLeaseRequest_builder{
+		res, err := s.taskClient.ExtendTaskLease(ctx, workflowsv1.TaskLeaseRequest_builder{
 			TaskId:         tileboxv1.NewUUID(taskID),
 			RequestedLease: durationpb.New(requestedLease),
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to extend task lease: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
@@ -350,52 +347,52 @@ func newWorkflowService(workflowClient workflowsv1connect.WorkflowsServiceClient
 
 func (s *workflowService) CreateCluster(ctx context.Context, name, description, slug string) (*workflowsv1.Cluster, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/clusters/create", func(ctx context.Context) (*workflowsv1.Cluster, error) {
-		res, err := s.workflowClient.CreateCluster(ctx, connect.NewRequest(workflowsv1.CreateClusterRequest_builder{
+		res, err := s.workflowClient.CreateCluster(ctx, workflowsv1.CreateClusterRequest_builder{
 			Name:        name,
 			Description: description,
 			Slug:        slug,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to create cluster: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) UpdateCluster(ctx context.Context, slug string, name, description *string) (*workflowsv1.Cluster, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/clusters/update", func(ctx context.Context) (*workflowsv1.Cluster, error) {
-		res, err := s.workflowClient.UpdateCluster(ctx, connect.NewRequest(workflowsv1.UpdateClusterRequest_builder{
+		res, err := s.workflowClient.UpdateCluster(ctx, workflowsv1.UpdateClusterRequest_builder{
 			ClusterSlug: slug,
 			Name:        name,
 			Description: description,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to update cluster: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) GetCluster(ctx context.Context, slug string) (*workflowsv1.Cluster, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/clusters/get", func(ctx context.Context) (*workflowsv1.Cluster, error) {
-		res, err := s.workflowClient.GetCluster(ctx, connect.NewRequest(workflowsv1.GetClusterRequest_builder{
+		res, err := s.workflowClient.GetCluster(ctx, workflowsv1.GetClusterRequest_builder{
 			ClusterSlug: slug,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get cluster: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) DeleteCluster(ctx context.Context, slug string) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/clusters/delete", func(ctx context.Context) error {
-		_, err := s.workflowClient.DeleteCluster(ctx, connect.NewRequest(workflowsv1.DeleteClusterRequest_builder{
+		_, err := s.workflowClient.DeleteCluster(ctx, workflowsv1.DeleteClusterRequest_builder{
 			ClusterSlug: slug,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return fmt.Errorf("failed to delete cluster: %w", err)
 		}
@@ -406,84 +403,84 @@ func (s *workflowService) DeleteCluster(ctx context.Context, slug string) error 
 
 func (s *workflowService) ListClusters(ctx context.Context) (*workflowsv1.ListClustersResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/clusters/list", func(ctx context.Context) (*workflowsv1.ListClustersResponse, error) {
-		res, err := s.workflowClient.ListClusters(ctx, connect.NewRequest(&workflowsv1.ListClustersRequest{}))
+		res, err := s.workflowClient.ListClusters(ctx, &workflowsv1.ListClustersRequest{})
 		if err != nil {
 			return nil, fmt.Errorf("failed to list clusters: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) CreateWorkflow(ctx context.Context, name, description string) (*workflowsv1.Workflow, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/create", func(ctx context.Context) (*workflowsv1.Workflow, error) {
-		res, err := s.workflowClient.CreateWorkflow(ctx, connect.NewRequest(workflowsv1.CreateWorkflowRequest_builder{
+		res, err := s.workflowClient.CreateWorkflow(ctx, workflowsv1.CreateWorkflowRequest_builder{
 			Name:        name,
 			Description: description,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to create workflow: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) ListWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListWorkflowsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/list", func(ctx context.Context) (*workflowsv1.ListWorkflowsResponse, error) {
-		res, err := s.workflowClient.ListWorkflows(ctx, connect.NewRequest(workflowsv1.ListWorkflowsRequest_builder{Page: page}.Build()))
+		res, err := s.workflowClient.ListWorkflows(ctx, workflowsv1.ListWorkflowsRequest_builder{Page: page}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to list workflows: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) ListPublicWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListPublicWorkflowsResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/list_public", func(ctx context.Context) (*workflowsv1.ListPublicWorkflowsResponse, error) {
-		res, err := s.workflowClient.ListPublicWorkflows(ctx, connect.NewRequest(workflowsv1.ListPublicWorkflowsRequest_builder{Page: page}.Build()))
+		res, err := s.workflowClient.ListPublicWorkflows(ctx, workflowsv1.ListPublicWorkflowsRequest_builder{Page: page}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to list public workflows: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) GetWorkflow(ctx context.Context, slug string) (*workflowsv1.Workflow, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/get", func(ctx context.Context) (*workflowsv1.Workflow, error) {
-		res, err := s.workflowClient.GetWorkflow(ctx, connect.NewRequest(workflowsv1.GetWorkflowRequest_builder{
+		res, err := s.workflowClient.GetWorkflow(ctx, workflowsv1.GetWorkflowRequest_builder{
 			WorkflowSlug: slug,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get workflow: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) UpdateWorkflow(ctx context.Context, slug string, name, description *string) (*workflowsv1.Workflow, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/update", func(ctx context.Context) (*workflowsv1.Workflow, error) {
-		res, err := s.workflowClient.UpdateWorkflow(ctx, connect.NewRequest(workflowsv1.UpdateWorkflowRequest_builder{
+		res, err := s.workflowClient.UpdateWorkflow(ctx, workflowsv1.UpdateWorkflowRequest_builder{
 			WorkflowSlug: slug,
 			Name:         name,
 			Description:  description,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to update workflow: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) DeleteWorkflow(ctx context.Context, slug string) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/workflows/delete", func(ctx context.Context) error {
-		_, err := s.workflowClient.DeleteWorkflow(ctx, connect.NewRequest(workflowsv1.DeleteWorkflowRequest_builder{
+		_, err := s.workflowClient.DeleteWorkflow(ctx, workflowsv1.DeleteWorkflowRequest_builder{
 			WorkflowSlug: slug,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return fmt.Errorf("failed to delete workflow: %w", err)
 		}
@@ -499,25 +496,25 @@ func (s *workflowService) PublishWorkflowRelease(ctx context.Context, workflowSl
 			return nil, err
 		}
 
-		res, err := s.workflowClient.PublishWorkflowRelease(ctx, connect.NewRequest(workflowsv1.PublishWorkflowReleaseRequest_builder{
+		res, err := s.workflowClient.PublishWorkflowRelease(ctx, workflowsv1.PublishWorkflowReleaseRequest_builder{
 			WorkflowSlug: workflowSlug,
 			ArtifactId:   tileboxv1.NewUUID(artifactID),
 			Content:      protoContent,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to publish workflow release: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
 func (s *workflowService) UnpublishWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/workflows/unpublish_release", func(ctx context.Context) error {
-		_, err := s.workflowClient.UnpublishWorkflowRelease(ctx, connect.NewRequest(workflowsv1.UnpublishWorkflowReleaseRequest_builder{
+		_, err := s.workflowClient.UnpublishWorkflowRelease(ctx, workflowsv1.UnpublishWorkflowReleaseRequest_builder{
 			WorkflowSlug: workflowSlug,
 			ReleaseId:    tileboxv1.NewUUID(releaseID),
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return fmt.Errorf("failed to unpublish workflow release: %w", err)
 		}
@@ -528,16 +525,16 @@ func (s *workflowService) UnpublishWorkflowRelease(ctx context.Context, workflow
 
 func (s *workflowService) DeployWorkflowRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*workflowsv1.DeployWorkflowReleaseResponse, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/deploy_release", func(ctx context.Context) (*workflowsv1.DeployWorkflowReleaseResponse, error) {
-		res, err := s.workflowClient.DeployWorkflowRelease(ctx, connect.NewRequest(workflowsv1.DeployWorkflowReleaseRequest_builder{
+		res, err := s.workflowClient.DeployWorkflowRelease(ctx, workflowsv1.DeployWorkflowReleaseRequest_builder{
 			WorkflowSlug: workflowSlug,
 			ReleaseId:    tileboxv1.NewUUID(releaseID),
 			ClusterSlugs: clusterSlugs,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to deploy workflow release: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }
 
@@ -548,15 +545,15 @@ func (s *workflowService) UndeployWorkflowRelease(ctx context.Context, workflowS
 			// NewUUID treats uuid.Nil as absent, which would unintentionally remove all releases.
 			releaseIDProto = tileboxv1.ID_builder{Uuid: releaseID[:]}.Build()
 		}
-		res, err := s.workflowClient.UndeployWorkflowRelease(ctx, connect.NewRequest(workflowsv1.UndeployWorkflowReleaseRequest_builder{
+		res, err := s.workflowClient.UndeployWorkflowRelease(ctx, workflowsv1.UndeployWorkflowReleaseRequest_builder{
 			WorkflowSlug: workflowSlug,
 			ReleaseId:    releaseIDProto,
 			ClusterSlugs: clusterSlugs,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to undeploy workflow release: %w", err)
 		}
 
-		return res.Msg, nil
+		return res, nil
 	})
 }

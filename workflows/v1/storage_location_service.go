@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/observability"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
@@ -36,47 +35,47 @@ type storageLocationService struct {
 
 func (s *storageLocationService) CreateStorageLocation(ctx context.Context, request *workflowsv1.CreateStorageLocationRequest) (*workflowsv1.StorageLocation, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/create", func(ctx context.Context) (*workflowsv1.StorageLocation, error) {
-		response, err := s.client.CreateStorageLocation(ctx, connect.NewRequest(request))
+		response, err := s.client.CreateStorageLocation(ctx, request)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create storage location: %w", err)
 		}
-		return response.Msg, nil
+		return response, nil
 	})
 }
 
 func (s *storageLocationService) GetStorageLocation(ctx context.Context, storageLocationID uuid.UUID) (*workflowsv1.StorageLocation, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/get", func(ctx context.Context) (*workflowsv1.StorageLocation, error) {
-		response, err := s.client.GetStorageLocation(ctx, connect.NewRequest(tileboxv1.NewUUID(storageLocationID)))
+		response, err := s.client.GetStorageLocation(ctx, tileboxv1.NewUUID(storageLocationID))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get storage location: %w", err)
 		}
-		return response.Msg, nil
+		return response, nil
 	})
 }
 
 func (s *storageLocationService) ListStorageLocations(ctx context.Context) (*workflowsv1.StorageLocations, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/list", func(ctx context.Context) (*workflowsv1.StorageLocations, error) {
-		response, err := s.client.ListStorageLocations(ctx, connect.NewRequest(&emptypb.Empty{}))
+		response, err := s.client.ListStorageLocations(ctx, &emptypb.Empty{})
 		if err != nil {
 			return nil, fmt.Errorf("failed to list storage locations: %w", err)
 		}
-		return response.Msg, nil
+		return response, nil
 	})
 }
 
 func (s *storageLocationService) UpdateStorageLocation(ctx context.Context, request *workflowsv1.UpdateStorageLocationRequest) (*workflowsv1.StorageLocation, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_locations/update", func(ctx context.Context) (*workflowsv1.StorageLocation, error) {
-		response, err := s.client.UpdateStorageLocation(ctx, connect.NewRequest(request))
+		response, err := s.client.UpdateStorageLocation(ctx, request)
 		if err != nil {
 			return nil, fmt.Errorf("failed to update storage location: %w", err)
 		}
-		return response.Msg, nil
+		return response, nil
 	})
 }
 
 func (s *storageLocationService) DeleteStorageLocation(ctx context.Context, storageLocationID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/storage_locations/delete", func(ctx context.Context) error {
-		_, err := s.client.DeleteStorageLocation(ctx, connect.NewRequest(tileboxv1.NewUUID(storageLocationID)))
+		_, err := s.client.DeleteStorageLocation(ctx, tileboxv1.NewUUID(storageLocationID))
 		if err != nil {
 			return fmt.Errorf("failed to delete storage location: %w", err)
 		}
@@ -86,39 +85,39 @@ func (s *storageLocationService) DeleteStorageLocation(ctx context.Context, stor
 
 func (s *storageLocationService) CreateStorageSubscription(ctx context.Context, request *workflowsv1.CreateStorageSubscriptionRequest) (*workflowsv1.StorageSubscription, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_subscriptions/create", func(ctx context.Context) (*workflowsv1.StorageSubscription, error) {
-		response, err := s.client.CreateStorageSubscription(ctx, connect.NewRequest(request))
+		response, err := s.client.CreateStorageSubscription(ctx, request)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create storage subscription: %w", err)
 		}
-		return response.Msg, nil
+		return response, nil
 	})
 }
 
 func (s *storageLocationService) GetStorageSubscription(ctx context.Context, subscriptionID uuid.UUID) (*workflowsv1.StorageSubscription, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_subscriptions/get", func(ctx context.Context) (*workflowsv1.StorageSubscription, error) {
-		response, err := s.client.GetStorageSubscription(ctx, connect.NewRequest(tileboxv1.NewUUID(subscriptionID)))
+		response, err := s.client.GetStorageSubscription(ctx, tileboxv1.NewUUID(subscriptionID))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get storage subscription: %w", err)
 		}
-		return response.Msg, nil
+		return response, nil
 	})
 }
 
 func (s *storageLocationService) ListStorageSubscriptions(ctx context.Context, storageLocationID uuid.UUID) (*workflowsv1.StorageSubscriptions, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_subscriptions/list", func(ctx context.Context) (*workflowsv1.StorageSubscriptions, error) {
-		response, err := s.client.ListStorageSubscriptions(ctx, connect.NewRequest(workflowsv1.ListStorageSubscriptionsRequest_builder{
+		response, err := s.client.ListStorageSubscriptions(ctx, workflowsv1.ListStorageSubscriptionsRequest_builder{
 			StorageLocationId: tileboxv1.NewUUID(storageLocationID),
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to list storage subscriptions: %w", err)
 		}
-		return response.Msg, nil
+		return response, nil
 	})
 }
 
 func (s *storageLocationService) DeleteStorageSubscription(ctx context.Context, subscriptionID uuid.UUID) error {
 	return observability.WithSpan(ctx, s.tracer, "workflows/storage_subscriptions/delete", func(ctx context.Context) error {
-		_, err := s.client.DeleteStorageSubscription(ctx, connect.NewRequest(tileboxv1.NewUUID(subscriptionID)))
+		_, err := s.client.DeleteStorageSubscription(ctx, tileboxv1.NewUUID(subscriptionID))
 		if err != nil {
 			return fmt.Errorf("failed to delete storage subscription: %w", err)
 		}
@@ -128,12 +127,12 @@ func (s *storageLocationService) DeleteStorageSubscription(ctx context.Context, 
 
 func (s *storageLocationService) ListStorageSubscriptionEvents(ctx context.Context, storageLocationID uuid.UUID, page *tileboxv1.Pagination) (*workflowsv1.StorageSubscriptionEvents, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/storage_subscriptions/list_events", func(ctx context.Context) (*workflowsv1.StorageSubscriptionEvents, error) {
-		response, err := s.client.ListStorageSubscriptionEvents(ctx, connect.NewRequest(workflowsv1.ListStorageSubscriptionEventsRequest_builder{
+		response, err := s.client.ListStorageSubscriptionEvents(ctx, workflowsv1.ListStorageSubscriptionEventsRequest_builder{
 			StorageLocationId: tileboxv1.NewUUID(storageLocationID), Page: page,
-		}.Build()))
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to list storage subscription events: %w", err)
 		}
-		return response.Msg, nil
+		return response, nil
 	})
 }

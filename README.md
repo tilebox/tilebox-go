@@ -46,6 +46,40 @@ For examples on how to use the library, see the [examples](examples) directory.
 
 ## Usage
 
+### Configuring RPC clients
+
+Accounts, Datasets, and Workflows use Connect-Go v2 with binary protobuf. Each client shares one RPC transport and
+interceptor chain across its services. HTTPS negotiates HTTP/2, with HTTP/1.1 fallback. Reuse clients to reuse their
+connection pools. Plain HTTP and Unix sockets use HTTP/1.1 by default; supply `WithHTTPClient` for a custom transport.
+
+Responses have a 4 MiB per-message limit, including decompressed messages. For larger dataset pages or task payloads,
+set an explicit limit:
+
+```go
+import (
+	"connectrpc.com/connect/v2/connecthttp"
+	"github.com/tilebox/tilebox-go/datasets/v1"
+)
+
+client := datasets.NewClient(
+	datasets.WithTransportOptions(connecthttp.WithReadMaxBytes(64 << 20)),
+)
+```
+
+`WithTransportOptions` accepts `connecthttp.Option` values for protocol, compression, and message limits.
+`WithInterceptors` accepts native `connect.ClientInterceptor` functions in outermost-first order. Both replace the
+former `WithConnectClientOptions` API. The SDK applies its configured API key and client metadata after custom
+interceptors. An empty API key leaves caller-provided authentication intact.
+
+For per-call headers, use `connect.NewClientContext(ctx)` and its `CallInfo.RequestHeader()`. Read response headers
+and trailers from the same `CallInfo` after the call. Use a separate client context for each concurrent call.
+
+The default HTTP client retries replayable requests on transient transport failures, HTTP 429 (except Connect
+`resource_exhausted`), and HTTP 5xx, with five total attempts. Retries reuse Connect's request body without a second
+payload buffer. Streaming request bodies and storage notifications are not retried. A lost response can still mean
+the server processed the request; retries do not guarantee exactly-once execution. Use call deadlines to bound retries.
+Default clients do not follow redirects. `WithHTTPClient` replaces the default HTTP transport and retry policy.
+
 ### Filtering Dataset Queries
 
 Fields marked queryable in a dataset schema can be filtered with fluent Boolean, string, and numeric expressions. Multiple

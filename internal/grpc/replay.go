@@ -32,6 +32,7 @@ func (rt *RecordRoundTripper) RoundTrip(req *http.Request) (*http.Response, erro
 	}
 
 	body, err := io.ReadAll(response.Body)
+	_ = response.Body.Close()
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}

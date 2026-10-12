@@ -6,7 +6,7 @@ import (
 	"iter"
 	"time"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/google/uuid"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
@@ -114,7 +114,7 @@ var _ StorageLocationClient = &storageLocationClient{}
 
 type storageLocationClient struct {
 	service        _storageLocationService
-	httpClient     connect.HTTPClient
+	httpClient     connecthttp.HTTPClient
 	baseURL        string
 	apiKey         string
 	clientMetadata string

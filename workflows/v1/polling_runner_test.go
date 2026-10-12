@@ -3,13 +3,12 @@ package workflows
 import (
 	"bytes"
 	"context"
-	"errors"
 	"log/slog"
 	"strings"
 	"testing"
 	"time"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -77,7 +76,7 @@ func TestPollingTaskRunnerReportsComputedTaskRequestErrorAsWorkflowFailure(t *te
 	}.Build()
 	service := &requestErrorTaskService{
 		nextTask:                mockNextTask,
-		nextTaskComputedTaskErr: connect.NewError(connect.CodeInvalidArgument, errors.New("invalid computed task")),
+		nextTaskComputedTaskErr: connect.NewError(connect.CodeInvalidArgument, "invalid computed task"),
 	}
 	executor := &failedResponseExecutor{
 		response: workflowsv1.ExecuteTaskResponse_builder{
@@ -118,7 +117,7 @@ func TestPollingTaskRunnerDoesNotFailComputedTaskWhenCombinedNextTaskRequestIsIn
 	}.Build()
 	service := &requestErrorTaskService{
 		nextTask:                      mockNextTask,
-		nextTaskComputedAndRequestErr: connect.NewError(connect.CodeInvalidArgument, errors.New("invalid work request")),
+		nextTaskComputedAndRequestErr: connect.NewError(connect.CodeInvalidArgument, "invalid work request"),
 	}
 	executor := &failedResponseExecutor{
 		response: workflowsv1.ExecuteTaskResponse_builder{
@@ -208,7 +207,7 @@ func TestPollingTaskRunnerRetriesTaskFailedRequestErrorOnceAsWorkflowFailure(t *
 	service := &requestErrorTaskService{
 		nextTask: mockNextTask,
 		taskFailedErrors: []error{
-			connect.NewError(connect.CodeInvalidArgument, errors.New("invalid failed task request")),
+			connect.NewError(connect.CodeInvalidArgument, "invalid failed task request"),
 		},
 	}
 	progressUpdates := []*workflowsv1.Progress{
@@ -255,8 +254,8 @@ func TestPollingTaskRunnerStopsRetryingTaskFailedAfterSecondRequestError(t *test
 	service := &requestErrorTaskService{
 		nextTask: mockNextTask,
 		taskFailedErrors: []error{
-			connect.NewError(connect.CodeInvalidArgument, errors.New("invalid failed task request")),
-			connect.NewError(connect.CodeInvalidArgument, errors.New("still invalid")),
+			connect.NewError(connect.CodeInvalidArgument, "invalid failed task request"),
+			connect.NewError(connect.CodeInvalidArgument, "still invalid"),
 		},
 	}
 	executor := &failedResponseExecutor{
@@ -283,9 +282,9 @@ func TestPollingTaskRunnerResetsTaskFailedAfterMaxRetryableErrors(t *testing.T) 
 	var logs bytes.Buffer
 	service := &requestErrorTaskService{
 		taskFailedErrors: []error{
-			connect.NewError(connect.CodeUnavailable, errors.New("unavailable 1")),
-			connect.NewError(connect.CodeUnavailable, errors.New("unavailable 2")),
-			connect.NewError(connect.CodeUnavailable, errors.New("unavailable 3")),
+			connect.NewError(connect.CodeUnavailable, "unavailable 1"),
+			connect.NewError(connect.CodeUnavailable, "unavailable 2"),
+			connect.NewError(connect.CodeUnavailable, "unavailable 3"),
 		},
 	}
 	runner := NewPollingTaskRunner(service, "default", &failedResponseExecutor{}, slog.New(slog.NewTextHandler(&logs, nil)))
