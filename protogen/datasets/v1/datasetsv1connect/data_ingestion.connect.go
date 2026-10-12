@@ -7,134 +7,131 @@
 package datasetsv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// DataIngestionServiceName is the fully-qualified name of the DataIngestionService service.
 	DataIngestionServiceName = "datasets.v1.DataIngestionService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// DataIngestionServiceIngestProcedure is the fully-qualified name of the DataIngestionService's
-	// Ingest RPC.
+	// DataIngestionServiceIngestProcedure is the procedure name of the DataIngestionService's Ingest
+	// RPC.
 	DataIngestionServiceIngestProcedure = "/datasets.v1.DataIngestionService/Ingest"
-	// DataIngestionServiceDeleteProcedure is the fully-qualified name of the DataIngestionService's
-	// Delete RPC.
+	// DataIngestionServiceDeleteProcedure is the procedure name of the DataIngestionService's Delete
+	// RPC.
 	DataIngestionServiceDeleteProcedure = "/datasets.v1.DataIngestionService/Delete"
+)
+
+var (
+	dataIngestionServiceIngestSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_data_ingestion_proto.Services().ByName("DataIngestionService").Methods().ByName("Ingest"),
+			Procedure:  DataIngestionServiceIngestProcedure,
+		}
+	})
+	dataIngestionServiceDeleteSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_data_ingestion_proto.Services().ByName("DataIngestionService").Methods().ByName("Delete"),
+			Procedure:  DataIngestionServiceDeleteProcedure,
+		}
+	})
 )
 
 // DataIngestionServiceClient is a client for the datasets.v1.DataIngestionService service.
 type DataIngestionServiceClient interface {
-	Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error)
-	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
+	Ingest(context.Context, *v1.IngestRequest) (*v1.IngestResponse, error)
+	Delete(context.Context, *v1.DeleteRequest) (*v1.DeleteResponse, error)
 }
 
 // NewDataIngestionServiceClient constructs a client for the datasets.v1.DataIngestionService
-// service. By default, it uses the Connect protocol with the binary Protobuf Codec, asks for
-// gzipped responses, and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply
-// the connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewDataIngestionServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) DataIngestionServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	dataIngestionServiceMethods := v1.File_datasets_v1_data_ingestion_proto.Services().ByName("DataIngestionService").Methods()
-	return &dataIngestionServiceClient{
-		ingest: connect.NewClient[v1.IngestRequest, v1.IngestResponse](
-			httpClient,
-			baseURL+DataIngestionServiceIngestProcedure,
-			connect.WithSchema(dataIngestionServiceMethods.ByName("Ingest")),
-			connect.WithClientOptions(opts...),
-		),
-		delete: connect.NewClient[v1.DeleteRequest, v1.DeleteResponse](
-			httpClient,
-			baseURL+DataIngestionServiceDeleteProcedure,
-			connect.WithSchema(dataIngestionServiceMethods.ByName("Delete")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// dataIngestionServiceClient implements DataIngestionServiceClient.
-type dataIngestionServiceClient struct {
-	ingest *connect.Client[v1.IngestRequest, v1.IngestResponse]
-	delete *connect.Client[v1.DeleteRequest, v1.DeleteResponse]
-}
-
-// Ingest calls datasets.v1.DataIngestionService.Ingest.
-func (c *dataIngestionServiceClient) Ingest(ctx context.Context, req *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error) {
-	return c.ingest.CallUnary(ctx, req)
-}
-
-// Delete calls datasets.v1.DataIngestionService.Delete.
-func (c *dataIngestionServiceClient) Delete(ctx context.Context, req *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error) {
-	return c.delete.CallUnary(ctx, req)
+// service. Multiple service clients may share a single connect.Client.
+func NewDataIngestionServiceClient(client *connect.Client) DataIngestionServiceClient {
+	return &dataIngestionServiceClient{client: client}
 }
 
 // DataIngestionServiceHandler is an implementation of the datasets.v1.DataIngestionService service.
 type DataIngestionServiceHandler interface {
-	Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error)
-	Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error)
+	Ingest(context.Context, *v1.IngestRequest) (*v1.IngestResponse, error)
+	Delete(context.Context, *v1.DeleteRequest) (*v1.DeleteResponse, error)
 }
 
-// NewDataIngestionServiceHandler builds an HTTP handler from the service implementation. It returns
-// the path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewDataIngestionServiceHandler(svc DataIngestionServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	dataIngestionServiceMethods := v1.File_datasets_v1_data_ingestion_proto.Services().ByName("DataIngestionService").Methods()
-	dataIngestionServiceIngestHandler := connect.NewUnaryHandler(
-		DataIngestionServiceIngestProcedure,
-		svc.Ingest,
-		connect.WithSchema(dataIngestionServiceMethods.ByName("Ingest")),
-		connect.WithHandlerOptions(opts...),
+// RegisterDataIngestionServiceHandler registers svc as the datasets.v1.DataIngestionService
+// implementation on server.
+func RegisterDataIngestionServiceHandler(server *connect.Server, svc DataIngestionServiceHandler) {
+	adapter := dataIngestionServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: dataIngestionServiceIngestSpec(), Handler: adapter.ingest},
+		connect.Method{Spec: dataIngestionServiceDeleteSpec(), Handler: adapter.delete},
 	)
-	dataIngestionServiceDeleteHandler := connect.NewUnaryHandler(
-		DataIngestionServiceDeleteProcedure,
-		svc.Delete,
-		connect.WithSchema(dataIngestionServiceMethods.ByName("Delete")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/datasets.v1.DataIngestionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case DataIngestionServiceIngestProcedure:
-			dataIngestionServiceIngestHandler.ServeHTTP(w, r)
-		case DataIngestionServiceDeleteProcedure:
-			dataIngestionServiceDeleteHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
 }
 
 // UnimplementedDataIngestionServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedDataIngestionServiceHandler struct{}
 
-func (UnimplementedDataIngestionServiceHandler) Ingest(context.Context, *connect.Request[v1.IngestRequest]) (*connect.Response[v1.IngestResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.Ingest is not implemented"))
+func (UnimplementedDataIngestionServiceHandler) Ingest(context.Context, *v1.IngestRequest) (*v1.IngestResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.DataIngestionService.Ingest is not implemented")
 }
 
-func (UnimplementedDataIngestionServiceHandler) Delete(context.Context, *connect.Request[v1.DeleteRequest]) (*connect.Response[v1.DeleteResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DataIngestionService.Delete is not implemented"))
+func (UnimplementedDataIngestionServiceHandler) Delete(context.Context, *v1.DeleteRequest) (*v1.DeleteResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.DataIngestionService.Delete is not implemented")
+}
+
+type dataIngestionServiceClient struct {
+	client *connect.Client
+}
+
+func (c *dataIngestionServiceClient) Ingest(ctx context.Context, req *v1.IngestRequest) (*v1.IngestResponse, error) {
+	var res v1.IngestResponse
+	if err := c.client.CallUnary(ctx, dataIngestionServiceIngestSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *dataIngestionServiceClient) Delete(ctx context.Context, req *v1.DeleteRequest) (*v1.DeleteResponse, error) {
+	var res v1.DeleteResponse
+	if err := c.client.CallUnary(ctx, dataIngestionServiceDeleteSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type dataIngestionServiceHandler struct{ svc DataIngestionServiceHandler }
+
+func (h dataIngestionServiceHandler) ingest(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.IngestRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.Ingest(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h dataIngestionServiceHandler) delete(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.DeleteRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.Delete(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }

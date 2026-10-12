@@ -7,390 +7,450 @@
 package workflowsv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v11 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	v1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// StorageLocationServiceName is the fully-qualified name of the StorageLocationService service.
 	StorageLocationServiceName = "workflows.v1.StorageLocationService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// StorageLocationServiceListStorageLocationsProcedure is the fully-qualified name of the
+	// StorageLocationServiceListStorageLocationsProcedure is the procedure name of the
 	// StorageLocationService's ListStorageLocations RPC.
 	StorageLocationServiceListStorageLocationsProcedure = "/workflows.v1.StorageLocationService/ListStorageLocations"
-	// StorageLocationServiceGetStorageLocationProcedure is the fully-qualified name of the
+	// StorageLocationServiceGetStorageLocationProcedure is the procedure name of the
 	// StorageLocationService's GetStorageLocation RPC.
 	StorageLocationServiceGetStorageLocationProcedure = "/workflows.v1.StorageLocationService/GetStorageLocation"
-	// StorageLocationServiceCreateStorageLocationProcedure is the fully-qualified name of the
+	// StorageLocationServiceCreateStorageLocationProcedure is the procedure name of the
 	// StorageLocationService's CreateStorageLocation RPC.
 	StorageLocationServiceCreateStorageLocationProcedure = "/workflows.v1.StorageLocationService/CreateStorageLocation"
-	// StorageLocationServiceUpdateStorageLocationProcedure is the fully-qualified name of the
+	// StorageLocationServiceUpdateStorageLocationProcedure is the procedure name of the
 	// StorageLocationService's UpdateStorageLocation RPC.
 	StorageLocationServiceUpdateStorageLocationProcedure = "/workflows.v1.StorageLocationService/UpdateStorageLocation"
-	// StorageLocationServiceDeleteStorageLocationProcedure is the fully-qualified name of the
+	// StorageLocationServiceDeleteStorageLocationProcedure is the procedure name of the
 	// StorageLocationService's DeleteStorageLocation RPC.
 	StorageLocationServiceDeleteStorageLocationProcedure = "/workflows.v1.StorageLocationService/DeleteStorageLocation"
-	// StorageLocationServiceCreateStorageSubscriptionProcedure is the fully-qualified name of the
+	// StorageLocationServiceCreateStorageSubscriptionProcedure is the procedure name of the
 	// StorageLocationService's CreateStorageSubscription RPC.
 	StorageLocationServiceCreateStorageSubscriptionProcedure = "/workflows.v1.StorageLocationService/CreateStorageSubscription"
-	// StorageLocationServiceListStorageSubscriptionsProcedure is the fully-qualified name of the
+	// StorageLocationServiceListStorageSubscriptionsProcedure is the procedure name of the
 	// StorageLocationService's ListStorageSubscriptions RPC.
 	StorageLocationServiceListStorageSubscriptionsProcedure = "/workflows.v1.StorageLocationService/ListStorageSubscriptions"
-	// StorageLocationServiceGetStorageSubscriptionProcedure is the fully-qualified name of the
+	// StorageLocationServiceGetStorageSubscriptionProcedure is the procedure name of the
 	// StorageLocationService's GetStorageSubscription RPC.
 	StorageLocationServiceGetStorageSubscriptionProcedure = "/workflows.v1.StorageLocationService/GetStorageSubscription"
-	// StorageLocationServiceDeleteStorageSubscriptionProcedure is the fully-qualified name of the
+	// StorageLocationServiceDeleteStorageSubscriptionProcedure is the procedure name of the
 	// StorageLocationService's DeleteStorageSubscription RPC.
 	StorageLocationServiceDeleteStorageSubscriptionProcedure = "/workflows.v1.StorageLocationService/DeleteStorageSubscription"
-	// StorageLocationServiceListStorageSubscriptionEventsProcedure is the fully-qualified name of the
+	// StorageLocationServiceListStorageSubscriptionEventsProcedure is the procedure name of the
 	// StorageLocationService's ListStorageSubscriptionEvents RPC.
 	StorageLocationServiceListStorageSubscriptionEventsProcedure = "/workflows.v1.StorageLocationService/ListStorageSubscriptionEvents"
+)
+
+var (
+	storageLocationServiceListStorageLocationsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("ListStorageLocations"),
+			Procedure:  StorageLocationServiceListStorageLocationsProcedure,
+		}
+	})
+	storageLocationServiceGetStorageLocationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("GetStorageLocation"),
+			Procedure:  StorageLocationServiceGetStorageLocationProcedure,
+		}
+	})
+	storageLocationServiceCreateStorageLocationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("CreateStorageLocation"),
+			Procedure:  StorageLocationServiceCreateStorageLocationProcedure,
+		}
+	})
+	storageLocationServiceUpdateStorageLocationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("UpdateStorageLocation"),
+			Procedure:  StorageLocationServiceUpdateStorageLocationProcedure,
+		}
+	})
+	storageLocationServiceDeleteStorageLocationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("DeleteStorageLocation"),
+			Procedure:  StorageLocationServiceDeleteStorageLocationProcedure,
+		}
+	})
+	storageLocationServiceCreateStorageSubscriptionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("CreateStorageSubscription"),
+			Procedure:  StorageLocationServiceCreateStorageSubscriptionProcedure,
+		}
+	})
+	storageLocationServiceListStorageSubscriptionsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("ListStorageSubscriptions"),
+			Procedure:  StorageLocationServiceListStorageSubscriptionsProcedure,
+		}
+	})
+	storageLocationServiceGetStorageSubscriptionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("GetStorageSubscription"),
+			Procedure:  StorageLocationServiceGetStorageSubscriptionProcedure,
+		}
+	})
+	storageLocationServiceDeleteStorageSubscriptionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("DeleteStorageSubscription"),
+			Procedure:  StorageLocationServiceDeleteStorageSubscriptionProcedure,
+		}
+	})
+	storageLocationServiceListStorageSubscriptionEventsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods().ByName("ListStorageSubscriptionEvents"),
+			Procedure:  StorageLocationServiceListStorageSubscriptionEventsProcedure,
+		}
+	})
 )
 
 // StorageLocationServiceClient is a client for the workflows.v1.StorageLocationService service.
 type StorageLocationServiceClient interface {
 	// ListStorageLocations lists storage locations available for automation triggers.
-	ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error)
+	ListStorageLocations(context.Context, *emptypb.Empty) (*v1.StorageLocations, error)
 	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error)
+	GetStorageLocation(context.Context, *v11.ID) (*v1.StorageLocation, error)
 	// CreateStorageLocation registers an existing bucket, container, or directory for automation triggers.
-	CreateStorageLocation(context.Context, *connect.Request[v1.CreateStorageLocationRequest]) (*connect.Response[v1.StorageLocation], error)
+	CreateStorageLocation(context.Context, *v1.CreateStorageLocationRequest) (*v1.StorageLocation, error)
 	// UpdateStorageLocation changes the display name of a storage location.
-	UpdateStorageLocation(context.Context, *connect.Request[v1.UpdateStorageLocationRequest]) (*connect.Response[v1.StorageLocation], error)
+	UpdateStorageLocation(context.Context, *v1.UpdateStorageLocationRequest) (*v1.StorageLocation, error)
 	// DeleteStorageLocation removes the location and its subscriptions from Tilebox without deleting cloud resources.
-	DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error)
+	DeleteStorageLocation(context.Context, *v11.ID) (*emptypb.Empty, error)
 	// CreateStorageSubscription registers notification delivery and returns the provider setup values.
-	CreateStorageSubscription(context.Context, *connect.Request[v1.CreateStorageSubscriptionRequest]) (*connect.Response[v1.StorageSubscription], error)
+	CreateStorageSubscription(context.Context, *v1.CreateStorageSubscriptionRequest) (*v1.StorageSubscription, error)
 	// ListStorageSubscriptions lists notification subscriptions for a storage location.
-	ListStorageSubscriptions(context.Context, *connect.Request[v1.ListStorageSubscriptionsRequest]) (*connect.Response[v1.StorageSubscriptions], error)
+	ListStorageSubscriptions(context.Context, *v1.ListStorageSubscriptionsRequest) (*v1.StorageSubscriptions, error)
 	// GetStorageSubscription gets a subscription by its ID.
-	GetStorageSubscription(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageSubscription], error)
+	GetStorageSubscription(context.Context, *v11.ID) (*v1.StorageSubscription, error)
 	// DeleteStorageSubscription stops accepting notifications at its endpoint without deleting cloud resources.
-	DeleteStorageSubscription(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error)
+	DeleteStorageSubscription(context.Context, *v11.ID) (*emptypb.Empty, error)
 	// ListStorageSubscriptionEvents lists received object notifications and the jobs they triggered.
-	ListStorageSubscriptionEvents(context.Context, *connect.Request[v1.ListStorageSubscriptionEventsRequest]) (*connect.Response[v1.StorageSubscriptionEvents], error)
+	ListStorageSubscriptionEvents(context.Context, *v1.ListStorageSubscriptionEventsRequest) (*v1.StorageSubscriptionEvents, error)
 }
 
 // NewStorageLocationServiceClient constructs a client for the workflows.v1.StorageLocationService
-// service. By default, it uses the Connect protocol with the binary Protobuf Codec, asks for
-// gzipped responses, and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply
-// the connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewStorageLocationServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) StorageLocationServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	storageLocationServiceMethods := v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods()
-	return &storageLocationServiceClient{
-		listStorageLocations: connect.NewClient[emptypb.Empty, v1.StorageLocations](
-			httpClient,
-			baseURL+StorageLocationServiceListStorageLocationsProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("ListStorageLocations")),
-			connect.WithClientOptions(opts...),
-		),
-		getStorageLocation: connect.NewClient[v11.ID, v1.StorageLocation](
-			httpClient,
-			baseURL+StorageLocationServiceGetStorageLocationProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("GetStorageLocation")),
-			connect.WithClientOptions(opts...),
-		),
-		createStorageLocation: connect.NewClient[v1.CreateStorageLocationRequest, v1.StorageLocation](
-			httpClient,
-			baseURL+StorageLocationServiceCreateStorageLocationProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("CreateStorageLocation")),
-			connect.WithClientOptions(opts...),
-		),
-		updateStorageLocation: connect.NewClient[v1.UpdateStorageLocationRequest, v1.StorageLocation](
-			httpClient,
-			baseURL+StorageLocationServiceUpdateStorageLocationProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("UpdateStorageLocation")),
-			connect.WithClientOptions(opts...),
-		),
-		deleteStorageLocation: connect.NewClient[v11.ID, emptypb.Empty](
-			httpClient,
-			baseURL+StorageLocationServiceDeleteStorageLocationProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("DeleteStorageLocation")),
-			connect.WithClientOptions(opts...),
-		),
-		createStorageSubscription: connect.NewClient[v1.CreateStorageSubscriptionRequest, v1.StorageSubscription](
-			httpClient,
-			baseURL+StorageLocationServiceCreateStorageSubscriptionProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("CreateStorageSubscription")),
-			connect.WithClientOptions(opts...),
-		),
-		listStorageSubscriptions: connect.NewClient[v1.ListStorageSubscriptionsRequest, v1.StorageSubscriptions](
-			httpClient,
-			baseURL+StorageLocationServiceListStorageSubscriptionsProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("ListStorageSubscriptions")),
-			connect.WithClientOptions(opts...),
-		),
-		getStorageSubscription: connect.NewClient[v11.ID, v1.StorageSubscription](
-			httpClient,
-			baseURL+StorageLocationServiceGetStorageSubscriptionProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("GetStorageSubscription")),
-			connect.WithClientOptions(opts...),
-		),
-		deleteStorageSubscription: connect.NewClient[v11.ID, emptypb.Empty](
-			httpClient,
-			baseURL+StorageLocationServiceDeleteStorageSubscriptionProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("DeleteStorageSubscription")),
-			connect.WithClientOptions(opts...),
-		),
-		listStorageSubscriptionEvents: connect.NewClient[v1.ListStorageSubscriptionEventsRequest, v1.StorageSubscriptionEvents](
-			httpClient,
-			baseURL+StorageLocationServiceListStorageSubscriptionEventsProcedure,
-			connect.WithSchema(storageLocationServiceMethods.ByName("ListStorageSubscriptionEvents")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// storageLocationServiceClient implements StorageLocationServiceClient.
-type storageLocationServiceClient struct {
-	listStorageLocations          *connect.Client[emptypb.Empty, v1.StorageLocations]
-	getStorageLocation            *connect.Client[v11.ID, v1.StorageLocation]
-	createStorageLocation         *connect.Client[v1.CreateStorageLocationRequest, v1.StorageLocation]
-	updateStorageLocation         *connect.Client[v1.UpdateStorageLocationRequest, v1.StorageLocation]
-	deleteStorageLocation         *connect.Client[v11.ID, emptypb.Empty]
-	createStorageSubscription     *connect.Client[v1.CreateStorageSubscriptionRequest, v1.StorageSubscription]
-	listStorageSubscriptions      *connect.Client[v1.ListStorageSubscriptionsRequest, v1.StorageSubscriptions]
-	getStorageSubscription        *connect.Client[v11.ID, v1.StorageSubscription]
-	deleteStorageSubscription     *connect.Client[v11.ID, emptypb.Empty]
-	listStorageSubscriptionEvents *connect.Client[v1.ListStorageSubscriptionEventsRequest, v1.StorageSubscriptionEvents]
-}
-
-// ListStorageLocations calls workflows.v1.StorageLocationService.ListStorageLocations.
-func (c *storageLocationServiceClient) ListStorageLocations(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error) {
-	return c.listStorageLocations.CallUnary(ctx, req)
-}
-
-// GetStorageLocation calls workflows.v1.StorageLocationService.GetStorageLocation.
-func (c *storageLocationServiceClient) GetStorageLocation(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error) {
-	return c.getStorageLocation.CallUnary(ctx, req)
-}
-
-// CreateStorageLocation calls workflows.v1.StorageLocationService.CreateStorageLocation.
-func (c *storageLocationServiceClient) CreateStorageLocation(ctx context.Context, req *connect.Request[v1.CreateStorageLocationRequest]) (*connect.Response[v1.StorageLocation], error) {
-	return c.createStorageLocation.CallUnary(ctx, req)
-}
-
-// UpdateStorageLocation calls workflows.v1.StorageLocationService.UpdateStorageLocation.
-func (c *storageLocationServiceClient) UpdateStorageLocation(ctx context.Context, req *connect.Request[v1.UpdateStorageLocationRequest]) (*connect.Response[v1.StorageLocation], error) {
-	return c.updateStorageLocation.CallUnary(ctx, req)
-}
-
-// DeleteStorageLocation calls workflows.v1.StorageLocationService.DeleteStorageLocation.
-func (c *storageLocationServiceClient) DeleteStorageLocation(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error) {
-	return c.deleteStorageLocation.CallUnary(ctx, req)
-}
-
-// CreateStorageSubscription calls workflows.v1.StorageLocationService.CreateStorageSubscription.
-func (c *storageLocationServiceClient) CreateStorageSubscription(ctx context.Context, req *connect.Request[v1.CreateStorageSubscriptionRequest]) (*connect.Response[v1.StorageSubscription], error) {
-	return c.createStorageSubscription.CallUnary(ctx, req)
-}
-
-// ListStorageSubscriptions calls workflows.v1.StorageLocationService.ListStorageSubscriptions.
-func (c *storageLocationServiceClient) ListStorageSubscriptions(ctx context.Context, req *connect.Request[v1.ListStorageSubscriptionsRequest]) (*connect.Response[v1.StorageSubscriptions], error) {
-	return c.listStorageSubscriptions.CallUnary(ctx, req)
-}
-
-// GetStorageSubscription calls workflows.v1.StorageLocationService.GetStorageSubscription.
-func (c *storageLocationServiceClient) GetStorageSubscription(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[v1.StorageSubscription], error) {
-	return c.getStorageSubscription.CallUnary(ctx, req)
-}
-
-// DeleteStorageSubscription calls workflows.v1.StorageLocationService.DeleteStorageSubscription.
-func (c *storageLocationServiceClient) DeleteStorageSubscription(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error) {
-	return c.deleteStorageSubscription.CallUnary(ctx, req)
-}
-
-// ListStorageSubscriptionEvents calls
-// workflows.v1.StorageLocationService.ListStorageSubscriptionEvents.
-func (c *storageLocationServiceClient) ListStorageSubscriptionEvents(ctx context.Context, req *connect.Request[v1.ListStorageSubscriptionEventsRequest]) (*connect.Response[v1.StorageSubscriptionEvents], error) {
-	return c.listStorageSubscriptionEvents.CallUnary(ctx, req)
+// service. Multiple service clients may share a single connect.Client.
+func NewStorageLocationServiceClient(client *connect.Client) StorageLocationServiceClient {
+	return &storageLocationServiceClient{client: client}
 }
 
 // StorageLocationServiceHandler is an implementation of the workflows.v1.StorageLocationService
 // service.
 type StorageLocationServiceHandler interface {
 	// ListStorageLocations lists storage locations available for automation triggers.
-	ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error)
+	ListStorageLocations(context.Context, *emptypb.Empty) (*v1.StorageLocations, error)
 	// GetStorageLocation gets a storage location by its ID.
-	GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error)
+	GetStorageLocation(context.Context, *v11.ID) (*v1.StorageLocation, error)
 	// CreateStorageLocation registers an existing bucket, container, or directory for automation triggers.
-	CreateStorageLocation(context.Context, *connect.Request[v1.CreateStorageLocationRequest]) (*connect.Response[v1.StorageLocation], error)
+	CreateStorageLocation(context.Context, *v1.CreateStorageLocationRequest) (*v1.StorageLocation, error)
 	// UpdateStorageLocation changes the display name of a storage location.
-	UpdateStorageLocation(context.Context, *connect.Request[v1.UpdateStorageLocationRequest]) (*connect.Response[v1.StorageLocation], error)
+	UpdateStorageLocation(context.Context, *v1.UpdateStorageLocationRequest) (*v1.StorageLocation, error)
 	// DeleteStorageLocation removes the location and its subscriptions from Tilebox without deleting cloud resources.
-	DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error)
+	DeleteStorageLocation(context.Context, *v11.ID) (*emptypb.Empty, error)
 	// CreateStorageSubscription registers notification delivery and returns the provider setup values.
-	CreateStorageSubscription(context.Context, *connect.Request[v1.CreateStorageSubscriptionRequest]) (*connect.Response[v1.StorageSubscription], error)
+	CreateStorageSubscription(context.Context, *v1.CreateStorageSubscriptionRequest) (*v1.StorageSubscription, error)
 	// ListStorageSubscriptions lists notification subscriptions for a storage location.
-	ListStorageSubscriptions(context.Context, *connect.Request[v1.ListStorageSubscriptionsRequest]) (*connect.Response[v1.StorageSubscriptions], error)
+	ListStorageSubscriptions(context.Context, *v1.ListStorageSubscriptionsRequest) (*v1.StorageSubscriptions, error)
 	// GetStorageSubscription gets a subscription by its ID.
-	GetStorageSubscription(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageSubscription], error)
+	GetStorageSubscription(context.Context, *v11.ID) (*v1.StorageSubscription, error)
 	// DeleteStorageSubscription stops accepting notifications at its endpoint without deleting cloud resources.
-	DeleteStorageSubscription(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error)
+	DeleteStorageSubscription(context.Context, *v11.ID) (*emptypb.Empty, error)
 	// ListStorageSubscriptionEvents lists received object notifications and the jobs they triggered.
-	ListStorageSubscriptionEvents(context.Context, *connect.Request[v1.ListStorageSubscriptionEventsRequest]) (*connect.Response[v1.StorageSubscriptionEvents], error)
+	ListStorageSubscriptionEvents(context.Context, *v1.ListStorageSubscriptionEventsRequest) (*v1.StorageSubscriptionEvents, error)
 }
 
-// NewStorageLocationServiceHandler builds an HTTP handler from the service implementation. It
-// returns the path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewStorageLocationServiceHandler(svc StorageLocationServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	storageLocationServiceMethods := v1.File_workflows_v1_storage_location_proto.Services().ByName("StorageLocationService").Methods()
-	storageLocationServiceListStorageLocationsHandler := connect.NewUnaryHandler(
-		StorageLocationServiceListStorageLocationsProcedure,
-		svc.ListStorageLocations,
-		connect.WithSchema(storageLocationServiceMethods.ByName("ListStorageLocations")),
-		connect.WithHandlerOptions(opts...),
+// RegisterStorageLocationServiceHandler registers svc as the workflows.v1.StorageLocationService
+// implementation on server.
+func RegisterStorageLocationServiceHandler(server *connect.Server, svc StorageLocationServiceHandler) {
+	adapter := storageLocationServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: storageLocationServiceListStorageLocationsSpec(), Handler: adapter.listStorageLocations},
+		connect.Method{Spec: storageLocationServiceGetStorageLocationSpec(), Handler: adapter.getStorageLocation},
+		connect.Method{Spec: storageLocationServiceCreateStorageLocationSpec(), Handler: adapter.createStorageLocation},
+		connect.Method{Spec: storageLocationServiceUpdateStorageLocationSpec(), Handler: adapter.updateStorageLocation},
+		connect.Method{Spec: storageLocationServiceDeleteStorageLocationSpec(), Handler: adapter.deleteStorageLocation},
+		connect.Method{Spec: storageLocationServiceCreateStorageSubscriptionSpec(), Handler: adapter.createStorageSubscription},
+		connect.Method{Spec: storageLocationServiceListStorageSubscriptionsSpec(), Handler: adapter.listStorageSubscriptions},
+		connect.Method{Spec: storageLocationServiceGetStorageSubscriptionSpec(), Handler: adapter.getStorageSubscription},
+		connect.Method{Spec: storageLocationServiceDeleteStorageSubscriptionSpec(), Handler: adapter.deleteStorageSubscription},
+		connect.Method{Spec: storageLocationServiceListStorageSubscriptionEventsSpec(), Handler: adapter.listStorageSubscriptionEvents},
 	)
-	storageLocationServiceGetStorageLocationHandler := connect.NewUnaryHandler(
-		StorageLocationServiceGetStorageLocationProcedure,
-		svc.GetStorageLocation,
-		connect.WithSchema(storageLocationServiceMethods.ByName("GetStorageLocation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	storageLocationServiceCreateStorageLocationHandler := connect.NewUnaryHandler(
-		StorageLocationServiceCreateStorageLocationProcedure,
-		svc.CreateStorageLocation,
-		connect.WithSchema(storageLocationServiceMethods.ByName("CreateStorageLocation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	storageLocationServiceUpdateStorageLocationHandler := connect.NewUnaryHandler(
-		StorageLocationServiceUpdateStorageLocationProcedure,
-		svc.UpdateStorageLocation,
-		connect.WithSchema(storageLocationServiceMethods.ByName("UpdateStorageLocation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	storageLocationServiceDeleteStorageLocationHandler := connect.NewUnaryHandler(
-		StorageLocationServiceDeleteStorageLocationProcedure,
-		svc.DeleteStorageLocation,
-		connect.WithSchema(storageLocationServiceMethods.ByName("DeleteStorageLocation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	storageLocationServiceCreateStorageSubscriptionHandler := connect.NewUnaryHandler(
-		StorageLocationServiceCreateStorageSubscriptionProcedure,
-		svc.CreateStorageSubscription,
-		connect.WithSchema(storageLocationServiceMethods.ByName("CreateStorageSubscription")),
-		connect.WithHandlerOptions(opts...),
-	)
-	storageLocationServiceListStorageSubscriptionsHandler := connect.NewUnaryHandler(
-		StorageLocationServiceListStorageSubscriptionsProcedure,
-		svc.ListStorageSubscriptions,
-		connect.WithSchema(storageLocationServiceMethods.ByName("ListStorageSubscriptions")),
-		connect.WithHandlerOptions(opts...),
-	)
-	storageLocationServiceGetStorageSubscriptionHandler := connect.NewUnaryHandler(
-		StorageLocationServiceGetStorageSubscriptionProcedure,
-		svc.GetStorageSubscription,
-		connect.WithSchema(storageLocationServiceMethods.ByName("GetStorageSubscription")),
-		connect.WithHandlerOptions(opts...),
-	)
-	storageLocationServiceDeleteStorageSubscriptionHandler := connect.NewUnaryHandler(
-		StorageLocationServiceDeleteStorageSubscriptionProcedure,
-		svc.DeleteStorageSubscription,
-		connect.WithSchema(storageLocationServiceMethods.ByName("DeleteStorageSubscription")),
-		connect.WithHandlerOptions(opts...),
-	)
-	storageLocationServiceListStorageSubscriptionEventsHandler := connect.NewUnaryHandler(
-		StorageLocationServiceListStorageSubscriptionEventsProcedure,
-		svc.ListStorageSubscriptionEvents,
-		connect.WithSchema(storageLocationServiceMethods.ByName("ListStorageSubscriptionEvents")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/workflows.v1.StorageLocationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case StorageLocationServiceListStorageLocationsProcedure:
-			storageLocationServiceListStorageLocationsHandler.ServeHTTP(w, r)
-		case StorageLocationServiceGetStorageLocationProcedure:
-			storageLocationServiceGetStorageLocationHandler.ServeHTTP(w, r)
-		case StorageLocationServiceCreateStorageLocationProcedure:
-			storageLocationServiceCreateStorageLocationHandler.ServeHTTP(w, r)
-		case StorageLocationServiceUpdateStorageLocationProcedure:
-			storageLocationServiceUpdateStorageLocationHandler.ServeHTTP(w, r)
-		case StorageLocationServiceDeleteStorageLocationProcedure:
-			storageLocationServiceDeleteStorageLocationHandler.ServeHTTP(w, r)
-		case StorageLocationServiceCreateStorageSubscriptionProcedure:
-			storageLocationServiceCreateStorageSubscriptionHandler.ServeHTTP(w, r)
-		case StorageLocationServiceListStorageSubscriptionsProcedure:
-			storageLocationServiceListStorageSubscriptionsHandler.ServeHTTP(w, r)
-		case StorageLocationServiceGetStorageSubscriptionProcedure:
-			storageLocationServiceGetStorageSubscriptionHandler.ServeHTTP(w, r)
-		case StorageLocationServiceDeleteStorageSubscriptionProcedure:
-			storageLocationServiceDeleteStorageSubscriptionHandler.ServeHTTP(w, r)
-		case StorageLocationServiceListStorageSubscriptionEventsProcedure:
-			storageLocationServiceListStorageSubscriptionEventsHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
 }
 
 // UnimplementedStorageLocationServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedStorageLocationServiceHandler struct{}
 
-func (UnimplementedStorageLocationServiceHandler) ListStorageLocations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.StorageLocations], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.ListStorageLocations is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) ListStorageLocations(context.Context, *emptypb.Empty) (*v1.StorageLocations, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.ListStorageLocations is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) GetStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageLocation], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.GetStorageLocation is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) GetStorageLocation(context.Context, *v11.ID) (*v1.StorageLocation, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.GetStorageLocation is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) CreateStorageLocation(context.Context, *connect.Request[v1.CreateStorageLocationRequest]) (*connect.Response[v1.StorageLocation], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.CreateStorageLocation is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) CreateStorageLocation(context.Context, *v1.CreateStorageLocationRequest) (*v1.StorageLocation, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.CreateStorageLocation is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) UpdateStorageLocation(context.Context, *connect.Request[v1.UpdateStorageLocationRequest]) (*connect.Response[v1.StorageLocation], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.UpdateStorageLocation is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) UpdateStorageLocation(context.Context, *v1.UpdateStorageLocationRequest) (*v1.StorageLocation, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.UpdateStorageLocation is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) DeleteStorageLocation(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.DeleteStorageLocation is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) DeleteStorageLocation(context.Context, *v11.ID) (*emptypb.Empty, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.DeleteStorageLocation is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) CreateStorageSubscription(context.Context, *connect.Request[v1.CreateStorageSubscriptionRequest]) (*connect.Response[v1.StorageSubscription], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.CreateStorageSubscription is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) CreateStorageSubscription(context.Context, *v1.CreateStorageSubscriptionRequest) (*v1.StorageSubscription, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.CreateStorageSubscription is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) ListStorageSubscriptions(context.Context, *connect.Request[v1.ListStorageSubscriptionsRequest]) (*connect.Response[v1.StorageSubscriptions], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.ListStorageSubscriptions is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) ListStorageSubscriptions(context.Context, *v1.ListStorageSubscriptionsRequest) (*v1.StorageSubscriptions, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.ListStorageSubscriptions is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) GetStorageSubscription(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.StorageSubscription], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.GetStorageSubscription is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) GetStorageSubscription(context.Context, *v11.ID) (*v1.StorageSubscription, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.GetStorageSubscription is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) DeleteStorageSubscription(context.Context, *connect.Request[v11.ID]) (*connect.Response[emptypb.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.DeleteStorageSubscription is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) DeleteStorageSubscription(context.Context, *v11.ID) (*emptypb.Empty, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.DeleteStorageSubscription is not implemented")
 }
 
-func (UnimplementedStorageLocationServiceHandler) ListStorageSubscriptionEvents(context.Context, *connect.Request[v1.ListStorageSubscriptionEventsRequest]) (*connect.Response[v1.StorageSubscriptionEvents], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.StorageLocationService.ListStorageSubscriptionEvents is not implemented"))
+func (UnimplementedStorageLocationServiceHandler) ListStorageSubscriptionEvents(context.Context, *v1.ListStorageSubscriptionEventsRequest) (*v1.StorageSubscriptionEvents, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.StorageLocationService.ListStorageSubscriptionEvents is not implemented")
+}
+
+type storageLocationServiceClient struct {
+	client *connect.Client
+}
+
+func (c *storageLocationServiceClient) ListStorageLocations(ctx context.Context, req *emptypb.Empty) (*v1.StorageLocations, error) {
+	var res v1.StorageLocations
+	if err := c.client.CallUnary(ctx, storageLocationServiceListStorageLocationsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) GetStorageLocation(ctx context.Context, req *v11.ID) (*v1.StorageLocation, error) {
+	var res v1.StorageLocation
+	if err := c.client.CallUnary(ctx, storageLocationServiceGetStorageLocationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) CreateStorageLocation(ctx context.Context, req *v1.CreateStorageLocationRequest) (*v1.StorageLocation, error) {
+	var res v1.StorageLocation
+	if err := c.client.CallUnary(ctx, storageLocationServiceCreateStorageLocationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) UpdateStorageLocation(ctx context.Context, req *v1.UpdateStorageLocationRequest) (*v1.StorageLocation, error) {
+	var res v1.StorageLocation
+	if err := c.client.CallUnary(ctx, storageLocationServiceUpdateStorageLocationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) DeleteStorageLocation(ctx context.Context, req *v11.ID) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+	if err := c.client.CallUnary(ctx, storageLocationServiceDeleteStorageLocationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) CreateStorageSubscription(ctx context.Context, req *v1.CreateStorageSubscriptionRequest) (*v1.StorageSubscription, error) {
+	var res v1.StorageSubscription
+	if err := c.client.CallUnary(ctx, storageLocationServiceCreateStorageSubscriptionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) ListStorageSubscriptions(ctx context.Context, req *v1.ListStorageSubscriptionsRequest) (*v1.StorageSubscriptions, error) {
+	var res v1.StorageSubscriptions
+	if err := c.client.CallUnary(ctx, storageLocationServiceListStorageSubscriptionsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) GetStorageSubscription(ctx context.Context, req *v11.ID) (*v1.StorageSubscription, error) {
+	var res v1.StorageSubscription
+	if err := c.client.CallUnary(ctx, storageLocationServiceGetStorageSubscriptionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) DeleteStorageSubscription(ctx context.Context, req *v11.ID) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+	if err := c.client.CallUnary(ctx, storageLocationServiceDeleteStorageSubscriptionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *storageLocationServiceClient) ListStorageSubscriptionEvents(ctx context.Context, req *v1.ListStorageSubscriptionEventsRequest) (*v1.StorageSubscriptionEvents, error) {
+	var res v1.StorageSubscriptionEvents
+	if err := c.client.CallUnary(ctx, storageLocationServiceListStorageSubscriptionEventsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type storageLocationServiceHandler struct{ svc StorageLocationServiceHandler }
+
+func (h storageLocationServiceHandler) listStorageLocations(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req emptypb.Empty
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListStorageLocations(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) getStorageLocation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v11.ID
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetStorageLocation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) createStorageLocation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateStorageLocationRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateStorageLocation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) updateStorageLocation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.UpdateStorageLocationRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.UpdateStorageLocation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) deleteStorageLocation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v11.ID
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.DeleteStorageLocation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) createStorageSubscription(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateStorageSubscriptionRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateStorageSubscription(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) listStorageSubscriptions(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.ListStorageSubscriptionsRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListStorageSubscriptions(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) getStorageSubscription(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v11.ID
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetStorageSubscription(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) deleteStorageSubscription(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v11.ID
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.DeleteStorageSubscription(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h storageLocationServiceHandler) listStorageSubscriptionEvents(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.ListStorageSubscriptionEventsRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListStorageSubscriptionEvents(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }

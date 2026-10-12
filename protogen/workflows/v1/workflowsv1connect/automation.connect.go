@@ -7,233 +7,254 @@
 package workflowsv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v11 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	v1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// AutomationServiceName is the fully-qualified name of the AutomationService service.
 	AutomationServiceName = "workflows.v1.AutomationService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AutomationServiceListAutomationsProcedure is the fully-qualified name of the AutomationService's
+	// AutomationServiceListAutomationsProcedure is the procedure name of the AutomationService's
 	// ListAutomations RPC.
 	AutomationServiceListAutomationsProcedure = "/workflows.v1.AutomationService/ListAutomations"
-	// AutomationServiceGetAutomationProcedure is the fully-qualified name of the AutomationService's
+	// AutomationServiceGetAutomationProcedure is the procedure name of the AutomationService's
 	// GetAutomation RPC.
 	AutomationServiceGetAutomationProcedure = "/workflows.v1.AutomationService/GetAutomation"
-	// AutomationServiceCreateAutomationProcedure is the fully-qualified name of the AutomationService's
+	// AutomationServiceCreateAutomationProcedure is the procedure name of the AutomationService's
 	// CreateAutomation RPC.
 	AutomationServiceCreateAutomationProcedure = "/workflows.v1.AutomationService/CreateAutomation"
-	// AutomationServiceUpdateAutomationProcedure is the fully-qualified name of the AutomationService's
+	// AutomationServiceUpdateAutomationProcedure is the procedure name of the AutomationService's
 	// UpdateAutomation RPC.
 	AutomationServiceUpdateAutomationProcedure = "/workflows.v1.AutomationService/UpdateAutomation"
-	// AutomationServiceDeleteAutomationProcedure is the fully-qualified name of the AutomationService's
+	// AutomationServiceDeleteAutomationProcedure is the procedure name of the AutomationService's
 	// DeleteAutomation RPC.
 	AutomationServiceDeleteAutomationProcedure = "/workflows.v1.AutomationService/DeleteAutomation"
+)
+
+var (
+	automationServiceListAutomationsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods().ByName("ListAutomations"),
+			Procedure:  AutomationServiceListAutomationsProcedure,
+		}
+	})
+	automationServiceGetAutomationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods().ByName("GetAutomation"),
+			Procedure:  AutomationServiceGetAutomationProcedure,
+		}
+	})
+	automationServiceCreateAutomationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods().ByName("CreateAutomation"),
+			Procedure:  AutomationServiceCreateAutomationProcedure,
+		}
+	})
+	automationServiceUpdateAutomationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods().ByName("UpdateAutomation"),
+			Procedure:  AutomationServiceUpdateAutomationProcedure,
+		}
+	})
+	automationServiceDeleteAutomationSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods().ByName("DeleteAutomation"),
+			Procedure:  AutomationServiceDeleteAutomationProcedure,
+		}
+	})
 )
 
 // AutomationServiceClient is a client for the workflows.v1.AutomationService service.
 type AutomationServiceClient interface {
 	// ListAutomations lists all the automations that are currently registered in a namespace.
-	ListAutomations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error)
+	ListAutomations(context.Context, *emptypb.Empty) (*v1.Automations, error)
 	// GetAutomation gets an automation by its ID.
-	GetAutomation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.AutomationPrototype], error)
+	GetAutomation(context.Context, *v11.ID) (*v1.AutomationPrototype, error)
 	// CreateAutomation creates a new automation in a namespace.
-	CreateAutomation(context.Context, *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error)
+	CreateAutomation(context.Context, *v1.AutomationPrototype) (*v1.AutomationPrototype, error)
 	// UpdateAutomation updates an automation in a namespace.
-	UpdateAutomation(context.Context, *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error)
+	UpdateAutomation(context.Context, *v1.AutomationPrototype) (*v1.AutomationPrototype, error)
 	// DeleteAutomation deletes an automation from a namespace.
-	DeleteAutomation(context.Context, *connect.Request[v1.DeleteAutomationRequest]) (*connect.Response[emptypb.Empty], error)
+	DeleteAutomation(context.Context, *v1.DeleteAutomationRequest) (*emptypb.Empty, error)
 }
 
-// NewAutomationServiceClient constructs a client for the workflows.v1.AutomationService service. By
-// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
-// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
-// connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewAutomationServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AutomationServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	automationServiceMethods := v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods()
-	return &automationServiceClient{
-		listAutomations: connect.NewClient[emptypb.Empty, v1.Automations](
-			httpClient,
-			baseURL+AutomationServiceListAutomationsProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("ListAutomations")),
-			connect.WithClientOptions(opts...),
-		),
-		getAutomation: connect.NewClient[v11.ID, v1.AutomationPrototype](
-			httpClient,
-			baseURL+AutomationServiceGetAutomationProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("GetAutomation")),
-			connect.WithClientOptions(opts...),
-		),
-		createAutomation: connect.NewClient[v1.AutomationPrototype, v1.AutomationPrototype](
-			httpClient,
-			baseURL+AutomationServiceCreateAutomationProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("CreateAutomation")),
-			connect.WithClientOptions(opts...),
-		),
-		updateAutomation: connect.NewClient[v1.AutomationPrototype, v1.AutomationPrototype](
-			httpClient,
-			baseURL+AutomationServiceUpdateAutomationProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("UpdateAutomation")),
-			connect.WithClientOptions(opts...),
-		),
-		deleteAutomation: connect.NewClient[v1.DeleteAutomationRequest, emptypb.Empty](
-			httpClient,
-			baseURL+AutomationServiceDeleteAutomationProcedure,
-			connect.WithSchema(automationServiceMethods.ByName("DeleteAutomation")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// automationServiceClient implements AutomationServiceClient.
-type automationServiceClient struct {
-	listAutomations  *connect.Client[emptypb.Empty, v1.Automations]
-	getAutomation    *connect.Client[v11.ID, v1.AutomationPrototype]
-	createAutomation *connect.Client[v1.AutomationPrototype, v1.AutomationPrototype]
-	updateAutomation *connect.Client[v1.AutomationPrototype, v1.AutomationPrototype]
-	deleteAutomation *connect.Client[v1.DeleteAutomationRequest, emptypb.Empty]
-}
-
-// ListAutomations calls workflows.v1.AutomationService.ListAutomations.
-func (c *automationServiceClient) ListAutomations(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error) {
-	return c.listAutomations.CallUnary(ctx, req)
-}
-
-// GetAutomation calls workflows.v1.AutomationService.GetAutomation.
-func (c *automationServiceClient) GetAutomation(ctx context.Context, req *connect.Request[v11.ID]) (*connect.Response[v1.AutomationPrototype], error) {
-	return c.getAutomation.CallUnary(ctx, req)
-}
-
-// CreateAutomation calls workflows.v1.AutomationService.CreateAutomation.
-func (c *automationServiceClient) CreateAutomation(ctx context.Context, req *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error) {
-	return c.createAutomation.CallUnary(ctx, req)
-}
-
-// UpdateAutomation calls workflows.v1.AutomationService.UpdateAutomation.
-func (c *automationServiceClient) UpdateAutomation(ctx context.Context, req *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error) {
-	return c.updateAutomation.CallUnary(ctx, req)
-}
-
-// DeleteAutomation calls workflows.v1.AutomationService.DeleteAutomation.
-func (c *automationServiceClient) DeleteAutomation(ctx context.Context, req *connect.Request[v1.DeleteAutomationRequest]) (*connect.Response[emptypb.Empty], error) {
-	return c.deleteAutomation.CallUnary(ctx, req)
+// NewAutomationServiceClient constructs a client for the workflows.v1.AutomationService service.
+// Multiple service clients may share a single connect.Client.
+func NewAutomationServiceClient(client *connect.Client) AutomationServiceClient {
+	return &automationServiceClient{client: client}
 }
 
 // AutomationServiceHandler is an implementation of the workflows.v1.AutomationService service.
 type AutomationServiceHandler interface {
 	// ListAutomations lists all the automations that are currently registered in a namespace.
-	ListAutomations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error)
+	ListAutomations(context.Context, *emptypb.Empty) (*v1.Automations, error)
 	// GetAutomation gets an automation by its ID.
-	GetAutomation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.AutomationPrototype], error)
+	GetAutomation(context.Context, *v11.ID) (*v1.AutomationPrototype, error)
 	// CreateAutomation creates a new automation in a namespace.
-	CreateAutomation(context.Context, *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error)
+	CreateAutomation(context.Context, *v1.AutomationPrototype) (*v1.AutomationPrototype, error)
 	// UpdateAutomation updates an automation in a namespace.
-	UpdateAutomation(context.Context, *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error)
+	UpdateAutomation(context.Context, *v1.AutomationPrototype) (*v1.AutomationPrototype, error)
 	// DeleteAutomation deletes an automation from a namespace.
-	DeleteAutomation(context.Context, *connect.Request[v1.DeleteAutomationRequest]) (*connect.Response[emptypb.Empty], error)
+	DeleteAutomation(context.Context, *v1.DeleteAutomationRequest) (*emptypb.Empty, error)
 }
 
-// NewAutomationServiceHandler builds an HTTP handler from the service implementation. It returns
-// the path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewAutomationServiceHandler(svc AutomationServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	automationServiceMethods := v1.File_workflows_v1_automation_proto.Services().ByName("AutomationService").Methods()
-	automationServiceListAutomationsHandler := connect.NewUnaryHandler(
-		AutomationServiceListAutomationsProcedure,
-		svc.ListAutomations,
-		connect.WithSchema(automationServiceMethods.ByName("ListAutomations")),
-		connect.WithHandlerOptions(opts...),
+// RegisterAutomationServiceHandler registers svc as the workflows.v1.AutomationService
+// implementation on server.
+func RegisterAutomationServiceHandler(server *connect.Server, svc AutomationServiceHandler) {
+	adapter := automationServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: automationServiceListAutomationsSpec(), Handler: adapter.listAutomations},
+		connect.Method{Spec: automationServiceGetAutomationSpec(), Handler: adapter.getAutomation},
+		connect.Method{Spec: automationServiceCreateAutomationSpec(), Handler: adapter.createAutomation},
+		connect.Method{Spec: automationServiceUpdateAutomationSpec(), Handler: adapter.updateAutomation},
+		connect.Method{Spec: automationServiceDeleteAutomationSpec(), Handler: adapter.deleteAutomation},
 	)
-	automationServiceGetAutomationHandler := connect.NewUnaryHandler(
-		AutomationServiceGetAutomationProcedure,
-		svc.GetAutomation,
-		connect.WithSchema(automationServiceMethods.ByName("GetAutomation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	automationServiceCreateAutomationHandler := connect.NewUnaryHandler(
-		AutomationServiceCreateAutomationProcedure,
-		svc.CreateAutomation,
-		connect.WithSchema(automationServiceMethods.ByName("CreateAutomation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	automationServiceUpdateAutomationHandler := connect.NewUnaryHandler(
-		AutomationServiceUpdateAutomationProcedure,
-		svc.UpdateAutomation,
-		connect.WithSchema(automationServiceMethods.ByName("UpdateAutomation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	automationServiceDeleteAutomationHandler := connect.NewUnaryHandler(
-		AutomationServiceDeleteAutomationProcedure,
-		svc.DeleteAutomation,
-		connect.WithSchema(automationServiceMethods.ByName("DeleteAutomation")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/workflows.v1.AutomationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case AutomationServiceListAutomationsProcedure:
-			automationServiceListAutomationsHandler.ServeHTTP(w, r)
-		case AutomationServiceGetAutomationProcedure:
-			automationServiceGetAutomationHandler.ServeHTTP(w, r)
-		case AutomationServiceCreateAutomationProcedure:
-			automationServiceCreateAutomationHandler.ServeHTTP(w, r)
-		case AutomationServiceUpdateAutomationProcedure:
-			automationServiceUpdateAutomationHandler.ServeHTTP(w, r)
-		case AutomationServiceDeleteAutomationProcedure:
-			automationServiceDeleteAutomationHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
 }
 
 // UnimplementedAutomationServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAutomationServiceHandler struct{}
 
-func (UnimplementedAutomationServiceHandler) ListAutomations(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.Automations], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.ListAutomations is not implemented"))
+func (UnimplementedAutomationServiceHandler) ListAutomations(context.Context, *emptypb.Empty) (*v1.Automations, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.AutomationService.ListAutomations is not implemented")
 }
 
-func (UnimplementedAutomationServiceHandler) GetAutomation(context.Context, *connect.Request[v11.ID]) (*connect.Response[v1.AutomationPrototype], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.GetAutomation is not implemented"))
+func (UnimplementedAutomationServiceHandler) GetAutomation(context.Context, *v11.ID) (*v1.AutomationPrototype, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.AutomationService.GetAutomation is not implemented")
 }
 
-func (UnimplementedAutomationServiceHandler) CreateAutomation(context.Context, *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.CreateAutomation is not implemented"))
+func (UnimplementedAutomationServiceHandler) CreateAutomation(context.Context, *v1.AutomationPrototype) (*v1.AutomationPrototype, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.AutomationService.CreateAutomation is not implemented")
 }
 
-func (UnimplementedAutomationServiceHandler) UpdateAutomation(context.Context, *connect.Request[v1.AutomationPrototype]) (*connect.Response[v1.AutomationPrototype], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.UpdateAutomation is not implemented"))
+func (UnimplementedAutomationServiceHandler) UpdateAutomation(context.Context, *v1.AutomationPrototype) (*v1.AutomationPrototype, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.AutomationService.UpdateAutomation is not implemented")
 }
 
-func (UnimplementedAutomationServiceHandler) DeleteAutomation(context.Context, *connect.Request[v1.DeleteAutomationRequest]) (*connect.Response[emptypb.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.AutomationService.DeleteAutomation is not implemented"))
+func (UnimplementedAutomationServiceHandler) DeleteAutomation(context.Context, *v1.DeleteAutomationRequest) (*emptypb.Empty, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.AutomationService.DeleteAutomation is not implemented")
+}
+
+type automationServiceClient struct {
+	client *connect.Client
+}
+
+func (c *automationServiceClient) ListAutomations(ctx context.Context, req *emptypb.Empty) (*v1.Automations, error) {
+	var res v1.Automations
+	if err := c.client.CallUnary(ctx, automationServiceListAutomationsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *automationServiceClient) GetAutomation(ctx context.Context, req *v11.ID) (*v1.AutomationPrototype, error) {
+	var res v1.AutomationPrototype
+	if err := c.client.CallUnary(ctx, automationServiceGetAutomationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *automationServiceClient) CreateAutomation(ctx context.Context, req *v1.AutomationPrototype) (*v1.AutomationPrototype, error) {
+	var res v1.AutomationPrototype
+	if err := c.client.CallUnary(ctx, automationServiceCreateAutomationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *automationServiceClient) UpdateAutomation(ctx context.Context, req *v1.AutomationPrototype) (*v1.AutomationPrototype, error) {
+	var res v1.AutomationPrototype
+	if err := c.client.CallUnary(ctx, automationServiceUpdateAutomationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *automationServiceClient) DeleteAutomation(ctx context.Context, req *v1.DeleteAutomationRequest) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+	if err := c.client.CallUnary(ctx, automationServiceDeleteAutomationSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type automationServiceHandler struct{ svc AutomationServiceHandler }
+
+func (h automationServiceHandler) listAutomations(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req emptypb.Empty
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListAutomations(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h automationServiceHandler) getAutomation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v11.ID
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetAutomation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h automationServiceHandler) createAutomation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.AutomationPrototype
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateAutomation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h automationServiceHandler) updateAutomation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.AutomationPrototype
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.UpdateAutomation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h automationServiceHandler) deleteAutomation(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.DeleteAutomationRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.DeleteAutomation(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }

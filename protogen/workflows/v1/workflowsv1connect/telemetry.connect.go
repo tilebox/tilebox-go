@@ -5,193 +5,206 @@
 package workflowsv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// TelemetryQueryServiceName is the fully-qualified name of the TelemetryQueryService service.
 	TelemetryQueryServiceName = "workflows.v1.TelemetryQueryService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// TelemetryQueryServiceQueryJobLogsProcedure is the fully-qualified name of the
-	// TelemetryQueryService's QueryJobLogs RPC.
+	// TelemetryQueryServiceQueryJobLogsProcedure is the procedure name of the TelemetryQueryService's
+	// QueryJobLogs RPC.
 	TelemetryQueryServiceQueryJobLogsProcedure = "/workflows.v1.TelemetryQueryService/QueryJobLogs"
-	// TelemetryQueryServiceQueryLogsInIntervalProcedure is the fully-qualified name of the
+	// TelemetryQueryServiceQueryLogsInIntervalProcedure is the procedure name of the
 	// TelemetryQueryService's QueryLogsInInterval RPC.
 	TelemetryQueryServiceQueryLogsInIntervalProcedure = "/workflows.v1.TelemetryQueryService/QueryLogsInInterval"
-	// TelemetryQueryServiceGetLogMessageCountsProcedure is the fully-qualified name of the
+	// TelemetryQueryServiceGetLogMessageCountsProcedure is the procedure name of the
 	// TelemetryQueryService's GetLogMessageCounts RPC.
 	TelemetryQueryServiceGetLogMessageCountsProcedure = "/workflows.v1.TelemetryQueryService/GetLogMessageCounts"
-	// TelemetryQueryServiceQueryJobSpansProcedure is the fully-qualified name of the
-	// TelemetryQueryService's QueryJobSpans RPC.
+	// TelemetryQueryServiceQueryJobSpansProcedure is the procedure name of the TelemetryQueryService's
+	// QueryJobSpans RPC.
 	TelemetryQueryServiceQueryJobSpansProcedure = "/workflows.v1.TelemetryQueryService/QueryJobSpans"
+)
+
+var (
+	telemetryQueryServiceQueryJobLogsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_telemetry_proto.Services().ByName("TelemetryQueryService").Methods().ByName("QueryJobLogs"),
+			Procedure:  TelemetryQueryServiceQueryJobLogsProcedure,
+		}
+	})
+	telemetryQueryServiceQueryLogsInIntervalSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_telemetry_proto.Services().ByName("TelemetryQueryService").Methods().ByName("QueryLogsInInterval"),
+			Procedure:  TelemetryQueryServiceQueryLogsInIntervalProcedure,
+		}
+	})
+	telemetryQueryServiceGetLogMessageCountsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_telemetry_proto.Services().ByName("TelemetryQueryService").Methods().ByName("GetLogMessageCounts"),
+			Procedure:  TelemetryQueryServiceGetLogMessageCountsProcedure,
+		}
+	})
+	telemetryQueryServiceQueryJobSpansSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_telemetry_proto.Services().ByName("TelemetryQueryService").Methods().ByName("QueryJobSpans"),
+			Procedure:  TelemetryQueryServiceQueryJobSpansProcedure,
+		}
+	})
 )
 
 // TelemetryQueryServiceClient is a client for the workflows.v1.TelemetryQueryService service.
 type TelemetryQueryServiceClient interface {
-	QueryJobLogs(context.Context, *connect.Request[v1.QueryJobLogsRequest]) (*connect.Response[v1.PaginatedLogsData], error)
-	QueryLogsInInterval(context.Context, *connect.Request[v1.QueryLogsInIntervalRequest]) (*connect.Response[v1.PaginatedLogsData], error)
-	GetLogMessageCounts(context.Context, *connect.Request[v1.GetLogMessageCountsRequest]) (*connect.Response[v1.GetLogMessageCountsResponse], error)
-	QueryJobSpans(context.Context, *connect.Request[v1.QueryJobSpansRequest]) (*connect.Response[v1.PaginatedSpansData], error)
+	QueryJobLogs(context.Context, *v1.QueryJobLogsRequest) (*v1.PaginatedLogsData, error)
+	QueryLogsInInterval(context.Context, *v1.QueryLogsInIntervalRequest) (*v1.PaginatedLogsData, error)
+	GetLogMessageCounts(context.Context, *v1.GetLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error)
+	QueryJobSpans(context.Context, *v1.QueryJobSpansRequest) (*v1.PaginatedSpansData, error)
 }
 
 // NewTelemetryQueryServiceClient constructs a client for the workflows.v1.TelemetryQueryService
-// service. By default, it uses the Connect protocol with the binary Protobuf Codec, asks for
-// gzipped responses, and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply
-// the connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewTelemetryQueryServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) TelemetryQueryServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	telemetryQueryServiceMethods := v1.File_workflows_v1_telemetry_proto.Services().ByName("TelemetryQueryService").Methods()
-	return &telemetryQueryServiceClient{
-		queryJobLogs: connect.NewClient[v1.QueryJobLogsRequest, v1.PaginatedLogsData](
-			httpClient,
-			baseURL+TelemetryQueryServiceQueryJobLogsProcedure,
-			connect.WithSchema(telemetryQueryServiceMethods.ByName("QueryJobLogs")),
-			connect.WithClientOptions(opts...),
-		),
-		queryLogsInInterval: connect.NewClient[v1.QueryLogsInIntervalRequest, v1.PaginatedLogsData](
-			httpClient,
-			baseURL+TelemetryQueryServiceQueryLogsInIntervalProcedure,
-			connect.WithSchema(telemetryQueryServiceMethods.ByName("QueryLogsInInterval")),
-			connect.WithClientOptions(opts...),
-		),
-		getLogMessageCounts: connect.NewClient[v1.GetLogMessageCountsRequest, v1.GetLogMessageCountsResponse](
-			httpClient,
-			baseURL+TelemetryQueryServiceGetLogMessageCountsProcedure,
-			connect.WithSchema(telemetryQueryServiceMethods.ByName("GetLogMessageCounts")),
-			connect.WithClientOptions(opts...),
-		),
-		queryJobSpans: connect.NewClient[v1.QueryJobSpansRequest, v1.PaginatedSpansData](
-			httpClient,
-			baseURL+TelemetryQueryServiceQueryJobSpansProcedure,
-			connect.WithSchema(telemetryQueryServiceMethods.ByName("QueryJobSpans")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// telemetryQueryServiceClient implements TelemetryQueryServiceClient.
-type telemetryQueryServiceClient struct {
-	queryJobLogs        *connect.Client[v1.QueryJobLogsRequest, v1.PaginatedLogsData]
-	queryLogsInInterval *connect.Client[v1.QueryLogsInIntervalRequest, v1.PaginatedLogsData]
-	getLogMessageCounts *connect.Client[v1.GetLogMessageCountsRequest, v1.GetLogMessageCountsResponse]
-	queryJobSpans       *connect.Client[v1.QueryJobSpansRequest, v1.PaginatedSpansData]
-}
-
-// QueryJobLogs calls workflows.v1.TelemetryQueryService.QueryJobLogs.
-func (c *telemetryQueryServiceClient) QueryJobLogs(ctx context.Context, req *connect.Request[v1.QueryJobLogsRequest]) (*connect.Response[v1.PaginatedLogsData], error) {
-	return c.queryJobLogs.CallUnary(ctx, req)
-}
-
-// QueryLogsInInterval calls workflows.v1.TelemetryQueryService.QueryLogsInInterval.
-func (c *telemetryQueryServiceClient) QueryLogsInInterval(ctx context.Context, req *connect.Request[v1.QueryLogsInIntervalRequest]) (*connect.Response[v1.PaginatedLogsData], error) {
-	return c.queryLogsInInterval.CallUnary(ctx, req)
-}
-
-// GetLogMessageCounts calls workflows.v1.TelemetryQueryService.GetLogMessageCounts.
-func (c *telemetryQueryServiceClient) GetLogMessageCounts(ctx context.Context, req *connect.Request[v1.GetLogMessageCountsRequest]) (*connect.Response[v1.GetLogMessageCountsResponse], error) {
-	return c.getLogMessageCounts.CallUnary(ctx, req)
-}
-
-// QueryJobSpans calls workflows.v1.TelemetryQueryService.QueryJobSpans.
-func (c *telemetryQueryServiceClient) QueryJobSpans(ctx context.Context, req *connect.Request[v1.QueryJobSpansRequest]) (*connect.Response[v1.PaginatedSpansData], error) {
-	return c.queryJobSpans.CallUnary(ctx, req)
+// service. Multiple service clients may share a single connect.Client.
+func NewTelemetryQueryServiceClient(client *connect.Client) TelemetryQueryServiceClient {
+	return &telemetryQueryServiceClient{client: client}
 }
 
 // TelemetryQueryServiceHandler is an implementation of the workflows.v1.TelemetryQueryService
 // service.
 type TelemetryQueryServiceHandler interface {
-	QueryJobLogs(context.Context, *connect.Request[v1.QueryJobLogsRequest]) (*connect.Response[v1.PaginatedLogsData], error)
-	QueryLogsInInterval(context.Context, *connect.Request[v1.QueryLogsInIntervalRequest]) (*connect.Response[v1.PaginatedLogsData], error)
-	GetLogMessageCounts(context.Context, *connect.Request[v1.GetLogMessageCountsRequest]) (*connect.Response[v1.GetLogMessageCountsResponse], error)
-	QueryJobSpans(context.Context, *connect.Request[v1.QueryJobSpansRequest]) (*connect.Response[v1.PaginatedSpansData], error)
+	QueryJobLogs(context.Context, *v1.QueryJobLogsRequest) (*v1.PaginatedLogsData, error)
+	QueryLogsInInterval(context.Context, *v1.QueryLogsInIntervalRequest) (*v1.PaginatedLogsData, error)
+	GetLogMessageCounts(context.Context, *v1.GetLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error)
+	QueryJobSpans(context.Context, *v1.QueryJobSpansRequest) (*v1.PaginatedSpansData, error)
 }
 
-// NewTelemetryQueryServiceHandler builds an HTTP handler from the service implementation. It
-// returns the path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewTelemetryQueryServiceHandler(svc TelemetryQueryServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	telemetryQueryServiceMethods := v1.File_workflows_v1_telemetry_proto.Services().ByName("TelemetryQueryService").Methods()
-	telemetryQueryServiceQueryJobLogsHandler := connect.NewUnaryHandler(
-		TelemetryQueryServiceQueryJobLogsProcedure,
-		svc.QueryJobLogs,
-		connect.WithSchema(telemetryQueryServiceMethods.ByName("QueryJobLogs")),
-		connect.WithHandlerOptions(opts...),
+// RegisterTelemetryQueryServiceHandler registers svc as the workflows.v1.TelemetryQueryService
+// implementation on server.
+func RegisterTelemetryQueryServiceHandler(server *connect.Server, svc TelemetryQueryServiceHandler) {
+	adapter := telemetryQueryServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: telemetryQueryServiceQueryJobLogsSpec(), Handler: adapter.queryJobLogs},
+		connect.Method{Spec: telemetryQueryServiceQueryLogsInIntervalSpec(), Handler: adapter.queryLogsInInterval},
+		connect.Method{Spec: telemetryQueryServiceGetLogMessageCountsSpec(), Handler: adapter.getLogMessageCounts},
+		connect.Method{Spec: telemetryQueryServiceQueryJobSpansSpec(), Handler: adapter.queryJobSpans},
 	)
-	telemetryQueryServiceQueryLogsInIntervalHandler := connect.NewUnaryHandler(
-		TelemetryQueryServiceQueryLogsInIntervalProcedure,
-		svc.QueryLogsInInterval,
-		connect.WithSchema(telemetryQueryServiceMethods.ByName("QueryLogsInInterval")),
-		connect.WithHandlerOptions(opts...),
-	)
-	telemetryQueryServiceGetLogMessageCountsHandler := connect.NewUnaryHandler(
-		TelemetryQueryServiceGetLogMessageCountsProcedure,
-		svc.GetLogMessageCounts,
-		connect.WithSchema(telemetryQueryServiceMethods.ByName("GetLogMessageCounts")),
-		connect.WithHandlerOptions(opts...),
-	)
-	telemetryQueryServiceQueryJobSpansHandler := connect.NewUnaryHandler(
-		TelemetryQueryServiceQueryJobSpansProcedure,
-		svc.QueryJobSpans,
-		connect.WithSchema(telemetryQueryServiceMethods.ByName("QueryJobSpans")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/workflows.v1.TelemetryQueryService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case TelemetryQueryServiceQueryJobLogsProcedure:
-			telemetryQueryServiceQueryJobLogsHandler.ServeHTTP(w, r)
-		case TelemetryQueryServiceQueryLogsInIntervalProcedure:
-			telemetryQueryServiceQueryLogsInIntervalHandler.ServeHTTP(w, r)
-		case TelemetryQueryServiceGetLogMessageCountsProcedure:
-			telemetryQueryServiceGetLogMessageCountsHandler.ServeHTTP(w, r)
-		case TelemetryQueryServiceQueryJobSpansProcedure:
-			telemetryQueryServiceQueryJobSpansHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
 }
 
 // UnimplementedTelemetryQueryServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedTelemetryQueryServiceHandler struct{}
 
-func (UnimplementedTelemetryQueryServiceHandler) QueryJobLogs(context.Context, *connect.Request[v1.QueryJobLogsRequest]) (*connect.Response[v1.PaginatedLogsData], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TelemetryQueryService.QueryJobLogs is not implemented"))
+func (UnimplementedTelemetryQueryServiceHandler) QueryJobLogs(context.Context, *v1.QueryJobLogsRequest) (*v1.PaginatedLogsData, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.TelemetryQueryService.QueryJobLogs is not implemented")
 }
 
-func (UnimplementedTelemetryQueryServiceHandler) QueryLogsInInterval(context.Context, *connect.Request[v1.QueryLogsInIntervalRequest]) (*connect.Response[v1.PaginatedLogsData], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TelemetryQueryService.QueryLogsInInterval is not implemented"))
+func (UnimplementedTelemetryQueryServiceHandler) QueryLogsInInterval(context.Context, *v1.QueryLogsInIntervalRequest) (*v1.PaginatedLogsData, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.TelemetryQueryService.QueryLogsInInterval is not implemented")
 }
 
-func (UnimplementedTelemetryQueryServiceHandler) GetLogMessageCounts(context.Context, *connect.Request[v1.GetLogMessageCountsRequest]) (*connect.Response[v1.GetLogMessageCountsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TelemetryQueryService.GetLogMessageCounts is not implemented"))
+func (UnimplementedTelemetryQueryServiceHandler) GetLogMessageCounts(context.Context, *v1.GetLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.TelemetryQueryService.GetLogMessageCounts is not implemented")
 }
 
-func (UnimplementedTelemetryQueryServiceHandler) QueryJobSpans(context.Context, *connect.Request[v1.QueryJobSpansRequest]) (*connect.Response[v1.PaginatedSpansData], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.TelemetryQueryService.QueryJobSpans is not implemented"))
+func (UnimplementedTelemetryQueryServiceHandler) QueryJobSpans(context.Context, *v1.QueryJobSpansRequest) (*v1.PaginatedSpansData, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.TelemetryQueryService.QueryJobSpans is not implemented")
+}
+
+type telemetryQueryServiceClient struct {
+	client *connect.Client
+}
+
+func (c *telemetryQueryServiceClient) QueryJobLogs(ctx context.Context, req *v1.QueryJobLogsRequest) (*v1.PaginatedLogsData, error) {
+	var res v1.PaginatedLogsData
+	if err := c.client.CallUnary(ctx, telemetryQueryServiceQueryJobLogsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *telemetryQueryServiceClient) QueryLogsInInterval(ctx context.Context, req *v1.QueryLogsInIntervalRequest) (*v1.PaginatedLogsData, error) {
+	var res v1.PaginatedLogsData
+	if err := c.client.CallUnary(ctx, telemetryQueryServiceQueryLogsInIntervalSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *telemetryQueryServiceClient) GetLogMessageCounts(ctx context.Context, req *v1.GetLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error) {
+	var res v1.GetLogMessageCountsResponse
+	if err := c.client.CallUnary(ctx, telemetryQueryServiceGetLogMessageCountsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *telemetryQueryServiceClient) QueryJobSpans(ctx context.Context, req *v1.QueryJobSpansRequest) (*v1.PaginatedSpansData, error) {
+	var res v1.PaginatedSpansData
+	if err := c.client.CallUnary(ctx, telemetryQueryServiceQueryJobSpansSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type telemetryQueryServiceHandler struct{ svc TelemetryQueryServiceHandler }
+
+func (h telemetryQueryServiceHandler) queryJobLogs(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.QueryJobLogsRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.QueryJobLogs(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h telemetryQueryServiceHandler) queryLogsInInterval(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.QueryLogsInIntervalRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.QueryLogsInInterval(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h telemetryQueryServiceHandler) getLogMessageCounts(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetLogMessageCountsRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetLogMessageCounts(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h telemetryQueryServiceHandler) queryJobSpans(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.QueryJobSpansRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.QueryJobSpans(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }

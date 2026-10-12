@@ -5,64 +5,92 @@
 package workflowsv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	v11 "go.opentelemetry.io/proto/otlp/logs/v1"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// WorkerServiceName is the fully-qualified name of the WorkerService service.
 	WorkerServiceName = "workflows.v1.WorkerService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// WorkerServiceListRegisteredTasksProcedure is the fully-qualified name of the WorkerService's
+	// WorkerServiceListRegisteredTasksProcedure is the procedure name of the WorkerService's
 	// ListRegisteredTasks RPC.
 	WorkerServiceListRegisteredTasksProcedure = "/workflows.v1.WorkerService/ListRegisteredTasks"
-	// WorkerServiceInitializeWorkerProcedure is the fully-qualified name of the WorkerService's
+	// WorkerServiceInitializeWorkerProcedure is the procedure name of the WorkerService's
 	// InitializeWorker RPC.
 	WorkerServiceInitializeWorkerProcedure = "/workflows.v1.WorkerService/InitializeWorker"
-	// WorkerServiceExecuteTaskProcedure is the fully-qualified name of the WorkerService's ExecuteTask
-	// RPC.
+	// WorkerServiceExecuteTaskProcedure is the procedure name of the WorkerService's ExecuteTask RPC.
 	WorkerServiceExecuteTaskProcedure = "/workflows.v1.WorkerService/ExecuteTask"
-	// WorkerServiceWatchLogsProcedure is the fully-qualified name of the WorkerService's WatchLogs RPC.
+	// WorkerServiceWatchLogsProcedure is the procedure name of the WorkerService's WatchLogs RPC.
 	WorkerServiceWatchLogsProcedure = "/workflows.v1.WorkerService/WatchLogs"
-	// WorkerServiceShutdownWorkerProcedure is the fully-qualified name of the WorkerService's
-	// ShutdownWorker RPC.
+	// WorkerServiceShutdownWorkerProcedure is the procedure name of the WorkerService's ShutdownWorker
+	// RPC.
 	WorkerServiceShutdownWorkerProcedure = "/workflows.v1.WorkerService/ShutdownWorker"
+)
+
+var (
+	workerServiceListRegisteredTasksSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_worker_proto.Services().ByName("WorkerService").Methods().ByName("ListRegisteredTasks"),
+			Procedure:  WorkerServiceListRegisteredTasksProcedure,
+		}
+	})
+	workerServiceInitializeWorkerSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_worker_proto.Services().ByName("WorkerService").Methods().ByName("InitializeWorker"),
+			Procedure:  WorkerServiceInitializeWorkerProcedure,
+		}
+	})
+	workerServiceExecuteTaskSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_worker_proto.Services().ByName("WorkerService").Methods().ByName("ExecuteTask"),
+			Procedure:  WorkerServiceExecuteTaskProcedure,
+		}
+	})
+	workerServiceWatchLogsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeServer,
+			Schema:     v1.File_workflows_v1_worker_proto.Services().ByName("WorkerService").Methods().ByName("WatchLogs"),
+			Procedure:  WorkerServiceWatchLogsProcedure,
+		}
+	})
+	workerServiceShutdownWorkerSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_worker_proto.Services().ByName("WorkerService").Methods().ByName("ShutdownWorker"),
+			Procedure:  WorkerServiceShutdownWorkerProcedure,
+		}
+	})
 )
 
 // WorkerServiceClient is a client for the workflows.v1.WorkerService service.
 type WorkerServiceClient interface {
 	// ListRegisteredTasks is called by the runner to discover the task identifiers that a worker runtime can execute.
-	ListRegisteredTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.TaskIdentifiers], error)
+	ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.TaskIdentifiers, error)
 	// InitializeWorker is called by the runner to initialize a worker runtime with some known metadata about the
 	// runner. This allows us to add those metadata to any logs and traces emitted by the worker.
-	InitializeWorker(context.Context, *connect.Request[v1.InitializeRunnerRequest]) (*connect.Response[v1.InitializeRunnerResponse], error)
+	InitializeWorker(context.Context, *v1.InitializeRunnerRequest) (*v1.InitializeRunnerResponse, error)
 	// ExecuteTask is called by the runner to execute a task on the worker runtime. The worker runtime will execute the
 	// task, and then respond with the result of the task execution, which can either be a computed task, or a failed
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
-	ExecuteTask(context.Context, *connect.Request[v1.Task]) (*connect.Response[v1.ExecuteTaskResponse], error)
+	ExecuteTask(context.Context, *v1.Task) (*v1.ExecuteTaskResponse, error)
 	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
 	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
 	// The runner sends one request; the worker sends buffered startup records followed by live records in enqueue
@@ -74,103 +102,51 @@ type WorkerServiceClient interface {
 	// Messages use the log body, severity, trace/span IDs, and attributes from the OpenTelemetry log model;
 	// exception details use exception.type, exception.message, and exception.stacktrace attributes.
 	// buf:lint:ignore RPC_NO_SERVER_STREAMING
-	WatchLogs(context.Context, *connect.Request[emptypb.Empty]) (*connect.ServerStreamForClient[v11.LogRecord], error)
+	WatchLogs(context.Context, *emptypb.Empty) (WorkerServiceWatchLogsClientStream, error)
 	// Gracefully shuts down the worker runtime. After receiving this request, the worker runtime will
 	// finish task cleanup, flush API logs, and drain buffered WatchLogs records within a bounded deadline.
 	// The log stream ends before the worker stops its RPC server; an open subscription must not prevent shutdown.
-	ShutdownWorker(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error)
+	ShutdownWorker(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 }
 
-// NewWorkerServiceClient constructs a client for the workflows.v1.WorkerService service. By
-// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
-// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
-// connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewWorkerServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) WorkerServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	workerServiceMethods := v1.File_workflows_v1_worker_proto.Services().ByName("WorkerService").Methods()
-	return &workerServiceClient{
-		listRegisteredTasks: connect.NewClient[emptypb.Empty, v1.TaskIdentifiers](
-			httpClient,
-			baseURL+WorkerServiceListRegisteredTasksProcedure,
-			connect.WithSchema(workerServiceMethods.ByName("ListRegisteredTasks")),
-			connect.WithClientOptions(opts...),
-		),
-		initializeWorker: connect.NewClient[v1.InitializeRunnerRequest, v1.InitializeRunnerResponse](
-			httpClient,
-			baseURL+WorkerServiceInitializeWorkerProcedure,
-			connect.WithSchema(workerServiceMethods.ByName("InitializeWorker")),
-			connect.WithClientOptions(opts...),
-		),
-		executeTask: connect.NewClient[v1.Task, v1.ExecuteTaskResponse](
-			httpClient,
-			baseURL+WorkerServiceExecuteTaskProcedure,
-			connect.WithSchema(workerServiceMethods.ByName("ExecuteTask")),
-			connect.WithClientOptions(opts...),
-		),
-		watchLogs: connect.NewClient[emptypb.Empty, v11.LogRecord](
-			httpClient,
-			baseURL+WorkerServiceWatchLogsProcedure,
-			connect.WithSchema(workerServiceMethods.ByName("WatchLogs")),
-			connect.WithClientOptions(opts...),
-		),
-		shutdownWorker: connect.NewClient[emptypb.Empty, emptypb.Empty](
-			httpClient,
-			baseURL+WorkerServiceShutdownWorkerProcedure,
-			connect.WithSchema(workerServiceMethods.ByName("ShutdownWorker")),
-			connect.WithClientOptions(opts...),
-		),
+// NewWorkerServiceClient constructs a client for the workflows.v1.WorkerService service. Multiple
+// service clients may share a single connect.Client.
+func NewWorkerServiceClient(client *connect.Client) WorkerServiceClient {
+	return &workerServiceClient{client: client}
+}
+
+// WorkerServiceWatchLogsClientStream is the client stream for the WorkerService's WatchLogs RPC.
+type WorkerServiceWatchLogsClientStream struct {
+	stream connect.ClientStream
+}
+
+// Receive returns the next response message from the server.
+func (s WorkerServiceWatchLogsClientStream) Receive() (*v11.LogRecord, error) {
+	var res v11.LogRecord
+	if err := s.stream.Receive(&res); err != nil {
+		return nil, err
 	}
+	return &res, nil
 }
 
-// workerServiceClient implements WorkerServiceClient.
-type workerServiceClient struct {
-	listRegisteredTasks *connect.Client[emptypb.Empty, v1.TaskIdentifiers]
-	initializeWorker    *connect.Client[v1.InitializeRunnerRequest, v1.InitializeRunnerResponse]
-	executeTask         *connect.Client[v1.Task, v1.ExecuteTaskResponse]
-	watchLogs           *connect.Client[emptypb.Empty, v11.LogRecord]
-	shutdownWorker      *connect.Client[emptypb.Empty, emptypb.Empty]
-}
-
-// ListRegisteredTasks calls workflows.v1.WorkerService.ListRegisteredTasks.
-func (c *workerServiceClient) ListRegisteredTasks(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[v1.TaskIdentifiers], error) {
-	return c.listRegisteredTasks.CallUnary(ctx, req)
-}
-
-// InitializeWorker calls workflows.v1.WorkerService.InitializeWorker.
-func (c *workerServiceClient) InitializeWorker(ctx context.Context, req *connect.Request[v1.InitializeRunnerRequest]) (*connect.Response[v1.InitializeRunnerResponse], error) {
-	return c.initializeWorker.CallUnary(ctx, req)
-}
-
-// ExecuteTask calls workflows.v1.WorkerService.ExecuteTask.
-func (c *workerServiceClient) ExecuteTask(ctx context.Context, req *connect.Request[v1.Task]) (*connect.Response[v1.ExecuteTaskResponse], error) {
-	return c.executeTask.CallUnary(ctx, req)
-}
-
-// WatchLogs calls workflows.v1.WorkerService.WatchLogs.
-func (c *workerServiceClient) WatchLogs(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.ServerStreamForClient[v11.LogRecord], error) {
-	return c.watchLogs.CallServerStream(ctx, req)
-}
-
-// ShutdownWorker calls workflows.v1.WorkerService.ShutdownWorker.
-func (c *workerServiceClient) ShutdownWorker(ctx context.Context, req *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error) {
-	return c.shutdownWorker.CallUnary(ctx, req)
+// Close releases the stream's resources. It is idempotent and is typically deferred to clean up a
+// stream abandoned before io.EOF.
+func (s WorkerServiceWatchLogsClientStream) Close() error {
+	return s.stream.Close()
 }
 
 // WorkerServiceHandler is an implementation of the workflows.v1.WorkerService service.
 type WorkerServiceHandler interface {
 	// ListRegisteredTasks is called by the runner to discover the task identifiers that a worker runtime can execute.
-	ListRegisteredTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.TaskIdentifiers], error)
+	ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.TaskIdentifiers, error)
 	// InitializeWorker is called by the runner to initialize a worker runtime with some known metadata about the
 	// runner. This allows us to add those metadata to any logs and traces emitted by the worker.
-	InitializeWorker(context.Context, *connect.Request[v1.InitializeRunnerRequest]) (*connect.Response[v1.InitializeRunnerResponse], error)
+	InitializeWorker(context.Context, *v1.InitializeRunnerRequest) (*v1.InitializeRunnerResponse, error)
 	// ExecuteTask is called by the runner to execute a task on the worker runtime. The worker runtime will execute the
 	// task, and then respond with the result of the task execution, which can either be a computed task, or a failed
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
-	ExecuteTask(context.Context, *connect.Request[v1.Task]) (*connect.Response[v1.ExecuteTaskResponse], error)
+	ExecuteTask(context.Context, *v1.Task) (*v1.ExecuteTaskResponse, error)
 	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
 	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
 	// The runner sends one request; the worker sends buffered startup records followed by live records in enqueue
@@ -182,87 +158,162 @@ type WorkerServiceHandler interface {
 	// Messages use the log body, severity, trace/span IDs, and attributes from the OpenTelemetry log model;
 	// exception details use exception.type, exception.message, and exception.stacktrace attributes.
 	// buf:lint:ignore RPC_NO_SERVER_STREAMING
-	WatchLogs(context.Context, *connect.Request[emptypb.Empty], *connect.ServerStream[v11.LogRecord]) error
+	WatchLogs(context.Context, *emptypb.Empty, WorkerServiceWatchLogsServerStream) error
 	// Gracefully shuts down the worker runtime. After receiving this request, the worker runtime will
 	// finish task cleanup, flush API logs, and drain buffered WatchLogs records within a bounded deadline.
 	// The log stream ends before the worker stops its RPC server; an open subscription must not prevent shutdown.
-	ShutdownWorker(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error)
+	ShutdownWorker(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 }
 
-// NewWorkerServiceHandler builds an HTTP handler from the service implementation. It returns the
-// path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewWorkerServiceHandler(svc WorkerServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	workerServiceMethods := v1.File_workflows_v1_worker_proto.Services().ByName("WorkerService").Methods()
-	workerServiceListRegisteredTasksHandler := connect.NewUnaryHandler(
-		WorkerServiceListRegisteredTasksProcedure,
-		svc.ListRegisteredTasks,
-		connect.WithSchema(workerServiceMethods.ByName("ListRegisteredTasks")),
-		connect.WithHandlerOptions(opts...),
+// RegisterWorkerServiceHandler registers svc as the workflows.v1.WorkerService implementation on
+// server.
+func RegisterWorkerServiceHandler(server *connect.Server, svc WorkerServiceHandler) {
+	adapter := workerServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: workerServiceListRegisteredTasksSpec(), Handler: adapter.listRegisteredTasks},
+		connect.Method{Spec: workerServiceInitializeWorkerSpec(), Handler: adapter.initializeWorker},
+		connect.Method{Spec: workerServiceExecuteTaskSpec(), Handler: adapter.executeTask},
+		connect.Method{Spec: workerServiceWatchLogsSpec(), Handler: adapter.watchLogs},
+		connect.Method{Spec: workerServiceShutdownWorkerSpec(), Handler: adapter.shutdownWorker},
 	)
-	workerServiceInitializeWorkerHandler := connect.NewUnaryHandler(
-		WorkerServiceInitializeWorkerProcedure,
-		svc.InitializeWorker,
-		connect.WithSchema(workerServiceMethods.ByName("InitializeWorker")),
-		connect.WithHandlerOptions(opts...),
-	)
-	workerServiceExecuteTaskHandler := connect.NewUnaryHandler(
-		WorkerServiceExecuteTaskProcedure,
-		svc.ExecuteTask,
-		connect.WithSchema(workerServiceMethods.ByName("ExecuteTask")),
-		connect.WithHandlerOptions(opts...),
-	)
-	workerServiceWatchLogsHandler := connect.NewServerStreamHandler(
-		WorkerServiceWatchLogsProcedure,
-		svc.WatchLogs,
-		connect.WithSchema(workerServiceMethods.ByName("WatchLogs")),
-		connect.WithHandlerOptions(opts...),
-	)
-	workerServiceShutdownWorkerHandler := connect.NewUnaryHandler(
-		WorkerServiceShutdownWorkerProcedure,
-		svc.ShutdownWorker,
-		connect.WithSchema(workerServiceMethods.ByName("ShutdownWorker")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/workflows.v1.WorkerService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case WorkerServiceListRegisteredTasksProcedure:
-			workerServiceListRegisteredTasksHandler.ServeHTTP(w, r)
-		case WorkerServiceInitializeWorkerProcedure:
-			workerServiceInitializeWorkerHandler.ServeHTTP(w, r)
-		case WorkerServiceExecuteTaskProcedure:
-			workerServiceExecuteTaskHandler.ServeHTTP(w, r)
-		case WorkerServiceWatchLogsProcedure:
-			workerServiceWatchLogsHandler.ServeHTTP(w, r)
-		case WorkerServiceShutdownWorkerProcedure:
-			workerServiceShutdownWorkerHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
+}
+
+// WorkerServiceWatchLogsServerStream is the server stream for the WorkerService's WatchLogs RPC.
+type WorkerServiceWatchLogsServerStream struct {
+	stream connect.ServerStream
+}
+
+// SendHeaders flushes the response headers without a message. The first Send does this implicitly.
+func (s WorkerServiceWatchLogsServerStream) SendHeaders() error {
+	return s.stream.SendHeaders()
+}
+
+// Send sends a response message to the client.
+func (s WorkerServiceWatchLogsServerStream) Send(res *v11.LogRecord) error {
+	return s.stream.Send(res)
 }
 
 // UnimplementedWorkerServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedWorkerServiceHandler struct{}
 
-func (UnimplementedWorkerServiceHandler) ListRegisteredTasks(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[v1.TaskIdentifiers], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkerService.ListRegisteredTasks is not implemented"))
+func (UnimplementedWorkerServiceHandler) ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.TaskIdentifiers, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.WorkerService.ListRegisteredTasks is not implemented")
 }
 
-func (UnimplementedWorkerServiceHandler) InitializeWorker(context.Context, *connect.Request[v1.InitializeRunnerRequest]) (*connect.Response[v1.InitializeRunnerResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkerService.InitializeWorker is not implemented"))
+func (UnimplementedWorkerServiceHandler) InitializeWorker(context.Context, *v1.InitializeRunnerRequest) (*v1.InitializeRunnerResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.WorkerService.InitializeWorker is not implemented")
 }
 
-func (UnimplementedWorkerServiceHandler) ExecuteTask(context.Context, *connect.Request[v1.Task]) (*connect.Response[v1.ExecuteTaskResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkerService.ExecuteTask is not implemented"))
+func (UnimplementedWorkerServiceHandler) ExecuteTask(context.Context, *v1.Task) (*v1.ExecuteTaskResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.WorkerService.ExecuteTask is not implemented")
 }
 
-func (UnimplementedWorkerServiceHandler) WatchLogs(context.Context, *connect.Request[emptypb.Empty], *connect.ServerStream[v11.LogRecord]) error {
-	return connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkerService.WatchLogs is not implemented"))
+func (UnimplementedWorkerServiceHandler) WatchLogs(context.Context, *emptypb.Empty, WorkerServiceWatchLogsServerStream) error {
+	return connect.NewError(connect.CodeUnimplemented, "workflows.v1.WorkerService.WatchLogs is not implemented")
 }
 
-func (UnimplementedWorkerServiceHandler) ShutdownWorker(context.Context, *connect.Request[emptypb.Empty]) (*connect.Response[emptypb.Empty], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.WorkerService.ShutdownWorker is not implemented"))
+func (UnimplementedWorkerServiceHandler) ShutdownWorker(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.WorkerService.ShutdownWorker is not implemented")
+}
+
+type workerServiceClient struct {
+	client *connect.Client
+}
+
+func (c *workerServiceClient) ListRegisteredTasks(ctx context.Context, req *emptypb.Empty) (*v1.TaskIdentifiers, error) {
+	var res v1.TaskIdentifiers
+	if err := c.client.CallUnary(ctx, workerServiceListRegisteredTasksSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *workerServiceClient) InitializeWorker(ctx context.Context, req *v1.InitializeRunnerRequest) (*v1.InitializeRunnerResponse, error) {
+	var res v1.InitializeRunnerResponse
+	if err := c.client.CallUnary(ctx, workerServiceInitializeWorkerSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *workerServiceClient) ExecuteTask(ctx context.Context, req *v1.Task) (*v1.ExecuteTaskResponse, error) {
+	var res v1.ExecuteTaskResponse
+	if err := c.client.CallUnary(ctx, workerServiceExecuteTaskSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *workerServiceClient) WatchLogs(ctx context.Context, req *emptypb.Empty) (WorkerServiceWatchLogsClientStream, error) {
+	stream, err := c.client.CallServerStream(ctx, workerServiceWatchLogsSpec(), req)
+	if err != nil {
+		return WorkerServiceWatchLogsClientStream{}, err
+	}
+	return WorkerServiceWatchLogsClientStream{stream: stream}, nil
+}
+
+func (c *workerServiceClient) ShutdownWorker(ctx context.Context, req *emptypb.Empty) (*emptypb.Empty, error) {
+	var res emptypb.Empty
+	if err := c.client.CallUnary(ctx, workerServiceShutdownWorkerSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type workerServiceHandler struct{ svc WorkerServiceHandler }
+
+func (h workerServiceHandler) listRegisteredTasks(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req emptypb.Empty
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListRegisteredTasks(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h workerServiceHandler) initializeWorker(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.InitializeRunnerRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.InitializeWorker(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h workerServiceHandler) executeTask(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.Task
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ExecuteTask(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h workerServiceHandler) watchLogs(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req emptypb.Empty
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	return h.svc.WatchLogs(ctx, &req, WorkerServiceWatchLogsServerStream{stream: stream})
+}
+
+func (h workerServiceHandler) shutdownWorker(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req emptypb.Empty
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ShutdownWorker(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }
