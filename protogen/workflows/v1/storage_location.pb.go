@@ -94,11 +94,12 @@ const (
 	// Azure Event Grid delivering notifications from an Azure Blob Storage container.
 	StorageSubscriptionType_STORAGE_SUBSCRIPTION_TYPE_AZURE_EVENT_GRID StorageSubscriptionType = 3
 	// Storage notifications sent by the Tilebox CLI. Typically for local storage locations. No delivery configuration is required.
-	// POST JSON containing object_path and optional RFC3339 event_time to /v1/storage-notifications/tilebox-cli/<subscription-id>.
+	// Use StorageLocationService.NotifyObjectCreated, or POST JSON containing object_path and optional RFC3339 event_time
+	// to /v1/storage-notifications/tilebox-cli/<subscription-id>.
 	// object_path is relative to the directory root and uses slash separators, without dot or parent components.
 	// Authenticate with Authorization: Bearer <api-key>; the organization must manage the storage location.
 	// The standalone on-orbit runtime does not require authentication.
-	// Successful deliveries return 204 after jobs and history are committed. Retries can create duplicate jobs.
+	// Successful HTTP deliveries return 204 after jobs and history are committed. Retries can create duplicate jobs.
 	StorageSubscriptionType_STORAGE_SUBSCRIPTION_TYPE_TILEBOX_CLI StorageSubscriptionType = 4
 )
 
@@ -1844,6 +1845,118 @@ func (b0 ListStorageSubscriptionsRequest_builder) Build() *ListStorageSubscripti
 	return m0
 }
 
+// NotifyObjectCreatedRequest sends a file-ready event to a TILEBOX_CLI subscription.
+type NotifyObjectCreatedRequest struct {
+	state                            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_StorageSubscriptionId *v1.ID                 `protobuf:"bytes,1,opt,name=storage_subscription_id,json=storageSubscriptionId"`
+	xxx_hidden_ObjectPath            string                 `protobuf:"bytes,2,opt,name=object_path,json=objectPath"`
+	xxx_hidden_EventTime             *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=event_time,json=eventTime"`
+	unknownFields                    protoimpl.UnknownFields
+	sizeCache                        protoimpl.SizeCache
+}
+
+func (x *NotifyObjectCreatedRequest) Reset() {
+	*x = NotifyObjectCreatedRequest{}
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NotifyObjectCreatedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NotifyObjectCreatedRequest) ProtoMessage() {}
+
+func (x *NotifyObjectCreatedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *NotifyObjectCreatedRequest) GetStorageSubscriptionId() *v1.ID {
+	if x != nil {
+		return x.xxx_hidden_StorageSubscriptionId
+	}
+	return nil
+}
+
+func (x *NotifyObjectCreatedRequest) GetObjectPath() string {
+	if x != nil {
+		return x.xxx_hidden_ObjectPath
+	}
+	return ""
+}
+
+func (x *NotifyObjectCreatedRequest) GetEventTime() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_EventTime
+	}
+	return nil
+}
+
+func (x *NotifyObjectCreatedRequest) SetStorageSubscriptionId(v *v1.ID) {
+	x.xxx_hidden_StorageSubscriptionId = v
+}
+
+func (x *NotifyObjectCreatedRequest) SetObjectPath(v string) {
+	x.xxx_hidden_ObjectPath = v
+}
+
+func (x *NotifyObjectCreatedRequest) SetEventTime(v *timestamppb.Timestamp) {
+	x.xxx_hidden_EventTime = v
+}
+
+func (x *NotifyObjectCreatedRequest) HasStorageSubscriptionId() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_StorageSubscriptionId != nil
+}
+
+func (x *NotifyObjectCreatedRequest) HasEventTime() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_EventTime != nil
+}
+
+func (x *NotifyObjectCreatedRequest) ClearStorageSubscriptionId() {
+	x.xxx_hidden_StorageSubscriptionId = nil
+}
+
+func (x *NotifyObjectCreatedRequest) ClearEventTime() {
+	x.xxx_hidden_EventTime = nil
+}
+
+type NotifyObjectCreatedRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Subscription through which to deliver the event. It must have type TILEBOX_CLI.
+	StorageSubscriptionId *v1.ID
+	// Path relative to the location root, using slash separators without dot or parent components. Must not include
+	// a leading slash. For example, "subdir/file.txt" or "file.txt".
+	ObjectPath string
+	// Time the object was observed, absent when unavailable.
+	EventTime *timestamppb.Timestamp
+}
+
+func (b0 NotifyObjectCreatedRequest_builder) Build() *NotifyObjectCreatedRequest {
+	m0 := &NotifyObjectCreatedRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_StorageSubscriptionId = b.StorageSubscriptionId
+	x.xxx_hidden_ObjectPath = b.ObjectPath
+	x.xxx_hidden_EventTime = b.EventTime
+	return m0
+}
+
 // StorageSubscriptions contains notification subscriptions for a storage location.
 type StorageSubscriptions struct {
 	state                    protoimpl.MessageState  `protogen:"opaque.v1"`
@@ -1854,7 +1967,7 @@ type StorageSubscriptions struct {
 
 func (x *StorageSubscriptions) Reset() {
 	*x = StorageSubscriptions{}
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[16]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1866,7 +1979,7 @@ func (x *StorageSubscriptions) String() string {
 func (*StorageSubscriptions) ProtoMessage() {}
 
 func (x *StorageSubscriptions) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[16]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1920,7 +2033,7 @@ type StorageSubscriptionEvent struct {
 
 func (x *StorageSubscriptionEvent) Reset() {
 	*x = StorageSubscriptionEvent{}
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[17]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1932,7 +2045,7 @@ func (x *StorageSubscriptionEvent) String() string {
 func (*StorageSubscriptionEvent) ProtoMessage() {}
 
 func (x *StorageSubscriptionEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[17]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2109,7 +2222,7 @@ type ListStorageSubscriptionEventsRequest struct {
 
 func (x *ListStorageSubscriptionEventsRequest) Reset() {
 	*x = ListStorageSubscriptionEventsRequest{}
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[18]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2121,7 +2234,7 @@ func (x *ListStorageSubscriptionEventsRequest) String() string {
 func (*ListStorageSubscriptionEventsRequest) ProtoMessage() {}
 
 func (x *ListStorageSubscriptionEventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[18]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2204,7 +2317,7 @@ type StorageSubscriptionEvents struct {
 
 func (x *StorageSubscriptionEvents) Reset() {
 	*x = StorageSubscriptionEvents{}
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[19]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2216,7 +2329,7 @@ func (x *StorageSubscriptionEvents) String() string {
 func (*StorageSubscriptionEvents) ProtoMessage() {}
 
 func (x *StorageSubscriptionEvents) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[19]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2289,7 +2402,7 @@ type StorageLocations struct {
 
 func (x *StorageLocations) Reset() {
 	*x = StorageLocations{}
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[20]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2301,7 +2414,7 @@ func (x *StorageLocations) String() string {
 func (*StorageLocations) ProtoMessage() {}
 
 func (x *StorageLocations) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[20]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2351,7 +2464,7 @@ type TriggeredStorageEvent struct {
 
 func (x *TriggeredStorageEvent) Reset() {
 	*x = TriggeredStorageEvent{}
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[21]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2363,7 +2476,7 @@ func (x *TriggeredStorageEvent) String() string {
 func (*TriggeredStorageEvent) ProtoMessage() {}
 
 func (x *TriggeredStorageEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_storage_location_proto_msgTypes[21]
+	mi := &file_workflows_v1_storage_location_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2540,7 +2653,14 @@ const file_workflows_v1_storage_location_proto_rawDesc = "" +
 	"\rgoogle_pubsub\n" +
 	"\x10azure_event_grid\"i\n" +
 	"\x1fListStorageSubscriptionsRequest\x12F\n" +
-	"\x13storage_location_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x11storageLocationId\"_\n" +
+	"\x13storage_location_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x11storageLocationId\"\xd4\x01\n" +
+	"\x1aNotifyObjectCreatedRequest\x12N\n" +
+	"\x17storage_subscription_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x15storageSubscriptionId\x12+\n" +
+	"\vobject_path\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05 \x01(\x80 R\n" +
+	"objectPath\x129\n" +
+	"\n" +
+	"event_time\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\teventTime\"_\n" +
 	"\x14StorageSubscriptions\x12G\n" +
 	"\rsubscriptions\x18\x01 \x03(\v2!.workflows.v1.StorageSubscriptionR\rsubscriptions\"\xa8\x03\n" +
 	"\x18StorageSubscriptionEvent\x12\x1e\n" +
@@ -2582,7 +2702,7 @@ const file_workflows_v1_storage_location_proto_rawDesc = "" +
 	"%STORAGE_SUBSCRIPTION_TYPE_TILEBOX_CLI\x10\x04*V\n" +
 	"\x10StorageEventType\x12\"\n" +
 	"\x1eSTORAGE_EVENT_TYPE_UNSPECIFIED\x10\x00\x12\x1e\n" +
-	"\x1aSTORAGE_EVENT_TYPE_CREATED\x10\x012\xa5\a\n" +
+	"\x1aSTORAGE_EVENT_TYPE_CREATED\x10\x012\xfe\a\n" +
 	"\x16StorageLocationService\x12N\n" +
 	"\x14ListStorageLocations\x12\x16.google.protobuf.Empty\x1a\x1e.workflows.v1.StorageLocations\x12C\n" +
 	"\x12GetStorageLocation\x12\x0e.tilebox.v1.ID\x1a\x1d.workflows.v1.StorageLocation\x12b\n" +
@@ -2593,11 +2713,12 @@ const file_workflows_v1_storage_location_proto_rawDesc = "" +
 	"\x18ListStorageSubscriptions\x12-.workflows.v1.ListStorageSubscriptionsRequest\x1a\".workflows.v1.StorageSubscriptions\x12K\n" +
 	"\x16GetStorageSubscription\x12\x0e.tilebox.v1.ID\x1a!.workflows.v1.StorageSubscription\x12C\n" +
 	"\x19DeleteStorageSubscription\x12\x0e.tilebox.v1.ID\x1a\x16.google.protobuf.Empty\x12|\n" +
-	"\x1dListStorageSubscriptionEvents\x122.workflows.v1.ListStorageSubscriptionEventsRequest\x1a'.workflows.v1.StorageSubscriptionEventsB\xbf\x01\n" +
+	"\x1dListStorageSubscriptionEvents\x122.workflows.v1.ListStorageSubscriptionEventsRequest\x1a'.workflows.v1.StorageSubscriptionEvents\x12W\n" +
+	"\x13NotifyObjectCreated\x12(.workflows.v1.NotifyObjectCreatedRequest\x1a\x16.google.protobuf.EmptyB\xbf\x01\n" +
 	"\x10com.workflows.v1B\x14StorageLocationProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_workflows_v1_storage_location_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_workflows_v1_storage_location_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_workflows_v1_storage_location_proto_msgTypes = make([]protoimpl.MessageInfo, 23)
 var file_workflows_v1_storage_location_proto_goTypes = []any{
 	(StorageType)(0),                             // 0: workflows.v1.StorageType
 	(StorageSubscriptionType)(0),                 // 1: workflows.v1.StorageSubscriptionType
@@ -2618,19 +2739,20 @@ var file_workflows_v1_storage_location_proto_goTypes = []any{
 	(*StorageSubscription)(nil),                  // 16: workflows.v1.StorageSubscription
 	(*CreateStorageSubscriptionRequest)(nil),     // 17: workflows.v1.CreateStorageSubscriptionRequest
 	(*ListStorageSubscriptionsRequest)(nil),      // 18: workflows.v1.ListStorageSubscriptionsRequest
-	(*StorageSubscriptions)(nil),                 // 19: workflows.v1.StorageSubscriptions
-	(*StorageSubscriptionEvent)(nil),             // 20: workflows.v1.StorageSubscriptionEvent
-	(*ListStorageSubscriptionEventsRequest)(nil), // 21: workflows.v1.ListStorageSubscriptionEventsRequest
-	(*StorageSubscriptionEvents)(nil),            // 22: workflows.v1.StorageSubscriptionEvents
-	(*StorageLocations)(nil),                     // 23: workflows.v1.StorageLocations
-	(*TriggeredStorageEvent)(nil),                // 24: workflows.v1.TriggeredStorageEvent
-	(*v1.ID)(nil),                                // 25: tilebox.v1.ID
-	(*timestamppb.Timestamp)(nil),                // 26: google.protobuf.Timestamp
-	(*v1.Pagination)(nil),                        // 27: tilebox.v1.Pagination
-	(*emptypb.Empty)(nil),                        // 28: google.protobuf.Empty
+	(*NotifyObjectCreatedRequest)(nil),           // 19: workflows.v1.NotifyObjectCreatedRequest
+	(*StorageSubscriptions)(nil),                 // 20: workflows.v1.StorageSubscriptions
+	(*StorageSubscriptionEvent)(nil),             // 21: workflows.v1.StorageSubscriptionEvent
+	(*ListStorageSubscriptionEventsRequest)(nil), // 22: workflows.v1.ListStorageSubscriptionEventsRequest
+	(*StorageSubscriptionEvents)(nil),            // 23: workflows.v1.StorageSubscriptionEvents
+	(*StorageLocations)(nil),                     // 24: workflows.v1.StorageLocations
+	(*TriggeredStorageEvent)(nil),                // 25: workflows.v1.TriggeredStorageEvent
+	(*v1.ID)(nil),                                // 26: tilebox.v1.ID
+	(*timestamppb.Timestamp)(nil),                // 27: google.protobuf.Timestamp
+	(*v1.Pagination)(nil),                        // 28: tilebox.v1.Pagination
+	(*emptypb.Empty)(nil),                        // 29: google.protobuf.Empty
 }
 var file_workflows_v1_storage_location_proto_depIdxs = []int32{
-	25, // 0: workflows.v1.StorageLocation.id:type_name -> tilebox.v1.ID
+	26, // 0: workflows.v1.StorageLocation.id:type_name -> tilebox.v1.ID
 	0,  // 1: workflows.v1.StorageLocation.type:type_name -> workflows.v1.StorageType
 	4,  // 2: workflows.v1.StorageLocation.reference:type_name -> workflows.v1.StorageLocationReference
 	5,  // 3: workflows.v1.StorageLocationReference.aws_s3_bucket:type_name -> workflows.v1.AWSS3BucketReference
@@ -2638,63 +2760,67 @@ var file_workflows_v1_storage_location_proto_depIdxs = []int32{
 	7,  // 5: workflows.v1.StorageLocationReference.azure_blob:type_name -> workflows.v1.AzureBlobReference
 	8,  // 6: workflows.v1.StorageLocationReference.local:type_name -> workflows.v1.LocalReference
 	0,  // 7: workflows.v1.StorageLocationReference.type:type_name -> workflows.v1.StorageType
-	25, // 8: workflows.v1.TriggeredJob.job_id:type_name -> tilebox.v1.ID
-	25, // 9: workflows.v1.TriggeredJob.automation_id:type_name -> tilebox.v1.ID
+	26, // 8: workflows.v1.TriggeredJob.job_id:type_name -> tilebox.v1.ID
+	26, // 9: workflows.v1.TriggeredJob.automation_id:type_name -> tilebox.v1.ID
 	9,  // 10: workflows.v1.TriggeredJobs.triggered_jobs:type_name -> workflows.v1.TriggeredJob
 	4,  // 11: workflows.v1.CreateStorageLocationRequest.reference:type_name -> workflows.v1.StorageLocationReference
-	25, // 12: workflows.v1.UpdateStorageLocationRequest.storage_location_id:type_name -> tilebox.v1.ID
-	25, // 13: workflows.v1.StorageSubscription.id:type_name -> tilebox.v1.ID
-	25, // 14: workflows.v1.StorageSubscription.storage_location_id:type_name -> tilebox.v1.ID
+	26, // 12: workflows.v1.UpdateStorageLocationRequest.storage_location_id:type_name -> tilebox.v1.ID
+	26, // 13: workflows.v1.StorageSubscription.id:type_name -> tilebox.v1.ID
+	26, // 14: workflows.v1.StorageSubscription.storage_location_id:type_name -> tilebox.v1.ID
 	1,  // 15: workflows.v1.StorageSubscription.type:type_name -> workflows.v1.StorageSubscriptionType
-	26, // 16: workflows.v1.StorageSubscription.created_at:type_name -> google.protobuf.Timestamp
+	27, // 16: workflows.v1.StorageSubscription.created_at:type_name -> google.protobuf.Timestamp
 	13, // 17: workflows.v1.StorageSubscription.aws_sns:type_name -> workflows.v1.AWSSNSStorageSubscription
 	14, // 18: workflows.v1.StorageSubscription.google_pubsub:type_name -> workflows.v1.GooglePubSubStorageSubscription
 	15, // 19: workflows.v1.StorageSubscription.azure_event_grid:type_name -> workflows.v1.AzureEventGridStorageSubscription
-	25, // 20: workflows.v1.CreateStorageSubscriptionRequest.storage_location_id:type_name -> tilebox.v1.ID
+	26, // 20: workflows.v1.CreateStorageSubscriptionRequest.storage_location_id:type_name -> tilebox.v1.ID
 	1,  // 21: workflows.v1.CreateStorageSubscriptionRequest.type:type_name -> workflows.v1.StorageSubscriptionType
 	13, // 22: workflows.v1.CreateStorageSubscriptionRequest.aws_sns:type_name -> workflows.v1.AWSSNSStorageSubscription
 	14, // 23: workflows.v1.CreateStorageSubscriptionRequest.google_pubsub:type_name -> workflows.v1.GooglePubSubStorageSubscription
 	15, // 24: workflows.v1.CreateStorageSubscriptionRequest.azure_event_grid:type_name -> workflows.v1.AzureEventGridStorageSubscription
-	25, // 25: workflows.v1.ListStorageSubscriptionsRequest.storage_location_id:type_name -> tilebox.v1.ID
-	16, // 26: workflows.v1.StorageSubscriptions.subscriptions:type_name -> workflows.v1.StorageSubscription
-	25, // 27: workflows.v1.StorageSubscriptionEvent.id:type_name -> tilebox.v1.ID
-	2,  // 28: workflows.v1.StorageSubscriptionEvent.type:type_name -> workflows.v1.StorageEventType
-	26, // 29: workflows.v1.StorageSubscriptionEvent.event_time:type_name -> google.protobuf.Timestamp
-	26, // 30: workflows.v1.StorageSubscriptionEvent.received_at:type_name -> google.protobuf.Timestamp
-	9,  // 31: workflows.v1.StorageSubscriptionEvent.triggered_jobs:type_name -> workflows.v1.TriggeredJob
-	25, // 32: workflows.v1.StorageSubscriptionEvent.storage_subscription_id:type_name -> tilebox.v1.ID
-	25, // 33: workflows.v1.ListStorageSubscriptionEventsRequest.storage_location_id:type_name -> tilebox.v1.ID
-	27, // 34: workflows.v1.ListStorageSubscriptionEventsRequest.page:type_name -> tilebox.v1.Pagination
-	20, // 35: workflows.v1.StorageSubscriptionEvents.events:type_name -> workflows.v1.StorageSubscriptionEvent
-	27, // 36: workflows.v1.StorageSubscriptionEvents.next_page:type_name -> tilebox.v1.Pagination
-	3,  // 37: workflows.v1.StorageLocations.locations:type_name -> workflows.v1.StorageLocation
-	25, // 38: workflows.v1.TriggeredStorageEvent.storage_location_id:type_name -> tilebox.v1.ID
-	2,  // 39: workflows.v1.TriggeredStorageEvent.type:type_name -> workflows.v1.StorageEventType
-	28, // 40: workflows.v1.StorageLocationService.ListStorageLocations:input_type -> google.protobuf.Empty
-	25, // 41: workflows.v1.StorageLocationService.GetStorageLocation:input_type -> tilebox.v1.ID
-	11, // 42: workflows.v1.StorageLocationService.CreateStorageLocation:input_type -> workflows.v1.CreateStorageLocationRequest
-	12, // 43: workflows.v1.StorageLocationService.UpdateStorageLocation:input_type -> workflows.v1.UpdateStorageLocationRequest
-	25, // 44: workflows.v1.StorageLocationService.DeleteStorageLocation:input_type -> tilebox.v1.ID
-	17, // 45: workflows.v1.StorageLocationService.CreateStorageSubscription:input_type -> workflows.v1.CreateStorageSubscriptionRequest
-	18, // 46: workflows.v1.StorageLocationService.ListStorageSubscriptions:input_type -> workflows.v1.ListStorageSubscriptionsRequest
-	25, // 47: workflows.v1.StorageLocationService.GetStorageSubscription:input_type -> tilebox.v1.ID
-	25, // 48: workflows.v1.StorageLocationService.DeleteStorageSubscription:input_type -> tilebox.v1.ID
-	21, // 49: workflows.v1.StorageLocationService.ListStorageSubscriptionEvents:input_type -> workflows.v1.ListStorageSubscriptionEventsRequest
-	23, // 50: workflows.v1.StorageLocationService.ListStorageLocations:output_type -> workflows.v1.StorageLocations
-	3,  // 51: workflows.v1.StorageLocationService.GetStorageLocation:output_type -> workflows.v1.StorageLocation
-	3,  // 52: workflows.v1.StorageLocationService.CreateStorageLocation:output_type -> workflows.v1.StorageLocation
-	3,  // 53: workflows.v1.StorageLocationService.UpdateStorageLocation:output_type -> workflows.v1.StorageLocation
-	28, // 54: workflows.v1.StorageLocationService.DeleteStorageLocation:output_type -> google.protobuf.Empty
-	16, // 55: workflows.v1.StorageLocationService.CreateStorageSubscription:output_type -> workflows.v1.StorageSubscription
-	19, // 56: workflows.v1.StorageLocationService.ListStorageSubscriptions:output_type -> workflows.v1.StorageSubscriptions
-	16, // 57: workflows.v1.StorageLocationService.GetStorageSubscription:output_type -> workflows.v1.StorageSubscription
-	28, // 58: workflows.v1.StorageLocationService.DeleteStorageSubscription:output_type -> google.protobuf.Empty
-	22, // 59: workflows.v1.StorageLocationService.ListStorageSubscriptionEvents:output_type -> workflows.v1.StorageSubscriptionEvents
-	50, // [50:60] is the sub-list for method output_type
-	40, // [40:50] is the sub-list for method input_type
-	40, // [40:40] is the sub-list for extension type_name
-	40, // [40:40] is the sub-list for extension extendee
-	0,  // [0:40] is the sub-list for field type_name
+	26, // 25: workflows.v1.ListStorageSubscriptionsRequest.storage_location_id:type_name -> tilebox.v1.ID
+	26, // 26: workflows.v1.NotifyObjectCreatedRequest.storage_subscription_id:type_name -> tilebox.v1.ID
+	27, // 27: workflows.v1.NotifyObjectCreatedRequest.event_time:type_name -> google.protobuf.Timestamp
+	16, // 28: workflows.v1.StorageSubscriptions.subscriptions:type_name -> workflows.v1.StorageSubscription
+	26, // 29: workflows.v1.StorageSubscriptionEvent.id:type_name -> tilebox.v1.ID
+	2,  // 30: workflows.v1.StorageSubscriptionEvent.type:type_name -> workflows.v1.StorageEventType
+	27, // 31: workflows.v1.StorageSubscriptionEvent.event_time:type_name -> google.protobuf.Timestamp
+	27, // 32: workflows.v1.StorageSubscriptionEvent.received_at:type_name -> google.protobuf.Timestamp
+	9,  // 33: workflows.v1.StorageSubscriptionEvent.triggered_jobs:type_name -> workflows.v1.TriggeredJob
+	26, // 34: workflows.v1.StorageSubscriptionEvent.storage_subscription_id:type_name -> tilebox.v1.ID
+	26, // 35: workflows.v1.ListStorageSubscriptionEventsRequest.storage_location_id:type_name -> tilebox.v1.ID
+	28, // 36: workflows.v1.ListStorageSubscriptionEventsRequest.page:type_name -> tilebox.v1.Pagination
+	21, // 37: workflows.v1.StorageSubscriptionEvents.events:type_name -> workflows.v1.StorageSubscriptionEvent
+	28, // 38: workflows.v1.StorageSubscriptionEvents.next_page:type_name -> tilebox.v1.Pagination
+	3,  // 39: workflows.v1.StorageLocations.locations:type_name -> workflows.v1.StorageLocation
+	26, // 40: workflows.v1.TriggeredStorageEvent.storage_location_id:type_name -> tilebox.v1.ID
+	2,  // 41: workflows.v1.TriggeredStorageEvent.type:type_name -> workflows.v1.StorageEventType
+	29, // 42: workflows.v1.StorageLocationService.ListStorageLocations:input_type -> google.protobuf.Empty
+	26, // 43: workflows.v1.StorageLocationService.GetStorageLocation:input_type -> tilebox.v1.ID
+	11, // 44: workflows.v1.StorageLocationService.CreateStorageLocation:input_type -> workflows.v1.CreateStorageLocationRequest
+	12, // 45: workflows.v1.StorageLocationService.UpdateStorageLocation:input_type -> workflows.v1.UpdateStorageLocationRequest
+	26, // 46: workflows.v1.StorageLocationService.DeleteStorageLocation:input_type -> tilebox.v1.ID
+	17, // 47: workflows.v1.StorageLocationService.CreateStorageSubscription:input_type -> workflows.v1.CreateStorageSubscriptionRequest
+	18, // 48: workflows.v1.StorageLocationService.ListStorageSubscriptions:input_type -> workflows.v1.ListStorageSubscriptionsRequest
+	26, // 49: workflows.v1.StorageLocationService.GetStorageSubscription:input_type -> tilebox.v1.ID
+	26, // 50: workflows.v1.StorageLocationService.DeleteStorageSubscription:input_type -> tilebox.v1.ID
+	22, // 51: workflows.v1.StorageLocationService.ListStorageSubscriptionEvents:input_type -> workflows.v1.ListStorageSubscriptionEventsRequest
+	19, // 52: workflows.v1.StorageLocationService.NotifyObjectCreated:input_type -> workflows.v1.NotifyObjectCreatedRequest
+	24, // 53: workflows.v1.StorageLocationService.ListStorageLocations:output_type -> workflows.v1.StorageLocations
+	3,  // 54: workflows.v1.StorageLocationService.GetStorageLocation:output_type -> workflows.v1.StorageLocation
+	3,  // 55: workflows.v1.StorageLocationService.CreateStorageLocation:output_type -> workflows.v1.StorageLocation
+	3,  // 56: workflows.v1.StorageLocationService.UpdateStorageLocation:output_type -> workflows.v1.StorageLocation
+	29, // 57: workflows.v1.StorageLocationService.DeleteStorageLocation:output_type -> google.protobuf.Empty
+	16, // 58: workflows.v1.StorageLocationService.CreateStorageSubscription:output_type -> workflows.v1.StorageSubscription
+	20, // 59: workflows.v1.StorageLocationService.ListStorageSubscriptions:output_type -> workflows.v1.StorageSubscriptions
+	16, // 60: workflows.v1.StorageLocationService.GetStorageSubscription:output_type -> workflows.v1.StorageSubscription
+	29, // 61: workflows.v1.StorageLocationService.DeleteStorageSubscription:output_type -> google.protobuf.Empty
+	23, // 62: workflows.v1.StorageLocationService.ListStorageSubscriptionEvents:output_type -> workflows.v1.StorageSubscriptionEvents
+	29, // 63: workflows.v1.StorageLocationService.NotifyObjectCreated:output_type -> google.protobuf.Empty
+	53, // [53:64] is the sub-list for method output_type
+	42, // [42:53] is the sub-list for method input_type
+	42, // [42:42] is the sub-list for extension type_name
+	42, // [42:42] is the sub-list for extension extendee
+	0,  // [0:42] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_storage_location_proto_init() }
@@ -2708,7 +2834,7 @@ func file_workflows_v1_storage_location_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_storage_location_proto_rawDesc), len(file_workflows_v1_storage_location_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   22,
+			NumMessages:   23,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

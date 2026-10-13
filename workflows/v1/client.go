@@ -4,15 +4,9 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"net"
-	"net/http"
-	"os"
 	"strings"
-	"time"
 
-	"connectrpc.com/connect"
-	"github.com/tilebox/tilebox-go/client"
-	"github.com/tilebox/tilebox-go/internal/grpc"
+	"connectrpc.com/connect/v2"
 	"github.com/tilebox/tilebox-go/protogen/workflows/v1/workflowsv1connect"
 	"github.com/tilebox/tilebox-go/workflows/v1/runner"
 	"go.opentelemetry.io/otel"
@@ -38,26 +32,18 @@ type Client struct {
 	tracer      trace.Tracer
 }
 
-// NewClient creates a new Tilebox Workflows client.
-//
-// By default, the returned Client is configured with:
-//   - "https://api.tilebox.com" as the URL
-//   - environment variable TILEBOX_API_KEY as the API key
-//   - a grpc.RetryHTTPClient HTTP client
-//   - the global tracer provider
-//   - Tilebox OpenTelemetry exporters when an API key and HTTP(S) API URL are configured
-//
-// The passed options are used to override these default values and configure the returned Client appropriately.
-func NewClient(options ...ClientOption) *Client {
+// NewClient builds Workflows services over a shared Connect client.
+// Use client.New for Tilebox defaults or supply your own native Connect client.
+// Tracing uses the global tracer provider unless disabled. To export telemetry
+// to Tilebox, call ConfigureTileboxTelemetry before constructing this client.
+func NewClient(rpcClient *connect.Client, options ...ClientOption) *Client {
 	cfg := newClientConfig(options)
-	configureTileboxTelemetry(context.Background(), cfg)
-
-	jobConnectClient := newConnectClient(workflowsv1connect.NewJobServiceClient, cfg)
-	telemetryConnectClient := newConnectClient(workflowsv1connect.NewTelemetryQueryServiceClient, cfg)
-	taskConnectClient := newConnectClient(workflowsv1connect.NewTaskServiceClient, cfg)
-	workflowConnectClient := newConnectClient(workflowsv1connect.NewWorkflowsServiceClient, cfg)
-	automationConnectClient := newConnectClient(workflowsv1connect.NewAutomationServiceClient, cfg)
-	storageLocationConnectClient := newConnectClient(workflowsv1connect.NewStorageLocationServiceClient, cfg)
+	jobConnectClient := workflowsv1connect.NewJobServiceClient(rpcClient)
+	telemetryConnectClient := workflowsv1connect.NewTelemetryQueryServiceClient(rpcClient)
+	taskConnectClient := workflowsv1connect.NewTaskServiceClient(rpcClient)
+	workflowConnectClient := workflowsv1connect.NewWorkflowsServiceClient(rpcClient)
+	automationConnectClient := workflowsv1connect.NewAutomationServiceClient(rpcClient)
+	storageLocationConnectClient := workflowsv1connect.NewStorageLocationServiceClient(rpcClient)
 
 	tracer := cfg.tracerProvider.Tracer(otelTracerName)
 	workflowService := newWorkflowService(workflowConnectClient, tracer)
@@ -70,9 +56,7 @@ func NewClient(options ...ClientOption) *Client {
 		Workflows:   &workflowClient{service: workflowService},
 		Automations: &automationClient{service: automationService},
 		StorageLocations: &storageLocationClient{
-			service:    storageLocationService,
-			httpClient: cfg.notificationHTTPClient, baseURL: cfg.url, apiKey: cfg.apiKey,
-			clientMetadata: cfg.clientMetadata.HeaderValue(),
+			service: storageLocationService,
 		},
 
 		taskService: newTaskService(taskConnectClient, tracer),
@@ -103,136 +87,26 @@ func (c *Client) NewPollingTaskRunner(cluster *Cluster, executor TaskExecutor, l
 
 // clientConfig contains the configuration for Tilebox Workflows client.
 type clientConfig struct {
-	httpClient             connect.HTTPClient
-	notificationHTTPClient connect.HTTPClient
-	url                    string
-	apiKey                 string
-	clientMetadata         client.Metadata
-	connectOptions         []connect.ClientOption
-
 	tracerProvider trace.TracerProvider
-	disableTracing bool
-	disableLogging bool
 }
 
-// ClientOption is an interface for configuring a client. Using such options helpers is a
-// quite common pattern in Go, as it allows for optional parameters in constructors.
-// This concrete implementation here is inspired by how libraries such as axiom-go and connect do their
-// configuration.
+// ClientOption configures a client.
 type ClientOption func(*clientConfig)
-
-// WithHTTPClient sets the connect.HTTPClient to use for the client.
-//
-// Defaults to grpc.RetryHTTPClient.
-func WithHTTPClient(httpClient connect.HTTPClient) ClientOption {
-	return func(cfg *clientConfig) {
-		cfg.httpClient = httpClient
-	}
-}
-
-// WithURL sets the URL of the Tilebox Datasets service.
-//
-// Defaults to "https://api.tilebox.com".
-func WithURL(url string) ClientOption {
-	return func(cfg *clientConfig) {
-		cfg.url = url
-	}
-}
-
-// WithAPIKey sets the API key to use for the client.
-//
-// Defaults to no API key.
-func WithAPIKey(apiKey string) ClientOption {
-	return func(cfg *clientConfig) {
-		cfg.apiKey = apiKey
-	}
-}
-
-// WithClientMetadata replaces the automatically detected metadata sent with each request.
-// Wrappers such as the Tilebox CLI can use this to identify themselves as the client.
-func WithClientMetadata(metadata client.Metadata) ClientOption {
-	return func(cfg *clientConfig) {
-		cfg.clientMetadata = metadata
-	}
-}
-
-// WithConnectClientOptions sets additional options for the connect.HTTPClient.
-func WithConnectClientOptions(options ...connect.ClientOption) ClientOption {
-	return func(cfg *clientConfig) {
-		cfg.connectOptions = append(cfg.connectOptions, options...)
-	}
-}
 
 // WithDisableTracing disables OpenTelemetry tracing for the client.
 func WithDisableTracing() ClientOption {
 	return func(cfg *clientConfig) {
 		cfg.tracerProvider = noop.NewTracerProvider()
-		cfg.disableTracing = true
-	}
-}
-
-// WithDisableLogging disables Tilebox OpenTelemetry log export setup for the client.
-func WithDisableLogging() ClientOption {
-	return func(cfg *clientConfig) {
-		cfg.disableLogging = true
 	}
 }
 
 func newClientConfig(options []ClientOption) *clientConfig {
 	cfg := &clientConfig{
-		url:            "https://api.tilebox.com",
-		apiKey:         os.Getenv("TILEBOX_API_KEY"),
-		clientMetadata: client.DefaultMetadata(),
 		tracerProvider: otel.GetTracerProvider(), // use the global tracer provider by default
 	}
 	for _, option := range options {
 		option(cfg)
 	}
 
-	cfg.notificationHTTPClient = cfg.httpClient
-	// if no http client is set by the user, we use a default one
-	if cfg.httpClient == nil {
-		// if the URL looks like an HTTP URL, we use a retrying HTTP client
-		if strings.HasPrefix(cfg.url, "https://") || strings.HasPrefix(cfg.url, "http://") {
-			cfg.httpClient = grpc.RetryHTTPClient()
-			// Notifications are not idempotent. Do not retry or follow redirects.
-			cfg.notificationHTTPClient = &http.Client{
-				Timeout:       30 * time.Second,
-				CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse },
-			}
-		} else { // we connect to a unix socket
-			address := cfg.url // we copy the url to a temporary variable so that we can modify cfg.url after
-			dial := func(ctx context.Context, _ string, _ string) (net.Conn, error) {
-				var d net.Dialer
-				return d.DialContext(ctx, "unix", address)
-			}
-			transport := &http.Transport{DialContext: dial}
-			cfg.httpClient = &http.Client{Transport: transport}
-			cfg.notificationHTTPClient = &http.Client{
-				Transport: transport, Timeout: 30 * time.Second,
-				CheckRedirect: func(_ *http.Request, _ []*http.Request) error { return http.ErrUseLastResponse },
-			}
-			cfg.url = "http://localhost" // connect requires a dummy url starting with http://
-		}
-	}
-
 	return cfg
-}
-
-func newConnectClient[T any](newClientFunc func(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) T, cfg *clientConfig) T {
-	// for on-orbit deployments, we also support requests without an API key, so we don't need to add an interceptor
-	// for those cases
-	interceptors := []connect.Interceptor{grpc.NewAddClientMetadataInterceptor(cfg.clientMetadata.HeaderValue())}
-	if cfg.apiKey != "" {
-		interceptors = append(interceptors, grpc.NewAddAuthTokenInterceptor(func() string {
-			return cfg.apiKey
-		}))
-	}
-
-	return newClientFunc(
-		cfg.httpClient,
-		cfg.url,
-		connect.WithClientOptions(cfg.connectOptions...),
-		connect.WithInterceptors(interceptors...),
-	)
 }

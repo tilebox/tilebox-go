@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"connectrpc.com/connect"
 	"github.com/tilebox/tilebox-go/observability"
 	accountsv1alpha1 "github.com/tilebox/tilebox-go/protogen/accounts/v1alpha1"
 	"github.com/tilebox/tilebox-go/protogen/accounts/v1alpha1/accountsv1alpha1connect"
@@ -32,30 +31,26 @@ type billingClient struct {
 
 func (c *billingClient) GetActivePlan(ctx context.Context) (*accountsv1alpha1.Plan, error) {
 	return observability.WithSpanResult(ctx, c.tracer, "accounts/billing/active_plan/get", func(ctx context.Context) (*accountsv1alpha1.Plan, error) {
-		response, err := c.connectClient.GetActivePlan(ctx, connect.NewRequest(
-			accountsv1alpha1.GetActivePlanRequest_builder{}.Build(),
-		))
+		response, err := c.connectClient.GetActivePlan(ctx, accountsv1alpha1.GetActivePlanRequest_builder{}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get active plan: %w", err)
 		}
 
-		return response.Msg, nil
+		return response, nil
 	})
 }
 
 func (c *billingClient) GetUsageReport(ctx context.Context, options ...UsageReportOption) (*accountsv1alpha1.UsageReport, error) {
 	usageReportOptions := newUsageReportOptions(options)
 	return observability.WithSpanResult(ctx, c.tracer, "accounts/billing/usage_report/get", func(ctx context.Context) (*accountsv1alpha1.UsageReport, error) {
-		response, err := c.connectClient.GetUsageReport(ctx, connect.NewRequest(
-			accountsv1alpha1.GetUsageReportRequest_builder{
-				HistoryDays: usageReportOptions.historyDays,
-			}.Build(),
-		))
+		response, err := c.connectClient.GetUsageReport(ctx, accountsv1alpha1.GetUsageReportRequest_builder{
+			HistoryDays: usageReportOptions.historyDays,
+		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get usage report: %w", err)
 		}
 
-		return response.Msg, nil
+		return response, nil
 	})
 }
 

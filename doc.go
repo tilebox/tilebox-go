@@ -2,6 +2,7 @@
 //
 // Usage:
 //
+//	import "github.com/tilebox/tilebox-go/client" // Shared RPC client configuration
 //	import "github.com/tilebox/tilebox-go/datasets/v1" // When using Datasets
 //	import "github.com/tilebox/tilebox-go/workflows/v1" // When using Workflows
 //	import "github.com/tilebox/tilebox-go/observability" // When using observability helpers
@@ -11,11 +12,18 @@
 //
 // To construct a client:
 //
-//	client := datasets.NewClient()
+//	rpcClient := client.New()
+//	datasetsClient := datasets.NewClient(rpcClient)
+//	workflowsClient := workflows.NewClient(rpcClient)
+//
+// Configure URL, authentication, metadata, transport, and retries through client.New
+// options. Domain constructors do not configure telemetry exporters. Call
+// workflows.ConfigureTileboxTelemetry(ctx, apiURL, apiKey) before constructing
+// domain clients to export traces and logs to Tilebox.
 //
 // List all datasets:
 //
-//	datasets, err := client.Datasets(ctx)
+//	allDatasets, err := datasetsClient.Datasets.List(ctx)
 //
 // For examples on how to use the library, see the [examples] directory.
 //

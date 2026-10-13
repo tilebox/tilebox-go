@@ -7,104 +7,93 @@
 package workflowsv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// DiagramServiceName is the fully-qualified name of the DiagramService service.
 	DiagramServiceName = "workflows.v1.DiagramService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// DiagramServiceRenderProcedure is the fully-qualified name of the DiagramService's Render RPC.
+	// DiagramServiceRenderProcedure is the procedure name of the DiagramService's Render RPC.
 	DiagramServiceRenderProcedure = "/workflows.v1.DiagramService/Render"
+)
+
+var (
+	diagramServiceRenderSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_diagram_proto.Services().ByName("DiagramService").Methods().ByName("Render"),
+			Procedure:  DiagramServiceRenderProcedure,
+		}
+	})
 )
 
 // DiagramServiceClient is a client for the workflows.v1.DiagramService service.
 type DiagramServiceClient interface {
-	Render(context.Context, *connect.Request[v1.RenderDiagramRequest]) (*connect.Response[v1.Diagram], error)
+	Render(context.Context, *v1.RenderDiagramRequest) (*v1.Diagram, error)
 }
 
-// NewDiagramServiceClient constructs a client for the workflows.v1.DiagramService service. By
-// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
-// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
-// connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewDiagramServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) DiagramServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	diagramServiceMethods := v1.File_workflows_v1_diagram_proto.Services().ByName("DiagramService").Methods()
-	return &diagramServiceClient{
-		render: connect.NewClient[v1.RenderDiagramRequest, v1.Diagram](
-			httpClient,
-			baseURL+DiagramServiceRenderProcedure,
-			connect.WithSchema(diagramServiceMethods.ByName("Render")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// diagramServiceClient implements DiagramServiceClient.
-type diagramServiceClient struct {
-	render *connect.Client[v1.RenderDiagramRequest, v1.Diagram]
-}
-
-// Render calls workflows.v1.DiagramService.Render.
-func (c *diagramServiceClient) Render(ctx context.Context, req *connect.Request[v1.RenderDiagramRequest]) (*connect.Response[v1.Diagram], error) {
-	return c.render.CallUnary(ctx, req)
+// NewDiagramServiceClient constructs a client for the workflows.v1.DiagramService service. Multiple
+// service clients may share a single connect.Client.
+func NewDiagramServiceClient(client *connect.Client) DiagramServiceClient {
+	return &diagramServiceClient{client: client}
 }
 
 // DiagramServiceHandler is an implementation of the workflows.v1.DiagramService service.
 type DiagramServiceHandler interface {
-	Render(context.Context, *connect.Request[v1.RenderDiagramRequest]) (*connect.Response[v1.Diagram], error)
+	Render(context.Context, *v1.RenderDiagramRequest) (*v1.Diagram, error)
 }
 
-// NewDiagramServiceHandler builds an HTTP handler from the service implementation. It returns the
-// path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewDiagramServiceHandler(svc DiagramServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	diagramServiceMethods := v1.File_workflows_v1_diagram_proto.Services().ByName("DiagramService").Methods()
-	diagramServiceRenderHandler := connect.NewUnaryHandler(
-		DiagramServiceRenderProcedure,
-		svc.Render,
-		connect.WithSchema(diagramServiceMethods.ByName("Render")),
-		connect.WithHandlerOptions(opts...),
+// RegisterDiagramServiceHandler registers svc as the workflows.v1.DiagramService implementation on
+// server.
+func RegisterDiagramServiceHandler(server *connect.Server, svc DiagramServiceHandler) {
+	adapter := diagramServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: diagramServiceRenderSpec(), Handler: adapter.render},
 	)
-	return "/workflows.v1.DiagramService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case DiagramServiceRenderProcedure:
-			diagramServiceRenderHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
 }
 
 // UnimplementedDiagramServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedDiagramServiceHandler struct{}
 
-func (UnimplementedDiagramServiceHandler) Render(context.Context, *connect.Request[v1.RenderDiagramRequest]) (*connect.Response[v1.Diagram], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("workflows.v1.DiagramService.Render is not implemented"))
+func (UnimplementedDiagramServiceHandler) Render(context.Context, *v1.RenderDiagramRequest) (*v1.Diagram, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.DiagramService.Render is not implemented")
+}
+
+type diagramServiceClient struct {
+	client *connect.Client
+}
+
+func (c *diagramServiceClient) Render(ctx context.Context, req *v1.RenderDiagramRequest) (*v1.Diagram, error) {
+	var res v1.Diagram
+	if err := c.client.CallUnary(ctx, diagramServiceRenderSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type diagramServiceHandler struct{ svc DiagramServiceHandler }
+
+func (h diagramServiceHandler) render(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.RenderDiagramRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.Render(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }

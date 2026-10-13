@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/paulmach/orb"
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/datasets/v1"
 	"github.com/tilebox/tilebox-go/query"
 )
@@ -16,7 +17,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create a Tilebox Datasets client.
-	client := datasets.NewClient()
+	client := datasets.NewClient(client.New())
 
 	// Select a dataset. The dataset metadata contains the protobuf descriptor needed to decode datapoints dynamically.
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")

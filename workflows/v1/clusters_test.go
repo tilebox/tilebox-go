@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"connectrpc.com/connect"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
@@ -126,68 +125,68 @@ type fakeWorkflowsConnectClient struct {
 	undeployWorkflowReleaseRequest *workflowsv1.UndeployWorkflowReleaseRequest
 }
 
-func (c *fakeWorkflowsConnectClient) CreateCluster(_ context.Context, req *connect.Request[workflowsv1.CreateClusterRequest]) (*connect.Response[workflowsv1.Cluster], error) {
-	c.createClusterRequest = req.Msg
-	return connect.NewResponse(workflowsv1.Cluster_builder{Slug: "dev"}.Build()), nil
+func (c *fakeWorkflowsConnectClient) CreateCluster(_ context.Context, req *workflowsv1.CreateClusterRequest) (*workflowsv1.Cluster, error) {
+	c.createClusterRequest = req
+	return workflowsv1.Cluster_builder{Slug: "dev"}.Build(), nil
 }
 
-func (c *fakeWorkflowsConnectClient) UpdateCluster(_ context.Context, req *connect.Request[workflowsv1.UpdateClusterRequest]) (*connect.Response[workflowsv1.Cluster], error) {
-	c.updateClusterRequest = req.Msg
-	return connect.NewResponse(workflowsv1.Cluster_builder{Slug: "dev"}.Build()), nil
+func (c *fakeWorkflowsConnectClient) UpdateCluster(_ context.Context, req *workflowsv1.UpdateClusterRequest) (*workflowsv1.Cluster, error) {
+	c.updateClusterRequest = req
+	return workflowsv1.Cluster_builder{Slug: "dev"}.Build(), nil
 }
 
-func (c *fakeWorkflowsConnectClient) GetCluster(context.Context, *connect.Request[workflowsv1.GetClusterRequest]) (*connect.Response[workflowsv1.Cluster], error) {
+func (c *fakeWorkflowsConnectClient) GetCluster(context.Context, *workflowsv1.GetClusterRequest) (*workflowsv1.Cluster, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) DeleteCluster(context.Context, *connect.Request[workflowsv1.DeleteClusterRequest]) (*connect.Response[workflowsv1.DeleteClusterResponse], error) {
+func (c *fakeWorkflowsConnectClient) DeleteCluster(context.Context, *workflowsv1.DeleteClusterRequest) (*workflowsv1.DeleteClusterResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) ListClusters(context.Context, *connect.Request[workflowsv1.ListClustersRequest]) (*connect.Response[workflowsv1.ListClustersResponse], error) {
+func (c *fakeWorkflowsConnectClient) ListClusters(context.Context, *workflowsv1.ListClustersRequest) (*workflowsv1.ListClustersResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) CreateWorkflow(context.Context, *connect.Request[workflowsv1.CreateWorkflowRequest]) (*connect.Response[workflowsv1.Workflow], error) {
+func (c *fakeWorkflowsConnectClient) CreateWorkflow(context.Context, *workflowsv1.CreateWorkflowRequest) (*workflowsv1.Workflow, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) ListWorkflows(_ context.Context, req *connect.Request[workflowsv1.ListWorkflowsRequest]) (*connect.Response[workflowsv1.ListWorkflowsResponse], error) {
-	c.listWorkflowsRequest = req.Msg
-	return connect.NewResponse(&workflowsv1.ListWorkflowsResponse{}), nil
+func (c *fakeWorkflowsConnectClient) ListWorkflows(_ context.Context, req *workflowsv1.ListWorkflowsRequest) (*workflowsv1.ListWorkflowsResponse, error) {
+	c.listWorkflowsRequest = req
+	return &workflowsv1.ListWorkflowsResponse{}, nil
 }
 
-func (c *fakeWorkflowsConnectClient) ListPublicWorkflows(_ context.Context, req *connect.Request[workflowsv1.ListPublicWorkflowsRequest]) (*connect.Response[workflowsv1.ListPublicWorkflowsResponse], error) {
-	c.listPublicWorkflowsRequest = req.Msg
-	return connect.NewResponse(&workflowsv1.ListPublicWorkflowsResponse{}), nil
+func (c *fakeWorkflowsConnectClient) ListPublicWorkflows(_ context.Context, req *workflowsv1.ListPublicWorkflowsRequest) (*workflowsv1.ListPublicWorkflowsResponse, error) {
+	c.listPublicWorkflowsRequest = req
+	return &workflowsv1.ListPublicWorkflowsResponse{}, nil
 }
 
-func (c *fakeWorkflowsConnectClient) GetWorkflow(context.Context, *connect.Request[workflowsv1.GetWorkflowRequest]) (*connect.Response[workflowsv1.Workflow], error) {
+func (c *fakeWorkflowsConnectClient) GetWorkflow(context.Context, *workflowsv1.GetWorkflowRequest) (*workflowsv1.Workflow, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) UpdateWorkflow(_ context.Context, req *connect.Request[workflowsv1.UpdateWorkflowRequest]) (*connect.Response[workflowsv1.Workflow], error) {
-	c.updateWorkflowRequest = req.Msg
-	return connect.NewResponse(workflowsv1.Workflow_builder{Slug: "agentic-workflow"}.Build()), nil
+func (c *fakeWorkflowsConnectClient) UpdateWorkflow(_ context.Context, req *workflowsv1.UpdateWorkflowRequest) (*workflowsv1.Workflow, error) {
+	c.updateWorkflowRequest = req
+	return workflowsv1.Workflow_builder{Slug: "agentic-workflow"}.Build(), nil
 }
 
-func (c *fakeWorkflowsConnectClient) DeleteWorkflow(context.Context, *connect.Request[workflowsv1.DeleteWorkflowRequest]) (*connect.Response[workflowsv1.DeleteWorkflowResponse], error) {
+func (c *fakeWorkflowsConnectClient) DeleteWorkflow(context.Context, *workflowsv1.DeleteWorkflowRequest) (*workflowsv1.DeleteWorkflowResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) PublishWorkflowRelease(context.Context, *connect.Request[workflowsv1.PublishWorkflowReleaseRequest]) (*connect.Response[workflowsv1.WorkflowRelease], error) {
+func (c *fakeWorkflowsConnectClient) PublishWorkflowRelease(context.Context, *workflowsv1.PublishWorkflowReleaseRequest) (*workflowsv1.WorkflowRelease, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) UnpublishWorkflowRelease(context.Context, *connect.Request[workflowsv1.UnpublishWorkflowReleaseRequest]) (*connect.Response[workflowsv1.UnpublishWorkflowReleaseResponse], error) {
+func (c *fakeWorkflowsConnectClient) UnpublishWorkflowRelease(context.Context, *workflowsv1.UnpublishWorkflowReleaseRequest) (*workflowsv1.UnpublishWorkflowReleaseResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) DeployWorkflowRelease(context.Context, *connect.Request[workflowsv1.DeployWorkflowReleaseRequest]) (*connect.Response[workflowsv1.DeployWorkflowReleaseResponse], error) {
+func (c *fakeWorkflowsConnectClient) DeployWorkflowRelease(context.Context, *workflowsv1.DeployWorkflowReleaseRequest) (*workflowsv1.DeployWorkflowReleaseResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (c *fakeWorkflowsConnectClient) UndeployWorkflowRelease(_ context.Context, req *connect.Request[workflowsv1.UndeployWorkflowReleaseRequest]) (*connect.Response[workflowsv1.UndeployWorkflowReleaseResponse], error) {
-	c.undeployWorkflowReleaseRequest = req.Msg
-	return connect.NewResponse(&workflowsv1.UndeployWorkflowReleaseResponse{}), nil
+func (c *fakeWorkflowsConnectClient) UndeployWorkflowRelease(_ context.Context, req *workflowsv1.UndeployWorkflowReleaseRequest) (*workflowsv1.UndeployWorkflowReleaseResponse, error) {
+	c.undeployWorkflowReleaseRequest = req
+	return &workflowsv1.UndeployWorkflowReleaseResponse{}, nil
 }

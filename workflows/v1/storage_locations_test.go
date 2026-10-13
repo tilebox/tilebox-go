@@ -3,24 +3,27 @@ package workflows
 import (
 	"context"
 	"encoding/json"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"sync/atomic"
 	"testing"
+	"time"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tilebox/tilebox-go/client"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
+	"github.com/tilebox/tilebox-go/protogen/workflows/v1/workflowsv1connect"
 	"github.com/tilebox/tilebox-go/query"
 	"github.com/tilebox/tilebox-go/workflows/v1/storagelocation"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestStorageLocationReferences(t *testing.T) {
@@ -163,6 +166,25 @@ func TestStorageLocationClientRPCs(t *testing.T) {
 			},
 		},
 		{
+			method: "NotifyObjectCreated",
+			request: workflowsv1.NotifyObjectCreatedRequest_builder{
+				StorageSubscriptionId: tileboxv1.NewUUID(subscriptionID), ObjectPath: "incoming/\u96ea %20.tif",
+			}.Build(), response: &emptypb.Empty{},
+			call: func(c StorageLocationClient) (any, error) {
+				return nil, c.NotifyObjectCreated(t.Context(), subscriptionID, "incoming/\u96ea %20.tif", time.Time{})
+			},
+		},
+		{
+			method: "NotifyObjectCreated",
+			request: workflowsv1.NotifyObjectCreatedRequest_builder{
+				StorageSubscriptionId: tileboxv1.NewUUID(subscriptionID), ObjectPath: "with-time.tif",
+				EventTime: &timestamppb.Timestamp{Seconds: 1_700_000_123, Nanos: 456789123},
+			}.Build(), response: &emptypb.Empty{},
+			call: func(c StorageLocationClient) (any, error) {
+				return nil, c.NotifyObjectCreated(t.Context(), subscriptionID, "with-time.tif", time.Unix(1_700_000_123, 456789123))
+			},
+		},
+		{
 			method: "ListStorageSubscriptionEvents",
 			request: workflowsv1.ListStorageSubscriptionEventsRequest_builder{
 				StorageLocationId: tileboxv1.NewUUID(locationID), Page: tileboxv1.Pagination_builder{Limit: proto.Int64(7), StartingAfter: tileboxv1.NewUUID(cursorID)}.Build(),
@@ -185,35 +207,29 @@ func TestStorageLocationClientRPCs(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.method, func(t *testing.T) {
 			var fail atomic.Bool
-			response, err := proto.Marshal(tt.response)
-			require.NoError(t, err)
+			service := storageLocationRPCService{call: func(ctx context.Context, request proto.Message) (proto.Message, error) {
+				info, ok := connect.CallInfoForServerContext(ctx)
+				require.True(t, ok)
+				assert.Equal(t, "Bearer test-key", info.RequestHeader().Get("Authorization"))
+				assert.NotEmpty(t, info.RequestHeader().Get("Tilebox-Client"))
+				assert.True(t, proto.Equal(tt.request, request), "request: %v", request)
+				if fail.Load() {
+					return nil, connect.NewError(connect.CodeNotFound, "missing")
+				}
+				return tt.response, nil
+			}}
+			rpcServer := connect.NewServer()
+			workflowsv1connect.RegisterStorageLocationServiceHandler(rpcServer, service)
+			mux := http.NewServeMux()
+			connecthttp.Mount(mux, rpcServer)
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				assert.Equal(t, "/workflows.v1.StorageLocationService/"+tt.method, r.URL.Path)
 				assert.Equal(t, http.MethodPost, r.Method)
-				assert.Equal(t, "Bearer test-key", r.Header.Get("Authorization"))
-				assert.NotEmpty(t, r.Header.Get("Tilebox-Client"))
-				body, readErr := io.ReadAll(r.Body)
-				if !assert.NoError(t, readErr) {
-					w.WriteHeader(http.StatusInternalServerError)
-					return
-				}
-				request := tt.request.ProtoReflect().New().Interface()
-				assert.NoError(t, proto.Unmarshal(body, request))
-				assert.True(t, proto.Equal(tt.request, request), "request: %v", request)
-				if fail.Load() {
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusNotFound)
-					_, writeErr := io.WriteString(w, `{"code":"not_found","message":"missing"}`)
-					assert.NoError(t, writeErr)
-					return
-				}
-				w.Header().Set("Content-Type", "application/proto")
-				_, writeErr := w.Write(response)
-				assert.NoError(t, writeErr)
+				mux.ServeHTTP(w, r)
 			}))
 			t.Cleanup(server.Close)
-			c := NewClient(WithURL(server.URL), WithHTTPClient(server.Client()), WithAPIKey("test-key"),
-				WithClientMetadata(client.Metadata{Name: "test", Version: "1"}), WithDisableTracing(), WithDisableLogging())
+			c := NewClient(client.New(client.WithURL(server.URL), client.WithHTTPClient(server.Client()), client.WithAPIKey("test-key"),
+				client.WithClientMetadata(client.Metadata{Name: "test", Version: "1"})), WithDisableTracing())
 			result, err := tt.call(c.StorageLocations)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, result)
@@ -224,6 +240,63 @@ func TestStorageLocationClientRPCs(t *testing.T) {
 			assert.Contains(t, err.Error(), "failed to ")
 		})
 	}
+}
+
+type storageLocationRPCService struct {
+	call func(context.Context, proto.Message) (proto.Message, error)
+}
+
+func storageLocationRPCResponse[T proto.Message](s storageLocationRPCService, ctx context.Context, request proto.Message) (T, error) {
+	response, err := s.call(ctx, request)
+	if err != nil {
+		var zero T
+		return zero, err
+	}
+	return response.(T), nil
+}
+
+func (s storageLocationRPCService) CreateStorageLocation(ctx context.Context, request *workflowsv1.CreateStorageLocationRequest) (*workflowsv1.StorageLocation, error) {
+	return storageLocationRPCResponse[*workflowsv1.StorageLocation](s, ctx, request)
+}
+
+func (s storageLocationRPCService) GetStorageLocation(ctx context.Context, request *tileboxv1.ID) (*workflowsv1.StorageLocation, error) {
+	return storageLocationRPCResponse[*workflowsv1.StorageLocation](s, ctx, request)
+}
+
+func (s storageLocationRPCService) ListStorageLocations(ctx context.Context, request *emptypb.Empty) (*workflowsv1.StorageLocations, error) {
+	return storageLocationRPCResponse[*workflowsv1.StorageLocations](s, ctx, request)
+}
+
+func (s storageLocationRPCService) UpdateStorageLocation(ctx context.Context, request *workflowsv1.UpdateStorageLocationRequest) (*workflowsv1.StorageLocation, error) {
+	return storageLocationRPCResponse[*workflowsv1.StorageLocation](s, ctx, request)
+}
+
+func (s storageLocationRPCService) DeleteStorageLocation(ctx context.Context, request *tileboxv1.ID) (*emptypb.Empty, error) {
+	return storageLocationRPCResponse[*emptypb.Empty](s, ctx, request)
+}
+
+func (s storageLocationRPCService) CreateStorageSubscription(ctx context.Context, request *workflowsv1.CreateStorageSubscriptionRequest) (*workflowsv1.StorageSubscription, error) {
+	return storageLocationRPCResponse[*workflowsv1.StorageSubscription](s, ctx, request)
+}
+
+func (s storageLocationRPCService) GetStorageSubscription(ctx context.Context, request *tileboxv1.ID) (*workflowsv1.StorageSubscription, error) {
+	return storageLocationRPCResponse[*workflowsv1.StorageSubscription](s, ctx, request)
+}
+
+func (s storageLocationRPCService) ListStorageSubscriptions(ctx context.Context, request *workflowsv1.ListStorageSubscriptionsRequest) (*workflowsv1.StorageSubscriptions, error) {
+	return storageLocationRPCResponse[*workflowsv1.StorageSubscriptions](s, ctx, request)
+}
+
+func (s storageLocationRPCService) DeleteStorageSubscription(ctx context.Context, request *tileboxv1.ID) (*emptypb.Empty, error) {
+	return storageLocationRPCResponse[*emptypb.Empty](s, ctx, request)
+}
+
+func (s storageLocationRPCService) ListStorageSubscriptionEvents(ctx context.Context, request *workflowsv1.ListStorageSubscriptionEventsRequest) (*workflowsv1.StorageSubscriptionEvents, error) {
+	return storageLocationRPCResponse[*workflowsv1.StorageSubscriptionEvents](s, ctx, request)
+}
+
+func (s storageLocationRPCService) NotifyObjectCreated(ctx context.Context, request *workflowsv1.NotifyObjectCreatedRequest) (*emptypb.Empty, error) {
+	return storageLocationRPCResponse[*emptypb.Empty](s, ctx, request)
 }
 
 type storageEventsService struct {

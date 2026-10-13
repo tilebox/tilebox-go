@@ -1,4 +1,3 @@
-// Package client provides metadata describing clients that call Tilebox APIs.
 package client
 
 import (

@@ -33,6 +33,7 @@ const (
 	StorageLocationService_GetStorageSubscription_FullMethodName        = "/workflows.v1.StorageLocationService/GetStorageSubscription"
 	StorageLocationService_DeleteStorageSubscription_FullMethodName     = "/workflows.v1.StorageLocationService/DeleteStorageSubscription"
 	StorageLocationService_ListStorageSubscriptionEvents_FullMethodName = "/workflows.v1.StorageLocationService/ListStorageSubscriptionEvents"
+	StorageLocationService_NotifyObjectCreated_FullMethodName           = "/workflows.v1.StorageLocationService/NotifyObjectCreated"
 )
 
 // StorageLocationServiceClient is the client API for StorageLocationService service.
@@ -61,6 +62,9 @@ type StorageLocationServiceClient interface {
 	DeleteStorageSubscription(ctx context.Context, in *v1.ID, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	// ListStorageSubscriptionEvents lists received object notifications and the jobs they triggered.
 	ListStorageSubscriptionEvents(ctx context.Context, in *ListStorageSubscriptionEventsRequest, opts ...grpc.CallOption) (*StorageSubscriptionEvents, error)
+	// NotifyObjectCreated delivers a storage event of a local storage location. Typically called by the Tilebox CLI
+	// during the `tilebox storage-location watch` command. The subscription must be of type TILEBOX_CLI.
+	NotifyObjectCreated(ctx context.Context, in *NotifyObjectCreatedRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type storageLocationServiceClient struct {
@@ -171,6 +175,16 @@ func (c *storageLocationServiceClient) ListStorageSubscriptionEvents(ctx context
 	return out, nil
 }
 
+func (c *storageLocationServiceClient) NotifyObjectCreated(ctx context.Context, in *NotifyObjectCreatedRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, StorageLocationService_NotifyObjectCreated_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StorageLocationServiceServer is the server API for StorageLocationService service.
 // All implementations must embed UnimplementedStorageLocationServiceServer
 // for forward compatibility.
@@ -197,6 +211,9 @@ type StorageLocationServiceServer interface {
 	DeleteStorageSubscription(context.Context, *v1.ID) (*emptypb.Empty, error)
 	// ListStorageSubscriptionEvents lists received object notifications and the jobs they triggered.
 	ListStorageSubscriptionEvents(context.Context, *ListStorageSubscriptionEventsRequest) (*StorageSubscriptionEvents, error)
+	// NotifyObjectCreated delivers a storage event of a local storage location. Typically called by the Tilebox CLI
+	// during the `tilebox storage-location watch` command. The subscription must be of type TILEBOX_CLI.
+	NotifyObjectCreated(context.Context, *NotifyObjectCreatedRequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedStorageLocationServiceServer()
 }
 
@@ -236,6 +253,9 @@ func (UnimplementedStorageLocationServiceServer) DeleteStorageSubscription(conte
 }
 func (UnimplementedStorageLocationServiceServer) ListStorageSubscriptionEvents(context.Context, *ListStorageSubscriptionEventsRequest) (*StorageSubscriptionEvents, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListStorageSubscriptionEvents not implemented")
+}
+func (UnimplementedStorageLocationServiceServer) NotifyObjectCreated(context.Context, *NotifyObjectCreatedRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method NotifyObjectCreated not implemented")
 }
 func (UnimplementedStorageLocationServiceServer) mustEmbedUnimplementedStorageLocationServiceServer() {
 }
@@ -439,6 +459,24 @@ func _StorageLocationService_ListStorageSubscriptionEvents_Handler(srv interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StorageLocationService_NotifyObjectCreated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NotifyObjectCreatedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StorageLocationServiceServer).NotifyObjectCreated(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: StorageLocationService_NotifyObjectCreated_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StorageLocationServiceServer).NotifyObjectCreated(ctx, req.(*NotifyObjectCreatedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // StorageLocationService_ServiceDesc is the grpc.ServiceDesc for StorageLocationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -485,6 +523,10 @@ var StorageLocationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListStorageSubscriptionEvents",
 			Handler:    _StorageLocationService_ListStorageSubscriptionEvents_Handler,
+		},
+		{
+			MethodName: "NotifyObjectCreated",
+			Handler:    _StorageLocationService_NotifyObjectCreated_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

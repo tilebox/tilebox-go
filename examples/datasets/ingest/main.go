@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/datasets/v1"
 	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -14,7 +15,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create a Tilebox Datasets client
-	client := datasets.NewClient()
+	client := datasets.NewClient(client.New())
 
 	// Select a dataset
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")

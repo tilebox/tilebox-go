@@ -46,6 +46,103 @@ For examples on how to use the library, see the [examples](examples) directory.
 
 ## Usage
 
+### Configuring RPC clients
+
+Accounts, Datasets, and Workflows constructors require a `*connect.Client`. Create it with `client.New()`;
+the defaults are `https://api.tilebox.com`, `TILEBOX_API_KEY`, SDK metadata, and binary Connect protobuf.
+HTTPS negotiates HTTP/2 with HTTP/1.1 fallback. Plain HTTP and Unix sockets use HTTP/1.1 by default.
+Reuse one RPC client across domain clients to share its connection pool and interceptor chain.
+
+A CLI can configure TLS, a proxy, and retries once for all three APIs without implementing its own retry loop:
+
+```go
+import (
+	"crypto/tls"
+	"net/http"
+	"net/url"
+	"time"
+
+	"github.com/tilebox/tilebox-go/accounts/v1"
+	"github.com/tilebox/tilebox-go/client"
+	"github.com/tilebox/tilebox-go/datasets/v1"
+	"github.com/tilebox/tilebox-go/workflows/v1"
+)
+
+transport := client.NewHTTPTransport()
+transport.TLSClientConfig = &tls.Config{MinVersion: tls.VersionTLS12}
+proxyURL, err := url.Parse("http://localhost:8080")
+if err != nil {
+	return err
+}
+transport.Proxy = http.ProxyURL(proxyURL)
+rpcClient := client.New(
+	client.WithHTTPTransport(transport),
+	client.WithRetryPolicy(client.RetryPolicy{
+		MaxRetries: 2,
+		MinWait: 100 * time.Millisecond,
+		MaxWait: 5 * time.Second,
+	}),
+)
+datasetsClient := datasets.NewClient(rpcClient)
+workflowsClient := workflows.NewClient(rpcClient)
+accountsClient := accounts.NewClient(rpcClient)
+```
+
+`NewHTTPTransport` creates an independent pool without changing `http.DefaultTransport`. Configure it before use.
+`client.WithHTTPTransport` uses the supplied transport unchanged while preserving SDK retries. For Unix sockets,
+a custom transport must provide its own socket dialer.
+
+Responses have no size limit by default. To bound memory use, set a per-message limit,
+measured after decompression:
+
+```go
+import (
+	"connectrpc.com/connect/v2/connecthttp"
+	"github.com/tilebox/tilebox-go/client"
+	"github.com/tilebox/tilebox-go/datasets/v1"
+)
+
+rpcClient := client.New(client.WithTransportOptions(connecthttp.WithReadMaxBytes(64 << 20)))
+datasetsClient := datasets.NewClient(rpcClient)
+```
+
+URL, API key, metadata, HTTP client, native transport, interceptor, and retry options now belong only to `client`.
+`client.WithTransportOptions` accepts `connecthttp.Option` values for protocol, compression, and message limits.
+`client.WithInterceptors` accepts native `connect.ClientInterceptor` functions in outermost-first order. Both replace the
+former `WithConnectClientOptions` API. The SDK applies its configured API key and client metadata after custom
+interceptors. An empty API key leaves caller-provided authentication intact.
+
+For per-call headers, use `connect.NewClientContext(ctx)` and its `CallInfo.RequestHeader()`. Read response headers
+and trailers from the same `CallInfo` after the call. Use a separate client context for each concurrent call.
+
+The default HTTP client retries replayable requests on transient transport failures, HTTP 429 (except Connect
+`resource_exhausted`), and HTTP 5xx, with five total attempts. Retries reuse Connect's request body without a second
+payload buffer. Streaming request bodies are not retried. A lost response can still mean
+the server processed the request; retries do not guarantee exactly-once execution. Use call deadlines to bound retries.
+The default policy permits four retries, starts with `MinWait` of 20 ms, and caps exponential equal-jitter waits at
+10 seconds. Unix sockets use the same retry policy as HTTP. `client.WithRetryPolicy(client.RetryPolicy{})` disables
+retries. Default clients do not follow redirects. `client.WithHTTPClient` replaces the entire HTTP client, including
+retries, redirects, and timeouts; `WithHTTPTransport` and `WithRetryPolicy` then have no effect.
+`client.WithTransport` accepts a native `connect.Transport` and bypasses all HTTP setup, including URL, retry policy,
+and transport options. Authentication, metadata, and client interceptors still apply.
+
+Domain clients retain `WithDisableTracing`; `WithDisableLogging` has been removed. Constructors do not install
+telemetry exporters. To export to Tilebox, call `workflows.ConfigureTileboxTelemetry(ctx, apiURL, apiKey)` before
+constructing domain clients, which capture the global tracer provider. Console logging remains a separate choice.
+
+Storage notifications use the same RPC client as other Workflows operations:
+
+```go
+workflowsClient := workflows.NewClient(rpcClient)
+err := workflowsClient.StorageLocations.NotifyObjectCreated(ctx, subscriptionID, "path/to/object", eventTime)
+```
+
+Notifications share the configured transport, authentication, metadata, interceptors, and retry policy, including
+support for in-process transports. A zero `eventTime` omits the timestamp. The server must implement the
+`StorageLocationService.NotifyObjectCreated` RPC; the SDK no longer calls the JSON notification endpoint.
+There is no separate notification timeout. Use a context deadline to bound the whole call, including retries.
+Retries may create duplicate jobs if a response is lost.
+
 ### Filtering Dataset Queries
 
 Fields marked queryable in a dataset schema can be filtered with fluent Boolean, string, and numeric expressions. Multiple
@@ -61,13 +158,14 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/datasets/v1"
 	"github.com/tilebox/tilebox-go/query"
 )
 
 func main() {
 	ctx := context.Background()
-	client := datasets.NewClient()
+	client := datasets.NewClient(client.New())
 	datasetID := uuid.MustParse("019c0123-4567-7890-abcd-ef0123456789")
 	start := time.Date(2026, time.July, 1, 0, 0, 0, 0, time.UTC)
 	end := start.Add(24 * time.Hour)
@@ -136,7 +234,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
@@ -147,7 +247,8 @@ type HelloTask struct {
 func main() {
 	ctx := context.Background()
 	workflows.ConfigureConsoleLogging(slog.LevelInfo)
-	client := workflows.NewClient()
+	workflows.ConfigureTileboxTelemetry(ctx, "https://api.tilebox.com", os.Getenv("TILEBOX_API_KEY"))
+	client := workflows.NewClient(client.New())
 
 	job, err := client.Jobs.Submit(ctx, "hello-world",
 		[]workflows.Task{
@@ -165,7 +266,7 @@ func main() {
 }
 ```
 
-`workflows.NewClient()` configures Tilebox OpenTelemetry export when an API key is available. `workflows.ConfigureConsoleLogging` adds console output without replacing the Tilebox exporter, so logs are written to both destinations when both are configured.
+`workflows.ConfigureConsoleLogging` adds console output without replacing the Tilebox exporter, so logs are written to both destinations when both are configured.
 
 ### Running a Worker
 
@@ -177,7 +278,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"os"
 
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 )
 
@@ -194,7 +297,8 @@ func (t *HelloTask) Execute(ctx context.Context) error {
 func main() {
 	ctx := context.Background()
 	workflows.ConfigureConsoleLogging(slog.LevelInfo)
-	client := workflows.NewClient()
+	workflows.ConfigureTileboxTelemetry(ctx, "https://api.tilebox.com", os.Getenv("TILEBOX_API_KEY"))
+	client := workflows.NewClient(client.New())
 
 	runner, err := client.NewTaskRunner(ctx)
 	if err != nil {
@@ -226,13 +330,14 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
 )
 
 func main() {
 	ctx := context.Background()
-	client := workflows.NewClient()
+	client := workflows.NewClient(client.New())
 	jobID := uuid.MustParse("019e070c-63ba-1c7e-5f1d-65be3e22d52a")
 
 	for logRecord, err := range client.Jobs.QueryLogs(ctx, jobID,

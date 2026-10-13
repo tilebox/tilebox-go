@@ -90,6 +90,7 @@ func NewUndeployOptions(options ...UndeployOption) UndeployOptions {
 // UpdateOptions contains workflow update options.
 type UpdateOptions struct {
 	Name        *string
+	Summary     *string
 	Description *string
 }
 
@@ -106,6 +107,14 @@ func (o nameOption) ApplyUpdateOption(options *UpdateOptions) {
 	options.Name = &o.name
 }
 
+type summaryOption struct {
+	summary string
+}
+
+func (o summaryOption) ApplyUpdateOption(options *UpdateOptions) {
+	options.Summary = &o.summary
+}
+
 type descriptionOption struct {
 	description string
 }
@@ -119,7 +128,12 @@ func WithName(name string) UpdateOption {
 	return nameOption{name: name}
 }
 
-// WithDescription sets the workflow description.
+// WithSummary sets the workflow's short text summary. An empty string clears it.
+func WithSummary(summary string) UpdateOption {
+	return summaryOption{summary: summary}
+}
+
+// WithDescription sets the workflow description. An empty string clears it.
 func WithDescription(description string) UpdateOption {
 	return descriptionOption{description: description}
 }

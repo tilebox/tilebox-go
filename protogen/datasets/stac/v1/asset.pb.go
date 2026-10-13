@@ -640,16 +640,17 @@ func (b0 AssetLocation_builder) Build() *AssetLocation {
 // Band is a reusable STAC 1.1 band profile containing common, EO, Raster, and Classification fields. Fields present
 // here override the corresponding inheritable Asset fields; ingestion should omit values lifted to the Asset.
 type Band struct {
-	state                  protoimpl.MessageState  `protogen:"opaque.v1"`
-	xxx_hidden_Name        *string                 `protobuf:"bytes,1,opt,name=name"`
-	xxx_hidden_Description *string                 `protobuf:"bytes,2,opt,name=description"`
-	xxx_hidden_DataType    DataType                `protobuf:"varint,3,opt,name=data_type,json=dataType,enum=datasets.stac.v1.DataType"`
-	xxx_hidden_Nodata      float64                 `protobuf:"fixed64,4,opt,name=nodata"`
-	xxx_hidden_Unit        *string                 `protobuf:"bytes,5,opt,name=unit"`
-	xxx_hidden_Eo          *EOProperties           `protobuf:"bytes,6,opt,name=eo"`
-	xxx_hidden_Raster      *RasterProperties       `protobuf:"bytes,7,opt,name=raster"`
-	xxx_hidden_Classes     *[]*ClassificationClass `protobuf:"bytes,8,rep,name=classes"`
-	xxx_hidden_Sar         *SARProperties          `protobuf:"bytes,9,opt,name=sar"`
+	state                  protoimpl.MessageState     `protogen:"opaque.v1"`
+	xxx_hidden_Name        *string                    `protobuf:"bytes,1,opt,name=name"`
+	xxx_hidden_Description *string                    `protobuf:"bytes,2,opt,name=description"`
+	xxx_hidden_DataType    DataType                   `protobuf:"varint,3,opt,name=data_type,json=dataType,enum=datasets.stac.v1.DataType"`
+	xxx_hidden_Nodata      float64                    `protobuf:"fixed64,4,opt,name=nodata"`
+	xxx_hidden_Unit        *string                    `protobuf:"bytes,5,opt,name=unit"`
+	xxx_hidden_Eo          *EOProperties              `protobuf:"bytes,6,opt,name=eo"`
+	xxx_hidden_Raster      *RasterProperties          `protobuf:"bytes,7,opt,name=raster"`
+	xxx_hidden_Classes     *[]*ClassificationClass    `protobuf:"bytes,8,rep,name=classes"`
+	xxx_hidden_Sar         *SARProperties             `protobuf:"bytes,9,opt,name=sar"`
+	xxx_hidden_Bitfields   *[]*ClassificationBitField `protobuf:"bytes,10,rep,name=bitfields"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -755,14 +756,23 @@ func (x *Band) GetSar() *SARProperties {
 	return nil
 }
 
+func (x *Band) GetBitfields() []*ClassificationBitField {
+	if x != nil {
+		if x.xxx_hidden_Bitfields != nil {
+			return *x.xxx_hidden_Bitfields
+		}
+	}
+	return nil
+}
+
 func (x *Band) SetName(v string) {
 	x.xxx_hidden_Name = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 10)
 }
 
 func (x *Band) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 10)
 }
 
 func (x *Band) SetDataType(v DataType) {
@@ -771,12 +781,12 @@ func (x *Band) SetDataType(v DataType) {
 
 func (x *Band) SetNodata(v float64) {
 	x.xxx_hidden_Nodata = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 10)
 }
 
 func (x *Band) SetUnit(v string) {
 	x.xxx_hidden_Unit = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 10)
 }
 
 func (x *Band) SetEo(v *EOProperties) {
@@ -793,6 +803,10 @@ func (x *Band) SetClasses(v []*ClassificationClass) {
 
 func (x *Band) SetSar(v *SARProperties) {
 	x.xxx_hidden_Sar = v
+}
+
+func (x *Band) SetBitfields(v []*ClassificationBitField) {
+	x.xxx_hidden_Bitfields = &v
 }
 
 func (x *Band) HasName() bool {
@@ -888,7 +902,8 @@ type Band_builder struct {
 	Raster      *RasterProperties
 	Classes     []*ClassificationClass
 	// SAR 1.3.2 permits frequency, center-frequency, and bandwidth metadata on Band Objects.
-	Sar *SARProperties
+	Sar       *SARProperties
+	Bitfields []*ClassificationBitField
 }
 
 func (b0 Band_builder) Build() *Band {
@@ -896,56 +911,58 @@ func (b0 Band_builder) Build() *Band {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Name != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 10)
 		x.xxx_hidden_Name = b.Name
 	}
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 10)
 		x.xxx_hidden_Description = b.Description
 	}
 	x.xxx_hidden_DataType = b.DataType
 	if b.Nodata != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 10)
 		x.xxx_hidden_Nodata = *b.Nodata
 	}
 	if b.Unit != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 10)
 		x.xxx_hidden_Unit = b.Unit
 	}
 	x.xxx_hidden_Eo = b.Eo
 	x.xxx_hidden_Raster = b.Raster
 	x.xxx_hidden_Classes = &b.Classes
 	x.xxx_hidden_Sar = b.Sar
+	x.xxx_hidden_Bitfields = &b.Bitfields
 	return m0
 }
 
 // Asset contains the canonical STAC 1.1 Asset Object fields used by the supported Items. Inheritable metadata applies
 // to every band unless a Band overrides it. Ingestion should lift values shared by all bands to this level.
 type Asset struct {
-	state                         protoimpl.MessageState  `protogen:"opaque.v1"`
-	xxx_hidden_Key                string                  `protobuf:"bytes,1,opt,name=key"`
-	xxx_hidden_Primary            *AssetLocation          `protobuf:"bytes,2,opt,name=primary"`
-	xxx_hidden_Alternates         *[]*AssetLocation       `protobuf:"bytes,3,rep,name=alternates"`
-	xxx_hidden_MediaType          *MediaType              `protobuf:"bytes,4,opt,name=media_type,json=mediaType"`
-	xxx_hidden_Title              *string                 `protobuf:"bytes,5,opt,name=title"`
-	xxx_hidden_Description        *string                 `protobuf:"bytes,6,opt,name=description"`
-	xxx_hidden_Roles              []KnownAssetRole        `protobuf:"varint,7,rep,packed,name=roles,enum=datasets.stac.v1.KnownAssetRole"`
-	xxx_hidden_CustomRoles        []string                `protobuf:"bytes,8,rep,name=custom_roles,json=customRoles"`
-	xxx_hidden_Gsd                float64                 `protobuf:"fixed64,9,opt,name=gsd"`
-	xxx_hidden_BandProfileIndices []uint32                `protobuf:"varint,10,rep,packed,name=band_profile_indices,json=bandProfileIndices"`
-	xxx_hidden_DataType           DataType                `protobuf:"varint,11,opt,name=data_type,json=dataType,enum=datasets.stac.v1.DataType"`
-	xxx_hidden_Nodata             float64                 `protobuf:"fixed64,12,opt,name=nodata"`
-	xxx_hidden_Statistics         *Statistics             `protobuf:"bytes,13,opt,name=statistics"`
-	xxx_hidden_Unit               *string                 `protobuf:"bytes,14,opt,name=unit"`
-	xxx_hidden_Eo                 *EOProperties           `protobuf:"bytes,15,opt,name=eo"`
-	xxx_hidden_Raster             *RasterProperties       `protobuf:"bytes,16,opt,name=raster"`
-	xxx_hidden_Projection         *Projection             `protobuf:"bytes,17,opt,name=projection"`
-	xxx_hidden_View               *View                   `protobuf:"bytes,18,opt,name=view"`
-	xxx_hidden_Classes            *[]*ClassificationClass `protobuf:"bytes,19,rep,name=classes"`
-	xxx_hidden_File               *File                   `protobuf:"bytes,20,opt,name=file"`
-	xxx_hidden_Sar                *SARProperties          `protobuf:"bytes,21,opt,name=sar"`
-	xxx_hidden_Satellite          *SatelliteProperties    `protobuf:"bytes,22,opt,name=satellite"`
-	xxx_hidden_Product            *ProductProperties      `protobuf:"bytes,23,opt,name=product"`
+	state                         protoimpl.MessageState     `protogen:"opaque.v1"`
+	xxx_hidden_Key                string                     `protobuf:"bytes,1,opt,name=key"`
+	xxx_hidden_Primary            *AssetLocation             `protobuf:"bytes,2,opt,name=primary"`
+	xxx_hidden_Alternates         *[]*AssetLocation          `protobuf:"bytes,3,rep,name=alternates"`
+	xxx_hidden_MediaType          *MediaType                 `protobuf:"bytes,4,opt,name=media_type,json=mediaType"`
+	xxx_hidden_Title              *string                    `protobuf:"bytes,5,opt,name=title"`
+	xxx_hidden_Description        *string                    `protobuf:"bytes,6,opt,name=description"`
+	xxx_hidden_Roles              []KnownAssetRole           `protobuf:"varint,7,rep,packed,name=roles,enum=datasets.stac.v1.KnownAssetRole"`
+	xxx_hidden_CustomRoles        []string                   `protobuf:"bytes,8,rep,name=custom_roles,json=customRoles"`
+	xxx_hidden_Gsd                float64                    `protobuf:"fixed64,9,opt,name=gsd"`
+	xxx_hidden_BandProfileIndices []uint32                   `protobuf:"varint,10,rep,packed,name=band_profile_indices,json=bandProfileIndices"`
+	xxx_hidden_DataType           DataType                   `protobuf:"varint,11,opt,name=data_type,json=dataType,enum=datasets.stac.v1.DataType"`
+	xxx_hidden_Nodata             float64                    `protobuf:"fixed64,12,opt,name=nodata"`
+	xxx_hidden_Statistics         *Statistics                `protobuf:"bytes,13,opt,name=statistics"`
+	xxx_hidden_Unit               *string                    `protobuf:"bytes,14,opt,name=unit"`
+	xxx_hidden_Eo                 *EOProperties              `protobuf:"bytes,15,opt,name=eo"`
+	xxx_hidden_Raster             *RasterProperties          `protobuf:"bytes,16,opt,name=raster"`
+	xxx_hidden_Projection         *Projection                `protobuf:"bytes,17,opt,name=projection"`
+	xxx_hidden_View               *View                      `protobuf:"bytes,18,opt,name=view"`
+	xxx_hidden_Classes            *[]*ClassificationClass    `protobuf:"bytes,19,rep,name=classes"`
+	xxx_hidden_File               *File                      `protobuf:"bytes,20,opt,name=file"`
+	xxx_hidden_Sar                *SARProperties             `protobuf:"bytes,21,opt,name=sar"`
+	xxx_hidden_Satellite          *SatelliteProperties       `protobuf:"bytes,22,opt,name=satellite"`
+	xxx_hidden_Product            *ProductProperties         `protobuf:"bytes,23,opt,name=product"`
+	xxx_hidden_Bitfields          *[]*ClassificationBitField `protobuf:"bytes,24,rep,name=bitfields"`
 	XXX_raceDetectHookData        protoimpl.RaceDetectHookData
 	XXX_presence                  [1]uint32
 	unknownFields                 protoimpl.UnknownFields
@@ -1151,6 +1168,15 @@ func (x *Asset) GetProduct() *ProductProperties {
 	return nil
 }
 
+func (x *Asset) GetBitfields() []*ClassificationBitField {
+	if x != nil {
+		if x.xxx_hidden_Bitfields != nil {
+			return *x.xxx_hidden_Bitfields
+		}
+	}
+	return nil
+}
+
 func (x *Asset) SetKey(v string) {
 	x.xxx_hidden_Key = v
 }
@@ -1169,12 +1195,12 @@ func (x *Asset) SetMediaType(v *MediaType) {
 
 func (x *Asset) SetTitle(v string) {
 	x.xxx_hidden_Title = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 23)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 24)
 }
 
 func (x *Asset) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 23)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 24)
 }
 
 func (x *Asset) SetRoles(v []KnownAssetRole) {
@@ -1187,7 +1213,7 @@ func (x *Asset) SetCustomRoles(v []string) {
 
 func (x *Asset) SetGsd(v float64) {
 	x.xxx_hidden_Gsd = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 23)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 24)
 }
 
 func (x *Asset) SetBandProfileIndices(v []uint32) {
@@ -1200,7 +1226,7 @@ func (x *Asset) SetDataType(v DataType) {
 
 func (x *Asset) SetNodata(v float64) {
 	x.xxx_hidden_Nodata = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 11, 23)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 11, 24)
 }
 
 func (x *Asset) SetStatistics(v *Statistics) {
@@ -1209,7 +1235,7 @@ func (x *Asset) SetStatistics(v *Statistics) {
 
 func (x *Asset) SetUnit(v string) {
 	x.xxx_hidden_Unit = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 13, 23)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 13, 24)
 }
 
 func (x *Asset) SetEo(v *EOProperties) {
@@ -1246,6 +1272,10 @@ func (x *Asset) SetSatellite(v *SatelliteProperties) {
 
 func (x *Asset) SetProduct(v *ProductProperties) {
 	x.xxx_hidden_Product = v
+}
+
+func (x *Asset) SetBitfields(v []*ClassificationBitField) {
+	x.xxx_hidden_Bitfields = &v
 }
 
 func (x *Asset) HasPrimary() bool {
@@ -1459,6 +1489,7 @@ type Asset_builder struct {
 	Sar                *SARProperties
 	Satellite          *SatelliteProperties
 	Product            *ProductProperties
+	Bitfields          []*ClassificationBitField
 }
 
 func (b0 Asset_builder) Build() *Asset {
@@ -1470,28 +1501,28 @@ func (b0 Asset_builder) Build() *Asset {
 	x.xxx_hidden_Alternates = &b.Alternates
 	x.xxx_hidden_MediaType = b.MediaType
 	if b.Title != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 23)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 24)
 		x.xxx_hidden_Title = b.Title
 	}
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 23)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 24)
 		x.xxx_hidden_Description = b.Description
 	}
 	x.xxx_hidden_Roles = b.Roles
 	x.xxx_hidden_CustomRoles = b.CustomRoles
 	if b.Gsd != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 23)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 24)
 		x.xxx_hidden_Gsd = *b.Gsd
 	}
 	x.xxx_hidden_BandProfileIndices = b.BandProfileIndices
 	x.xxx_hidden_DataType = b.DataType
 	if b.Nodata != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 11, 23)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 11, 24)
 		x.xxx_hidden_Nodata = *b.Nodata
 	}
 	x.xxx_hidden_Statistics = b.Statistics
 	if b.Unit != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 13, 23)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 13, 24)
 		x.xxx_hidden_Unit = b.Unit
 	}
 	x.xxx_hidden_Eo = b.Eo
@@ -1503,6 +1534,7 @@ func (b0 Asset_builder) Build() *Asset {
 	x.xxx_hidden_Sar = b.Sar
 	x.xxx_hidden_Satellite = b.Satellite
 	x.xxx_hidden_Product = b.Product
+	x.xxx_hidden_Bitfields = &b.Bitfields
 	return m0
 }
 
@@ -1620,7 +1652,7 @@ const file_datasets_stac_v1_asset_proto_rawDesc = "" +
 	"\rAssetLocation\x12=\n" +
 	"\x14access_profile_index\x18\x01 \x01(\rB\v\xbaH\x03\xc8\x01\x01\xaa\x01\x02\b\x01R\x12accessProfileIndex\x12\x19\n" +
 	"\x04href\x18\x02 \x01(\tB\x05\xaa\x01\x02\b\x01R\x04href\x12,\n" +
-	"\x0ealternate_name\x18\x03 \x01(\tB\x05\xaa\x01\x02\b\x01R\ralternateName\"\xae\x03\n" +
+	"\x0ealternate_name\x18\x03 \x01(\tB\x05\xaa\x01\x02\b\x01R\ralternateName\"\xf6\x03\n" +
 	"\x04Band\x12 \n" +
 	"\x04name\x18\x01 \x01(\tB\f\xbaH\x04r\x02\x10\x01\xaa\x01\x02\b\x01R\x04name\x12'\n" +
 	"\vdescription\x18\x02 \x01(\tB\x05\xaa\x01\x02\b\x01R\vdescription\x12A\n" +
@@ -1630,7 +1662,9 @@ const file_datasets_stac_v1_asset_proto_rawDesc = "" +
 	"\x02eo\x18\x06 \x01(\v2\x1e.datasets.stac.v1.EOPropertiesR\x02eo\x12:\n" +
 	"\x06raster\x18\a \x01(\v2\".datasets.stac.v1.RasterPropertiesR\x06raster\x12?\n" +
 	"\aclasses\x18\b \x03(\v2%.datasets.stac.v1.ClassificationClassR\aclasses\x121\n" +
-	"\x03sar\x18\t \x01(\v2\x1f.datasets.stac.v1.SARPropertiesR\x03sar\"\x86\n" +
+	"\x03sar\x18\t \x01(\v2\x1f.datasets.stac.v1.SARPropertiesR\x03sar\x12F\n" +
+	"\tbitfields\x18\n" +
+	" \x03(\v2(.datasets.stac.v1.ClassificationBitFieldR\tbitfields\"\xce\n" +
 	"\n" +
 	"\x05Asset\x12\x19\n" +
 	"\x03key\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x03key\x12A\n" +
@@ -1663,7 +1697,8 @@ const file_datasets_stac_v1_asset_proto_rawDesc = "" +
 	"\x04file\x18\x14 \x01(\v2\x16.datasets.stac.v1.FileR\x04file\x121\n" +
 	"\x03sar\x18\x15 \x01(\v2\x1f.datasets.stac.v1.SARPropertiesR\x03sar\x12C\n" +
 	"\tsatellite\x18\x16 \x01(\v2%.datasets.stac.v1.SatellitePropertiesR\tsatellite\x12=\n" +
-	"\aproduct\x18\x17 \x01(\v2#.datasets.stac.v1.ProductPropertiesR\aproduct:b\xbaH_\x1a]\n" +
+	"\aproduct\x18\x17 \x01(\v2#.datasets.stac.v1.ProductPropertiesR\aproduct\x12F\n" +
+	"\tbitfields\x18\x18 \x03(\v2(.datasets.stac.v1.ClassificationBitFieldR\tbitfields:b\xbaH_\x1a]\n" +
 	"\x12asset.primary_href\x12/the primary asset location must provide an href\x1a\x16has(this.primary.href)\"\xc5\x01\n" +
 	"\x06Assets\x12M\n" +
 	"\x0faccess_profiles\x18\x01 \x03(\v2$.datasets.stac.v1.AssetAccessProfileR\x0eaccessProfiles\x12;\n" +
@@ -1725,24 +1760,25 @@ const file_datasets_stac_v1_asset_proto_rawDesc = "" +
 var file_datasets_stac_v1_asset_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_datasets_stac_v1_asset_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_datasets_stac_v1_asset_proto_goTypes = []any{
-	(KnownAssetRole)(0),         // 0: datasets.stac.v1.KnownAssetRole
-	(DataType)(0),               // 1: datasets.stac.v1.DataType
-	(*Statistics)(nil),          // 2: datasets.stac.v1.Statistics
-	(*AssetAccessProfile)(nil),  // 3: datasets.stac.v1.AssetAccessProfile
-	(*AssetLocation)(nil),       // 4: datasets.stac.v1.AssetLocation
-	(*Band)(nil),                // 5: datasets.stac.v1.Band
-	(*Asset)(nil),               // 6: datasets.stac.v1.Asset
-	(*Assets)(nil),              // 7: datasets.stac.v1.Assets
-	(*EOProperties)(nil),        // 8: datasets.stac.v1.EOProperties
-	(*RasterProperties)(nil),    // 9: datasets.stac.v1.RasterProperties
-	(*ClassificationClass)(nil), // 10: datasets.stac.v1.ClassificationClass
-	(*SARProperties)(nil),       // 11: datasets.stac.v1.SARProperties
-	(*MediaType)(nil),           // 12: datasets.stac.v1.MediaType
-	(*Projection)(nil),          // 13: datasets.stac.v1.Projection
-	(*View)(nil),                // 14: datasets.stac.v1.View
-	(*File)(nil),                // 15: datasets.stac.v1.File
-	(*SatelliteProperties)(nil), // 16: datasets.stac.v1.SatelliteProperties
-	(*ProductProperties)(nil),   // 17: datasets.stac.v1.ProductProperties
+	(KnownAssetRole)(0),            // 0: datasets.stac.v1.KnownAssetRole
+	(DataType)(0),                  // 1: datasets.stac.v1.DataType
+	(*Statistics)(nil),             // 2: datasets.stac.v1.Statistics
+	(*AssetAccessProfile)(nil),     // 3: datasets.stac.v1.AssetAccessProfile
+	(*AssetLocation)(nil),          // 4: datasets.stac.v1.AssetLocation
+	(*Band)(nil),                   // 5: datasets.stac.v1.Band
+	(*Asset)(nil),                  // 6: datasets.stac.v1.Asset
+	(*Assets)(nil),                 // 7: datasets.stac.v1.Assets
+	(*EOProperties)(nil),           // 8: datasets.stac.v1.EOProperties
+	(*RasterProperties)(nil),       // 9: datasets.stac.v1.RasterProperties
+	(*ClassificationClass)(nil),    // 10: datasets.stac.v1.ClassificationClass
+	(*SARProperties)(nil),          // 11: datasets.stac.v1.SARProperties
+	(*ClassificationBitField)(nil), // 12: datasets.stac.v1.ClassificationBitField
+	(*MediaType)(nil),              // 13: datasets.stac.v1.MediaType
+	(*Projection)(nil),             // 14: datasets.stac.v1.Projection
+	(*View)(nil),                   // 15: datasets.stac.v1.View
+	(*File)(nil),                   // 16: datasets.stac.v1.File
+	(*SatelliteProperties)(nil),    // 17: datasets.stac.v1.SatelliteProperties
+	(*ProductProperties)(nil),      // 18: datasets.stac.v1.ProductProperties
 }
 var file_datasets_stac_v1_asset_proto_depIdxs = []int32{
 	1,  // 0: datasets.stac.v1.Band.data_type:type_name -> datasets.stac.v1.DataType
@@ -1750,29 +1786,31 @@ var file_datasets_stac_v1_asset_proto_depIdxs = []int32{
 	9,  // 2: datasets.stac.v1.Band.raster:type_name -> datasets.stac.v1.RasterProperties
 	10, // 3: datasets.stac.v1.Band.classes:type_name -> datasets.stac.v1.ClassificationClass
 	11, // 4: datasets.stac.v1.Band.sar:type_name -> datasets.stac.v1.SARProperties
-	4,  // 5: datasets.stac.v1.Asset.primary:type_name -> datasets.stac.v1.AssetLocation
-	4,  // 6: datasets.stac.v1.Asset.alternates:type_name -> datasets.stac.v1.AssetLocation
-	12, // 7: datasets.stac.v1.Asset.media_type:type_name -> datasets.stac.v1.MediaType
-	0,  // 8: datasets.stac.v1.Asset.roles:type_name -> datasets.stac.v1.KnownAssetRole
-	1,  // 9: datasets.stac.v1.Asset.data_type:type_name -> datasets.stac.v1.DataType
-	2,  // 10: datasets.stac.v1.Asset.statistics:type_name -> datasets.stac.v1.Statistics
-	8,  // 11: datasets.stac.v1.Asset.eo:type_name -> datasets.stac.v1.EOProperties
-	9,  // 12: datasets.stac.v1.Asset.raster:type_name -> datasets.stac.v1.RasterProperties
-	13, // 13: datasets.stac.v1.Asset.projection:type_name -> datasets.stac.v1.Projection
-	14, // 14: datasets.stac.v1.Asset.view:type_name -> datasets.stac.v1.View
-	10, // 15: datasets.stac.v1.Asset.classes:type_name -> datasets.stac.v1.ClassificationClass
-	15, // 16: datasets.stac.v1.Asset.file:type_name -> datasets.stac.v1.File
-	11, // 17: datasets.stac.v1.Asset.sar:type_name -> datasets.stac.v1.SARProperties
-	16, // 18: datasets.stac.v1.Asset.satellite:type_name -> datasets.stac.v1.SatelliteProperties
-	17, // 19: datasets.stac.v1.Asset.product:type_name -> datasets.stac.v1.ProductProperties
-	3,  // 20: datasets.stac.v1.Assets.access_profiles:type_name -> datasets.stac.v1.AssetAccessProfile
-	5,  // 21: datasets.stac.v1.Assets.band_profiles:type_name -> datasets.stac.v1.Band
-	6,  // 22: datasets.stac.v1.Assets.assets:type_name -> datasets.stac.v1.Asset
-	23, // [23:23] is the sub-list for method output_type
-	23, // [23:23] is the sub-list for method input_type
-	23, // [23:23] is the sub-list for extension type_name
-	23, // [23:23] is the sub-list for extension extendee
-	0,  // [0:23] is the sub-list for field type_name
+	12, // 5: datasets.stac.v1.Band.bitfields:type_name -> datasets.stac.v1.ClassificationBitField
+	4,  // 6: datasets.stac.v1.Asset.primary:type_name -> datasets.stac.v1.AssetLocation
+	4,  // 7: datasets.stac.v1.Asset.alternates:type_name -> datasets.stac.v1.AssetLocation
+	13, // 8: datasets.stac.v1.Asset.media_type:type_name -> datasets.stac.v1.MediaType
+	0,  // 9: datasets.stac.v1.Asset.roles:type_name -> datasets.stac.v1.KnownAssetRole
+	1,  // 10: datasets.stac.v1.Asset.data_type:type_name -> datasets.stac.v1.DataType
+	2,  // 11: datasets.stac.v1.Asset.statistics:type_name -> datasets.stac.v1.Statistics
+	8,  // 12: datasets.stac.v1.Asset.eo:type_name -> datasets.stac.v1.EOProperties
+	9,  // 13: datasets.stac.v1.Asset.raster:type_name -> datasets.stac.v1.RasterProperties
+	14, // 14: datasets.stac.v1.Asset.projection:type_name -> datasets.stac.v1.Projection
+	15, // 15: datasets.stac.v1.Asset.view:type_name -> datasets.stac.v1.View
+	10, // 16: datasets.stac.v1.Asset.classes:type_name -> datasets.stac.v1.ClassificationClass
+	16, // 17: datasets.stac.v1.Asset.file:type_name -> datasets.stac.v1.File
+	11, // 18: datasets.stac.v1.Asset.sar:type_name -> datasets.stac.v1.SARProperties
+	17, // 19: datasets.stac.v1.Asset.satellite:type_name -> datasets.stac.v1.SatelliteProperties
+	18, // 20: datasets.stac.v1.Asset.product:type_name -> datasets.stac.v1.ProductProperties
+	12, // 21: datasets.stac.v1.Asset.bitfields:type_name -> datasets.stac.v1.ClassificationBitField
+	3,  // 22: datasets.stac.v1.Assets.access_profiles:type_name -> datasets.stac.v1.AssetAccessProfile
+	5,  // 23: datasets.stac.v1.Assets.band_profiles:type_name -> datasets.stac.v1.Band
+	6,  // 24: datasets.stac.v1.Assets.assets:type_name -> datasets.stac.v1.Asset
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_datasets_stac_v1_asset_proto_init() }

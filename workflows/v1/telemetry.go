@@ -35,9 +35,9 @@ var (
 
 // ConfigureConsoleLogging configures the default slog logger to write logs to stdout at the given level.
 //
-// Console logging is composed with the Tilebox log exporter configured by NewClient. Calling
-// ConfigureConsoleLogging before or after NewClient causes future slog records to be sent to both
-// destinations. If NewClient is not called, logs are only written to the console.
+// Console logging is composed with the Tilebox log exporter configured by ConfigureTileboxTelemetry.
+// Calling either function first causes future slog records to be sent to both destinations.
+// Without ConfigureTileboxTelemetry, logs are only written to the console.
 func ConfigureConsoleLogging(level slog.Level) {
 	consoleLogHandlerOnce.Do(func() {
 		configureSlogHandler(logger.NewConsoleHandler(logger.WithLevel(level)))
@@ -66,61 +66,59 @@ func WithSpan(ctx context.Context, name string, f func(ctx context.Context) erro
 	return observability.WithSpan(ctx, executionContext.runner.tracer, name, f)
 }
 
-func configureTileboxTelemetry(ctx context.Context, cfg *clientConfig) {
-	if cfg.apiKey == "" || !isHTTPURL(cfg.url) {
+// ConfigureTileboxTelemetry configures the global tracer provider and default slog logger
+// to export traces and logs to the Tilebox API. Call it before constructing clients.
+// Existing SDK tracer providers and custom slog handlers are preserved and composed
+// with the Tilebox exporters. Non-SDK custom tracer providers are left unchanged.
+// An empty API key or non-HTTP(S) URL skips setup; exporter errors are reported to otel.Handle.
+// Logging is configured once, and tracing once per SDK tracer provider.
+func ConfigureTileboxTelemetry(ctx context.Context, apiURL, apiKey string) {
+	if apiKey == "" || !isHTTPURL(apiURL) {
 		return
 	}
 
-	if !cfg.disableTracing {
-		cfg.tracerProvider = configureTileboxTracing(ctx, cfg)
-	}
-
-	if !cfg.disableLogging {
-		configureTileboxLogging(ctx, cfg)
-	}
+	configureTileboxTracing(ctx, apiURL, apiKey)
+	configureTileboxLogging(ctx, apiURL, apiKey)
 }
 
-func configureTileboxTracing(ctx context.Context, cfg *clientConfig) trace.TracerProvider {
-	endpoint, ok := otlpEndpointURL(cfg.url, otlpTracesPath)
+func configureTileboxTracing(ctx context.Context, apiURL, apiKey string) {
+	endpoint, ok := otlpEndpointURL(apiURL, otlpTracesPath)
 	if !ok {
-		return cfg.tracerProvider
+		return
 	}
 
 	globalTracerProvider := otel.GetTracerProvider()
 	if tracerProvider, ok := globalTracerProvider.(*sdktrace.TracerProvider); ok {
 		if _, loaded := tileboxTraceProviders.Load(tracerProvider); loaded {
-			return tracerProvider
+			return
 		}
+	} else if !isDefaultTracerProvider(globalTracerProvider) {
+		return
 	}
 
 	spanProcessor, err := obstracer.NewOtelSpanProcessor(ctx,
 		obstracer.WithEndpointURL(endpoint),
-		obstracer.WithHeaders(tileboxTelemetryHeaders(cfg.apiKey)),
+		obstracer.WithHeaders(tileboxTelemetryHeaders(apiKey)),
 	)
 	if err != nil {
 		otel.Handle(fmt.Errorf("failed to configure Tilebox trace exporter: %w", err))
-		return cfg.tracerProvider
+		return
 	}
 
 	if tracerProvider, ok := globalTracerProvider.(*sdktrace.TracerProvider); ok {
 		tracerProvider.RegisterSpanProcessor(spanProcessor)
 		tileboxTraceProviders.Store(tracerProvider, endpoint)
-		return tracerProvider
+		return
 	}
 
-	if isDefaultTracerProvider(globalTracerProvider) {
-		tracerProvider := obstracer.NewOtelProviderWithProcessors(tileboxTelemetryService, spanProcessor)
-		otel.SetTracerProvider(tracerProvider)
-		tileboxTraceProviders.Store(tracerProvider, endpoint)
-		return tracerProvider
-	}
-
-	return cfg.tracerProvider
+	tracerProvider := obstracer.NewOtelProviderWithProcessors(tileboxTelemetryService, spanProcessor)
+	otel.SetTracerProvider(tracerProvider)
+	tileboxTraceProviders.Store(tracerProvider, endpoint)
 }
 
-func configureTileboxLogging(ctx context.Context, cfg *clientConfig) {
+func configureTileboxLogging(ctx context.Context, apiURL, apiKey string) {
 	tileboxLogHandlerOnce.Do(func() {
-		otelHandler, _, err := NewTileboxLogHandler(ctx, cfg.url, cfg.apiKey, slog.LevelInfo)
+		otelHandler, _, err := NewTileboxLogHandler(ctx, apiURL, apiKey, slog.LevelInfo)
 		if err != nil {
 			otel.Handle(fmt.Errorf("failed to configure Tilebox log exporter: %w", err))
 			return

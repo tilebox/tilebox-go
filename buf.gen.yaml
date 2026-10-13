@@ -22,7 +22,7 @@ plugins:
     out: protogen
     opt:
       - paths=source_relative
-  - remote: buf.build/connectrpc/go:v1.21.0
+  - remote: buf.build/connectrpc/go
     out: protogen
     opt:
       - paths=source_relative

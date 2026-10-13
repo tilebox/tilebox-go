@@ -478,7 +478,7 @@ func (b0 RasterProperties_builder) Build() *RasterProperties {
 	return m0
 }
 
-// ClassificationClass contains all Classification 2.0 class fields. Bit-field definitions are intentionally deferred.
+// ClassificationClass contains all Classification 2.0 class fields.
 type ClassificationClass struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Value       int64                  `protobuf:"varint,1,opt,name=value"`
@@ -776,6 +776,209 @@ func (b0 ClassificationClass_builder) Build() *ClassificationClass {
 	return m0
 }
 
+// ClassificationBitField describes classes encoded in a contiguous range of bits, following Classification 2.0.
+// Offset zero denotes the least significant bit; class values apply after extracting this bit range.
+type ClassificationBitField struct {
+	state                  protoimpl.MessageState  `protogen:"opaque.v1"`
+	xxx_hidden_Offset      uint32                  `protobuf:"varint,1,opt,name=offset"`
+	xxx_hidden_Length      uint32                  `protobuf:"varint,2,opt,name=length"`
+	xxx_hidden_Classes     *[]*ClassificationClass `protobuf:"bytes,3,rep,name=classes"`
+	xxx_hidden_Name        *string                 `protobuf:"bytes,4,opt,name=name"`
+	xxx_hidden_Description *string                 `protobuf:"bytes,5,opt,name=description"`
+	xxx_hidden_Roles       []string                `protobuf:"bytes,6,rep,name=roles"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ClassificationBitField) Reset() {
+	*x = ClassificationBitField{}
+	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ClassificationBitField) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ClassificationBitField) ProtoMessage() {}
+
+func (x *ClassificationBitField) ProtoReflect() protoreflect.Message {
+	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ClassificationBitField) GetOffset() uint32 {
+	if x != nil {
+		return x.xxx_hidden_Offset
+	}
+	return 0
+}
+
+func (x *ClassificationBitField) GetLength() uint32 {
+	if x != nil {
+		return x.xxx_hidden_Length
+	}
+	return 0
+}
+
+func (x *ClassificationBitField) GetClasses() []*ClassificationClass {
+	if x != nil {
+		if x.xxx_hidden_Classes != nil {
+			return *x.xxx_hidden_Classes
+		}
+	}
+	return nil
+}
+
+func (x *ClassificationBitField) GetName() string {
+	if x != nil {
+		if x.xxx_hidden_Name != nil {
+			return *x.xxx_hidden_Name
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ClassificationBitField) GetDescription() string {
+	if x != nil {
+		if x.xxx_hidden_Description != nil {
+			return *x.xxx_hidden_Description
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ClassificationBitField) GetRoles() []string {
+	if x != nil {
+		return x.xxx_hidden_Roles
+	}
+	return nil
+}
+
+func (x *ClassificationBitField) SetOffset(v uint32) {
+	x.xxx_hidden_Offset = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 6)
+}
+
+func (x *ClassificationBitField) SetLength(v uint32) {
+	x.xxx_hidden_Length = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
+}
+
+func (x *ClassificationBitField) SetClasses(v []*ClassificationClass) {
+	x.xxx_hidden_Classes = &v
+}
+
+func (x *ClassificationBitField) SetName(v string) {
+	x.xxx_hidden_Name = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 6)
+}
+
+func (x *ClassificationBitField) SetDescription(v string) {
+	x.xxx_hidden_Description = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
+}
+
+func (x *ClassificationBitField) SetRoles(v []string) {
+	x.xxx_hidden_Roles = v
+}
+
+func (x *ClassificationBitField) HasOffset() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *ClassificationBitField) HasLength() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *ClassificationBitField) HasName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
+func (x *ClassificationBitField) HasDescription() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
+func (x *ClassificationBitField) ClearOffset() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Offset = 0
+}
+
+func (x *ClassificationBitField) ClearLength() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Length = 0
+}
+
+func (x *ClassificationBitField) ClearName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_Name = nil
+}
+
+func (x *ClassificationBitField) ClearDescription() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_Description = nil
+}
+
+type ClassificationBitField_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Offset      *uint32
+	Length      *uint32
+	Classes     []*ClassificationClass
+	Name        *string
+	Description *string
+	Roles       []string
+}
+
+func (b0 ClassificationBitField_builder) Build() *ClassificationBitField {
+	m0 := &ClassificationBitField{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Offset != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 6)
+		x.xxx_hidden_Offset = *b.Offset
+	}
+	if b.Length != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 6)
+		x.xxx_hidden_Length = *b.Length
+	}
+	x.xxx_hidden_Classes = &b.Classes
+	if b.Name != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 6)
+		x.xxx_hidden_Name = b.Name
+	}
+	if b.Description != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
+		x.xxx_hidden_Description = b.Description
+	}
+	x.xxx_hidden_Roles = b.Roles
+	return m0
+}
+
 // Projection contains the Projection 2.0 fields used by the supported Items.
 type Projection struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
@@ -791,7 +994,7 @@ type Projection struct {
 
 func (x *Projection) Reset() {
 	*x = Projection{}
-	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[3]
+	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -803,7 +1006,7 @@ func (x *Projection) String() string {
 func (*Projection) ProtoMessage() {}
 
 func (x *Projection) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[3]
+	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -914,7 +1117,7 @@ type View struct {
 
 func (x *View) Reset() {
 	*x = View{}
-	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[4]
+	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -926,7 +1129,7 @@ func (x *View) String() string {
 func (*View) ProtoMessage() {}
 
 func (x *View) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[4]
+	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1021,7 +1224,7 @@ type File struct {
 
 func (x *File) Reset() {
 	*x = File{}
-	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[5]
+	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1033,7 +1236,7 @@ func (x *File) String() string {
 func (*File) ProtoMessage() {}
 
 func (x *File) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[5]
+	mi := &file_datasets_stac_v1_asset_metadata_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1177,7 +1380,14 @@ const file_datasets_stac_v1_asset_metadata_proto_rawDesc = "" +
 	"\n" +
 	"percentage\x18\a \x01(\x01B\x1c\xbaH\x14\x12\x12\x19\x00\x00\x00\x00\x00\x00Y@)\x00\x00\x00\x00\x00\x00\x00\x00\xaa\x01\x02\b\x01R\n" +
 	"percentage\x12\x1b\n" +
-	"\x05count\x18\b \x01(\x04B\x05\xaa\x01\x02\b\x01R\x05count\"v\n" +
+	"\x05count\x18\b \x01(\x04B\x05\xaa\x01\x02\b\x01R\x05count\"\xac\x02\n" +
+	"\x16ClassificationBitField\x12#\n" +
+	"\x06offset\x18\x01 \x01(\rB\v\xbaH\x03\xc8\x01\x01\xaa\x01\x02\b\x01R\x06offset\x12'\n" +
+	"\x06length\x18\x02 \x01(\rB\x0f\xbaH\a\xc8\x01\x01*\x02(\x01\xaa\x01\x02\b\x01R\x06length\x12I\n" +
+	"\aclasses\x18\x03 \x03(\v2%.datasets.stac.v1.ClassificationClassB\b\xbaH\x05\x92\x01\x02\b\x01R\aclasses\x120\n" +
+	"\x04name\x18\x04 \x01(\tB\x1c\xbaH\x14r\x122\x10^[0-9A-Za-z-_]+$\xaa\x01\x02\b\x01R\x04name\x12'\n" +
+	"\vdescription\x18\x05 \x01(\tB\x05\xaa\x01\x02\b\x01R\vdescription\x12\x1e\n" +
+	"\x05roles\x18\x06 \x03(\tB\b\xbaH\x05\x92\x01\x02\x18\x01R\x05roles\"v\n" +
 	"\n" +
 	"Projection\x12 \n" +
 	"\x04code\x18\x01 \x01(\tB\f\xbaH\x04r\x02\x10\x01\xaa\x01\x02\b\x01R\x04code\x12\x12\n" +
@@ -1222,25 +1432,27 @@ const file_datasets_stac_v1_asset_metadata_proto_rawDesc = "" +
 	"\x14com.datasets.stac.v1B\x12AssetMetadataProtoP\x01Z>github.com/tilebox/tilebox-go/protogen/datasets/stac/v1;stacv1\xa2\x02\x03DSX\xaa\x02\x10Datasets.Stac.V1\xca\x02\x10Datasets\\Stac\\V1\xe2\x02\x1cDatasets\\Stac\\V1\\GPBMetadata\xea\x02\x12Datasets::Stac::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_datasets_stac_v1_asset_metadata_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_datasets_stac_v1_asset_metadata_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_datasets_stac_v1_asset_metadata_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_datasets_stac_v1_asset_metadata_proto_goTypes = []any{
-	(EOCommonName)(0),           // 0: datasets.stac.v1.EOCommonName
-	(RasterSampling)(0),         // 1: datasets.stac.v1.RasterSampling
-	(*EOProperties)(nil),        // 2: datasets.stac.v1.EOProperties
-	(*RasterProperties)(nil),    // 3: datasets.stac.v1.RasterProperties
-	(*ClassificationClass)(nil), // 4: datasets.stac.v1.ClassificationClass
-	(*Projection)(nil),          // 5: datasets.stac.v1.Projection
-	(*View)(nil),                // 6: datasets.stac.v1.View
-	(*File)(nil),                // 7: datasets.stac.v1.File
+	(EOCommonName)(0),              // 0: datasets.stac.v1.EOCommonName
+	(RasterSampling)(0),            // 1: datasets.stac.v1.RasterSampling
+	(*EOProperties)(nil),           // 2: datasets.stac.v1.EOProperties
+	(*RasterProperties)(nil),       // 3: datasets.stac.v1.RasterProperties
+	(*ClassificationClass)(nil),    // 4: datasets.stac.v1.ClassificationClass
+	(*ClassificationBitField)(nil), // 5: datasets.stac.v1.ClassificationBitField
+	(*Projection)(nil),             // 6: datasets.stac.v1.Projection
+	(*View)(nil),                   // 7: datasets.stac.v1.View
+	(*File)(nil),                   // 8: datasets.stac.v1.File
 }
 var file_datasets_stac_v1_asset_metadata_proto_depIdxs = []int32{
 	0, // 0: datasets.stac.v1.EOProperties.common_name:type_name -> datasets.stac.v1.EOCommonName
 	1, // 1: datasets.stac.v1.RasterProperties.sampling:type_name -> datasets.stac.v1.RasterSampling
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 2: datasets.stac.v1.ClassificationBitField.classes:type_name -> datasets.stac.v1.ClassificationClass
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_datasets_stac_v1_asset_metadata_proto_init() }
@@ -1254,7 +1466,7 @@ func file_datasets_stac_v1_asset_metadata_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_stac_v1_asset_metadata_proto_rawDesc), len(file_datasets_stac_v1_asset_metadata_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

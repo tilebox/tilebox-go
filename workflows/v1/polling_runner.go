@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"github.com/tilebox/tilebox-go/internal/span"

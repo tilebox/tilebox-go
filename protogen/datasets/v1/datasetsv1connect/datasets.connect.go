@@ -7,221 +7,241 @@
 package datasetsv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// DatasetServiceName is the fully-qualified name of the DatasetService service.
 	DatasetServiceName = "datasets.v1.DatasetService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// DatasetServiceCreateDatasetProcedure is the fully-qualified name of the DatasetService's
-	// CreateDataset RPC.
-	DatasetServiceCreateDatasetProcedure = "/datasets.v1.DatasetService/CreateDataset"
-	// DatasetServiceGetDatasetProcedure is the fully-qualified name of the DatasetService's GetDataset
+	// DatasetServiceCreateDatasetProcedure is the procedure name of the DatasetService's CreateDataset
 	// RPC.
+	DatasetServiceCreateDatasetProcedure = "/datasets.v1.DatasetService/CreateDataset"
+	// DatasetServiceGetDatasetProcedure is the procedure name of the DatasetService's GetDataset RPC.
 	DatasetServiceGetDatasetProcedure = "/datasets.v1.DatasetService/GetDataset"
-	// DatasetServiceUpdateDatasetProcedure is the fully-qualified name of the DatasetService's
-	// UpdateDataset RPC.
+	// DatasetServiceUpdateDatasetProcedure is the procedure name of the DatasetService's UpdateDataset
+	// RPC.
 	DatasetServiceUpdateDatasetProcedure = "/datasets.v1.DatasetService/UpdateDataset"
-	// DatasetServiceDeleteDatasetProcedure is the fully-qualified name of the DatasetService's
-	// DeleteDataset RPC.
+	// DatasetServiceDeleteDatasetProcedure is the procedure name of the DatasetService's DeleteDataset
+	// RPC.
 	DatasetServiceDeleteDatasetProcedure = "/datasets.v1.DatasetService/DeleteDataset"
-	// DatasetServiceListDatasetsProcedure is the fully-qualified name of the DatasetService's
-	// ListDatasets RPC.
+	// DatasetServiceListDatasetsProcedure is the procedure name of the DatasetService's ListDatasets
+	// RPC.
 	DatasetServiceListDatasetsProcedure = "/datasets.v1.DatasetService/ListDatasets"
+)
+
+var (
+	datasetServiceCreateDatasetSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_datasets_proto.Services().ByName("DatasetService").Methods().ByName("CreateDataset"),
+			Procedure:  DatasetServiceCreateDatasetProcedure,
+		}
+	})
+	datasetServiceGetDatasetSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_datasets_proto.Services().ByName("DatasetService").Methods().ByName("GetDataset"),
+			Procedure:  DatasetServiceGetDatasetProcedure,
+		}
+	})
+	datasetServiceUpdateDatasetSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_datasets_proto.Services().ByName("DatasetService").Methods().ByName("UpdateDataset"),
+			Procedure:  DatasetServiceUpdateDatasetProcedure,
+		}
+	})
+	datasetServiceDeleteDatasetSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_datasets_proto.Services().ByName("DatasetService").Methods().ByName("DeleteDataset"),
+			Procedure:  DatasetServiceDeleteDatasetProcedure,
+		}
+	})
+	datasetServiceListDatasetsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_datasets_proto.Services().ByName("DatasetService").Methods().ByName("ListDatasets"),
+			Procedure:  DatasetServiceListDatasetsProcedure,
+		}
+	})
 )
 
 // DatasetServiceClient is a client for the datasets.v1.DatasetService service.
 type DatasetServiceClient interface {
-	CreateDataset(context.Context, *connect.Request[v1.CreateDatasetRequest]) (*connect.Response[v1.Dataset], error)
-	GetDataset(context.Context, *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error)
-	UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error)
-	DeleteDataset(context.Context, *connect.Request[v1.DeleteDatasetRequest]) (*connect.Response[v1.DeleteDatasetResponse], error)
-	ListDatasets(context.Context, *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error)
+	CreateDataset(context.Context, *v1.CreateDatasetRequest) (*v1.Dataset, error)
+	GetDataset(context.Context, *v1.GetDatasetRequest) (*v1.Dataset, error)
+	UpdateDataset(context.Context, *v1.UpdateDatasetRequest) (*v1.Dataset, error)
+	DeleteDataset(context.Context, *v1.DeleteDatasetRequest) (*v1.DeleteDatasetResponse, error)
+	ListDatasets(context.Context, *v1.ListDatasetsRequest) (*v1.ListDatasetsResponse, error)
 }
 
-// NewDatasetServiceClient constructs a client for the datasets.v1.DatasetService service. By
-// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
-// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
-// connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewDatasetServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) DatasetServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	datasetServiceMethods := v1.File_datasets_v1_datasets_proto.Services().ByName("DatasetService").Methods()
-	return &datasetServiceClient{
-		createDataset: connect.NewClient[v1.CreateDatasetRequest, v1.Dataset](
-			httpClient,
-			baseURL+DatasetServiceCreateDatasetProcedure,
-			connect.WithSchema(datasetServiceMethods.ByName("CreateDataset")),
-			connect.WithClientOptions(opts...),
-		),
-		getDataset: connect.NewClient[v1.GetDatasetRequest, v1.Dataset](
-			httpClient,
-			baseURL+DatasetServiceGetDatasetProcedure,
-			connect.WithSchema(datasetServiceMethods.ByName("GetDataset")),
-			connect.WithClientOptions(opts...),
-		),
-		updateDataset: connect.NewClient[v1.UpdateDatasetRequest, v1.Dataset](
-			httpClient,
-			baseURL+DatasetServiceUpdateDatasetProcedure,
-			connect.WithSchema(datasetServiceMethods.ByName("UpdateDataset")),
-			connect.WithClientOptions(opts...),
-		),
-		deleteDataset: connect.NewClient[v1.DeleteDatasetRequest, v1.DeleteDatasetResponse](
-			httpClient,
-			baseURL+DatasetServiceDeleteDatasetProcedure,
-			connect.WithSchema(datasetServiceMethods.ByName("DeleteDataset")),
-			connect.WithClientOptions(opts...),
-		),
-		listDatasets: connect.NewClient[v1.ListDatasetsRequest, v1.ListDatasetsResponse](
-			httpClient,
-			baseURL+DatasetServiceListDatasetsProcedure,
-			connect.WithSchema(datasetServiceMethods.ByName("ListDatasets")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// datasetServiceClient implements DatasetServiceClient.
-type datasetServiceClient struct {
-	createDataset *connect.Client[v1.CreateDatasetRequest, v1.Dataset]
-	getDataset    *connect.Client[v1.GetDatasetRequest, v1.Dataset]
-	updateDataset *connect.Client[v1.UpdateDatasetRequest, v1.Dataset]
-	deleteDataset *connect.Client[v1.DeleteDatasetRequest, v1.DeleteDatasetResponse]
-	listDatasets  *connect.Client[v1.ListDatasetsRequest, v1.ListDatasetsResponse]
-}
-
-// CreateDataset calls datasets.v1.DatasetService.CreateDataset.
-func (c *datasetServiceClient) CreateDataset(ctx context.Context, req *connect.Request[v1.CreateDatasetRequest]) (*connect.Response[v1.Dataset], error) {
-	return c.createDataset.CallUnary(ctx, req)
-}
-
-// GetDataset calls datasets.v1.DatasetService.GetDataset.
-func (c *datasetServiceClient) GetDataset(ctx context.Context, req *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error) {
-	return c.getDataset.CallUnary(ctx, req)
-}
-
-// UpdateDataset calls datasets.v1.DatasetService.UpdateDataset.
-func (c *datasetServiceClient) UpdateDataset(ctx context.Context, req *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error) {
-	return c.updateDataset.CallUnary(ctx, req)
-}
-
-// DeleteDataset calls datasets.v1.DatasetService.DeleteDataset.
-func (c *datasetServiceClient) DeleteDataset(ctx context.Context, req *connect.Request[v1.DeleteDatasetRequest]) (*connect.Response[v1.DeleteDatasetResponse], error) {
-	return c.deleteDataset.CallUnary(ctx, req)
-}
-
-// ListDatasets calls datasets.v1.DatasetService.ListDatasets.
-func (c *datasetServiceClient) ListDatasets(ctx context.Context, req *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error) {
-	return c.listDatasets.CallUnary(ctx, req)
+// NewDatasetServiceClient constructs a client for the datasets.v1.DatasetService service. Multiple
+// service clients may share a single connect.Client.
+func NewDatasetServiceClient(client *connect.Client) DatasetServiceClient {
+	return &datasetServiceClient{client: client}
 }
 
 // DatasetServiceHandler is an implementation of the datasets.v1.DatasetService service.
 type DatasetServiceHandler interface {
-	CreateDataset(context.Context, *connect.Request[v1.CreateDatasetRequest]) (*connect.Response[v1.Dataset], error)
-	GetDataset(context.Context, *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error)
-	UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error)
-	DeleteDataset(context.Context, *connect.Request[v1.DeleteDatasetRequest]) (*connect.Response[v1.DeleteDatasetResponse], error)
-	ListDatasets(context.Context, *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error)
+	CreateDataset(context.Context, *v1.CreateDatasetRequest) (*v1.Dataset, error)
+	GetDataset(context.Context, *v1.GetDatasetRequest) (*v1.Dataset, error)
+	UpdateDataset(context.Context, *v1.UpdateDatasetRequest) (*v1.Dataset, error)
+	DeleteDataset(context.Context, *v1.DeleteDatasetRequest) (*v1.DeleteDatasetResponse, error)
+	ListDatasets(context.Context, *v1.ListDatasetsRequest) (*v1.ListDatasetsResponse, error)
 }
 
-// NewDatasetServiceHandler builds an HTTP handler from the service implementation. It returns the
-// path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewDatasetServiceHandler(svc DatasetServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	datasetServiceMethods := v1.File_datasets_v1_datasets_proto.Services().ByName("DatasetService").Methods()
-	datasetServiceCreateDatasetHandler := connect.NewUnaryHandler(
-		DatasetServiceCreateDatasetProcedure,
-		svc.CreateDataset,
-		connect.WithSchema(datasetServiceMethods.ByName("CreateDataset")),
-		connect.WithHandlerOptions(opts...),
+// RegisterDatasetServiceHandler registers svc as the datasets.v1.DatasetService implementation on
+// server.
+func RegisterDatasetServiceHandler(server *connect.Server, svc DatasetServiceHandler) {
+	adapter := datasetServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: datasetServiceCreateDatasetSpec(), Handler: adapter.createDataset},
+		connect.Method{Spec: datasetServiceGetDatasetSpec(), Handler: adapter.getDataset},
+		connect.Method{Spec: datasetServiceUpdateDatasetSpec(), Handler: adapter.updateDataset},
+		connect.Method{Spec: datasetServiceDeleteDatasetSpec(), Handler: adapter.deleteDataset},
+		connect.Method{Spec: datasetServiceListDatasetsSpec(), Handler: adapter.listDatasets},
 	)
-	datasetServiceGetDatasetHandler := connect.NewUnaryHandler(
-		DatasetServiceGetDatasetProcedure,
-		svc.GetDataset,
-		connect.WithSchema(datasetServiceMethods.ByName("GetDataset")),
-		connect.WithHandlerOptions(opts...),
-	)
-	datasetServiceUpdateDatasetHandler := connect.NewUnaryHandler(
-		DatasetServiceUpdateDatasetProcedure,
-		svc.UpdateDataset,
-		connect.WithSchema(datasetServiceMethods.ByName("UpdateDataset")),
-		connect.WithHandlerOptions(opts...),
-	)
-	datasetServiceDeleteDatasetHandler := connect.NewUnaryHandler(
-		DatasetServiceDeleteDatasetProcedure,
-		svc.DeleteDataset,
-		connect.WithSchema(datasetServiceMethods.ByName("DeleteDataset")),
-		connect.WithHandlerOptions(opts...),
-	)
-	datasetServiceListDatasetsHandler := connect.NewUnaryHandler(
-		DatasetServiceListDatasetsProcedure,
-		svc.ListDatasets,
-		connect.WithSchema(datasetServiceMethods.ByName("ListDatasets")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/datasets.v1.DatasetService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case DatasetServiceCreateDatasetProcedure:
-			datasetServiceCreateDatasetHandler.ServeHTTP(w, r)
-		case DatasetServiceGetDatasetProcedure:
-			datasetServiceGetDatasetHandler.ServeHTTP(w, r)
-		case DatasetServiceUpdateDatasetProcedure:
-			datasetServiceUpdateDatasetHandler.ServeHTTP(w, r)
-		case DatasetServiceDeleteDatasetProcedure:
-			datasetServiceDeleteDatasetHandler.ServeHTTP(w, r)
-		case DatasetServiceListDatasetsProcedure:
-			datasetServiceListDatasetsHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
 }
 
 // UnimplementedDatasetServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedDatasetServiceHandler struct{}
 
-func (UnimplementedDatasetServiceHandler) CreateDataset(context.Context, *connect.Request[v1.CreateDatasetRequest]) (*connect.Response[v1.Dataset], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DatasetService.CreateDataset is not implemented"))
+func (UnimplementedDatasetServiceHandler) CreateDataset(context.Context, *v1.CreateDatasetRequest) (*v1.Dataset, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.DatasetService.CreateDataset is not implemented")
 }
 
-func (UnimplementedDatasetServiceHandler) GetDataset(context.Context, *connect.Request[v1.GetDatasetRequest]) (*connect.Response[v1.Dataset], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DatasetService.GetDataset is not implemented"))
+func (UnimplementedDatasetServiceHandler) GetDataset(context.Context, *v1.GetDatasetRequest) (*v1.Dataset, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.DatasetService.GetDataset is not implemented")
 }
 
-func (UnimplementedDatasetServiceHandler) UpdateDataset(context.Context, *connect.Request[v1.UpdateDatasetRequest]) (*connect.Response[v1.Dataset], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DatasetService.UpdateDataset is not implemented"))
+func (UnimplementedDatasetServiceHandler) UpdateDataset(context.Context, *v1.UpdateDatasetRequest) (*v1.Dataset, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.DatasetService.UpdateDataset is not implemented")
 }
 
-func (UnimplementedDatasetServiceHandler) DeleteDataset(context.Context, *connect.Request[v1.DeleteDatasetRequest]) (*connect.Response[v1.DeleteDatasetResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DatasetService.DeleteDataset is not implemented"))
+func (UnimplementedDatasetServiceHandler) DeleteDataset(context.Context, *v1.DeleteDatasetRequest) (*v1.DeleteDatasetResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.DatasetService.DeleteDataset is not implemented")
 }
 
-func (UnimplementedDatasetServiceHandler) ListDatasets(context.Context, *connect.Request[v1.ListDatasetsRequest]) (*connect.Response[v1.ListDatasetsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.DatasetService.ListDatasets is not implemented"))
+func (UnimplementedDatasetServiceHandler) ListDatasets(context.Context, *v1.ListDatasetsRequest) (*v1.ListDatasetsResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.DatasetService.ListDatasets is not implemented")
+}
+
+type datasetServiceClient struct {
+	client *connect.Client
+}
+
+func (c *datasetServiceClient) CreateDataset(ctx context.Context, req *v1.CreateDatasetRequest) (*v1.Dataset, error) {
+	var res v1.Dataset
+	if err := c.client.CallUnary(ctx, datasetServiceCreateDatasetSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *datasetServiceClient) GetDataset(ctx context.Context, req *v1.GetDatasetRequest) (*v1.Dataset, error) {
+	var res v1.Dataset
+	if err := c.client.CallUnary(ctx, datasetServiceGetDatasetSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *datasetServiceClient) UpdateDataset(ctx context.Context, req *v1.UpdateDatasetRequest) (*v1.Dataset, error) {
+	var res v1.Dataset
+	if err := c.client.CallUnary(ctx, datasetServiceUpdateDatasetSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *datasetServiceClient) DeleteDataset(ctx context.Context, req *v1.DeleteDatasetRequest) (*v1.DeleteDatasetResponse, error) {
+	var res v1.DeleteDatasetResponse
+	if err := c.client.CallUnary(ctx, datasetServiceDeleteDatasetSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *datasetServiceClient) ListDatasets(ctx context.Context, req *v1.ListDatasetsRequest) (*v1.ListDatasetsResponse, error) {
+	var res v1.ListDatasetsResponse
+	if err := c.client.CallUnary(ctx, datasetServiceListDatasetsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type datasetServiceHandler struct{ svc DatasetServiceHandler }
+
+func (h datasetServiceHandler) createDataset(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateDatasetRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateDataset(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h datasetServiceHandler) getDataset(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetDatasetRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetDataset(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h datasetServiceHandler) updateDataset(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.UpdateDatasetRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.UpdateDataset(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h datasetServiceHandler) deleteDataset(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.DeleteDatasetRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.DeleteDataset(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h datasetServiceHandler) listDatasets(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.ListDatasetsRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListDatasets(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }

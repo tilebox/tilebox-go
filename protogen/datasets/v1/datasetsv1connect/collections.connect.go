@@ -7,192 +7,205 @@
 package datasetsv1connect
 
 import (
-	connect "connectrpc.com/connect"
+	connect "connectrpc.com/connect/v2"
 	context "context"
-	errors "errors"
 	v1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
-	http "net/http"
-	strings "strings"
+	sync "sync"
 )
-
-// This is a compile-time assertion to ensure that this generated file and the connect package are
-// compatible. If you get a compiler error that this constant is not defined, this code was
-// generated with a version of connect newer than the one compiled into your binary. You can fix the
-// problem by either regenerating this code with an older version of connect or updating the connect
-// version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// CollectionServiceName is the fully-qualified name of the CollectionService service.
 	CollectionServiceName = "datasets.v1.CollectionService"
 )
 
-// These constants are the fully-qualified names of the RPCs defined in this package. They're
-// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+// These constants are the procedure names of the RPCs defined in this package. They're exposed at
+// runtime as Spec.Procedure and as the final two segments of the HTTP route.
 //
 // Note that these are different from the fully-qualified method names used by
 // google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// CollectionServiceCreateCollectionProcedure is the fully-qualified name of the CollectionService's
+	// CollectionServiceCreateCollectionProcedure is the procedure name of the CollectionService's
 	// CreateCollection RPC.
 	CollectionServiceCreateCollectionProcedure = "/datasets.v1.CollectionService/CreateCollection"
-	// CollectionServiceGetCollectionByNameProcedure is the fully-qualified name of the
-	// CollectionService's GetCollectionByName RPC.
+	// CollectionServiceGetCollectionByNameProcedure is the procedure name of the CollectionService's
+	// GetCollectionByName RPC.
 	CollectionServiceGetCollectionByNameProcedure = "/datasets.v1.CollectionService/GetCollectionByName"
-	// CollectionServiceDeleteCollectionProcedure is the fully-qualified name of the CollectionService's
+	// CollectionServiceDeleteCollectionProcedure is the procedure name of the CollectionService's
 	// DeleteCollection RPC.
 	CollectionServiceDeleteCollectionProcedure = "/datasets.v1.CollectionService/DeleteCollection"
-	// CollectionServiceListCollectionsProcedure is the fully-qualified name of the CollectionService's
+	// CollectionServiceListCollectionsProcedure is the procedure name of the CollectionService's
 	// ListCollections RPC.
 	CollectionServiceListCollectionsProcedure = "/datasets.v1.CollectionService/ListCollections"
 )
 
+var (
+	collectionServiceCreateCollectionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_collections_proto.Services().ByName("CollectionService").Methods().ByName("CreateCollection"),
+			Procedure:  CollectionServiceCreateCollectionProcedure,
+		}
+	})
+	collectionServiceGetCollectionByNameSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_collections_proto.Services().ByName("CollectionService").Methods().ByName("GetCollectionByName"),
+			Procedure:  CollectionServiceGetCollectionByNameProcedure,
+		}
+	})
+	collectionServiceDeleteCollectionSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_collections_proto.Services().ByName("CollectionService").Methods().ByName("DeleteCollection"),
+			Procedure:  CollectionServiceDeleteCollectionProcedure,
+		}
+	})
+	collectionServiceListCollectionsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_datasets_v1_collections_proto.Services().ByName("CollectionService").Methods().ByName("ListCollections"),
+			Procedure:  CollectionServiceListCollectionsProcedure,
+		}
+	})
+)
+
 // CollectionServiceClient is a client for the datasets.v1.CollectionService service.
 type CollectionServiceClient interface {
-	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
-	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
-	DeleteCollection(context.Context, *connect.Request[v1.DeleteCollectionRequest]) (*connect.Response[v1.DeleteCollectionResponse], error)
-	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.ListCollectionsResponse], error)
+	CreateCollection(context.Context, *v1.CreateCollectionRequest) (*v1.CollectionInfo, error)
+	GetCollectionByName(context.Context, *v1.GetCollectionByNameRequest) (*v1.CollectionInfo, error)
+	DeleteCollection(context.Context, *v1.DeleteCollectionRequest) (*v1.DeleteCollectionResponse, error)
+	ListCollections(context.Context, *v1.ListCollectionsRequest) (*v1.ListCollectionsResponse, error)
 }
 
-// NewCollectionServiceClient constructs a client for the datasets.v1.CollectionService service. By
-// default, it uses the Connect protocol with the binary Protobuf Codec, asks for gzipped responses,
-// and sends uncompressed requests. To use the gRPC or gRPC-Web protocols, supply the
-// connect.WithGRPC() or connect.WithGRPCWeb() options.
-//
-// The URL supplied here should be the base URL for the Connect or gRPC server (for example,
-// http://api.acme.com or https://acme.com/grpc).
-func NewCollectionServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) CollectionServiceClient {
-	baseURL = strings.TrimRight(baseURL, "/")
-	collectionServiceMethods := v1.File_datasets_v1_collections_proto.Services().ByName("CollectionService").Methods()
-	return &collectionServiceClient{
-		createCollection: connect.NewClient[v1.CreateCollectionRequest, v1.CollectionInfo](
-			httpClient,
-			baseURL+CollectionServiceCreateCollectionProcedure,
-			connect.WithSchema(collectionServiceMethods.ByName("CreateCollection")),
-			connect.WithClientOptions(opts...),
-		),
-		getCollectionByName: connect.NewClient[v1.GetCollectionByNameRequest, v1.CollectionInfo](
-			httpClient,
-			baseURL+CollectionServiceGetCollectionByNameProcedure,
-			connect.WithSchema(collectionServiceMethods.ByName("GetCollectionByName")),
-			connect.WithClientOptions(opts...),
-		),
-		deleteCollection: connect.NewClient[v1.DeleteCollectionRequest, v1.DeleteCollectionResponse](
-			httpClient,
-			baseURL+CollectionServiceDeleteCollectionProcedure,
-			connect.WithSchema(collectionServiceMethods.ByName("DeleteCollection")),
-			connect.WithClientOptions(opts...),
-		),
-		listCollections: connect.NewClient[v1.ListCollectionsRequest, v1.ListCollectionsResponse](
-			httpClient,
-			baseURL+CollectionServiceListCollectionsProcedure,
-			connect.WithSchema(collectionServiceMethods.ByName("ListCollections")),
-			connect.WithClientOptions(opts...),
-		),
-	}
-}
-
-// collectionServiceClient implements CollectionServiceClient.
-type collectionServiceClient struct {
-	createCollection    *connect.Client[v1.CreateCollectionRequest, v1.CollectionInfo]
-	getCollectionByName *connect.Client[v1.GetCollectionByNameRequest, v1.CollectionInfo]
-	deleteCollection    *connect.Client[v1.DeleteCollectionRequest, v1.DeleteCollectionResponse]
-	listCollections     *connect.Client[v1.ListCollectionsRequest, v1.ListCollectionsResponse]
-}
-
-// CreateCollection calls datasets.v1.CollectionService.CreateCollection.
-func (c *collectionServiceClient) CreateCollection(ctx context.Context, req *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error) {
-	return c.createCollection.CallUnary(ctx, req)
-}
-
-// GetCollectionByName calls datasets.v1.CollectionService.GetCollectionByName.
-func (c *collectionServiceClient) GetCollectionByName(ctx context.Context, req *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error) {
-	return c.getCollectionByName.CallUnary(ctx, req)
-}
-
-// DeleteCollection calls datasets.v1.CollectionService.DeleteCollection.
-func (c *collectionServiceClient) DeleteCollection(ctx context.Context, req *connect.Request[v1.DeleteCollectionRequest]) (*connect.Response[v1.DeleteCollectionResponse], error) {
-	return c.deleteCollection.CallUnary(ctx, req)
-}
-
-// ListCollections calls datasets.v1.CollectionService.ListCollections.
-func (c *collectionServiceClient) ListCollections(ctx context.Context, req *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.ListCollectionsResponse], error) {
-	return c.listCollections.CallUnary(ctx, req)
+// NewCollectionServiceClient constructs a client for the datasets.v1.CollectionService service.
+// Multiple service clients may share a single connect.Client.
+func NewCollectionServiceClient(client *connect.Client) CollectionServiceClient {
+	return &collectionServiceClient{client: client}
 }
 
 // CollectionServiceHandler is an implementation of the datasets.v1.CollectionService service.
 type CollectionServiceHandler interface {
-	CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error)
-	GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error)
-	DeleteCollection(context.Context, *connect.Request[v1.DeleteCollectionRequest]) (*connect.Response[v1.DeleteCollectionResponse], error)
-	ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.ListCollectionsResponse], error)
+	CreateCollection(context.Context, *v1.CreateCollectionRequest) (*v1.CollectionInfo, error)
+	GetCollectionByName(context.Context, *v1.GetCollectionByNameRequest) (*v1.CollectionInfo, error)
+	DeleteCollection(context.Context, *v1.DeleteCollectionRequest) (*v1.DeleteCollectionResponse, error)
+	ListCollections(context.Context, *v1.ListCollectionsRequest) (*v1.ListCollectionsResponse, error)
 }
 
-// NewCollectionServiceHandler builds an HTTP handler from the service implementation. It returns
-// the path on which to mount the handler and the handler itself.
-//
-// By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
-// and JSON codecs. They also support gzip compression.
-func NewCollectionServiceHandler(svc CollectionServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	collectionServiceMethods := v1.File_datasets_v1_collections_proto.Services().ByName("CollectionService").Methods()
-	collectionServiceCreateCollectionHandler := connect.NewUnaryHandler(
-		CollectionServiceCreateCollectionProcedure,
-		svc.CreateCollection,
-		connect.WithSchema(collectionServiceMethods.ByName("CreateCollection")),
-		connect.WithHandlerOptions(opts...),
+// RegisterCollectionServiceHandler registers svc as the datasets.v1.CollectionService
+// implementation on server.
+func RegisterCollectionServiceHandler(server *connect.Server, svc CollectionServiceHandler) {
+	adapter := collectionServiceHandler{svc: svc}
+	server.Register(
+		connect.Method{Spec: collectionServiceCreateCollectionSpec(), Handler: adapter.createCollection},
+		connect.Method{Spec: collectionServiceGetCollectionByNameSpec(), Handler: adapter.getCollectionByName},
+		connect.Method{Spec: collectionServiceDeleteCollectionSpec(), Handler: adapter.deleteCollection},
+		connect.Method{Spec: collectionServiceListCollectionsSpec(), Handler: adapter.listCollections},
 	)
-	collectionServiceGetCollectionByNameHandler := connect.NewUnaryHandler(
-		CollectionServiceGetCollectionByNameProcedure,
-		svc.GetCollectionByName,
-		connect.WithSchema(collectionServiceMethods.ByName("GetCollectionByName")),
-		connect.WithHandlerOptions(opts...),
-	)
-	collectionServiceDeleteCollectionHandler := connect.NewUnaryHandler(
-		CollectionServiceDeleteCollectionProcedure,
-		svc.DeleteCollection,
-		connect.WithSchema(collectionServiceMethods.ByName("DeleteCollection")),
-		connect.WithHandlerOptions(opts...),
-	)
-	collectionServiceListCollectionsHandler := connect.NewUnaryHandler(
-		CollectionServiceListCollectionsProcedure,
-		svc.ListCollections,
-		connect.WithSchema(collectionServiceMethods.ByName("ListCollections")),
-		connect.WithHandlerOptions(opts...),
-	)
-	return "/datasets.v1.CollectionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case CollectionServiceCreateCollectionProcedure:
-			collectionServiceCreateCollectionHandler.ServeHTTP(w, r)
-		case CollectionServiceGetCollectionByNameProcedure:
-			collectionServiceGetCollectionByNameHandler.ServeHTTP(w, r)
-		case CollectionServiceDeleteCollectionProcedure:
-			collectionServiceDeleteCollectionHandler.ServeHTTP(w, r)
-		case CollectionServiceListCollectionsProcedure:
-			collectionServiceListCollectionsHandler.ServeHTTP(w, r)
-		default:
-			http.NotFound(w, r)
-		}
-	})
 }
 
 // UnimplementedCollectionServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedCollectionServiceHandler struct{}
 
-func (UnimplementedCollectionServiceHandler) CreateCollection(context.Context, *connect.Request[v1.CreateCollectionRequest]) (*connect.Response[v1.CollectionInfo], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.CreateCollection is not implemented"))
+func (UnimplementedCollectionServiceHandler) CreateCollection(context.Context, *v1.CreateCollectionRequest) (*v1.CollectionInfo, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.CollectionService.CreateCollection is not implemented")
 }
 
-func (UnimplementedCollectionServiceHandler) GetCollectionByName(context.Context, *connect.Request[v1.GetCollectionByNameRequest]) (*connect.Response[v1.CollectionInfo], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.GetCollectionByName is not implemented"))
+func (UnimplementedCollectionServiceHandler) GetCollectionByName(context.Context, *v1.GetCollectionByNameRequest) (*v1.CollectionInfo, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.CollectionService.GetCollectionByName is not implemented")
 }
 
-func (UnimplementedCollectionServiceHandler) DeleteCollection(context.Context, *connect.Request[v1.DeleteCollectionRequest]) (*connect.Response[v1.DeleteCollectionResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.DeleteCollection is not implemented"))
+func (UnimplementedCollectionServiceHandler) DeleteCollection(context.Context, *v1.DeleteCollectionRequest) (*v1.DeleteCollectionResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.CollectionService.DeleteCollection is not implemented")
 }
 
-func (UnimplementedCollectionServiceHandler) ListCollections(context.Context, *connect.Request[v1.ListCollectionsRequest]) (*connect.Response[v1.ListCollectionsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("datasets.v1.CollectionService.ListCollections is not implemented"))
+func (UnimplementedCollectionServiceHandler) ListCollections(context.Context, *v1.ListCollectionsRequest) (*v1.ListCollectionsResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "datasets.v1.CollectionService.ListCollections is not implemented")
+}
+
+type collectionServiceClient struct {
+	client *connect.Client
+}
+
+func (c *collectionServiceClient) CreateCollection(ctx context.Context, req *v1.CreateCollectionRequest) (*v1.CollectionInfo, error) {
+	var res v1.CollectionInfo
+	if err := c.client.CallUnary(ctx, collectionServiceCreateCollectionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *collectionServiceClient) GetCollectionByName(ctx context.Context, req *v1.GetCollectionByNameRequest) (*v1.CollectionInfo, error) {
+	var res v1.CollectionInfo
+	if err := c.client.CallUnary(ctx, collectionServiceGetCollectionByNameSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *collectionServiceClient) DeleteCollection(ctx context.Context, req *v1.DeleteCollectionRequest) (*v1.DeleteCollectionResponse, error) {
+	var res v1.DeleteCollectionResponse
+	if err := c.client.CallUnary(ctx, collectionServiceDeleteCollectionSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *collectionServiceClient) ListCollections(ctx context.Context, req *v1.ListCollectionsRequest) (*v1.ListCollectionsResponse, error) {
+	var res v1.ListCollectionsResponse
+	if err := c.client.CallUnary(ctx, collectionServiceListCollectionsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+type collectionServiceHandler struct{ svc CollectionServiceHandler }
+
+func (h collectionServiceHandler) createCollection(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.CreateCollectionRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.CreateCollection(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h collectionServiceHandler) getCollectionByName(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetCollectionByNameRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetCollectionByName(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h collectionServiceHandler) deleteCollection(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.DeleteCollectionRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.DeleteCollection(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h collectionServiceHandler) listCollections(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.ListCollectionsRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.ListCollections(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
 }

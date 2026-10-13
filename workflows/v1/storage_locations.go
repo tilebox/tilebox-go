@@ -6,11 +6,11 @@ import (
 	"iter"
 	"time"
 
-	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
 	"github.com/tilebox/tilebox-go/workflows/v1/storagelocation"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // StorageType is the kind of storage location used by automation triggers.
@@ -98,26 +98,33 @@ type StorageLocationClient interface {
 	ListSubscriptions(ctx context.Context, storageLocationID uuid.UUID) ([]*StorageSubscription, error)
 	// DeleteSubscription stops accepting notifications without deleting provider resources.
 	DeleteSubscription(ctx context.Context, subscriptionID uuid.UUID) error
-	// NotifyObjectCreated sends one file-ready event to a TILEBOX_CLI subscription.
-	// objectPath must be relative to the location root and use slash separators.
-	// A zero eventTime omits the timestamp. Delivery is not idempotent: an error may
-	// mean delivery succeeded but its response was lost. The default transport does
-	// not retry; a transport supplied with WithHTTPClient controls its own retries.
-	NotifyObjectCreated(ctx context.Context, subscriptionID uuid.UUID, objectPath string, eventTime time.Time) error
 	// ListSubscriptionEvents lazily iterates over a location's events, newest receipt first.
 	ListSubscriptionEvents(ctx context.Context, storageLocationID uuid.UUID, options ...storagelocation.ListOption) iter.Seq2[*StorageSubscriptionEvent, error]
 	// ListSubscriptionEventsPage returns one page of a location's events, newest receipt first.
 	ListSubscriptionEventsPage(ctx context.Context, storageLocationID uuid.UUID, options ...storagelocation.ListOption) (*StorageSubscriptionEventPage, error)
+	// NotifyObjectCreated sends a file-ready event to a TILEBOX_CLI subscription.
+	// objectPath must be relative to the location root, using slash separators without dot or parent components.
+	// A zero eventTime omits the timestamp. The call uses the shared RPC transport and retry policy.
+	// Retries may create duplicate jobs; an error may mean delivery succeeded but its response was lost.
+	// Use a context deadline to bound the call, including retries.
+	NotifyObjectCreated(ctx context.Context, subscriptionID uuid.UUID, objectPath string, eventTime time.Time) error
 }
 
 var _ StorageLocationClient = &storageLocationClient{}
 
 type storageLocationClient struct {
-	service        _storageLocationService
-	httpClient     connect.HTTPClient
-	baseURL        string
-	apiKey         string
-	clientMetadata string
+	service _storageLocationService
+}
+
+func (c storageLocationClient) NotifyObjectCreated(ctx context.Context, subscriptionID uuid.UUID, objectPath string, eventTime time.Time) error {
+	request := workflowsv1.NotifyObjectCreatedRequest_builder{
+		StorageSubscriptionId: tileboxv1.NewUUID(subscriptionID),
+		ObjectPath:            objectPath,
+	}.Build()
+	if !eventTime.IsZero() {
+		request.SetEventTime(timestamppb.New(eventTime))
+	}
+	return c.service.NotifyObjectCreated(ctx, request)
 }
 
 func (c storageLocationClient) Create(ctx context.Context, name string, reference *StorageLocationReference) (*StorageLocation, error) {

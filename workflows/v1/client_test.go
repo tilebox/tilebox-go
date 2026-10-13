@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/require"
 	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/internal/grpc"
 )
@@ -36,12 +35,11 @@ func NewRecordClient(tb testing.TB, filename string) *Client {
 		tb.Fatalf("TILEBOX_OPENDATA_ONLY_API_KEY is not set")
 	}
 
-	return NewClient(
-		WithURL("https://api.tilebox.com"),
-		WithAPIKey(apiKey),
-		WithHTTPClient(httpClient),
-		WithDisableTracing(),
-	)
+	return NewClient(client.New(
+		client.WithURL("https://api.tilebox.com"),
+		client.WithAPIKey(apiKey),
+		client.WithHTTPClient(httpClient),
+	), WithDisableTracing())
 }
 
 func NewReplayClient(tb testing.TB, filename string) *Client {
@@ -57,17 +55,9 @@ func NewReplayClient(tb testing.TB, filename string) *Client {
 		Transport: grpc.NewReplayRoundTripper(file),
 	}
 
-	return NewClient(
-		WithURL("https://api.tilebox.com"), // url/key doesn't matter
-		WithAPIKey("key"),
-		WithHTTPClient(httpClient),
-		WithDisableTracing(),
-	)
-}
-
-func TestClientMetadataOverride(t *testing.T) {
-	metadata := client.Metadata{Name: "cli", Version: "v1.2.3"}
-	cfg := newClientConfig([]ClientOption{WithClientMetadata(metadata)})
-
-	require.Equal(t, metadata, cfg.clientMetadata)
+	return NewClient(client.New(
+		client.WithURL("https://api.tilebox.com"), // url/key doesn't matter
+		client.WithAPIKey("key"),
+		client.WithHTTPClient(httpClient),
+	), WithDisableTracing())
 }

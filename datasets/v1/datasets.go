@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"connectrpc.com/connect"
+	"connectrpc.com/connect/v2"
 	"github.com/google/uuid"
 	"github.com/tilebox/tilebox-go/datasets/v1/field"
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"

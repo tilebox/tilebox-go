@@ -7,6 +7,7 @@ import (
 
 	"github.com/paulmach/orb"
 	"github.com/paulmach/orb/encoding/wkt"
+	"github.com/tilebox/tilebox-go/client"
 	"github.com/tilebox/tilebox-go/datasets/v1"
 	examplesv1 "github.com/tilebox/tilebox-go/protogen/examples/v1"
 	"github.com/tilebox/tilebox-go/query"
@@ -16,7 +17,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create a Tilebox Datasets client
-	client := datasets.NewClient()
+	client := datasets.NewClient(client.New())
 
 	// Select a dataset
 	dataset, err := client.Datasets.Get(ctx, "open_data.copernicus.sentinel2_msi")
