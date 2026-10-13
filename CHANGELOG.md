@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-10-13
+
 ### Added
 
+- `workflows`: Add `Automations.Create`, `Update`, and `Delete` for cron and storage-event automations. Update replaces the complete definition, including triggers; delete optionally cancels jobs created by the automation.
 - Configure retries with `client.WithRetryPolicy`. Defaults remain four retries (five attempts), exponential jitter starting at 10–20 ms, and a 10-second maximum wait. Transient network failures and HTTP 429/5xx are retried, except Connect `resource_exhausted` responses. `client.RetryPolicy{}` disables retries; non-replayable request bodies are not retried.
 - Unix socket connections now use the same configurable retry policy as HTTP connections.
 - Customize TLS, proxies, or connection pools with `client.NewHTTPTransport` and `client.WithHTTPTransport` while retaining SDK retries. `client.WithHTTPClient` replaces all HTTP behavior, including retries; `client.WithTransport` accepts a native Connect transport and bypasses HTTP configuration entirely.
@@ -250,7 +253,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.15.1...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/tilebox/tilebox-go/compare/v0.15.1...v0.16.0
 [0.15.1]: https://github.com/tilebox/tilebox-go/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/tilebox/tilebox-go/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/tilebox/tilebox-go/compare/v0.13.0...v0.14.0
