@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-10-27
+
 ### Added
 
+- `datasets`: Define enum fields with `field.Enum(name, values...).Queryable()` and filter them using public string values with `query.Field(...).Equal` or `NotEqual`. Schema updates may append enum values while preserving existing numbers.
+- `datasets`: Resolve public enum values to protobuf numbers with `DatapointDescriptor.EnumNumber` for dynamic ingestion. Dynamic decoding returns public strings for scalar and repeated enum fields; absent fields remain absent, while zero and unknown enum numbers return errors.
 - `workflows`: Submit workflow-scoped root tasks with `job.WithWorkflowID`. Omission remains unscoped; an explicit zero UUID is rejected.
 - `workflows`: Preserve automation task scope through `AutomationTaskPrototype.WorkflowID`. Nil means unscoped and clears scope on replacement updates.
 - `workflows`: Filter jobs with `job.WithWorkflowReferences` and read optional task attribution through `JobTask.WorkflowReference`.
@@ -16,9 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** Rename the protobuf-enum field helper from `field.Enum(name, protobufValue)` to `field.ProtoEnum(name, protobufValue)`. `field.Enum` now accepts public string values.
+- **Breaking:** Remove generated `FieldQueryValue.EnumName` accessors and builder field. Use `StringValue` with a declared public value for custom enum comparisons.
 - **Breaking:** Rename `Workflow.Slug` to `Reference`, matching remote workflow selectors. `ProjectSlug` is the portable project name, not a remote selector. Workflow RPC requests use `WorkflowReference`.
 - **Breaking:** `WorkflowService.CreateWorkflow` takes an additional `*bool` alias-policy argument. Pass nil to preserve omission.
 - **Breaking:** Generated release task definitions and worker discovery use `UnboundTaskIdentifier` and `UnboundTaskIdentifiers`. The high-level `TaskIdentifier` interface and `ReleaseContent.Tasks` remain unchanged and unbound.
+- Update Connect-Go, gRPC, and other dependencies.
+
+### Fixed
+
+- `datasets`: Select the datapoint message using the schema's `type_url`, independently of file and declaration order. Descriptors without `type_url` retain the previous first-message fallback.
 
 ## [0.16.0] - 2026-10-13
 
@@ -266,7 +277,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/tilebox/tilebox-go/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/tilebox/tilebox-go/compare/v0.15.1...v0.16.0
 [0.15.1]: https://github.com/tilebox/tilebox-go/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/tilebox/tilebox-go/compare/v0.14.0...v0.15.0

@@ -138,9 +138,9 @@ func Message(name string, message proto.Message) *Descriptor {
 	}
 }
 
-// Enum returns a new Field with the type of the provided protobuf enum value.
+// ProtoEnum returns a new Field with the type of the provided protobuf enum value.
 // The server only accepts a specific set of well-known enum types.
-func Enum(name string, enum protoreflect.Enum) *Descriptor {
+func ProtoEnum(name string, enum protoreflect.Enum) *Descriptor {
 	typeName := fmt.Sprintf(".%s", enum.Type().Descriptor().FullName())
 	return &Descriptor{
 		name: name,
@@ -148,6 +148,17 @@ func Enum(name string, enum protoreflect.Enum) *Descriptor {
 			Type:     descriptorpb.FieldDescriptorProto_TYPE_ENUM,
 			TypeName: &typeName,
 		},
+	}
+}
+
+// Enum returns a new enum field with the given public string values.
+// Values must be nonempty and unique. The server assigns protobuf names and numbers.
+// Schema updates may append values, but cannot remove, rename, or reorder them.
+func Enum(name string, values ...string) *Descriptor {
+	return &Descriptor{
+		name:       name,
+		info:       &typeInfo{Type: descriptorpb.FieldDescriptorProto_TYPE_ENUM},
+		enumValues: slices.Clone(values),
 	}
 }
 
@@ -180,6 +191,7 @@ type Descriptor struct {
 	jsonSchemaRef     *string
 	roles             []FieldRole
 	repeated          bool
+	enumValues        []string
 }
 
 // Description can be used to provide more context and details about the data. Optional.
@@ -201,7 +213,8 @@ func (d *Descriptor) SourceJSONPointer(sourceJSONPointer string) *Descriptor {
 }
 
 // Queryable marks the field for projection into query storage and server-side filtering.
-// Only optional fields created with String, Bool, Int32, Int64, Uint64, or Float64 can be queryable.
+// Only optional fields created with String, Bool, Int32, Int64, Uint64, Float64, Enum, or ProtoEnum can be queryable.
+// Enum fields do not count toward the queryable string field limit.
 // Repeated fields and fields of all other types are not supported.
 func (d *Descriptor) Queryable() *Descriptor {
 	d.queryable = true
@@ -237,6 +250,11 @@ func (d *Descriptor) ToProto() *datasetsv1.Field {
 		label = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
 	}
 
+	enumValues := make([]*datasetsv1.EnumValue, len(d.enumValues))
+	for i, value := range d.enumValues {
+		enumValues[i] = datasetsv1.EnumValue_builder{Value: value}.Build()
+	}
+
 	return datasetsv1.Field_builder{
 		Descriptor: &descriptorpb.FieldDescriptorProto{
 			Name:     &d.name,
@@ -251,6 +269,7 @@ func (d *Descriptor) ToProto() *datasetsv1.Field {
 			Queryable:         d.queryable,
 			JsonSchemaRef:     d.jsonSchemaRef,
 			Roles:             d.roles,
+			EnumValues:        enumValues,
 		}.Build(),
 	}.Build()
 }

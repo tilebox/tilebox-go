@@ -20,6 +20,9 @@ type Expression interface {
 }
 
 // Field identifies a top-level queryable dataset field by name.
+// For custom enums, compare public string values (for example, "L1"), not
+// protobuf symbols or numbers. Only Equal and NotEqual are supported for enums;
+// the server validates values and operators against the field's schema.
 type Field string
 
 // Equal compares the field with value for equality.
@@ -152,7 +155,7 @@ func queryValueToProto(value any) (*datasetsv1.FieldQueryValue, reflect.Kind, er
 		return nil, reflect.Invalid, errors.New("comparison value cannot be nil")
 	}
 	if _, ok := value.(protoreflect.Enum); ok {
-		return nil, reflect.Invalid, fmt.Errorf("unsupported comparison value type %T; protobuf enums are not queryable", value)
+		return nil, reflect.Invalid, fmt.Errorf("unsupported comparison value type %T; use a public enum string value instead of a protobuf enum", value)
 	}
 
 	reflected := reflect.ValueOf(value)

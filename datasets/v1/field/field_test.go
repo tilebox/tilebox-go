@@ -116,6 +116,23 @@ func TestDescriptor_ToProtoWithAnnotations(t *testing.T) {
 	assert.Equal(t, []datasetsv1.FieldRole{datasetsv1.FieldRole_FIELD_ROLE_PRIMARY_TITLE}, annotation.GetRoles())
 }
 
+func TestDescriptor_ToProtoWithEnum(t *testing.T) {
+	values := []string{"L1", "L2-SP", "Level 3"}
+	descriptor := Enum("processing_level", values...).Queryable().Description("Processing level")
+	values[0] = "changed"
+	field := descriptor.ToProto()
+	assert.Equal(t, descriptorpb.FieldDescriptorProto_TYPE_ENUM, field.GetDescriptor().GetType())
+	assert.Empty(t, field.GetDescriptor().GetTypeName())
+	assert.Equal(t, descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL, field.GetDescriptor().GetLabel())
+	assert.True(t, field.GetAnnotation().GetQueryable())
+	assert.Equal(t, "Processing level", field.GetAnnotation().GetDescription())
+	require.Len(t, field.GetAnnotation().GetEnumValues(), 3)
+	for i, want := range []string{"L1", "L2-SP", "Level 3"} {
+		assert.Equal(t, want, field.GetAnnotation().GetEnumValues()[i].GetValue())
+	}
+	assert.Equal(t, descriptorpb.FieldDescriptorProto_LABEL_REPEATED, descriptor.Repeated().ToProto().GetDescriptor().GetLabel())
+}
+
 func TestDescriptor_ToProtoWithSTACTypes(t *testing.T) {
 	tests := []struct {
 		name         string
@@ -131,7 +148,7 @@ func TestDescriptor_ToProtoWithSTACTypes(t *testing.T) {
 		},
 		{
 			name:         "enum",
-			descriptor:   Enum("orbit_state", stacv1.SatelliteOrbitState_SATELLITE_ORBIT_STATE_ASCENDING),
+			descriptor:   ProtoEnum("orbit_state", stacv1.SatelliteOrbitState_SATELLITE_ORBIT_STATE_ASCENDING),
 			wantType:     descriptorpb.FieldDescriptorProto_TYPE_ENUM,
 			wantTypeName: ".datasets.stac.v1.SatelliteOrbitState",
 		},
