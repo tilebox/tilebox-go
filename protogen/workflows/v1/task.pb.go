@@ -185,7 +185,9 @@ type NextTaskToRun_builder struct {
 
 	// The cluster that this task runner is running on.
 	ClusterSlug string
-	// The task identifiers that this task runner can run.
+	// The concrete task addresses this runner can execute. Scoped capabilities include workflow_id;
+	// omission advertises only an unscoped address. During the migration/introduction phase of scoped tasks,
+	// runners advertise legacy unscoped aliases as separate entries.
 	Identifiers []*TaskIdentifier
 }
 
@@ -327,11 +329,13 @@ type ComputedTask_builder struct {
 	// If not set, the display message specified upon task submission will be kept.
 	Display string
 	// A list of sub-tasks that the just computed task spawned.
+	// Workflow scope must be explicitly set in the sub-task identifiers, omission means explicitly unscoped.
+	// Cross-workflow child submissions are also allowed.
 	SubTasks *TaskSubmissions
 	// A list of progress updates that the computed task wants to report.
 	ProgressUpdates []*Progress
 	// A list of sub-tasks that the just computed task spawned. This field is deprecated and will be removed in the
-	// future. Kept around for backwards compatibility.
+	// future. Kept around for backwards compatibility. Workflow scope follows the same rules as sub_tasks.
 	//
 	// Deprecated: Marked as deprecated in workflows/v1/task.proto.
 	LegacySubTasks []*SingleTaskSubmission

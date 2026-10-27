@@ -639,7 +639,103 @@ func (b0 GetLogMessageCountsRequest_builder) Build() *GetLogMessageCountsRequest
 	return m0
 }
 
-// GetLogMessageCountsResponse is the response message for retrieving counts of log messages per severity level within a specified time interval.
+// GetJobLogMessageCountsRequest is the request message for retrieving counts of log messages per severity level for a job.
+type GetJobLogMessageCountsRequest struct {
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_JobId  *v1.ID                 `protobuf:"bytes,1,opt,name=job_id,json=jobId"`
+	xxx_hidden_TaskId *v1.ID                 `protobuf:"bytes,2,opt,name=task_id,json=taskId"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *GetJobLogMessageCountsRequest) Reset() {
+	*x = GetJobLogMessageCountsRequest{}
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetJobLogMessageCountsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetJobLogMessageCountsRequest) ProtoMessage() {}
+
+func (x *GetJobLogMessageCountsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *GetJobLogMessageCountsRequest) GetJobId() *v1.ID {
+	if x != nil {
+		return x.xxx_hidden_JobId
+	}
+	return nil
+}
+
+func (x *GetJobLogMessageCountsRequest) GetTaskId() *v1.ID {
+	if x != nil {
+		return x.xxx_hidden_TaskId
+	}
+	return nil
+}
+
+func (x *GetJobLogMessageCountsRequest) SetJobId(v *v1.ID) {
+	x.xxx_hidden_JobId = v
+}
+
+func (x *GetJobLogMessageCountsRequest) SetTaskId(v *v1.ID) {
+	x.xxx_hidden_TaskId = v
+}
+
+func (x *GetJobLogMessageCountsRequest) HasJobId() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_JobId != nil
+}
+
+func (x *GetJobLogMessageCountsRequest) HasTaskId() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_TaskId != nil
+}
+
+func (x *GetJobLogMessageCountsRequest) ClearJobId() {
+	x.xxx_hidden_JobId = nil
+}
+
+func (x *GetJobLogMessageCountsRequest) ClearTaskId() {
+	x.xxx_hidden_TaskId = nil
+}
+
+type GetJobLogMessageCountsRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The ID of the job to count logs for.
+	JobId *v1.ID
+	// The ID of the task to count logs for. If not specified, logs for the full job are counted.
+	TaskId *v1.ID
+}
+
+func (b0 GetJobLogMessageCountsRequest_builder) Build() *GetJobLogMessageCountsRequest {
+	m0 := &GetJobLogMessageCountsRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_JobId = b.JobId
+	x.xxx_hidden_TaskId = b.TaskId
+	return m0
+}
+
+// GetLogMessageCountsResponse contains log message counts per severity level and a total across all severities.
 type GetLogMessageCountsResponse struct {
 	state                    protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Counts        *[]*LogSeverityCount   `protobuf:"bytes,1,rep,name=counts"`
@@ -652,7 +748,7 @@ type GetLogMessageCountsResponse struct {
 
 func (x *GetLogMessageCountsResponse) Reset() {
 	*x = GetLogMessageCountsResponse{}
-	mi := &file_workflows_v1_telemetry_proto_msgTypes[5]
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -664,7 +760,7 @@ func (x *GetLogMessageCountsResponse) String() string {
 func (*GetLogMessageCountsResponse) ProtoMessage() {}
 
 func (x *GetLogMessageCountsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_telemetry_proto_msgTypes[5]
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -744,7 +840,7 @@ type LogSeverityCount struct {
 
 func (x *LogSeverityCount) Reset() {
 	*x = LogSeverityCount{}
-	mi := &file_workflows_v1_telemetry_proto_msgTypes[6]
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -756,7 +852,7 @@ func (x *LogSeverityCount) String() string {
 func (*LogSeverityCount) ProtoMessage() {}
 
 func (x *LogSeverityCount) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_telemetry_proto_msgTypes[6]
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -855,7 +951,7 @@ type QueryJobSpansRequest struct {
 
 func (x *QueryJobSpansRequest) Reset() {
 	*x = QueryJobSpansRequest{}
-	mi := &file_workflows_v1_telemetry_proto_msgTypes[7]
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -867,7 +963,7 @@ func (x *QueryJobSpansRequest) String() string {
 func (*QueryJobSpansRequest) ProtoMessage() {}
 
 func (x *QueryJobSpansRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_telemetry_proto_msgTypes[7]
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1009,7 +1105,7 @@ type PaginatedSpansData struct {
 
 func (x *PaginatedSpansData) Reset() {
 	*x = PaginatedSpansData{}
-	mi := &file_workflows_v1_telemetry_proto_msgTypes[8]
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1021,7 +1117,7 @@ func (x *PaginatedSpansData) String() string {
 func (*PaginatedSpansData) ProtoMessage() {}
 
 func (x *PaginatedSpansData) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_telemetry_proto_msgTypes[8]
+	mi := &file_workflows_v1_telemetry_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1107,7 +1203,10 @@ const file_workflows_v1_telemetry_proto_rawDesc = "" +
 	"\rresource_logs\x18\x01 \x03(\v2).opentelemetry.proto.logs.v1.ResourceLogsR\fresourceLogs\x12:\n" +
 	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"[\n" +
 	"\x1aGetLogMessageCountsRequest\x12=\n" +
-	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\"|\n" +
+	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\"~\n" +
+	"\x1dGetJobLogMessageCountsRequest\x12-\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x12.\n" +
+	"\atask_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\x06taskId\"|\n" +
 	"\x1bGetLogMessageCountsResponse\x126\n" +
 	"\x06counts\x18\x01 \x03(\v2\x1e.workflows.v1.LogSeverityCountR\x06counts\x12%\n" +
 	"\x0etotal_messages\x18\x02 \x01(\x03R\rtotalMessages\"d\n" +
@@ -1128,69 +1227,75 @@ const file_workflows_v1_telemetry_proto_rawDesc = "" +
 	"\x18LOG_SEVERITY_GROUP_DEBUG\x10\x02\x12\x1b\n" +
 	"\x17LOG_SEVERITY_GROUP_INFO\x10\x03\x12\x1e\n" +
 	"\x1aLOG_SEVERITY_GROUP_WARNING\x10\x04\x12\x1c\n" +
-	"\x18LOG_SEVERITY_GROUP_ERROR\x10\x052\x90\x03\n" +
+	"\x18LOG_SEVERITY_GROUP_ERROR\x10\x052\x82\x04\n" +
 	"\x15TelemetryQueryService\x12R\n" +
 	"\fQueryJobLogs\x12!.workflows.v1.QueryJobLogsRequest\x1a\x1f.workflows.v1.PaginatedLogsData\x12`\n" +
 	"\x13QueryLogsInInterval\x12(.workflows.v1.QueryLogsInIntervalRequest\x1a\x1f.workflows.v1.PaginatedLogsData\x12j\n" +
-	"\x13GetLogMessageCounts\x12(.workflows.v1.GetLogMessageCountsRequest\x1a).workflows.v1.GetLogMessageCountsResponse\x12U\n" +
+	"\x13GetLogMessageCounts\x12(.workflows.v1.GetLogMessageCountsRequest\x1a).workflows.v1.GetLogMessageCountsResponse\x12p\n" +
+	"\x16GetJobLogMessageCounts\x12+.workflows.v1.GetJobLogMessageCountsRequest\x1a).workflows.v1.GetLogMessageCountsResponse\x12U\n" +
 	"\rQueryJobSpans\x12\".workflows.v1.QueryJobSpansRequest\x1a .workflows.v1.PaginatedSpansDataB\xb4\x01\n" +
 	"\x10com.workflows.v1B\x0eTelemetryProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1b\beditionsp\xe8\a"
 
 var file_workflows_v1_telemetry_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_workflows_v1_telemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_workflows_v1_telemetry_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_workflows_v1_telemetry_proto_goTypes = []any{
-	(LogSeverityGroup)(0),               // 0: workflows.v1.LogSeverityGroup
-	(*LogQueryFilters)(nil),             // 1: workflows.v1.LogQueryFilters
-	(*QueryJobLogsRequest)(nil),         // 2: workflows.v1.QueryJobLogsRequest
-	(*QueryLogsInIntervalRequest)(nil),  // 3: workflows.v1.QueryLogsInIntervalRequest
-	(*PaginatedLogsData)(nil),           // 4: workflows.v1.PaginatedLogsData
-	(*GetLogMessageCountsRequest)(nil),  // 5: workflows.v1.GetLogMessageCountsRequest
-	(*GetLogMessageCountsResponse)(nil), // 6: workflows.v1.GetLogMessageCountsResponse
-	(*LogSeverityCount)(nil),            // 7: workflows.v1.LogSeverityCount
-	(*QueryJobSpansRequest)(nil),        // 8: workflows.v1.QueryJobSpansRequest
-	(*PaginatedSpansData)(nil),          // 9: workflows.v1.PaginatedSpansData
-	(*v1.ID)(nil),                       // 10: tilebox.v1.ID
-	(*v1.Pagination)(nil),               // 11: tilebox.v1.Pagination
-	(v1.SortDirection)(0),               // 12: tilebox.v1.SortDirection
-	(*v1.TimeInterval)(nil),             // 13: tilebox.v1.TimeInterval
-	(*v11.ResourceLogs)(nil),            // 14: opentelemetry.proto.logs.v1.ResourceLogs
-	(*v12.ResourceSpans)(nil),           // 15: opentelemetry.proto.trace.v1.ResourceSpans
+	(LogSeverityGroup)(0),                 // 0: workflows.v1.LogSeverityGroup
+	(*LogQueryFilters)(nil),               // 1: workflows.v1.LogQueryFilters
+	(*QueryJobLogsRequest)(nil),           // 2: workflows.v1.QueryJobLogsRequest
+	(*QueryLogsInIntervalRequest)(nil),    // 3: workflows.v1.QueryLogsInIntervalRequest
+	(*PaginatedLogsData)(nil),             // 4: workflows.v1.PaginatedLogsData
+	(*GetLogMessageCountsRequest)(nil),    // 5: workflows.v1.GetLogMessageCountsRequest
+	(*GetJobLogMessageCountsRequest)(nil), // 6: workflows.v1.GetJobLogMessageCountsRequest
+	(*GetLogMessageCountsResponse)(nil),   // 7: workflows.v1.GetLogMessageCountsResponse
+	(*LogSeverityCount)(nil),              // 8: workflows.v1.LogSeverityCount
+	(*QueryJobSpansRequest)(nil),          // 9: workflows.v1.QueryJobSpansRequest
+	(*PaginatedSpansData)(nil),            // 10: workflows.v1.PaginatedSpansData
+	(*v1.ID)(nil),                         // 11: tilebox.v1.ID
+	(*v1.Pagination)(nil),                 // 12: tilebox.v1.Pagination
+	(v1.SortDirection)(0),                 // 13: tilebox.v1.SortDirection
+	(*v1.TimeInterval)(nil),               // 14: tilebox.v1.TimeInterval
+	(*v11.ResourceLogs)(nil),              // 15: opentelemetry.proto.logs.v1.ResourceLogs
+	(*v12.ResourceSpans)(nil),             // 16: opentelemetry.proto.trace.v1.ResourceSpans
 }
 var file_workflows_v1_telemetry_proto_depIdxs = []int32{
 	0,  // 0: workflows.v1.LogQueryFilters.severity_levels:type_name -> workflows.v1.LogSeverityGroup
-	10, // 1: workflows.v1.QueryJobLogsRequest.job_id:type_name -> tilebox.v1.ID
-	11, // 2: workflows.v1.QueryJobLogsRequest.page:type_name -> tilebox.v1.Pagination
-	12, // 3: workflows.v1.QueryJobLogsRequest.sort_direction:type_name -> tilebox.v1.SortDirection
-	10, // 4: workflows.v1.QueryJobLogsRequest.task_id:type_name -> tilebox.v1.ID
+	11, // 1: workflows.v1.QueryJobLogsRequest.job_id:type_name -> tilebox.v1.ID
+	12, // 2: workflows.v1.QueryJobLogsRequest.page:type_name -> tilebox.v1.Pagination
+	13, // 3: workflows.v1.QueryJobLogsRequest.sort_direction:type_name -> tilebox.v1.SortDirection
+	11, // 4: workflows.v1.QueryJobLogsRequest.task_id:type_name -> tilebox.v1.ID
 	1,  // 5: workflows.v1.QueryJobLogsRequest.filters:type_name -> workflows.v1.LogQueryFilters
-	13, // 6: workflows.v1.QueryLogsInIntervalRequest.time_interval:type_name -> tilebox.v1.TimeInterval
-	11, // 7: workflows.v1.QueryLogsInIntervalRequest.page:type_name -> tilebox.v1.Pagination
-	12, // 8: workflows.v1.QueryLogsInIntervalRequest.sort_direction:type_name -> tilebox.v1.SortDirection
+	14, // 6: workflows.v1.QueryLogsInIntervalRequest.time_interval:type_name -> tilebox.v1.TimeInterval
+	12, // 7: workflows.v1.QueryLogsInIntervalRequest.page:type_name -> tilebox.v1.Pagination
+	13, // 8: workflows.v1.QueryLogsInIntervalRequest.sort_direction:type_name -> tilebox.v1.SortDirection
 	1,  // 9: workflows.v1.QueryLogsInIntervalRequest.filters:type_name -> workflows.v1.LogQueryFilters
-	14, // 10: workflows.v1.PaginatedLogsData.resource_logs:type_name -> opentelemetry.proto.logs.v1.ResourceLogs
-	11, // 11: workflows.v1.PaginatedLogsData.next_page:type_name -> tilebox.v1.Pagination
-	13, // 12: workflows.v1.GetLogMessageCountsRequest.time_interval:type_name -> tilebox.v1.TimeInterval
-	7,  // 13: workflows.v1.GetLogMessageCountsResponse.counts:type_name -> workflows.v1.LogSeverityCount
-	0,  // 14: workflows.v1.LogSeverityCount.severity:type_name -> workflows.v1.LogSeverityGroup
-	10, // 15: workflows.v1.QueryJobSpansRequest.job_id:type_name -> tilebox.v1.ID
-	11, // 16: workflows.v1.QueryJobSpansRequest.page:type_name -> tilebox.v1.Pagination
-	12, // 17: workflows.v1.QueryJobSpansRequest.sort_direction:type_name -> tilebox.v1.SortDirection
-	10, // 18: workflows.v1.QueryJobSpansRequest.task_id:type_name -> tilebox.v1.ID
-	15, // 19: workflows.v1.PaginatedSpansData.resource_spans:type_name -> opentelemetry.proto.trace.v1.ResourceSpans
-	11, // 20: workflows.v1.PaginatedSpansData.next_page:type_name -> tilebox.v1.Pagination
-	2,  // 21: workflows.v1.TelemetryQueryService.QueryJobLogs:input_type -> workflows.v1.QueryJobLogsRequest
-	3,  // 22: workflows.v1.TelemetryQueryService.QueryLogsInInterval:input_type -> workflows.v1.QueryLogsInIntervalRequest
-	5,  // 23: workflows.v1.TelemetryQueryService.GetLogMessageCounts:input_type -> workflows.v1.GetLogMessageCountsRequest
-	8,  // 24: workflows.v1.TelemetryQueryService.QueryJobSpans:input_type -> workflows.v1.QueryJobSpansRequest
-	4,  // 25: workflows.v1.TelemetryQueryService.QueryJobLogs:output_type -> workflows.v1.PaginatedLogsData
-	4,  // 26: workflows.v1.TelemetryQueryService.QueryLogsInInterval:output_type -> workflows.v1.PaginatedLogsData
-	6,  // 27: workflows.v1.TelemetryQueryService.GetLogMessageCounts:output_type -> workflows.v1.GetLogMessageCountsResponse
-	9,  // 28: workflows.v1.TelemetryQueryService.QueryJobSpans:output_type -> workflows.v1.PaginatedSpansData
-	25, // [25:29] is the sub-list for method output_type
-	21, // [21:25] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	15, // 10: workflows.v1.PaginatedLogsData.resource_logs:type_name -> opentelemetry.proto.logs.v1.ResourceLogs
+	12, // 11: workflows.v1.PaginatedLogsData.next_page:type_name -> tilebox.v1.Pagination
+	14, // 12: workflows.v1.GetLogMessageCountsRequest.time_interval:type_name -> tilebox.v1.TimeInterval
+	11, // 13: workflows.v1.GetJobLogMessageCountsRequest.job_id:type_name -> tilebox.v1.ID
+	11, // 14: workflows.v1.GetJobLogMessageCountsRequest.task_id:type_name -> tilebox.v1.ID
+	8,  // 15: workflows.v1.GetLogMessageCountsResponse.counts:type_name -> workflows.v1.LogSeverityCount
+	0,  // 16: workflows.v1.LogSeverityCount.severity:type_name -> workflows.v1.LogSeverityGroup
+	11, // 17: workflows.v1.QueryJobSpansRequest.job_id:type_name -> tilebox.v1.ID
+	12, // 18: workflows.v1.QueryJobSpansRequest.page:type_name -> tilebox.v1.Pagination
+	13, // 19: workflows.v1.QueryJobSpansRequest.sort_direction:type_name -> tilebox.v1.SortDirection
+	11, // 20: workflows.v1.QueryJobSpansRequest.task_id:type_name -> tilebox.v1.ID
+	16, // 21: workflows.v1.PaginatedSpansData.resource_spans:type_name -> opentelemetry.proto.trace.v1.ResourceSpans
+	12, // 22: workflows.v1.PaginatedSpansData.next_page:type_name -> tilebox.v1.Pagination
+	2,  // 23: workflows.v1.TelemetryQueryService.QueryJobLogs:input_type -> workflows.v1.QueryJobLogsRequest
+	3,  // 24: workflows.v1.TelemetryQueryService.QueryLogsInInterval:input_type -> workflows.v1.QueryLogsInIntervalRequest
+	5,  // 25: workflows.v1.TelemetryQueryService.GetLogMessageCounts:input_type -> workflows.v1.GetLogMessageCountsRequest
+	6,  // 26: workflows.v1.TelemetryQueryService.GetJobLogMessageCounts:input_type -> workflows.v1.GetJobLogMessageCountsRequest
+	9,  // 27: workflows.v1.TelemetryQueryService.QueryJobSpans:input_type -> workflows.v1.QueryJobSpansRequest
+	4,  // 28: workflows.v1.TelemetryQueryService.QueryJobLogs:output_type -> workflows.v1.PaginatedLogsData
+	4,  // 29: workflows.v1.TelemetryQueryService.QueryLogsInInterval:output_type -> workflows.v1.PaginatedLogsData
+	7,  // 30: workflows.v1.TelemetryQueryService.GetLogMessageCounts:output_type -> workflows.v1.GetLogMessageCountsResponse
+	7,  // 31: workflows.v1.TelemetryQueryService.GetJobLogMessageCounts:output_type -> workflows.v1.GetLogMessageCountsResponse
+	10, // 32: workflows.v1.TelemetryQueryService.QueryJobSpans:output_type -> workflows.v1.PaginatedSpansData
+	28, // [28:33] is the sub-list for method output_type
+	23, // [23:28] is the sub-list for method input_type
+	23, // [23:23] is the sub-list for extension type_name
+	23, // [23:23] is the sub-list for extension extendee
+	0,  // [0:23] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_telemetry_proto_init() }
@@ -1204,7 +1309,7 @@ func file_workflows_v1_telemetry_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_telemetry_proto_rawDesc), len(file_workflows_v1_telemetry_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

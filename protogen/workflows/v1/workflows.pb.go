@@ -632,10 +632,10 @@ func (b0 ListClustersResponse_builder) Build() *ListClustersResponse {
 
 // GetWorkflowRequest requests details for a workflow.
 type GetWorkflowRequest struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_WorkflowSlug string                 `protobuf:"bytes,1,opt,name=workflow_slug,json=workflowSlug"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_WorkflowReference string                 `protobuf:"bytes,1,opt,name=workflow_reference,json=workflowReference"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *GetWorkflowRequest) Reset() {
@@ -663,44 +663,46 @@ func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *GetWorkflowRequest) GetWorkflowSlug() string {
+func (x *GetWorkflowRequest) GetWorkflowReference() string {
 	if x != nil {
-		return x.xxx_hidden_WorkflowSlug
+		return x.xxx_hidden_WorkflowReference
 	}
 	return ""
 }
 
-func (x *GetWorkflowRequest) SetWorkflowSlug(v string) {
-	x.xxx_hidden_WorkflowSlug = v
+func (x *GetWorkflowRequest) SetWorkflowReference(v string) {
+	x.xxx_hidden_WorkflowReference = v
 }
 
 type GetWorkflowRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The local slug or namespace-qualified reference of the workflow to get details for.
-	WorkflowSlug string
+	// The unique workflow reference, potentially suffixed, and potentially namespace-qualified remote reference, which
+	// acts as the unique external identifier for a workflow.
+	// e.g. `my-worklow`, `my-workflow-AGimUihHGGahtT`, or `other-namespace:my-workflow`.
+	WorkflowReference string
 }
 
 func (b0 GetWorkflowRequest_builder) Build() *GetWorkflowRequest {
 	m0 := &GetWorkflowRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_WorkflowSlug = b.WorkflowSlug
+	x.xxx_hidden_WorkflowReference = b.WorkflowReference
 	return m0
 }
 
 // UpdateWorkflowRequest updates an existing workflow, by updating all fields that are set to their new values.
 // If a field is not set, it will not be updated.
 type UpdateWorkflowRequest struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_WorkflowSlug string                 `protobuf:"bytes,1,opt,name=workflow_slug,json=workflowSlug"`
-	xxx_hidden_Name         *string                `protobuf:"bytes,2,opt,name=name"`
-	xxx_hidden_Summary      *string                `protobuf:"bytes,4,opt,name=summary"`
-	xxx_hidden_Description  *string                `protobuf:"bytes,3,opt,name=description"`
-	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
-	XXX_presence            [1]uint32
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_WorkflowReference string                 `protobuf:"bytes,1,opt,name=workflow_reference,json=workflowReference"`
+	xxx_hidden_Name              *string                `protobuf:"bytes,2,opt,name=name"`
+	xxx_hidden_Summary           *string                `protobuf:"bytes,4,opt,name=summary"`
+	xxx_hidden_Description       *string                `protobuf:"bytes,3,opt,name=description"`
+	XXX_raceDetectHookData       protoimpl.RaceDetectHookData
+	XXX_presence                 [1]uint32
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *UpdateWorkflowRequest) Reset() {
@@ -728,9 +730,9 @@ func (x *UpdateWorkflowRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *UpdateWorkflowRequest) GetWorkflowSlug() string {
+func (x *UpdateWorkflowRequest) GetWorkflowReference() string {
 	if x != nil {
-		return x.xxx_hidden_WorkflowSlug
+		return x.xxx_hidden_WorkflowReference
 	}
 	return ""
 }
@@ -765,8 +767,8 @@ func (x *UpdateWorkflowRequest) GetDescription() string {
 	return ""
 }
 
-func (x *UpdateWorkflowRequest) SetWorkflowSlug(v string) {
-	x.xxx_hidden_WorkflowSlug = v
+func (x *UpdateWorkflowRequest) SetWorkflowReference(v string) {
+	x.xxx_hidden_WorkflowReference = v
 }
 
 func (x *UpdateWorkflowRequest) SetName(v string) {
@@ -823,8 +825,11 @@ func (x *UpdateWorkflowRequest) ClearDescription() {
 type UpdateWorkflowRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	WorkflowSlug string
-	Name         *string
+	// The unique workflow reference, potentially suffixed, and potentially namespace-qualified remote reference, which
+	// acts as the unique external identifier for a workflow.
+	// e.g. `my-worklow`, `my-workflow-AGimUihHGGahtT`, or `other-namespace:my-workflow`.
+	WorkflowReference string
+	Name              *string
 	// Short text summary. Omit to leave unchanged, or set to empty to clear.
 	Summary     *string
 	Description *string
@@ -834,7 +839,7 @@ func (b0 UpdateWorkflowRequest_builder) Build() *UpdateWorkflowRequest {
 	m0 := &UpdateWorkflowRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_WorkflowSlug = b.WorkflowSlug
+	x.xxx_hidden_WorkflowReference = b.WorkflowReference
 	if b.Name != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
 		x.xxx_hidden_Name = b.Name
@@ -852,10 +857,10 @@ func (b0 UpdateWorkflowRequest_builder) Build() *UpdateWorkflowRequest {
 
 // DeleteWorkflowRequest deletes an existing workflow.
 type DeleteWorkflowRequest struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_WorkflowSlug string                 `protobuf:"bytes,1,opt,name=workflow_slug,json=workflowSlug"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_WorkflowReference string                 `protobuf:"bytes,1,opt,name=workflow_reference,json=workflowReference"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *DeleteWorkflowRequest) Reset() {
@@ -883,29 +888,31 @@ func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *DeleteWorkflowRequest) GetWorkflowSlug() string {
+func (x *DeleteWorkflowRequest) GetWorkflowReference() string {
 	if x != nil {
-		return x.xxx_hidden_WorkflowSlug
+		return x.xxx_hidden_WorkflowReference
 	}
 	return ""
 }
 
-func (x *DeleteWorkflowRequest) SetWorkflowSlug(v string) {
-	x.xxx_hidden_WorkflowSlug = v
+func (x *DeleteWorkflowRequest) SetWorkflowReference(v string) {
+	x.xxx_hidden_WorkflowReference = v
 }
 
 type DeleteWorkflowRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The slug of the workflow to delete.
-	WorkflowSlug string
+	// The unique workflow reference, potentially suffixed, and potentially namespace-qualified remote reference, which
+	// acts as the unique external identifier for a workflow.
+	// e.g. `my-worklow`, `my-workflow-AGimUihHGGahtT`, or `other-namespace:my-workflow`.
+	WorkflowReference string
 }
 
 func (b0 DeleteWorkflowRequest_builder) Build() *DeleteWorkflowRequest {
 	m0 := &DeleteWorkflowRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_WorkflowSlug = b.WorkflowSlug
+	x.xxx_hidden_WorkflowReference = b.WorkflowReference
 	return m0
 }
 
@@ -955,12 +962,12 @@ func (b0 DeleteWorkflowResponse_builder) Build() *DeleteWorkflowResponse {
 
 // PublishWorkflowReleaseRequest publishes a new workflow release artifact, and associates it with a workflow.
 type PublishWorkflowReleaseRequest struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_WorkflowSlug string                 `protobuf:"bytes,1,opt,name=workflow_slug,json=workflowSlug"`
-	xxx_hidden_ArtifactId   *v1.ID                 `protobuf:"bytes,2,opt,name=artifact_id,json=artifactId"`
-	xxx_hidden_Content      *ReleaseContent        `protobuf:"bytes,3,opt,name=content"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_WorkflowReference string                 `protobuf:"bytes,1,opt,name=workflow_reference,json=workflowReference"`
+	xxx_hidden_ArtifactId        *v1.ID                 `protobuf:"bytes,2,opt,name=artifact_id,json=artifactId"`
+	xxx_hidden_Content           *ReleaseContent        `protobuf:"bytes,3,opt,name=content"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *PublishWorkflowReleaseRequest) Reset() {
@@ -988,9 +995,9 @@ func (x *PublishWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *PublishWorkflowReleaseRequest) GetWorkflowSlug() string {
+func (x *PublishWorkflowReleaseRequest) GetWorkflowReference() string {
 	if x != nil {
-		return x.xxx_hidden_WorkflowSlug
+		return x.xxx_hidden_WorkflowReference
 	}
 	return ""
 }
@@ -1009,8 +1016,8 @@ func (x *PublishWorkflowReleaseRequest) GetContent() *ReleaseContent {
 	return nil
 }
 
-func (x *PublishWorkflowReleaseRequest) SetWorkflowSlug(v string) {
-	x.xxx_hidden_WorkflowSlug = v
+func (x *PublishWorkflowReleaseRequest) SetWorkflowReference(v string) {
+	x.xxx_hidden_WorkflowReference = v
 }
 
 func (x *PublishWorkflowReleaseRequest) SetArtifactId(v *v1.ID) {
@@ -1046,16 +1053,19 @@ func (x *PublishWorkflowReleaseRequest) ClearContent() {
 type PublishWorkflowReleaseRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	WorkflowSlug string
-	ArtifactId   *v1.ID
-	Content      *ReleaseContent
+	// The unique workflow reference, potentially suffixed, and potentially namespace-qualified remote reference, which
+	// acts as the unique external identifier for a workflow.
+	// e.g. `my-worklow`, `my-workflow-AGimUihHGGahtT`, or `other-namespace:my-workflow`.
+	WorkflowReference string
+	ArtifactId        *v1.ID
+	Content           *ReleaseContent
 }
 
 func (b0 PublishWorkflowReleaseRequest_builder) Build() *PublishWorkflowReleaseRequest {
 	m0 := &PublishWorkflowReleaseRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_WorkflowSlug = b.WorkflowSlug
+	x.xxx_hidden_WorkflowReference = b.WorkflowReference
 	x.xxx_hidden_ArtifactId = b.ArtifactId
 	x.xxx_hidden_Content = b.Content
 	return m0
@@ -1063,11 +1073,11 @@ func (b0 PublishWorkflowReleaseRequest_builder) Build() *PublishWorkflowReleaseR
 
 // UnpublishWorkflowReleaseRequest unpublishes a specific workflow release.
 type UnpublishWorkflowReleaseRequest struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_WorkflowSlug string                 `protobuf:"bytes,1,opt,name=workflow_slug,json=workflowSlug"`
-	xxx_hidden_ReleaseId    *v1.ID                 `protobuf:"bytes,2,opt,name=release_id,json=releaseId"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_WorkflowReference string                 `protobuf:"bytes,1,opt,name=workflow_reference,json=workflowReference"`
+	xxx_hidden_ReleaseId         *v1.ID                 `protobuf:"bytes,2,opt,name=release_id,json=releaseId"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *UnpublishWorkflowReleaseRequest) Reset() {
@@ -1095,9 +1105,9 @@ func (x *UnpublishWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *UnpublishWorkflowReleaseRequest) GetWorkflowSlug() string {
+func (x *UnpublishWorkflowReleaseRequest) GetWorkflowReference() string {
 	if x != nil {
-		return x.xxx_hidden_WorkflowSlug
+		return x.xxx_hidden_WorkflowReference
 	}
 	return ""
 }
@@ -1109,8 +1119,8 @@ func (x *UnpublishWorkflowReleaseRequest) GetReleaseId() *v1.ID {
 	return nil
 }
 
-func (x *UnpublishWorkflowReleaseRequest) SetWorkflowSlug(v string) {
-	x.xxx_hidden_WorkflowSlug = v
+func (x *UnpublishWorkflowReleaseRequest) SetWorkflowReference(v string) {
+	x.xxx_hidden_WorkflowReference = v
 }
 
 func (x *UnpublishWorkflowReleaseRequest) SetReleaseId(v *v1.ID) {
@@ -1131,8 +1141,10 @@ func (x *UnpublishWorkflowReleaseRequest) ClearReleaseId() {
 type UnpublishWorkflowReleaseRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The slug of the workflow containing the release to unpublish.
-	WorkflowSlug string
+	// The unique workflow reference, potentially suffixed, and potentially namespace-qualified remote reference, which
+	// acts as the unique external identifier for a workflow.
+	// e.g. `my-worklow`, `my-workflow-AGimUihHGGahtT`, or `other-namespace:my-workflow`.
+	WorkflowReference string
 	// The ID of the release to unpublish.
 	ReleaseId *v1.ID
 }
@@ -1141,7 +1153,7 @@ func (b0 UnpublishWorkflowReleaseRequest_builder) Build() *UnpublishWorkflowRele
 	m0 := &UnpublishWorkflowReleaseRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_WorkflowSlug = b.WorkflowSlug
+	x.xxx_hidden_WorkflowReference = b.WorkflowReference
 	x.xxx_hidden_ReleaseId = b.ReleaseId
 	return m0
 }
@@ -1503,17 +1515,19 @@ func (b0 ListPublicWorkflowsResponse_builder) Build() *ListPublicWorkflowsRespon
 	return m0
 }
 
-// CreateWorkflowRequest creates a new workflow, with a name and an optional description.
-// A workflow slug will be generated based on the name.
+// CreateWorkflowRequest creates a new workflow. The request can include a workflow slug, which will be used as the
+// preferred remote reference for the workflow if it's not in use yet.
 type CreateWorkflowRequest struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name"`
-	xxx_hidden_Summary     string                 `protobuf:"bytes,3,opt,name=summary"`
-	xxx_hidden_Description *string                `protobuf:"bytes,2,opt,name=description"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name              string                 `protobuf:"bytes,1,opt,name=name"`
+	xxx_hidden_ProjectSlug       string                 `protobuf:"bytes,4,opt,name=project_slug,json=projectSlug"`
+	xxx_hidden_Summary           string                 `protobuf:"bytes,3,opt,name=summary"`
+	xxx_hidden_Description       *string                `protobuf:"bytes,2,opt,name=description"`
+	xxx_hidden_LegacyTaskAliases bool                   `protobuf:"varint,5,opt,name=legacy_task_aliases,json=legacyTaskAliases"`
+	XXX_raceDetectHookData       protoimpl.RaceDetectHookData
+	XXX_presence                 [1]uint32
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *CreateWorkflowRequest) Reset() {
@@ -1548,6 +1562,13 @@ func (x *CreateWorkflowRequest) GetName() string {
 	return ""
 }
 
+func (x *CreateWorkflowRequest) GetProjectSlug() string {
+	if x != nil {
+		return x.xxx_hidden_ProjectSlug
+	}
+	return ""
+}
+
 func (x *CreateWorkflowRequest) GetSummary() string {
 	if x != nil {
 		return x.xxx_hidden_Summary
@@ -1565,8 +1586,19 @@ func (x *CreateWorkflowRequest) GetDescription() string {
 	return ""
 }
 
+func (x *CreateWorkflowRequest) GetLegacyTaskAliases() bool {
+	if x != nil {
+		return x.xxx_hidden_LegacyTaskAliases
+	}
+	return false
+}
+
 func (x *CreateWorkflowRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
+}
+
+func (x *CreateWorkflowRequest) SetProjectSlug(v string) {
+	x.xxx_hidden_ProjectSlug = v
 }
 
 func (x *CreateWorkflowRequest) SetSummary(v string) {
@@ -1575,29 +1607,54 @@ func (x *CreateWorkflowRequest) SetSummary(v string) {
 
 func (x *CreateWorkflowRequest) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 5)
+}
+
+func (x *CreateWorkflowRequest) SetLegacyTaskAliases(v bool) {
+	x.xxx_hidden_LegacyTaskAliases = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 5)
 }
 
 func (x *CreateWorkflowRequest) HasDescription() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
+func (x *CreateWorkflowRequest) HasLegacyTaskAliases() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
 }
 
 func (x *CreateWorkflowRequest) ClearDescription() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
 	x.xxx_hidden_Description = nil
+}
+
+func (x *CreateWorkflowRequest) ClearLegacyTaskAliases() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_LegacyTaskAliases = false
 }
 
 type CreateWorkflowRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Name string
+	// Portable project slug. Empty derives it from the name (slugify).
+	// Used as the preferred remote reference; collisions add a suffix to the reference only.
+	ProjectSlug string
 	// short text summary of the workflow to create
 	Summary string
 	// optional longer description of the workflow to create, in markdown format
 	Description *string
+	// Whether managed runners must also advertise unscoped task aliases for this workflow.
+	// Omission defaults to true for older clients. Set false explicitly to create a scoped-only workflow.
+	// Scoped task addresses are available regardless of this value. Needed during the migration to scoped task addresses,
+	// and this flag will be retired once all deployed runners support scoped tasks.
+	LegacyTaskAliases *bool
 }
 
 func (b0 CreateWorkflowRequest_builder) Build() *CreateWorkflowRequest {
@@ -1605,10 +1662,15 @@ func (b0 CreateWorkflowRequest_builder) Build() *CreateWorkflowRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_ProjectSlug = b.ProjectSlug
 	x.xxx_hidden_Summary = b.Summary
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 5)
 		x.xxx_hidden_Description = b.Description
+	}
+	if b.LegacyTaskAliases != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 5)
+		x.xxx_hidden_LegacyTaskAliases = *b.LegacyTaskAliases
 	}
 	return m0
 }
@@ -1616,15 +1678,20 @@ func (b0 CreateWorkflowRequest_builder) Build() *CreateWorkflowRequest {
 // Workflow represents a logical grouping for a set of tasks. It can have multiple releases, each comprising a different
 // set of tasks.
 type Workflow struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Slug         string                 `protobuf:"bytes,2,opt,name=slug"`
-	xxx_hidden_Name         string                 `protobuf:"bytes,3,opt,name=name"`
-	xxx_hidden_Summary      string                 `protobuf:"bytes,6,opt,name=summary"`
-	xxx_hidden_Description  string                 `protobuf:"bytes,4,opt,name=description"`
-	xxx_hidden_Releases     *[]*WorkflowRelease    `protobuf:"bytes,5,rep,name=releases"`
-	xxx_hidden_Presentation *WorkflowPresentation  `protobuf:"bytes,7,opt,name=presentation"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id                *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Reference         string                 `protobuf:"bytes,2,opt,name=reference"`
+	xxx_hidden_ProjectSlug       string                 `protobuf:"bytes,8,opt,name=project_slug,json=projectSlug"`
+	xxx_hidden_Name              string                 `protobuf:"bytes,3,opt,name=name"`
+	xxx_hidden_Summary           string                 `protobuf:"bytes,6,opt,name=summary"`
+	xxx_hidden_Description       string                 `protobuf:"bytes,4,opt,name=description"`
+	xxx_hidden_Releases          *[]*WorkflowRelease    `protobuf:"bytes,5,rep,name=releases"`
+	xxx_hidden_Presentation      *WorkflowPresentation  `protobuf:"bytes,7,opt,name=presentation"`
+	xxx_hidden_LegacyTaskAliases bool                   `protobuf:"varint,10,opt,name=legacy_task_aliases,json=legacyTaskAliases"`
+	XXX_raceDetectHookData       protoimpl.RaceDetectHookData
+	XXX_presence                 [1]uint32
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *Workflow) Reset() {
@@ -1652,9 +1719,23 @@ func (x *Workflow) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Workflow) GetSlug() string {
+func (x *Workflow) GetId() *v1.ID {
 	if x != nil {
-		return x.xxx_hidden_Slug
+		return x.xxx_hidden_Id
+	}
+	return nil
+}
+
+func (x *Workflow) GetReference() string {
+	if x != nil {
+		return x.xxx_hidden_Reference
+	}
+	return ""
+}
+
+func (x *Workflow) GetProjectSlug() string {
+	if x != nil {
+		return x.xxx_hidden_ProjectSlug
 	}
 	return ""
 }
@@ -1696,8 +1777,23 @@ func (x *Workflow) GetPresentation() *WorkflowPresentation {
 	return nil
 }
 
-func (x *Workflow) SetSlug(v string) {
-	x.xxx_hidden_Slug = v
+func (x *Workflow) GetLegacyTaskAliases() bool {
+	if x != nil {
+		return x.xxx_hidden_LegacyTaskAliases
+	}
+	return false
+}
+
+func (x *Workflow) SetId(v *v1.ID) {
+	x.xxx_hidden_Id = v
+}
+
+func (x *Workflow) SetReference(v string) {
+	x.xxx_hidden_Reference = v
+}
+
+func (x *Workflow) SetProjectSlug(v string) {
+	x.xxx_hidden_ProjectSlug = v
 }
 
 func (x *Workflow) SetName(v string) {
@@ -1720,6 +1816,18 @@ func (x *Workflow) SetPresentation(v *WorkflowPresentation) {
 	x.xxx_hidden_Presentation = v
 }
 
+func (x *Workflow) SetLegacyTaskAliases(v bool) {
+	x.xxx_hidden_LegacyTaskAliases = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 9)
+}
+
+func (x *Workflow) HasId() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Id != nil
+}
+
 func (x *Workflow) HasPresentation() bool {
 	if x == nil {
 		return false
@@ -1727,16 +1835,38 @@ func (x *Workflow) HasPresentation() bool {
 	return x.xxx_hidden_Presentation != nil
 }
 
+func (x *Workflow) HasLegacyTaskAliases() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 8)
+}
+
+func (x *Workflow) ClearId() {
+	x.xxx_hidden_Id = nil
+}
+
 func (x *Workflow) ClearPresentation() {
 	x.xxx_hidden_Presentation = nil
+}
+
+func (x *Workflow) ClearLegacyTaskAliases() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 8)
+	x.xxx_hidden_LegacyTaskAliases = false
 }
 
 type Workflow_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The owner-local slug, or namespace:slug for workflows owned by another namespace.
-	Slug string
-	Name string
+	// The immutable workflow ID used to scope task identifiers. Only used to resolve TaskIdentifier.workflow_id for
+	// scoped tasks in the runner. Not used for user-facing addressing, which is always by workflow reference.
+	Id *v1.ID
+	// Allocated remote address: owner-local, or namespace:reference for another namespace's workflow.
+	// Public listings always qualify references. Pass this value to workflow_reference request fields.
+	Reference string
+	// Portable, non-unique project slug. Use reference to address a remote workflow.
+	ProjectSlug string
+	Name        string
 	// short text summary of the workflow
 	Summary string
 	// optional longer description of the workflow, in markdown format
@@ -1744,18 +1874,27 @@ type Workflow_builder struct {
 	Releases    []*WorkflowRelease
 	// additional presentation metadata for public workflows, to display in the public workflow gallery.
 	Presentation *WorkflowPresentation
+	// Whether managed runners must advertise unscoped task aliases in addition to workflow-scoped addresses.
+	// Unscoped task aliases must not conflict with other deployed task addresses on the same cluster.
+	LegacyTaskAliases *bool
 }
 
 func (b0 Workflow_builder) Build() *Workflow {
 	m0 := &Workflow{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Slug = b.Slug
+	x.xxx_hidden_Id = b.Id
+	x.xxx_hidden_Reference = b.Reference
+	x.xxx_hidden_ProjectSlug = b.ProjectSlug
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_Summary = b.Summary
 	x.xxx_hidden_Description = b.Description
 	x.xxx_hidden_Releases = &b.Releases
 	x.xxx_hidden_Presentation = b.Presentation
+	if b.LegacyTaskAliases != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 9)
+		x.xxx_hidden_LegacyTaskAliases = *b.LegacyTaskAliases
+	}
 	return m0
 }
 
@@ -2123,12 +2262,13 @@ func (b0 Artifact_builder) Build() *Artifact {
 // the list of task identifiers, and the command to start a worker runtime for executing the tasks in the release.
 // The fingerprint is a hash of the release content.
 type ReleaseContent struct {
-	state                       protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Fingerprint      string                 `protobuf:"bytes,1,opt,name=fingerprint"`
-	xxx_hidden_Tasks            *[]*TaskIdentifier     `protobuf:"bytes,2,rep,name=tasks"`
-	xxx_hidden_Files            *[]*Path               `protobuf:"bytes,3,rep,name=files"`
-	xxx_hidden_RunnerObjectPath string                 `protobuf:"bytes,4,opt,name=runner_object_path,json=runnerObjectPath"`
-	xxx_hidden_CommandOverride  []string               `protobuf:"bytes,5,rep,name=command_override,json=commandOverride"`
+	state                       protoimpl.MessageState    `protogen:"opaque.v1"`
+	xxx_hidden_Fingerprint      string                    `protobuf:"bytes,1,opt,name=fingerprint"`
+	xxx_hidden_Tasks            *[]*UnboundTaskIdentifier `protobuf:"bytes,2,rep,name=tasks"`
+	xxx_hidden_Files            *[]*Path                  `protobuf:"bytes,3,rep,name=files"`
+	xxx_hidden_RunnerObjectPath string                    `protobuf:"bytes,4,opt,name=runner_object_path,json=runnerObjectPath"`
+	xxx_hidden_CommandOverride  []string                  `protobuf:"bytes,5,rep,name=command_override,json=commandOverride"`
+	xxx_hidden_BuildConfig      *BuildConfig              `protobuf:"bytes,6,opt,name=build_config,json=buildConfig"`
 	unknownFields               protoimpl.UnknownFields
 	sizeCache                   protoimpl.SizeCache
 }
@@ -2165,7 +2305,7 @@ func (x *ReleaseContent) GetFingerprint() string {
 	return ""
 }
 
-func (x *ReleaseContent) GetTasks() []*TaskIdentifier {
+func (x *ReleaseContent) GetTasks() []*UnboundTaskIdentifier {
 	if x != nil {
 		if x.xxx_hidden_Tasks != nil {
 			return *x.xxx_hidden_Tasks
@@ -2197,11 +2337,18 @@ func (x *ReleaseContent) GetCommandOverride() []string {
 	return nil
 }
 
+func (x *ReleaseContent) GetBuildConfig() *BuildConfig {
+	if x != nil {
+		return x.xxx_hidden_BuildConfig
+	}
+	return nil
+}
+
 func (x *ReleaseContent) SetFingerprint(v string) {
 	x.xxx_hidden_Fingerprint = v
 }
 
-func (x *ReleaseContent) SetTasks(v []*TaskIdentifier) {
+func (x *ReleaseContent) SetTasks(v []*UnboundTaskIdentifier) {
 	x.xxx_hidden_Tasks = &v
 }
 
@@ -2217,14 +2364,30 @@ func (x *ReleaseContent) SetCommandOverride(v []string) {
 	x.xxx_hidden_CommandOverride = v
 }
 
+func (x *ReleaseContent) SetBuildConfig(v *BuildConfig) {
+	x.xxx_hidden_BuildConfig = v
+}
+
+func (x *ReleaseContent) HasBuildConfig() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_BuildConfig != nil
+}
+
+func (x *ReleaseContent) ClearBuildConfig() {
+	x.xxx_hidden_BuildConfig = nil
+}
+
 type ReleaseContent_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// A fingerprint of the release content, which is a hash of the task identifiers, files, runner object path,
-	// and command override. Used to determine if two releases have the same content, for idempotent builds.
+	// command override, and build config. Computed by the client for idempotent builds.
 	Fingerprint string
-	// List of task identifiers included in the release artifact.
-	Tasks []*TaskIdentifier
+	// Unbound task definitions included in the release artifact, without workflow IDs in both requests and responses.
+	// The managed runner binds them to the owning workflow when advertising capabilities; release content stays unbound.
+	Tasks []*UnboundTaskIdentifier
 	// List of files/directories included in the release artifact.
 	Files []*Path
 	// The python module/object path to the runner instance, e.g. "my_module.my_runner:runner".
@@ -2233,6 +2396,8 @@ type ReleaseContent_builder struct {
 	// "uv run python -m tilebox.workflows.runner <runner_object_path>". This allows users to specify a custom command
 	// for starting the worker runtime, e.g. to set environment variables or use a different entrypoint.
 	CommandOverride []string
+	// Build rules used for this release, relative to its build root.
+	BuildConfig *BuildConfig
 }
 
 func (b0 ReleaseContent_builder) Build() *ReleaseContent {
@@ -2244,6 +2409,115 @@ func (b0 ReleaseContent_builder) Build() *ReleaseContent {
 	x.xxx_hidden_Files = &b.Files
 	x.xxx_hidden_RunnerObjectPath = b.RunnerObjectPath
 	x.xxx_hidden_CommandOverride = b.CommandOverride
+	x.xxx_hidden_BuildConfig = b.BuildConfig
+	return m0
+}
+
+// BuildConfig preserves the build rules needed to rebuild a project from a release.
+type BuildConfig struct {
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Include      []string               `protobuf:"bytes,1,rep,name=include"`
+	xxx_hidden_Exclude      []string               `protobuf:"bytes,2,rep,name=exclude"`
+	xxx_hidden_UseGitignore bool                   `protobuf:"varint,3,opt,name=use_gitignore,json=useGitignore"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *BuildConfig) Reset() {
+	*x = BuildConfig{}
+	mi := &file_workflows_v1_workflows_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BuildConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BuildConfig) ProtoMessage() {}
+
+func (x *BuildConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_workflows_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BuildConfig) GetInclude() []string {
+	if x != nil {
+		return x.xxx_hidden_Include
+	}
+	return nil
+}
+
+func (x *BuildConfig) GetExclude() []string {
+	if x != nil {
+		return x.xxx_hidden_Exclude
+	}
+	return nil
+}
+
+func (x *BuildConfig) GetUseGitignore() bool {
+	if x != nil {
+		return x.xxx_hidden_UseGitignore
+	}
+	return false
+}
+
+func (x *BuildConfig) SetInclude(v []string) {
+	x.xxx_hidden_Include = v
+}
+
+func (x *BuildConfig) SetExclude(v []string) {
+	x.xxx_hidden_Exclude = v
+}
+
+func (x *BuildConfig) SetUseGitignore(v bool) {
+	x.xxx_hidden_UseGitignore = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *BuildConfig) HasUseGitignore() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *BuildConfig) ClearUseGitignore() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_UseGitignore = false
+}
+
+type BuildConfig_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// File patterns to include, relative to the build root.
+	Include []string
+	// File patterns to exclude, relative to the build root.
+	Exclude []string
+	// Whether to apply Git ignore rules. Omitted means true; preserve presence when reconstructing configuration.
+	// Artifact builders must preserve the applicable ignore files or normalize the rules to remove that dependency.
+	UseGitignore *bool
+}
+
+func (b0 BuildConfig_builder) Build() *BuildConfig {
+	m0 := &BuildConfig{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Include = b.Include
+	x.xxx_hidden_Exclude = b.Exclude
+	if b.UseGitignore != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_UseGitignore = *b.UseGitignore
+	}
 	return m0
 }
 
@@ -2259,7 +2533,7 @@ type Path struct {
 
 func (x *Path) Reset() {
 	*x = Path{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[25]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2271,7 +2545,7 @@ func (x *Path) String() string {
 func (*Path) ProtoMessage() {}
 
 func (x *Path) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[25]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2338,17 +2612,17 @@ func (b0 Path_builder) Build() *Path {
 // DeployWorkflowReleaseRequest deploys a workflow release to a set of clusters, making the tasks available for
 // execution on those clusters.
 type DeployWorkflowReleaseRequest struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_WorkflowSlug string                 `protobuf:"bytes,1,opt,name=workflow_slug,json=workflowSlug"`
-	xxx_hidden_ReleaseId    *v1.ID                 `protobuf:"bytes,2,opt,name=release_id,json=releaseId"`
-	xxx_hidden_ClusterSlugs []string               `protobuf:"bytes,3,rep,name=cluster_slugs,json=clusterSlugs"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_WorkflowReference string                 `protobuf:"bytes,1,opt,name=workflow_reference,json=workflowReference"`
+	xxx_hidden_ReleaseId         *v1.ID                 `protobuf:"bytes,2,opt,name=release_id,json=releaseId"`
+	xxx_hidden_ClusterSlugs      []string               `protobuf:"bytes,3,rep,name=cluster_slugs,json=clusterSlugs"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *DeployWorkflowReleaseRequest) Reset() {
 	*x = DeployWorkflowReleaseRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[26]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2360,7 +2634,7 @@ func (x *DeployWorkflowReleaseRequest) String() string {
 func (*DeployWorkflowReleaseRequest) ProtoMessage() {}
 
 func (x *DeployWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[26]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2371,9 +2645,9 @@ func (x *DeployWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *DeployWorkflowReleaseRequest) GetWorkflowSlug() string {
+func (x *DeployWorkflowReleaseRequest) GetWorkflowReference() string {
 	if x != nil {
-		return x.xxx_hidden_WorkflowSlug
+		return x.xxx_hidden_WorkflowReference
 	}
 	return ""
 }
@@ -2392,8 +2666,8 @@ func (x *DeployWorkflowReleaseRequest) GetClusterSlugs() []string {
 	return nil
 }
 
-func (x *DeployWorkflowReleaseRequest) SetWorkflowSlug(v string) {
-	x.xxx_hidden_WorkflowSlug = v
+func (x *DeployWorkflowReleaseRequest) SetWorkflowReference(v string) {
+	x.xxx_hidden_WorkflowReference = v
 }
 
 func (x *DeployWorkflowReleaseRequest) SetReleaseId(v *v1.ID) {
@@ -2418,17 +2692,19 @@ func (x *DeployWorkflowReleaseRequest) ClearReleaseId() {
 type DeployWorkflowReleaseRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The local slug or namespace-qualified reference of the workflow to deploy.
-	WorkflowSlug string
-	ReleaseId    *v1.ID
-	ClusterSlugs []string
+	// The unique workflow reference, potentially suffixed, and potentially namespace-qualified remote reference, which
+	// acts as the unique external identifier for a workflow.
+	// e.g. `my-worklow`, `my-workflow-AGimUihHGGahtT`, or `other-namespace:my-workflow`.
+	WorkflowReference string
+	ReleaseId         *v1.ID
+	ClusterSlugs      []string
 }
 
 func (b0 DeployWorkflowReleaseRequest_builder) Build() *DeployWorkflowReleaseRequest {
 	m0 := &DeployWorkflowReleaseRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_WorkflowSlug = b.WorkflowSlug
+	x.xxx_hidden_WorkflowReference = b.WorkflowReference
 	x.xxx_hidden_ReleaseId = b.ReleaseId
 	x.xxx_hidden_ClusterSlugs = b.ClusterSlugs
 	return m0
@@ -2446,7 +2722,7 @@ type DeployWorkflowReleaseResponse struct {
 
 func (x *DeployWorkflowReleaseResponse) Reset() {
 	*x = DeployWorkflowReleaseResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[27]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2458,7 +2734,7 @@ func (x *DeployWorkflowReleaseResponse) String() string {
 func (*DeployWorkflowReleaseResponse) ProtoMessage() {}
 
 func (x *DeployWorkflowReleaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[27]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2524,17 +2800,17 @@ func (b0 DeployWorkflowReleaseResponse_builder) Build() *DeployWorkflowReleaseRe
 // for execution on those clusters. When release_id is omitted, all releases of the workflow deployed on the target
 // clusters are removed.
 type UndeployWorkflowReleaseRequest struct {
-	state                   protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_WorkflowSlug string                 `protobuf:"bytes,1,opt,name=workflow_slug,json=workflowSlug"`
-	xxx_hidden_ReleaseId    *v1.ID                 `protobuf:"bytes,2,opt,name=release_id,json=releaseId"`
-	xxx_hidden_ClusterSlugs []string               `protobuf:"bytes,3,rep,name=cluster_slugs,json=clusterSlugs"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_WorkflowReference string                 `protobuf:"bytes,1,opt,name=workflow_reference,json=workflowReference"`
+	xxx_hidden_ReleaseId         *v1.ID                 `protobuf:"bytes,2,opt,name=release_id,json=releaseId"`
+	xxx_hidden_ClusterSlugs      []string               `protobuf:"bytes,3,rep,name=cluster_slugs,json=clusterSlugs"`
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *UndeployWorkflowReleaseRequest) Reset() {
 	*x = UndeployWorkflowReleaseRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[28]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2546,7 +2822,7 @@ func (x *UndeployWorkflowReleaseRequest) String() string {
 func (*UndeployWorkflowReleaseRequest) ProtoMessage() {}
 
 func (x *UndeployWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[28]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2557,9 +2833,9 @@ func (x *UndeployWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *UndeployWorkflowReleaseRequest) GetWorkflowSlug() string {
+func (x *UndeployWorkflowReleaseRequest) GetWorkflowReference() string {
 	if x != nil {
-		return x.xxx_hidden_WorkflowSlug
+		return x.xxx_hidden_WorkflowReference
 	}
 	return ""
 }
@@ -2578,8 +2854,8 @@ func (x *UndeployWorkflowReleaseRequest) GetClusterSlugs() []string {
 	return nil
 }
 
-func (x *UndeployWorkflowReleaseRequest) SetWorkflowSlug(v string) {
-	x.xxx_hidden_WorkflowSlug = v
+func (x *UndeployWorkflowReleaseRequest) SetWorkflowReference(v string) {
+	x.xxx_hidden_WorkflowReference = v
 }
 
 func (x *UndeployWorkflowReleaseRequest) SetReleaseId(v *v1.ID) {
@@ -2604,8 +2880,10 @@ func (x *UndeployWorkflowReleaseRequest) ClearReleaseId() {
 type UndeployWorkflowReleaseRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// The local slug or namespace-qualified reference of the workflow to undeploy.
-	WorkflowSlug string
+	// The unique workflow reference, potentially suffixed, and potentially namespace-qualified remote reference, which
+	// acts as the unique external identifier for a workflow.
+	// e.g. `my-worklow`, `my-workflow-AGimUihHGGahtT`, or `other-namespace:my-workflow`.
+	WorkflowReference string
 	// The optional ID of the release to undeploy. When omitted, all deployed releases of the workflow are removed.
 	ReleaseId    *v1.ID
 	ClusterSlugs []string
@@ -2615,7 +2893,7 @@ func (b0 UndeployWorkflowReleaseRequest_builder) Build() *UndeployWorkflowReleas
 	m0 := &UndeployWorkflowReleaseRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_WorkflowSlug = b.WorkflowSlug
+	x.xxx_hidden_WorkflowReference = b.WorkflowReference
 	x.xxx_hidden_ReleaseId = b.ReleaseId
 	x.xxx_hidden_ClusterSlugs = b.ClusterSlugs
 	return m0
@@ -2632,7 +2910,7 @@ type UndeployWorkflowReleaseResponse struct {
 
 func (x *UndeployWorkflowReleaseResponse) Reset() {
 	*x = UndeployWorkflowReleaseResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[29]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2644,7 +2922,7 @@ func (x *UndeployWorkflowReleaseResponse) String() string {
 func (*UndeployWorkflowReleaseResponse) ProtoMessage() {}
 
 func (x *UndeployWorkflowReleaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[29]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2733,25 +3011,29 @@ const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\x15DeleteClusterResponse\"\x15\n" +
 	"\x13ListClustersRequest\"I\n" +
 	"\x14ListClustersResponse\x121\n" +
-	"\bclusters\x18\x01 \x03(\v2\x15.workflows.v1.ClusterR\bclusters\"\x8e\x02\n" +
-	"\x12GetWorkflowRequest\x12\xf7\x01\n" +
-	"\rworkflow_slug\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
-	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\fworkflowSlug\"\xd8\x01\n" +
-	"\x15UpdateWorkflowRequest\x12?\n" +
-	"\rworkflow_slug\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15\x10\x01\x18d2\x0f^[A-Za-z0-9-]*$R\fworkflowSlug\x12\"\n" +
+	"\bclusters\x18\x01 \x03(\v2\x15.workflows.v1.ClusterR\bclusters\"\x98\x02\n" +
+	"\x12GetWorkflowRequest\x12\x81\x02\n" +
+	"\x12workflow_reference\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
+	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\x11workflowReference\"\x9b\x03\n" +
+	"\x15UpdateWorkflowRequest\x12\x81\x02\n" +
+	"\x12workflow_reference\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
+	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\x11workflowReference\x12\"\n" +
 	"\x04name\x18\x02 \x01(\tB\x0e\xbaH\x06r\x04\x10\x01\x18d\xaa\x01\x02\b\x01R\x04name\x12(\n" +
 	"\asummary\x18\x04 \x01(\tB\x0e\xbaH\x06r\x04\x18І\x03\xaa\x01\x02\b\x01R\asummary\x120\n" +
-	"\vdescription\x18\x03 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\"X\n" +
-	"\x15DeleteWorkflowRequest\x12?\n" +
-	"\rworkflow_slug\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15\x10\x01\x18d2\x0f^[A-Za-z0-9-]*$R\fworkflowSlug\"\x18\n" +
-	"\x16DeleteWorkflowResponse\"\xd9\x01\n" +
-	"\x1dPublishWorkflowReleaseRequest\x12?\n" +
-	"\rworkflow_slug\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15\x10\x01\x18d2\x0f^[A-Za-z0-9-]*$R\fworkflowSlug\x127\n" +
+	"\vdescription\x18\x03 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\"\x9b\x02\n" +
+	"\x15DeleteWorkflowRequest\x12\x81\x02\n" +
+	"\x12workflow_reference\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
+	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\x11workflowReference\"\x18\n" +
+	"\x16DeleteWorkflowResponse\"\x9c\x03\n" +
+	"\x1dPublishWorkflowReleaseRequest\x12\x81\x02\n" +
+	"\x12workflow_reference\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
+	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\x11workflowReference\x127\n" +
 	"\vartifact_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\n" +
 	"artifactId\x12>\n" +
-	"\acontent\x18\x03 \x01(\v2\x1c.workflows.v1.ReleaseContentB\x06\xbaH\x03\xc8\x01\x01R\acontent\"\x99\x01\n" +
-	"\x1fUnpublishWorkflowReleaseRequest\x12?\n" +
-	"\rworkflow_slug\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15\x10\x01\x18d2\x0f^[A-Za-z0-9-]*$R\fworkflowSlug\x125\n" +
+	"\acontent\x18\x03 \x01(\v2\x1c.workflows.v1.ReleaseContentB\x06\xbaH\x03\xc8\x01\x01R\acontent\"\xdc\x02\n" +
+	"\x1fUnpublishWorkflowReleaseRequest\x12\x81\x02\n" +
+	"\x12workflow_reference\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
+	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\x11workflowReference\x125\n" +
 	"\n" +
 	"release_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\treleaseId\"\"\n" +
 	" UnpublishWorkflowReleaseResponse\"I\n" +
@@ -2764,18 +3046,24 @@ const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\x04page\x18\x01 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\x04page\"\x8f\x01\n" +
 	"\x1bListPublicWorkflowsResponse\x124\n" +
 	"\tworkflows\x18\x01 \x03(\v2\x16.workflows.v1.WorkflowR\tworkflows\x12:\n" +
-	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"\x8d\x01\n" +
+	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage\"\x8d\x02\n" +
 	"\x15CreateWorkflowRequest\x12\x1d\n" +
-	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\x12#\n" +
+	"\x04name\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18dR\x04name\x12G\n" +
+	"\fproject_slug\x18\x04 \x01(\tB$\xbaH!r\x1f\x18d2\x1b^([a-z0-9]+(-[a-z0-9]+)*)?$R\vprojectSlug\x12#\n" +
 	"\asummary\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x18І\x03R\asummary\x120\n" +
-	"\vdescription\x18\x02 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\"\xf7\x01\n" +
-	"\bWorkflow\x12\x12\n" +
-	"\x04slug\x18\x02 \x01(\tR\x04slug\x12\x12\n" +
+	"\vdescription\x18\x02 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\x125\n" +
+	"\x13legacy_task_aliases\x18\x05 \x01(\bB\x05\xaa\x01\x02\b\x01R\x11legacyTaskAliases\"\xf5\x02\n" +
+	"\bWorkflow\x12\x1e\n" +
+	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12\x1c\n" +
+	"\treference\x18\x02 \x01(\tR\treference\x12!\n" +
+	"\fproject_slug\x18\b \x01(\tR\vprojectSlug\x12\x12\n" +
 	"\x04name\x18\x03 \x01(\tR\x04name\x12\x18\n" +
 	"\asummary\x18\x06 \x01(\tR\asummary\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x129\n" +
 	"\breleases\x18\x05 \x03(\v2\x1d.workflows.v1.WorkflowReleaseR\breleases\x12F\n" +
-	"\fpresentation\x18\a \x01(\v2\".workflows.v1.WorkflowPresentationR\fpresentationJ\x04\b\x01\x10\x02\"\xb3\x01\n" +
+	"\fpresentation\x18\a \x01(\v2\".workflows.v1.WorkflowPresentationR\fpresentation\x125\n" +
+	"\x13legacy_task_aliases\x18\n" +
+	" \x01(\bB\x05\xaa\x01\x02\b\x01R\x11legacyTaskAliases\"\xb3\x01\n" +
 	"\x14WorkflowPresentation\x12\x1b\n" +
 	"\timage_url\x18\x01 \x01(\tR\bimageUrl\x12\x1b\n" +
 	"\timage_alt\x18\x02 \x01(\tR\bimageAlt\x12!\n" +
@@ -2791,29 +3079,34 @@ const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\bclusters\x18\x05 \x03(\v2\x15.workflows.v1.ClusterR\bclusters\"Y\n" +
 	"\bArtifact\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12-\n" +
-	"\x06digest\x18\x02 \x01(\tB\x15\xbaH\x12r\x102\x0e^[a-f0-9]{64}$R\x06digest\"\x8a\x02\n" +
+	"\x06digest\x18\x02 \x01(\tB\x15\xbaH\x12r\x102\x0e^[a-f0-9]{64}$R\x06digest\"\xcf\x02\n" +
 	"\x0eReleaseContent\x127\n" +
-	"\vfingerprint\x18\x01 \x01(\tB\x15\xbaH\x12r\x102\x0e^[a-f0-9]{64}$R\vfingerprint\x12<\n" +
-	"\x05tasks\x18\x02 \x03(\v2\x1c.workflows.v1.TaskIdentifierB\b\xbaH\x05\x92\x01\x02\b\x01R\x05tasks\x12(\n" +
+	"\vfingerprint\x18\x01 \x01(\tB\x15\xbaH\x12r\x102\x0e^[a-f0-9]{64}$R\vfingerprint\x12C\n" +
+	"\x05tasks\x18\x02 \x03(\v2#.workflows.v1.UnboundTaskIdentifierB\b\xbaH\x05\x92\x01\x02\b\x01R\x05tasks\x12(\n" +
 	"\x05files\x18\x03 \x03(\v2\x12.workflows.v1.PathR\x05files\x12,\n" +
 	"\x12runner_object_path\x18\x04 \x01(\tR\x10runnerObjectPath\x12)\n" +
-	"\x10command_override\x18\x05 \x03(\tR\x0fcommandOverride\"h\n" +
+	"\x10command_override\x18\x05 \x03(\tR\x0fcommandOverride\x12<\n" +
+	"\fbuild_config\x18\x06 \x01(\v2\x19.workflows.v1.BuildConfigR\vbuildConfig\"m\n" +
+	"\vBuildConfig\x12\x18\n" +
+	"\ainclude\x18\x01 \x03(\tR\ainclude\x12\x18\n" +
+	"\aexclude\x18\x02 \x03(\tR\aexclude\x12*\n" +
+	"\ruse_gitignore\x18\x03 \x01(\bB\x05\xaa\x01\x02\b\x01R\fuseGitignore\"h\n" +
 	"\x04Path\x12\x12\n" +
 	"\x04path\x18\x01 \x01(\tR\x04path\x12\x1c\n" +
 	"\tdirectory\x18\x02 \x01(\bR\tdirectory\x12.\n" +
-	"\bchildren\x18\x03 \x03(\v2\x12.workflows.v1.PathR\bchildren\"\x8f\x03\n" +
-	"\x1cDeployWorkflowReleaseRequest\x12\xf7\x01\n" +
-	"\rworkflow_slug\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
-	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\fworkflowSlug\x12-\n" +
+	"\bchildren\x18\x03 \x03(\v2\x12.workflows.v1.PathR\bchildren\"\x99\x03\n" +
+	"\x1cDeployWorkflowReleaseRequest\x12\x81\x02\n" +
+	"\x12workflow_reference\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
+	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\x11workflowReference\x12-\n" +
 	"\n" +
 	"release_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\treleaseId\x12F\n" +
 	"\rcluster_slugs\x18\x03 \x03(\tB!\xbaH\x1e\x92\x01\x1b\b\x00\"\x17r\x15\x18d \x012\x0f^[A-Za-z0-9-]*$R\fclusterSlugs\"\x8b\x01\n" +
 	"\x1dDeployWorkflowReleaseResponse\x127\n" +
 	"\arelease\x18\x01 \x01(\v2\x1d.workflows.v1.WorkflowReleaseR\arelease\x121\n" +
-	"\bclusters\x18\x02 \x03(\v2\x15.workflows.v1.ClusterR\bclusters\"\x91\x03\n" +
-	"\x1eUndeployWorkflowReleaseRequest\x12\xf7\x01\n" +
-	"\rworkflow_slug\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
-	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\fworkflowSlug\x12-\n" +
+	"\bclusters\x18\x02 \x03(\v2\x15.workflows.v1.ClusterR\bclusters\"\x9b\x03\n" +
+	"\x1eUndeployWorkflowReleaseRequest\x12\x81\x02\n" +
+	"\x12workflow_reference\x18\x01 \x01(\tB\xd1\x01\xbaH\xcd\x01\xba\x01\x91\x01\n" +
+	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\x11workflowReference\x12-\n" +
 	"\n" +
 	"release_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\treleaseId\x12F\n" +
 	"\rcluster_slugs\x18\x03 \x03(\tB!\xbaH\x1e\x92\x01\x1b\b\x00\"\x17r\x15\x18d \x012\x0f^[A-Za-z0-9-]*$R\fclusterSlugs\"\x8d\x01\n" +
@@ -2840,7 +3133,7 @@ const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\x17UndeployWorkflowRelease\x12,.workflows.v1.UndeployWorkflowReleaseRequest\x1a-.workflows.v1.UndeployWorkflowReleaseResponseB\xb9\x01\n" +
 	"\x10com.workflows.v1B\x0eWorkflowsProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_workflows_v1_workflows_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_workflows_v1_workflows_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
 var file_workflows_v1_workflows_proto_goTypes = []any{
 	(*Cluster)(nil),                          // 0: workflows.v1.Cluster
 	(*CreateClusterRequest)(nil),             // 1: workflows.v1.CreateClusterRequest
@@ -2867,80 +3160,83 @@ var file_workflows_v1_workflows_proto_goTypes = []any{
 	(*WorkflowRelease)(nil),                  // 22: workflows.v1.WorkflowRelease
 	(*Artifact)(nil),                         // 23: workflows.v1.Artifact
 	(*ReleaseContent)(nil),                   // 24: workflows.v1.ReleaseContent
-	(*Path)(nil),                             // 25: workflows.v1.Path
-	(*DeployWorkflowReleaseRequest)(nil),     // 26: workflows.v1.DeployWorkflowReleaseRequest
-	(*DeployWorkflowReleaseResponse)(nil),    // 27: workflows.v1.DeployWorkflowReleaseResponse
-	(*UndeployWorkflowReleaseRequest)(nil),   // 28: workflows.v1.UndeployWorkflowReleaseRequest
-	(*UndeployWorkflowReleaseResponse)(nil),  // 29: workflows.v1.UndeployWorkflowReleaseResponse
-	(*v1.ID)(nil),                            // 30: tilebox.v1.ID
-	(*v1.Pagination)(nil),                    // 31: tilebox.v1.Pagination
-	(*timestamppb.Timestamp)(nil),            // 32: google.protobuf.Timestamp
-	(*TaskIdentifier)(nil),                   // 33: workflows.v1.TaskIdentifier
+	(*BuildConfig)(nil),                      // 25: workflows.v1.BuildConfig
+	(*Path)(nil),                             // 26: workflows.v1.Path
+	(*DeployWorkflowReleaseRequest)(nil),     // 27: workflows.v1.DeployWorkflowReleaseRequest
+	(*DeployWorkflowReleaseResponse)(nil),    // 28: workflows.v1.DeployWorkflowReleaseResponse
+	(*UndeployWorkflowReleaseRequest)(nil),   // 29: workflows.v1.UndeployWorkflowReleaseRequest
+	(*UndeployWorkflowReleaseResponse)(nil),  // 30: workflows.v1.UndeployWorkflowReleaseResponse
+	(*v1.ID)(nil),                            // 31: tilebox.v1.ID
+	(*v1.Pagination)(nil),                    // 32: tilebox.v1.Pagination
+	(*timestamppb.Timestamp)(nil),            // 33: google.protobuf.Timestamp
+	(*UnboundTaskIdentifier)(nil),            // 34: workflows.v1.UnboundTaskIdentifier
 }
 var file_workflows_v1_workflows_proto_depIdxs = []int32{
 	20, // 0: workflows.v1.Cluster.deployed_releases:type_name -> workflows.v1.Workflow
 	0,  // 1: workflows.v1.ListClustersResponse.clusters:type_name -> workflows.v1.Cluster
-	30, // 2: workflows.v1.PublishWorkflowReleaseRequest.artifact_id:type_name -> tilebox.v1.ID
+	31, // 2: workflows.v1.PublishWorkflowReleaseRequest.artifact_id:type_name -> tilebox.v1.ID
 	24, // 3: workflows.v1.PublishWorkflowReleaseRequest.content:type_name -> workflows.v1.ReleaseContent
-	30, // 4: workflows.v1.UnpublishWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
-	31, // 5: workflows.v1.ListWorkflowsRequest.page:type_name -> tilebox.v1.Pagination
+	31, // 4: workflows.v1.UnpublishWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
+	32, // 5: workflows.v1.ListWorkflowsRequest.page:type_name -> tilebox.v1.Pagination
 	20, // 6: workflows.v1.ListWorkflowsResponse.workflows:type_name -> workflows.v1.Workflow
-	31, // 7: workflows.v1.ListWorkflowsResponse.next_page:type_name -> tilebox.v1.Pagination
-	31, // 8: workflows.v1.ListPublicWorkflowsRequest.page:type_name -> tilebox.v1.Pagination
+	32, // 7: workflows.v1.ListWorkflowsResponse.next_page:type_name -> tilebox.v1.Pagination
+	32, // 8: workflows.v1.ListPublicWorkflowsRequest.page:type_name -> tilebox.v1.Pagination
 	20, // 9: workflows.v1.ListPublicWorkflowsResponse.workflows:type_name -> workflows.v1.Workflow
-	31, // 10: workflows.v1.ListPublicWorkflowsResponse.next_page:type_name -> tilebox.v1.Pagination
-	22, // 11: workflows.v1.Workflow.releases:type_name -> workflows.v1.WorkflowRelease
-	21, // 12: workflows.v1.Workflow.presentation:type_name -> workflows.v1.WorkflowPresentation
-	30, // 13: workflows.v1.WorkflowRelease.id:type_name -> tilebox.v1.ID
-	23, // 14: workflows.v1.WorkflowRelease.artifact:type_name -> workflows.v1.Artifact
-	24, // 15: workflows.v1.WorkflowRelease.content:type_name -> workflows.v1.ReleaseContent
-	32, // 16: workflows.v1.WorkflowRelease.created_at:type_name -> google.protobuf.Timestamp
-	0,  // 17: workflows.v1.WorkflowRelease.clusters:type_name -> workflows.v1.Cluster
-	30, // 18: workflows.v1.Artifact.id:type_name -> tilebox.v1.ID
-	33, // 19: workflows.v1.ReleaseContent.tasks:type_name -> workflows.v1.TaskIdentifier
-	25, // 20: workflows.v1.ReleaseContent.files:type_name -> workflows.v1.Path
-	25, // 21: workflows.v1.Path.children:type_name -> workflows.v1.Path
-	30, // 22: workflows.v1.DeployWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
-	22, // 23: workflows.v1.DeployWorkflowReleaseResponse.release:type_name -> workflows.v1.WorkflowRelease
-	0,  // 24: workflows.v1.DeployWorkflowReleaseResponse.clusters:type_name -> workflows.v1.Cluster
-	30, // 25: workflows.v1.UndeployWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
-	22, // 26: workflows.v1.UndeployWorkflowReleaseResponse.release:type_name -> workflows.v1.WorkflowRelease
-	0,  // 27: workflows.v1.UndeployWorkflowReleaseResponse.clusters:type_name -> workflows.v1.Cluster
-	1,  // 28: workflows.v1.WorkflowsService.CreateCluster:input_type -> workflows.v1.CreateClusterRequest
-	2,  // 29: workflows.v1.WorkflowsService.GetCluster:input_type -> workflows.v1.GetClusterRequest
-	3,  // 30: workflows.v1.WorkflowsService.UpdateCluster:input_type -> workflows.v1.UpdateClusterRequest
-	4,  // 31: workflows.v1.WorkflowsService.DeleteCluster:input_type -> workflows.v1.DeleteClusterRequest
-	6,  // 32: workflows.v1.WorkflowsService.ListClusters:input_type -> workflows.v1.ListClustersRequest
-	19, // 33: workflows.v1.WorkflowsService.CreateWorkflow:input_type -> workflows.v1.CreateWorkflowRequest
-	15, // 34: workflows.v1.WorkflowsService.ListWorkflows:input_type -> workflows.v1.ListWorkflowsRequest
-	17, // 35: workflows.v1.WorkflowsService.ListPublicWorkflows:input_type -> workflows.v1.ListPublicWorkflowsRequest
-	8,  // 36: workflows.v1.WorkflowsService.GetWorkflow:input_type -> workflows.v1.GetWorkflowRequest
-	9,  // 37: workflows.v1.WorkflowsService.UpdateWorkflow:input_type -> workflows.v1.UpdateWorkflowRequest
-	10, // 38: workflows.v1.WorkflowsService.DeleteWorkflow:input_type -> workflows.v1.DeleteWorkflowRequest
-	12, // 39: workflows.v1.WorkflowsService.PublishWorkflowRelease:input_type -> workflows.v1.PublishWorkflowReleaseRequest
-	13, // 40: workflows.v1.WorkflowsService.UnpublishWorkflowRelease:input_type -> workflows.v1.UnpublishWorkflowReleaseRequest
-	26, // 41: workflows.v1.WorkflowsService.DeployWorkflowRelease:input_type -> workflows.v1.DeployWorkflowReleaseRequest
-	28, // 42: workflows.v1.WorkflowsService.UndeployWorkflowRelease:input_type -> workflows.v1.UndeployWorkflowReleaseRequest
-	0,  // 43: workflows.v1.WorkflowsService.CreateCluster:output_type -> workflows.v1.Cluster
-	0,  // 44: workflows.v1.WorkflowsService.GetCluster:output_type -> workflows.v1.Cluster
-	0,  // 45: workflows.v1.WorkflowsService.UpdateCluster:output_type -> workflows.v1.Cluster
-	5,  // 46: workflows.v1.WorkflowsService.DeleteCluster:output_type -> workflows.v1.DeleteClusterResponse
-	7,  // 47: workflows.v1.WorkflowsService.ListClusters:output_type -> workflows.v1.ListClustersResponse
-	20, // 48: workflows.v1.WorkflowsService.CreateWorkflow:output_type -> workflows.v1.Workflow
-	16, // 49: workflows.v1.WorkflowsService.ListWorkflows:output_type -> workflows.v1.ListWorkflowsResponse
-	18, // 50: workflows.v1.WorkflowsService.ListPublicWorkflows:output_type -> workflows.v1.ListPublicWorkflowsResponse
-	20, // 51: workflows.v1.WorkflowsService.GetWorkflow:output_type -> workflows.v1.Workflow
-	20, // 52: workflows.v1.WorkflowsService.UpdateWorkflow:output_type -> workflows.v1.Workflow
-	11, // 53: workflows.v1.WorkflowsService.DeleteWorkflow:output_type -> workflows.v1.DeleteWorkflowResponse
-	22, // 54: workflows.v1.WorkflowsService.PublishWorkflowRelease:output_type -> workflows.v1.WorkflowRelease
-	14, // 55: workflows.v1.WorkflowsService.UnpublishWorkflowRelease:output_type -> workflows.v1.UnpublishWorkflowReleaseResponse
-	27, // 56: workflows.v1.WorkflowsService.DeployWorkflowRelease:output_type -> workflows.v1.DeployWorkflowReleaseResponse
-	29, // 57: workflows.v1.WorkflowsService.UndeployWorkflowRelease:output_type -> workflows.v1.UndeployWorkflowReleaseResponse
-	43, // [43:58] is the sub-list for method output_type
-	28, // [28:43] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	32, // 10: workflows.v1.ListPublicWorkflowsResponse.next_page:type_name -> tilebox.v1.Pagination
+	31, // 11: workflows.v1.Workflow.id:type_name -> tilebox.v1.ID
+	22, // 12: workflows.v1.Workflow.releases:type_name -> workflows.v1.WorkflowRelease
+	21, // 13: workflows.v1.Workflow.presentation:type_name -> workflows.v1.WorkflowPresentation
+	31, // 14: workflows.v1.WorkflowRelease.id:type_name -> tilebox.v1.ID
+	23, // 15: workflows.v1.WorkflowRelease.artifact:type_name -> workflows.v1.Artifact
+	24, // 16: workflows.v1.WorkflowRelease.content:type_name -> workflows.v1.ReleaseContent
+	33, // 17: workflows.v1.WorkflowRelease.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 18: workflows.v1.WorkflowRelease.clusters:type_name -> workflows.v1.Cluster
+	31, // 19: workflows.v1.Artifact.id:type_name -> tilebox.v1.ID
+	34, // 20: workflows.v1.ReleaseContent.tasks:type_name -> workflows.v1.UnboundTaskIdentifier
+	26, // 21: workflows.v1.ReleaseContent.files:type_name -> workflows.v1.Path
+	25, // 22: workflows.v1.ReleaseContent.build_config:type_name -> workflows.v1.BuildConfig
+	26, // 23: workflows.v1.Path.children:type_name -> workflows.v1.Path
+	31, // 24: workflows.v1.DeployWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
+	22, // 25: workflows.v1.DeployWorkflowReleaseResponse.release:type_name -> workflows.v1.WorkflowRelease
+	0,  // 26: workflows.v1.DeployWorkflowReleaseResponse.clusters:type_name -> workflows.v1.Cluster
+	31, // 27: workflows.v1.UndeployWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
+	22, // 28: workflows.v1.UndeployWorkflowReleaseResponse.release:type_name -> workflows.v1.WorkflowRelease
+	0,  // 29: workflows.v1.UndeployWorkflowReleaseResponse.clusters:type_name -> workflows.v1.Cluster
+	1,  // 30: workflows.v1.WorkflowsService.CreateCluster:input_type -> workflows.v1.CreateClusterRequest
+	2,  // 31: workflows.v1.WorkflowsService.GetCluster:input_type -> workflows.v1.GetClusterRequest
+	3,  // 32: workflows.v1.WorkflowsService.UpdateCluster:input_type -> workflows.v1.UpdateClusterRequest
+	4,  // 33: workflows.v1.WorkflowsService.DeleteCluster:input_type -> workflows.v1.DeleteClusterRequest
+	6,  // 34: workflows.v1.WorkflowsService.ListClusters:input_type -> workflows.v1.ListClustersRequest
+	19, // 35: workflows.v1.WorkflowsService.CreateWorkflow:input_type -> workflows.v1.CreateWorkflowRequest
+	15, // 36: workflows.v1.WorkflowsService.ListWorkflows:input_type -> workflows.v1.ListWorkflowsRequest
+	17, // 37: workflows.v1.WorkflowsService.ListPublicWorkflows:input_type -> workflows.v1.ListPublicWorkflowsRequest
+	8,  // 38: workflows.v1.WorkflowsService.GetWorkflow:input_type -> workflows.v1.GetWorkflowRequest
+	9,  // 39: workflows.v1.WorkflowsService.UpdateWorkflow:input_type -> workflows.v1.UpdateWorkflowRequest
+	10, // 40: workflows.v1.WorkflowsService.DeleteWorkflow:input_type -> workflows.v1.DeleteWorkflowRequest
+	12, // 41: workflows.v1.WorkflowsService.PublishWorkflowRelease:input_type -> workflows.v1.PublishWorkflowReleaseRequest
+	13, // 42: workflows.v1.WorkflowsService.UnpublishWorkflowRelease:input_type -> workflows.v1.UnpublishWorkflowReleaseRequest
+	27, // 43: workflows.v1.WorkflowsService.DeployWorkflowRelease:input_type -> workflows.v1.DeployWorkflowReleaseRequest
+	29, // 44: workflows.v1.WorkflowsService.UndeployWorkflowRelease:input_type -> workflows.v1.UndeployWorkflowReleaseRequest
+	0,  // 45: workflows.v1.WorkflowsService.CreateCluster:output_type -> workflows.v1.Cluster
+	0,  // 46: workflows.v1.WorkflowsService.GetCluster:output_type -> workflows.v1.Cluster
+	0,  // 47: workflows.v1.WorkflowsService.UpdateCluster:output_type -> workflows.v1.Cluster
+	5,  // 48: workflows.v1.WorkflowsService.DeleteCluster:output_type -> workflows.v1.DeleteClusterResponse
+	7,  // 49: workflows.v1.WorkflowsService.ListClusters:output_type -> workflows.v1.ListClustersResponse
+	20, // 50: workflows.v1.WorkflowsService.CreateWorkflow:output_type -> workflows.v1.Workflow
+	16, // 51: workflows.v1.WorkflowsService.ListWorkflows:output_type -> workflows.v1.ListWorkflowsResponse
+	18, // 52: workflows.v1.WorkflowsService.ListPublicWorkflows:output_type -> workflows.v1.ListPublicWorkflowsResponse
+	20, // 53: workflows.v1.WorkflowsService.GetWorkflow:output_type -> workflows.v1.Workflow
+	20, // 54: workflows.v1.WorkflowsService.UpdateWorkflow:output_type -> workflows.v1.Workflow
+	11, // 55: workflows.v1.WorkflowsService.DeleteWorkflow:output_type -> workflows.v1.DeleteWorkflowResponse
+	22, // 56: workflows.v1.WorkflowsService.PublishWorkflowRelease:output_type -> workflows.v1.WorkflowRelease
+	14, // 57: workflows.v1.WorkflowsService.UnpublishWorkflowRelease:output_type -> workflows.v1.UnpublishWorkflowReleaseResponse
+	28, // 58: workflows.v1.WorkflowsService.DeployWorkflowRelease:output_type -> workflows.v1.DeployWorkflowReleaseResponse
+	30, // 59: workflows.v1.WorkflowsService.UndeployWorkflowRelease:output_type -> workflows.v1.UndeployWorkflowReleaseResponse
+	45, // [45:60] is the sub-list for method output_type
+	30, // [30:45] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_workflows_proto_init() }
@@ -2955,7 +3251,7 @@ func file_workflows_v1_workflows_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_workflows_proto_rawDesc), len(file_workflows_v1_workflows_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   30,
+			NumMessages:   31,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

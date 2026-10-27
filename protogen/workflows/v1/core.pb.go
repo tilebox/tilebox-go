@@ -1130,8 +1130,9 @@ func (b0 Task_builder) Build() *Task {
 	return m0
 }
 
-// An identifier for a task.
-type TaskIdentifier struct {
+// Identifies a task implementation before an execution scope is selected.
+// Release definitions and worker discovery use this type. Runners bind it to a workflow or advertise it unscoped.
+type UnboundTaskIdentifier struct {
 	state              protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Name    string                 `protobuf:"bytes,1,opt,name=name"`
 	xxx_hidden_Version string                 `protobuf:"bytes,2,opt,name=version"`
@@ -1139,9 +1140,144 @@ type TaskIdentifier struct {
 	sizeCache          protoimpl.SizeCache
 }
 
+func (x *UnboundTaskIdentifier) Reset() {
+	*x = UnboundTaskIdentifier{}
+	mi := &file_workflows_v1_core_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnboundTaskIdentifier) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnboundTaskIdentifier) ProtoMessage() {}
+
+func (x *UnboundTaskIdentifier) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_core_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *UnboundTaskIdentifier) GetName() string {
+	if x != nil {
+		return x.xxx_hidden_Name
+	}
+	return ""
+}
+
+func (x *UnboundTaskIdentifier) GetVersion() string {
+	if x != nil {
+		return x.xxx_hidden_Version
+	}
+	return ""
+}
+
+func (x *UnboundTaskIdentifier) SetName(v string) {
+	x.xxx_hidden_Name = v
+}
+
+func (x *UnboundTaskIdentifier) SetVersion(v string) {
+	x.xxx_hidden_Version = v
+}
+
+type UnboundTaskIdentifier_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The local task name.
+	Name string
+	// Version of the task.
+	Version string
+}
+
+func (b0 UnboundTaskIdentifier_builder) Build() *UnboundTaskIdentifier {
+	m0 := &UnboundTaskIdentifier{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Name = b.Name
+	x.xxx_hidden_Version = b.Version
+	return m0
+}
+
+// A list of task identifiers without execution scope bindings.
+type UnboundTaskIdentifiers struct {
+	state                  protoimpl.MessageState    `protogen:"opaque.v1"`
+	xxx_hidden_Identifiers *[]*UnboundTaskIdentifier `protobuf:"bytes,1,rep,name=identifiers"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *UnboundTaskIdentifiers) Reset() {
+	*x = UnboundTaskIdentifiers{}
+	mi := &file_workflows_v1_core_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnboundTaskIdentifiers) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnboundTaskIdentifiers) ProtoMessage() {}
+
+func (x *UnboundTaskIdentifiers) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_core_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *UnboundTaskIdentifiers) GetIdentifiers() []*UnboundTaskIdentifier {
+	if x != nil {
+		if x.xxx_hidden_Identifiers != nil {
+			return *x.xxx_hidden_Identifiers
+		}
+	}
+	return nil
+}
+
+func (x *UnboundTaskIdentifiers) SetIdentifiers(v []*UnboundTaskIdentifier) {
+	x.xxx_hidden_Identifiers = &v
+}
+
+type UnboundTaskIdentifiers_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Identifiers []*UnboundTaskIdentifier
+}
+
+func (b0 UnboundTaskIdentifiers_builder) Build() *UnboundTaskIdentifiers {
+	m0 := &UnboundTaskIdentifiers{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Identifiers = &b.Identifiers
+	return m0
+}
+
+// Identifies a task implementation by name, version and by (optional) workflow scope.
+type TaskIdentifier struct {
+	state                 protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name       string                 `protobuf:"bytes,1,opt,name=name"`
+	xxx_hidden_Version    string                 `protobuf:"bytes,2,opt,name=version"`
+	xxx_hidden_WorkflowId *v1.ID                 `protobuf:"bytes,3,opt,name=workflow_id,json=workflowId"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
 func (x *TaskIdentifier) Reset() {
 	*x = TaskIdentifier{}
-	mi := &file_workflows_v1_core_proto_msgTypes[5]
+	mi := &file_workflows_v1_core_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1153,7 +1289,7 @@ func (x *TaskIdentifier) String() string {
 func (*TaskIdentifier) ProtoMessage() {}
 
 func (x *TaskIdentifier) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[5]
+	mi := &file_workflows_v1_core_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1178,6 +1314,13 @@ func (x *TaskIdentifier) GetVersion() string {
 	return ""
 }
 
+func (x *TaskIdentifier) GetWorkflowId() *v1.ID {
+	if x != nil {
+		return x.xxx_hidden_WorkflowId
+	}
+	return nil
+}
+
 func (x *TaskIdentifier) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -1186,13 +1329,32 @@ func (x *TaskIdentifier) SetVersion(v string) {
 	x.xxx_hidden_Version = v
 }
 
+func (x *TaskIdentifier) SetWorkflowId(v *v1.ID) {
+	x.xxx_hidden_WorkflowId = v
+}
+
+func (x *TaskIdentifier) HasWorkflowId() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_WorkflowId != nil
+}
+
+func (x *TaskIdentifier) ClearWorkflowId() {
+	x.xxx_hidden_WorkflowId = nil
+}
+
 type TaskIdentifier_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	// A unique name of a task (unique within a namespace).
+	// The task name within its workflow scope, or within the unscoped task space.
 	Name string
 	// Version of the task.
 	Version string
+	// The immutable ID of the workflow that scopes this task.
+	// In task submissions and execution messages, omission means unscoped, never inheritance of a parent's scope.
+	// Executable tasks returned by the API carry the resolved scope.
+	WorkflowId *v1.ID
 }
 
 func (b0 TaskIdentifier_builder) Build() *TaskIdentifier {
@@ -1201,66 +1363,7 @@ func (b0 TaskIdentifier_builder) Build() *TaskIdentifier {
 	_, _ = b, x
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_Version = b.Version
-	return m0
-}
-
-// A list of task identifiers.
-type TaskIdentifiers struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Identifiers *[]*TaskIdentifier     `protobuf:"bytes,1,rep,name=identifiers"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *TaskIdentifiers) Reset() {
-	*x = TaskIdentifiers{}
-	mi := &file_workflows_v1_core_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TaskIdentifiers) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TaskIdentifiers) ProtoMessage() {}
-
-func (x *TaskIdentifiers) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *TaskIdentifiers) GetIdentifiers() []*TaskIdentifier {
-	if x != nil {
-		if x.xxx_hidden_Identifiers != nil {
-			return *x.xxx_hidden_Identifiers
-		}
-	}
-	return nil
-}
-
-func (x *TaskIdentifiers) SetIdentifiers(v []*TaskIdentifier) {
-	x.xxx_hidden_Identifiers = &v
-}
-
-type TaskIdentifiers_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	Identifiers []*TaskIdentifier
-}
-
-func (b0 TaskIdentifiers_builder) Build() *TaskIdentifiers {
-	m0 := &TaskIdentifiers{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_Identifiers = &b.Identifiers
+	x.xxx_hidden_WorkflowId = b.WorkflowId
 	return m0
 }
 
@@ -1274,7 +1377,7 @@ type Tasks struct {
 
 func (x *Tasks) Reset() {
 	*x = Tasks{}
-	mi := &file_workflows_v1_core_proto_msgTypes[7]
+	mi := &file_workflows_v1_core_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1286,7 +1389,7 @@ func (x *Tasks) String() string {
 func (*Tasks) ProtoMessage() {}
 
 func (x *Tasks) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[7]
+	mi := &file_workflows_v1_core_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1339,7 +1442,7 @@ type SingleTaskSubmission struct {
 
 func (x *SingleTaskSubmission) Reset() {
 	*x = SingleTaskSubmission{}
-	mi := &file_workflows_v1_core_proto_msgTypes[8]
+	mi := &file_workflows_v1_core_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1351,7 +1454,7 @@ func (x *SingleTaskSubmission) String() string {
 func (*SingleTaskSubmission) ProtoMessage() {}
 
 func (x *SingleTaskSubmission) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[8]
+	mi := &file_workflows_v1_core_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1489,7 +1592,7 @@ type TaskSubmissions struct {
 
 func (x *TaskSubmissions) Reset() {
 	*x = TaskSubmissions{}
-	mi := &file_workflows_v1_core_proto_msgTypes[9]
+	mi := &file_workflows_v1_core_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1501,7 +1604,7 @@ func (x *TaskSubmissions) String() string {
 func (*TaskSubmissions) ProtoMessage() {}
 
 func (x *TaskSubmissions) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[9]
+	mi := &file_workflows_v1_core_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1607,7 +1710,7 @@ type TaskSubmissionGroup struct {
 
 func (x *TaskSubmissionGroup) Reset() {
 	*x = TaskSubmissionGroup{}
-	mi := &file_workflows_v1_core_proto_msgTypes[10]
+	mi := &file_workflows_v1_core_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1619,7 +1722,7 @@ func (x *TaskSubmissionGroup) String() string {
 func (*TaskSubmissionGroup) ProtoMessage() {}
 
 func (x *TaskSubmissionGroup) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[10]
+	mi := &file_workflows_v1_core_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1757,7 +1860,7 @@ type TaskLease struct {
 
 func (x *TaskLease) Reset() {
 	*x = TaskLease{}
-	mi := &file_workflows_v1_core_proto_msgTypes[11]
+	mi := &file_workflows_v1_core_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1769,7 +1872,7 @@ func (x *TaskLease) String() string {
 func (*TaskLease) ProtoMessage() {}
 
 func (x *TaskLease) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_core_proto_msgTypes[11]
+	mi := &file_workflows_v1_core_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1891,13 +1994,19 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x05lease\x18\t \x01(\v2\x17.workflows.v1.TaskLeaseR\x05lease\x12\x1f\n" +
 	"\vretry_count\x18\n" +
 	" \x01(\x03R\n" +
-	"retryCount\"d\n" +
+	"retryCount\"k\n" +
+	"\x15UnboundTaskIdentifier\x12\x1e\n" +
+	"\x04name\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05 \x01(\x80\x02R\x04name\x122\n" +
+	"\aversion\x18\x02 \x01(\tB\x18\xbaH\x15r\x13 \x012\x0f^v(\\d+)\\.(\\d+)$R\aversion\"_\n" +
+	"\x16UnboundTaskIdentifiers\x12E\n" +
+	"\videntifiers\x18\x01 \x03(\v2#.workflows.v1.UnboundTaskIdentifierR\videntifiers\"\x9c\x01\n" +
 	"\x0eTaskIdentifier\x12\x1e\n" +
 	"\x04name\x18\x01 \x01(\tB\n" +
 	"\xbaH\ar\x05 \x01(\x80\x02R\x04name\x122\n" +
-	"\aversion\x18\x02 \x01(\tB\x18\xbaH\x15r\x13 \x012\x0f^v(\\d+)\\.(\\d+)$R\aversion\"Q\n" +
-	"\x0fTaskIdentifiers\x12>\n" +
-	"\videntifiers\x18\x01 \x03(\v2\x1c.workflows.v1.TaskIdentifierR\videntifiers\"1\n" +
+	"\aversion\x18\x02 \x01(\tB\x18\xbaH\x15r\x13 \x012\x0f^v(\\d+)\\.(\\d+)$R\aversion\x126\n" +
+	"\vworkflow_id\x18\x03 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\n" +
+	"workflowId\"1\n" +
 	"\x05Tasks\x12(\n" +
 	"\x05tasks\x18\x01 \x03(\v2\x12.workflows.v1.TaskR\x05tasks\"\x98\x02\n" +
 	"\x14SingleTaskSubmission\x12!\n" +
@@ -1957,61 +2066,63 @@ const file_workflows_v1_core_proto_rawDesc = "" +
 	"\x10com.workflows.v1B\tCoreProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_workflows_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_workflows_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
+var file_workflows_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_workflows_v1_core_proto_goTypes = []any{
-	(LegacyJobState)(0),           // 0: workflows.v1.LegacyJobState
-	(JobState)(0),                 // 1: workflows.v1.JobState
-	(TaskState)(0),                // 2: workflows.v1.TaskState
-	(*Job)(nil),                   // 3: workflows.v1.Job
-	(*ExecutionStats)(nil),        // 4: workflows.v1.ExecutionStats
-	(*TaskStateCount)(nil),        // 5: workflows.v1.TaskStateCount
-	(*Progress)(nil),              // 6: workflows.v1.Progress
-	(*Task)(nil),                  // 7: workflows.v1.Task
-	(*TaskIdentifier)(nil),        // 8: workflows.v1.TaskIdentifier
-	(*TaskIdentifiers)(nil),       // 9: workflows.v1.TaskIdentifiers
-	(*Tasks)(nil),                 // 10: workflows.v1.Tasks
-	(*SingleTaskSubmission)(nil),  // 11: workflows.v1.SingleTaskSubmission
-	(*TaskSubmissions)(nil),       // 12: workflows.v1.TaskSubmissions
-	(*TaskSubmissionGroup)(nil),   // 13: workflows.v1.TaskSubmissionGroup
-	(*TaskLease)(nil),             // 14: workflows.v1.TaskLease
-	(*v1.ID)(nil),                 // 15: tilebox.v1.ID
-	(*timestamppb.Timestamp)(nil), // 16: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 17: google.protobuf.Duration
+	(LegacyJobState)(0),            // 0: workflows.v1.LegacyJobState
+	(JobState)(0),                  // 1: workflows.v1.JobState
+	(TaskState)(0),                 // 2: workflows.v1.TaskState
+	(*Job)(nil),                    // 3: workflows.v1.Job
+	(*ExecutionStats)(nil),         // 4: workflows.v1.ExecutionStats
+	(*TaskStateCount)(nil),         // 5: workflows.v1.TaskStateCount
+	(*Progress)(nil),               // 6: workflows.v1.Progress
+	(*Task)(nil),                   // 7: workflows.v1.Task
+	(*UnboundTaskIdentifier)(nil),  // 8: workflows.v1.UnboundTaskIdentifier
+	(*UnboundTaskIdentifiers)(nil), // 9: workflows.v1.UnboundTaskIdentifiers
+	(*TaskIdentifier)(nil),         // 10: workflows.v1.TaskIdentifier
+	(*Tasks)(nil),                  // 11: workflows.v1.Tasks
+	(*SingleTaskSubmission)(nil),   // 12: workflows.v1.SingleTaskSubmission
+	(*TaskSubmissions)(nil),        // 13: workflows.v1.TaskSubmissions
+	(*TaskSubmissionGroup)(nil),    // 14: workflows.v1.TaskSubmissionGroup
+	(*TaskLease)(nil),              // 15: workflows.v1.TaskLease
+	(*v1.ID)(nil),                  // 16: tilebox.v1.ID
+	(*timestamppb.Timestamp)(nil),  // 17: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),    // 18: google.protobuf.Duration
 }
 var file_workflows_v1_core_proto_depIdxs = []int32{
-	15, // 0: workflows.v1.Job.id:type_name -> tilebox.v1.ID
+	16, // 0: workflows.v1.Job.id:type_name -> tilebox.v1.ID
 	0,  // 1: workflows.v1.Job.legacy_state:type_name -> workflows.v1.LegacyJobState
-	16, // 2: workflows.v1.Job.submitted_at:type_name -> google.protobuf.Timestamp
-	16, // 3: workflows.v1.Job.started_at:type_name -> google.protobuf.Timestamp
-	15, // 4: workflows.v1.Job.automation_id:type_name -> tilebox.v1.ID
+	17, // 2: workflows.v1.Job.submitted_at:type_name -> google.protobuf.Timestamp
+	17, // 3: workflows.v1.Job.started_at:type_name -> google.protobuf.Timestamp
+	16, // 4: workflows.v1.Job.automation_id:type_name -> tilebox.v1.ID
 	6,  // 5: workflows.v1.Job.progress:type_name -> workflows.v1.Progress
 	1,  // 6: workflows.v1.Job.state:type_name -> workflows.v1.JobState
 	4,  // 7: workflows.v1.Job.execution_stats:type_name -> workflows.v1.ExecutionStats
-	16, // 8: workflows.v1.ExecutionStats.first_task_started_at:type_name -> google.protobuf.Timestamp
-	16, // 9: workflows.v1.ExecutionStats.last_task_stopped_at:type_name -> google.protobuf.Timestamp
-	17, // 10: workflows.v1.ExecutionStats.compute_time:type_name -> google.protobuf.Duration
-	17, // 11: workflows.v1.ExecutionStats.elapsed_time:type_name -> google.protobuf.Duration
+	17, // 8: workflows.v1.ExecutionStats.first_task_started_at:type_name -> google.protobuf.Timestamp
+	17, // 9: workflows.v1.ExecutionStats.last_task_stopped_at:type_name -> google.protobuf.Timestamp
+	18, // 10: workflows.v1.ExecutionStats.compute_time:type_name -> google.protobuf.Duration
+	18, // 11: workflows.v1.ExecutionStats.elapsed_time:type_name -> google.protobuf.Duration
 	5,  // 12: workflows.v1.ExecutionStats.tasks_by_state:type_name -> workflows.v1.TaskStateCount
 	2,  // 13: workflows.v1.TaskStateCount.state:type_name -> workflows.v1.TaskState
-	15, // 14: workflows.v1.Task.id:type_name -> tilebox.v1.ID
-	8,  // 15: workflows.v1.Task.identifier:type_name -> workflows.v1.TaskIdentifier
+	16, // 14: workflows.v1.Task.id:type_name -> tilebox.v1.ID
+	10, // 15: workflows.v1.Task.identifier:type_name -> workflows.v1.TaskIdentifier
 	2,  // 16: workflows.v1.Task.state:type_name -> workflows.v1.TaskState
 	3,  // 17: workflows.v1.Task.job:type_name -> workflows.v1.Job
-	15, // 18: workflows.v1.Task.parent_id:type_name -> tilebox.v1.ID
-	15, // 19: workflows.v1.Task.depends_on:type_name -> tilebox.v1.ID
-	14, // 20: workflows.v1.Task.lease:type_name -> workflows.v1.TaskLease
-	8,  // 21: workflows.v1.TaskIdentifiers.identifiers:type_name -> workflows.v1.TaskIdentifier
-	7,  // 22: workflows.v1.Tasks.tasks:type_name -> workflows.v1.Task
-	8,  // 23: workflows.v1.SingleTaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
-	13, // 24: workflows.v1.TaskSubmissions.task_groups:type_name -> workflows.v1.TaskSubmissionGroup
-	8,  // 25: workflows.v1.TaskSubmissions.identifier_lookup:type_name -> workflows.v1.TaskIdentifier
-	17, // 26: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
-	17, // 27: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	16, // 18: workflows.v1.Task.parent_id:type_name -> tilebox.v1.ID
+	16, // 19: workflows.v1.Task.depends_on:type_name -> tilebox.v1.ID
+	15, // 20: workflows.v1.Task.lease:type_name -> workflows.v1.TaskLease
+	8,  // 21: workflows.v1.UnboundTaskIdentifiers.identifiers:type_name -> workflows.v1.UnboundTaskIdentifier
+	16, // 22: workflows.v1.TaskIdentifier.workflow_id:type_name -> tilebox.v1.ID
+	7,  // 23: workflows.v1.Tasks.tasks:type_name -> workflows.v1.Task
+	10, // 24: workflows.v1.SingleTaskSubmission.identifier:type_name -> workflows.v1.TaskIdentifier
+	14, // 25: workflows.v1.TaskSubmissions.task_groups:type_name -> workflows.v1.TaskSubmissionGroup
+	10, // 26: workflows.v1.TaskSubmissions.identifier_lookup:type_name -> workflows.v1.TaskIdentifier
+	18, // 27: workflows.v1.TaskLease.lease:type_name -> google.protobuf.Duration
+	18, // 28: workflows.v1.TaskLease.recommended_wait_until_next_extension:type_name -> google.protobuf.Duration
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_core_proto_init() }
@@ -2025,7 +2136,7 @@ func file_workflows_v1_core_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_core_proto_rawDesc), len(file_workflows_v1_core_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   12,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

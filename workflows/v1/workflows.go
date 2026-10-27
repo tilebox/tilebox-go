@@ -15,8 +15,15 @@ import (
 
 // Workflow represents a logical grouping for a set of tasks.
 type Workflow struct {
-	// Slug is the workflow reference: a local slug for owned workflows or namespace:slug for shared workflows.
-	Slug string
+	// ID is the immutable execution scope, shared by all releases of this workflow.
+	ID uuid.UUID
+	// Reference is the remote selector: a local reference or namespace-qualified reference.
+	Reference string
+	// ProjectSlug is the portable project name, not a unique remote selector.
+	ProjectSlug string
+	// LegacyTaskAliases reports whether unscoped task addresses are also exposed.
+	// Nil means the server did not return the policy.
+	LegacyTaskAliases *bool
 	// Name is the human-readable name of the workflow.
 	Name string
 	// Summary is a short text summary of the workflow.
@@ -70,7 +77,7 @@ type Artifact struct {
 type ReleaseContent struct {
 	// Fingerprint is the SHA-256 fingerprint of the release content.
 	Fingerprint string
-	// Tasks are the task implementations included in this release content.
+	// Tasks are unbound local task definitions. Deployment supplies their workflow scope.
 	Tasks []TaskIdentifier
 	// Files are the files and directories included in the release artifact.
 	Files []*Path
@@ -101,8 +108,9 @@ type WorkflowReleaseDeployment struct {
 }
 
 type workflowOptions struct {
-	summary     string
-	description *string
+	summary           string
+	description       *string
+	legacyTaskAliases *bool
 }
 
 // WorkflowOption configures workflow create requests.
@@ -120,6 +128,15 @@ func WithSummary(summary string) WorkflowOption {
 func WithDescription(description string) WorkflowOption {
 	return func(options *workflowOptions) {
 		options.description = &description
+	}
+}
+
+// WithLegacyTaskAliases controls whether a new workflow also exposes unscoped task addresses.
+// Without this option the field is omitted and the server defaults to true.
+// Pass false to create a scoped-only workflow.
+func WithLegacyTaskAliases(enabled bool) WorkflowOption {
+	return func(options *workflowOptions) {
+		options.legacyTaskAliases = &enabled
 	}
 }
 
@@ -148,29 +165,29 @@ type WorkflowClient interface {
 	// ListPublicPage returns one page of public workflow summaries. Public summaries do not include releases.
 	ListPublicPage(ctx context.Context, options ...workflowoptions.ListOption) (*WorkflowPage, error)
 
-	// Get returns a workflow by its local slug or shared namespace:slug reference.
-	Get(ctx context.Context, slug string) (*Workflow, error)
+	// Get returns a workflow by its local or namespace-qualified reference.
+	Get(ctx context.Context, reference string) (*Workflow, error)
 
-	// Update updates an owned workflow by its slug. Sharing does not grant mutation permission.
-	Update(ctx context.Context, slug string, options ...workflowoptions.UpdateOption) (*Workflow, error)
+	// Update updates an owned workflow by its reference. Sharing does not grant mutation permission.
+	Update(ctx context.Context, reference string, options ...workflowoptions.UpdateOption) (*Workflow, error)
 
-	// Delete deletes an owned workflow by its slug. Sharing does not grant mutation permission.
-	Delete(ctx context.Context, slug string) error
+	// Delete deletes an owned workflow by its reference. Sharing does not grant mutation permission.
+	Delete(ctx context.Context, reference string) error
 
 	// PublishRelease publishes a new immutable release for an owned workflow.
-	PublishRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*WorkflowRelease, error)
+	PublishRelease(ctx context.Context, workflowReference string, artifactID uuid.UUID, content *ReleaseContent) (*WorkflowRelease, error)
 
 	// UnpublishRelease unpublishes a release from an owned workflow.
-	UnpublishRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error
+	UnpublishRelease(ctx context.Context, workflowReference string, releaseID uuid.UUID) error
 
 	// DeployRelease deploys an owned or shared workflow release to owned clusters.
-	// Shared workflows use namespace:slug; uuid.Nil selects the latest release.
-	DeployRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error)
+	// Shared workflows use namespace-qualified references; uuid.Nil selects the latest release.
+	DeployRelease(ctx context.Context, workflowReference string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error)
 
 	// UndeployRelease removes deployments from owned clusters.
-	// Shared workflows use namespace:slug. By default, all releases on the selected clusters are removed;
+	// Shared workflows use namespace-qualified references. By default, all releases on the selected clusters are removed;
 	// workflow.WithReleaseID restricts removal to just one release.
-	UndeployRelease(ctx context.Context, workflowSlug string, clusterSlugs []string, options ...workflowoptions.UndeployOption) (*WorkflowReleaseDeployment, error)
+	UndeployRelease(ctx context.Context, workflowReference string, clusterSlugs []string, options ...workflowoptions.UndeployOption) (*WorkflowReleaseDeployment, error)
 }
 
 var _ WorkflowClient = &workflowClient{}
@@ -181,7 +198,7 @@ type workflowClient struct {
 
 func (c workflowClient) Create(ctx context.Context, name string, options ...WorkflowOption) (*Workflow, error) {
 	appliedOptions := applyWorkflowOptions(options...)
-	response, err := c.service.CreateWorkflow(ctx, name, appliedOptions.summary, appliedOptions.description)
+	response, err := c.service.CreateWorkflow(ctx, name, appliedOptions.summary, appliedOptions.description, appliedOptions.legacyTaskAliases)
 	if err != nil {
 		return nil, err
 	}
@@ -215,8 +232,8 @@ func (c workflowClient) ListPublicPage(ctx context.Context, options ...workflowo
 	return protoToWorkflowPage(response.GetWorkflows(), response.GetNextPage()), nil
 }
 
-func (c workflowClient) Get(ctx context.Context, slug string) (*Workflow, error) {
-	response, err := c.service.GetWorkflow(ctx, slug)
+func (c workflowClient) Get(ctx context.Context, reference string) (*Workflow, error) {
+	response, err := c.service.GetWorkflow(ctx, reference)
 	if err != nil {
 		return nil, err
 	}
@@ -224,9 +241,9 @@ func (c workflowClient) Get(ctx context.Context, slug string) (*Workflow, error)
 	return protoToWorkflow(response), nil
 }
 
-func (c workflowClient) Update(ctx context.Context, slug string, options ...workflowoptions.UpdateOption) (*Workflow, error) {
+func (c workflowClient) Update(ctx context.Context, reference string, options ...workflowoptions.UpdateOption) (*Workflow, error) {
 	appliedOptions := workflowoptions.NewUpdateOptions(options...)
-	response, err := c.service.UpdateWorkflow(ctx, slug, appliedOptions.Name, appliedOptions.Summary, appliedOptions.Description)
+	response, err := c.service.UpdateWorkflow(ctx, reference, appliedOptions.Name, appliedOptions.Summary, appliedOptions.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -234,12 +251,12 @@ func (c workflowClient) Update(ctx context.Context, slug string, options ...work
 	return protoToWorkflow(response), nil
 }
 
-func (c workflowClient) Delete(ctx context.Context, slug string) error {
-	return c.service.DeleteWorkflow(ctx, slug)
+func (c workflowClient) Delete(ctx context.Context, reference string) error {
+	return c.service.DeleteWorkflow(ctx, reference)
 }
 
-func (c workflowClient) PublishRelease(ctx context.Context, workflowSlug string, artifactID uuid.UUID, content *ReleaseContent) (*WorkflowRelease, error) {
-	response, err := c.service.PublishWorkflowRelease(ctx, workflowSlug, artifactID, content)
+func (c workflowClient) PublishRelease(ctx context.Context, workflowReference string, artifactID uuid.UUID, content *ReleaseContent) (*WorkflowRelease, error) {
+	response, err := c.service.PublishWorkflowRelease(ctx, workflowReference, artifactID, content)
 	if err != nil {
 		return nil, err
 	}
@@ -247,12 +264,12 @@ func (c workflowClient) PublishRelease(ctx context.Context, workflowSlug string,
 	return protoToWorkflowRelease(response), nil
 }
 
-func (c workflowClient) UnpublishRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID) error {
-	return c.service.UnpublishWorkflowRelease(ctx, workflowSlug, releaseID)
+func (c workflowClient) UnpublishRelease(ctx context.Context, workflowReference string, releaseID uuid.UUID) error {
+	return c.service.UnpublishWorkflowRelease(ctx, workflowReference, releaseID)
 }
 
-func (c workflowClient) DeployRelease(ctx context.Context, workflowSlug string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error) {
-	response, err := c.service.DeployWorkflowRelease(ctx, workflowSlug, releaseID, clusterSlugs)
+func (c workflowClient) DeployRelease(ctx context.Context, workflowReference string, releaseID uuid.UUID, clusterSlugs []string) (*WorkflowReleaseDeployment, error) {
+	response, err := c.service.DeployWorkflowRelease(ctx, workflowReference, releaseID, clusterSlugs)
 	if err != nil {
 		return nil, err
 	}
@@ -260,9 +277,9 @@ func (c workflowClient) DeployRelease(ctx context.Context, workflowSlug string, 
 	return protoToWorkflowReleaseDeployment(response.GetRelease(), response.GetClusters()), nil
 }
 
-func (c workflowClient) UndeployRelease(ctx context.Context, workflowSlug string, clusterSlugs []string, options ...workflowoptions.UndeployOption) (*WorkflowReleaseDeployment, error) {
+func (c workflowClient) UndeployRelease(ctx context.Context, workflowReference string, clusterSlugs []string, options ...workflowoptions.UndeployOption) (*WorkflowReleaseDeployment, error) {
 	applied := workflowoptions.NewUndeployOptions(options...)
-	response, err := c.service.UndeployWorkflowRelease(ctx, workflowSlug, applied.ReleaseID, clusterSlugs)
+	response, err := c.service.UndeployWorkflowRelease(ctx, workflowReference, applied.ReleaseID, clusterSlugs)
 	if err != nil {
 		return nil, err
 	}
@@ -320,13 +337,20 @@ func protoToWorkflow(workflow *workflowsv1.Workflow) *Workflow {
 		releases[i] = protoToWorkflowRelease(release)
 	}
 
+	var legacyTaskAliases *bool
+	if workflow.HasLegacyTaskAliases() {
+		legacyTaskAliases = new(workflow.GetLegacyTaskAliases())
+	}
 	return &Workflow{
-		Slug:         workflow.GetSlug(),
-		Name:         workflow.GetName(),
-		Summary:      workflow.GetSummary(),
-		Description:  workflow.GetDescription(),
-		Releases:     releases,
-		Presentation: protoToWorkflowPresentation(workflow.GetPresentation()),
+		ID:                protoIDToUUID(workflow.GetId()),
+		Reference:         workflow.GetReference(),
+		ProjectSlug:       workflow.GetProjectSlug(),
+		LegacyTaskAliases: legacyTaskAliases,
+		Name:              workflow.GetName(),
+		Summary:           workflow.GetSummary(),
+		Description:       workflow.GetDescription(),
+		Releases:          releases,
+		Presentation:      protoToWorkflowPresentation(workflow.GetPresentation()),
 	}
 }
 
@@ -431,15 +455,15 @@ func protoToWorkflowReleaseDeployment(release *workflowsv1.WorkflowRelease, clus
 	}
 }
 
-func protoToTaskIdentifier(identifier *workflowsv1.TaskIdentifier) TaskIdentifier {
+func protoToTaskIdentifier(identifier *workflowsv1.UnboundTaskIdentifier) TaskIdentifier {
 	if identifier == nil {
 		return nil
 	}
 	return NewTaskIdentifier(identifier.GetName(), identifier.GetVersion())
 }
 
-func taskIdentifiersToProto(tasks []TaskIdentifier) ([]*workflowsv1.TaskIdentifier, error) {
-	protoTasks := make([]*workflowsv1.TaskIdentifier, len(tasks))
+func taskIdentifiersToProto(tasks []TaskIdentifier) ([]*workflowsv1.UnboundTaskIdentifier, error) {
+	protoTasks := make([]*workflowsv1.UnboundTaskIdentifier, len(tasks))
 	for i, task := range tasks {
 		if task == nil {
 			return nil, fmt.Errorf("task identifier at index %d is nil", i)
@@ -447,7 +471,7 @@ func taskIdentifiersToProto(tasks []TaskIdentifier) ([]*workflowsv1.TaskIdentifi
 		if err := ValidateIdentifier(task); err != nil {
 			return nil, err
 		}
-		protoTasks[i] = workflowsv1.TaskIdentifier_builder{
+		protoTasks[i] = workflowsv1.UnboundTaskIdentifier_builder{
 			Name:    task.Name(),
 			Version: task.Version(),
 		}.Build()

@@ -66,6 +66,9 @@ type JobTask struct {
 	HasChildren bool
 	// ClusterSlug is the cluster on which the task is scheduled to run.
 	ClusterSlug string
+	// WorkflowReference identifies the task's workflow when available.
+	// Nil can mean unscoped execution or a deleted or inaccessible workflow.
+	WorkflowReference *string
 	// Optional reports whether failure of the task is optional.
 	Optional bool
 }
@@ -375,9 +378,17 @@ func (c jobClient) Submit(ctx context.Context, jobName string, tasks []Task, opt
 		option(opts)
 	}
 
+	if opts.WorkflowID != nil && *opts.WorkflowID == uuid.Nil {
+		return nil, errors.New("workflow ID must be nonzero")
+	}
 	jobRequest, err := validateJob(jobName, opts.ClusterSlug, opts.MaxRetries, tasks...)
 	if err != nil {
 		return nil, err
+	}
+	if opts.WorkflowID != nil {
+		for _, identifier := range jobRequest.GetTasks().GetIdentifierLookup() {
+			identifier.SetWorkflowId(tileboxv1.NewUUID(*opts.WorkflowID))
+		}
 	}
 
 	response, err := c.service.SubmitJob(ctx, jobRequest)
@@ -702,13 +713,14 @@ func (c jobClient) queryPage(ctx context.Context, opts *job.QueryOptions) (*JobP
 	})
 
 	filters := workflowsv1.QueryFilters_builder{
-		TimeInterval:  timeInterval,
-		IdInterval:    idInterval,
-		AutomationIds: automationIDs,
-		ClusterSlugs:  opts.ClusterSlugs,
-		States:        states,
-		TaskStates:    taskStates,
-		Name:          opts.Name,
+		TimeInterval:       timeInterval,
+		IdInterval:         idInterval,
+		AutomationIds:      automationIDs,
+		ClusterSlugs:       opts.ClusterSlugs,
+		WorkflowReferences: opts.WorkflowReferences,
+		States:             states,
+		TaskStates:         taskStates,
+		Name:               opts.Name,
 	}.Build()
 
 	jobsMessage, err := c.service.QueryJobs(ctx, filters, paginationFromOptions(opts.Limit, opts.Cursor), sortDirection)
@@ -867,20 +879,25 @@ func protoToJobTask(task *workflowsv1.TaskSummary) *JobTask {
 		stoppedAt = timestamp.AsTime()
 	}
 
+	var workflowReference *string
+	if task.HasWorkflowReference() {
+		workflowReference = new(task.GetWorkflowReference())
+	}
 	return &JobTask{
-		ID:          task.GetId().AsUUID(),
-		ParentID:    uuidPointerFromProto(task.GetParentId()),
-		Display:     task.GetDisplay(),
-		State:       TaskState(task.GetState()),
-		SubmittedAt: submittedAt,
-		StartedAt:   startedAt,
-		StoppedAt:   stoppedAt,
-		Input:       task.GetInput(),
-		RetryCount:  task.GetRetryCount(),
-		MaxRetries:  task.GetMaxRetries(),
-		HasChildren: task.GetHasChildren(),
-		ClusterSlug: task.GetClusterSlug(),
-		Optional:    task.GetOptional(),
+		ID:                task.GetId().AsUUID(),
+		ParentID:          uuidPointerFromProto(task.GetParentId()),
+		Display:           task.GetDisplay(),
+		State:             TaskState(task.GetState()),
+		SubmittedAt:       submittedAt,
+		StartedAt:         startedAt,
+		StoppedAt:         stoppedAt,
+		Input:             task.GetInput(),
+		RetryCount:        task.GetRetryCount(),
+		MaxRetries:        task.GetMaxRetries(),
+		HasChildren:       task.GetHasChildren(),
+		ClusterSlug:       task.GetClusterSlug(),
+		WorkflowReference: workflowReference,
+		Optional:          task.GetOptional(),
 	}
 }
 

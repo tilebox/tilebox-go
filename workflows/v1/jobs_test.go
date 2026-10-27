@@ -202,6 +202,40 @@ func TestJobService_Submit(t *testing.T) {
 	}
 }
 
+func TestJobClient_SubmitWorkflowScope(t *testing.T) {
+	workflowA, workflowB := uuid.New(), uuid.New()
+	// Reuse the same task objects across scopes to catch scope leaking into local definitions.
+	tasks := []Task{&identifiableTask{}, &testTask1{}, &identifiableTask{}}
+	service := &mockJobService{}
+	client := jobClient{service: service}
+	for _, workflowID := range []*uuid.UUID{&workflowA, &workflowB, nil} {
+		options := []job.SubmitOption{job.WithClusterSlug("gpu"), job.WithMaxRetries(3)}
+		if workflowID != nil {
+			options = append(options, job.WithWorkflowID(*workflowID))
+		}
+		_, err := client.Submit(t.Context(), "scoped roots", tasks, options...)
+		require.NoError(t, err)
+		submitted := service.reqs[len(service.reqs)-1].GetTasks()
+		var names []string
+		for _, group := range submitted.GetTaskGroups() {
+			for i, pointer := range group.GetIdentifierPointers() {
+				identifier := submitted.GetIdentifierLookup()[pointer]
+				names = append(names, identifier.GetName())
+				assert.Equal(t, workflowID != nil, identifier.HasWorkflowId())
+				if workflowID != nil {
+					assert.Equal(t, *workflowID, identifier.GetWorkflowId().AsUUID())
+				}
+				assert.Equal(t, "gpu", submitted.GetClusterSlugLookup()[group.GetClusterSlugPointers()[i]])
+				assert.Equal(t, int64(3), group.GetMaxRetriesValues()[i])
+			}
+		}
+		assert.Equal(t, []string{"myName", "testTask1", "myName"}, names)
+	}
+	_, err := client.Submit(t.Context(), "invalid scope", tasks, job.WithWorkflowID(uuid.Nil))
+	require.EqualError(t, err, "workflow ID must be nonzero")
+	assert.Len(t, service.reqs, 3, "an explicit zero must not submit unscoped work")
+}
+
 func Test_jobClient_Get(t *testing.T) {
 	ctx := context.Background()
 	client := NewReplayClient(t, "Job")
@@ -232,17 +266,18 @@ func Test_jobClient_ListTasks(t *testing.T) {
 					ParentTaskId: tileboxv1.NewUUID(parentTaskID),
 					Tasks: []*workflowsv1.TaskSummary{
 						workflowsv1.TaskSummary_builder{
-							Id:          tileboxv1.NewUUID(firstTaskID),
-							ParentId:    tileboxv1.NewUUID(parentTaskID),
-							Display:     "first task",
-							State:       workflowsv1.TaskState_TASK_STATE_RUNNING,
-							SubmittedAt: timestamppb.New(submittedAt),
-							Input:       []byte("input"),
-							RetryCount:  1,
-							MaxRetries:  3,
-							HasChildren: true,
-							ClusterSlug: "default",
-							Optional:    true,
+							Id:                tileboxv1.NewUUID(firstTaskID),
+							ParentId:          tileboxv1.NewUUID(parentTaskID),
+							Display:           "first task",
+							State:             workflowsv1.TaskState_TASK_STATE_RUNNING,
+							SubmittedAt:       timestamppb.New(submittedAt),
+							Input:             []byte("input"),
+							RetryCount:        1,
+							MaxRetries:        3,
+							HasChildren:       true,
+							ClusterSlug:       "default",
+							WorkflowReference: new("tilebox:processing"),
+							Optional:          true,
 						}.Build(),
 					},
 					NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextCursorID)}.Build(),
@@ -277,8 +312,10 @@ func Test_jobClient_ListTasks(t *testing.T) {
 	assert.Equal(t, int64(3), tasks[0].MaxRetries)
 	assert.True(t, tasks[0].HasChildren)
 	assert.Equal(t, "default", tasks[0].ClusterSlug)
+	assert.Equal(t, new("tilebox:processing"), tasks[0].WorkflowReference)
 	assert.True(t, tasks[0].Optional)
 	assert.Equal(t, secondTaskID, tasks[1].ID)
+	assert.Nil(t, tasks[1].WorkflowReference)
 	require.Len(t, service.taskPageReqs, 2)
 	assert.Equal(t, int64(2), service.taskPageReqs[0].GetLimit())
 	assert.Equal(t, int64(1), service.taskPageReqs[1].GetLimit())
@@ -307,7 +344,7 @@ func Test_jobClient_ListTasksPage_WithPrefetch(t *testing.T) {
 					workflowsv1.JobTaskPage_builder{
 						ParentTaskId: tileboxv1.NewUUID(rootTaskID),
 						Tasks: []*workflowsv1.TaskSummary{
-							workflowsv1.TaskSummary_builder{Id: tileboxv1.NewUUID(childTaskID), ParentId: tileboxv1.NewUUID(rootTaskID)}.Build(),
+							workflowsv1.TaskSummary_builder{Id: tileboxv1.NewUUID(childTaskID), ParentId: tileboxv1.NewUUID(rootTaskID), WorkflowReference: new("other:child")}.Build(),
 						},
 						NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(childCursorID)}.Build(),
 					}.Build(),
@@ -334,6 +371,8 @@ func Test_jobClient_ListTasksPage_WithPrefetch(t *testing.T) {
 	assert.Equal(t, rootTaskID, *childPage.ParentTaskID)
 	require.Len(t, childPage.Tasks, 1)
 	assert.Equal(t, childTaskID, childPage.Tasks[0].ID)
+	assert.Equal(t, new("other:child"), childPage.Tasks[0].WorkflowReference)
+	assert.Nil(t, page.Tasks[0].WorkflowReference)
 	require.NotNil(t, childPage.NextCursor)
 	assert.Equal(t, childCursorID, childPage.NextCursor.StartingAfter())
 	require.Len(t, service.taskPageReqs, 1)
@@ -486,6 +525,29 @@ func Test_jobClient_QueryPage(t *testing.T) {
 	assert.Equal(t, cursorID, service.queryPageReqs[0].GetStartingAfter().AsUUID())
 	require.Len(t, service.querySortReqs, 1)
 	assert.Equal(t, tileboxv1.SortDirection_SORT_DIRECTION_DESCENDING, service.querySortReqs[0])
+}
+
+func TestJobClient_QueryWorkflowReferences(t *testing.T) {
+	for _, paginated := range []bool{false, true} {
+		service := &mockJobService{}
+		client := jobClient{service: service}
+		options := []job.QueryOption{
+			job.WithWorkflowReferences("processing"),
+			job.WithWorkflowReferences("other:processing"),
+		}
+		if paginated {
+			_, err := client.QueryPage(t.Context(), options...)
+			require.NoError(t, err)
+		} else {
+			_, err := Collect(client.Query(t.Context(), options...))
+			require.NoError(t, err)
+		}
+		require.Len(t, service.queryFilters, 1)
+		assert.Equal(t, []string{"processing", "other:processing"}, service.queryFilters[0].GetWorkflowReferences())
+		_, err := client.QueryPage(t.Context(), job.WithWorkflowReferences())
+		require.NoError(t, err)
+		assert.Empty(t, service.queryFilters[1].GetWorkflowReferences())
+	}
 }
 
 func Test_jobClient_QueryLogs(t *testing.T) {

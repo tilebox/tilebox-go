@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `workflows`: Submit workflow-scoped root tasks with `job.WithWorkflowID`. Omission remains unscoped; an explicit zero UUID is rejected.
+- `workflows`: Preserve automation task scope through `AutomationTaskPrototype.WorkflowID`. Nil means unscoped and clears scope on replacement updates.
+- `workflows`: Filter jobs with `job.WithWorkflowReferences` and read optional task attribution through `JobTask.WorkflowReference`.
+- `workflows`: Expose workflow `ID`, `ProjectSlug`, and presence-aware `LegacyTaskAliases`. Set the creation policy with `WithLegacyTaskAliases`; omission preserves the server's legacy-compatible default.
+
+### Changed
+
+- **Breaking:** Rename `Workflow.Slug` to `Reference`, matching remote workflow selectors. `ProjectSlug` is the portable project name, not a remote selector. Workflow RPC requests use `WorkflowReference`.
+- **Breaking:** `WorkflowService.CreateWorkflow` takes an additional `*bool` alias-policy argument. Pass nil to preserve omission.
+- **Breaking:** Generated release task definitions and worker discovery use `UnboundTaskIdentifier` and `UnboundTaskIdentifiers`. The high-level `TaskIdentifier` interface and `ReleaseContent.Tasks` remain unchanged and unbound.
+
 ## [0.16.0] - 2026-10-13
 
 ### Added

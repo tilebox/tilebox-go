@@ -298,24 +298,25 @@ func (b0 GetJobRequest_builder) Build() *GetJobRequest {
 
 // TaskSummary is a compact representation of a task within a job's task tree.
 type TaskSummary struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id          *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_ParentId    *v1.ID                 `protobuf:"bytes,2,opt,name=parent_id,json=parentId"`
-	xxx_hidden_Display     string                 `protobuf:"bytes,3,opt,name=display"`
-	xxx_hidden_State       TaskState              `protobuf:"varint,4,opt,name=state,enum=workflows.v1.TaskState"`
-	xxx_hidden_SubmittedAt *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=submitted_at,json=submittedAt"`
-	xxx_hidden_StartedAt   *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=started_at,json=startedAt"`
-	xxx_hidden_StoppedAt   *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=stopped_at,json=stoppedAt"`
-	xxx_hidden_Input       []byte                 `protobuf:"bytes,8,opt,name=input"`
-	xxx_hidden_RetryCount  int64                  `protobuf:"varint,9,opt,name=retry_count,json=retryCount"`
-	xxx_hidden_MaxRetries  int64                  `protobuf:"varint,10,opt,name=max_retries,json=maxRetries"`
-	xxx_hidden_HasChildren bool                   `protobuf:"varint,11,opt,name=has_children,json=hasChildren"`
-	xxx_hidden_ClusterSlug string                 `protobuf:"bytes,12,opt,name=cluster_slug,json=clusterSlug"`
-	xxx_hidden_Optional    bool                   `protobuf:"varint,13,opt,name=optional"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                        protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id                *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_ParentId          *v1.ID                 `protobuf:"bytes,2,opt,name=parent_id,json=parentId"`
+	xxx_hidden_Display           string                 `protobuf:"bytes,3,opt,name=display"`
+	xxx_hidden_State             TaskState              `protobuf:"varint,4,opt,name=state,enum=workflows.v1.TaskState"`
+	xxx_hidden_SubmittedAt       *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=submitted_at,json=submittedAt"`
+	xxx_hidden_StartedAt         *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=started_at,json=startedAt"`
+	xxx_hidden_StoppedAt         *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=stopped_at,json=stoppedAt"`
+	xxx_hidden_Input             []byte                 `protobuf:"bytes,8,opt,name=input"`
+	xxx_hidden_RetryCount        int64                  `protobuf:"varint,9,opt,name=retry_count,json=retryCount"`
+	xxx_hidden_MaxRetries        int64                  `protobuf:"varint,10,opt,name=max_retries,json=maxRetries"`
+	xxx_hidden_HasChildren       bool                   `protobuf:"varint,11,opt,name=has_children,json=hasChildren"`
+	xxx_hidden_ClusterSlug       string                 `protobuf:"bytes,12,opt,name=cluster_slug,json=clusterSlug"`
+	xxx_hidden_Optional          bool                   `protobuf:"varint,13,opt,name=optional"`
+	xxx_hidden_WorkflowReference *string                `protobuf:"bytes,14,opt,name=workflow_reference,json=workflowReference"`
+	XXX_raceDetectHookData       protoimpl.RaceDetectHookData
+	XXX_presence                 [1]uint32
+	unknownFields                protoimpl.UnknownFields
+	sizeCache                    protoimpl.SizeCache
 }
 
 func (x *TaskSummary) Reset() {
@@ -434,6 +435,16 @@ func (x *TaskSummary) GetOptional() bool {
 	return false
 }
 
+func (x *TaskSummary) GetWorkflowReference() string {
+	if x != nil {
+		if x.xxx_hidden_WorkflowReference != nil {
+			return *x.xxx_hidden_WorkflowReference
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *TaskSummary) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
@@ -467,7 +478,7 @@ func (x *TaskSummary) SetInput(v []byte) {
 		v = []byte{}
 	}
 	x.xxx_hidden_Input = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 13)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 14)
 }
 
 func (x *TaskSummary) SetRetryCount(v int64) {
@@ -488,6 +499,11 @@ func (x *TaskSummary) SetClusterSlug(v string) {
 
 func (x *TaskSummary) SetOptional(v bool) {
 	x.xxx_hidden_Optional = v
+}
+
+func (x *TaskSummary) SetWorkflowReference(v string) {
+	x.xxx_hidden_WorkflowReference = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 13, 14)
 }
 
 func (x *TaskSummary) HasId() bool {
@@ -532,6 +548,13 @@ func (x *TaskSummary) HasInput() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
 }
 
+func (x *TaskSummary) HasWorkflowReference() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 13)
+}
+
 func (x *TaskSummary) ClearId() {
 	x.xxx_hidden_Id = nil
 }
@@ -555,6 +578,11 @@ func (x *TaskSummary) ClearStoppedAt() {
 func (x *TaskSummary) ClearInput() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
 	x.xxx_hidden_Input = nil
+}
+
+func (x *TaskSummary) ClearWorkflowReference() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 13)
+	x.xxx_hidden_WorkflowReference = nil
 }
 
 type TaskSummary_builder struct {
@@ -586,6 +614,9 @@ type TaskSummary_builder struct {
 	ClusterSlug string
 	// Whether failure of the task is optional, either directly or through an optional ancestor.
 	Optional bool
+	// The remote reference of the task's workflow, owner-local or namespace-qualified as in Workflow.reference.
+	// Absent for unscoped tasks or deleted workflows. Omission does not change the task's stored execution scope.
+	WorkflowReference *string
 }
 
 func (b0 TaskSummary_builder) Build() *TaskSummary {
@@ -600,7 +631,7 @@ func (b0 TaskSummary_builder) Build() *TaskSummary {
 	x.xxx_hidden_StartedAt = b.StartedAt
 	x.xxx_hidden_StoppedAt = b.StoppedAt
 	if b.Input != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 13)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 14)
 		x.xxx_hidden_Input = b.Input
 	}
 	x.xxx_hidden_RetryCount = b.RetryCount
@@ -608,6 +639,10 @@ func (b0 TaskSummary_builder) Build() *TaskSummary {
 	x.xxx_hidden_HasChildren = b.HasChildren
 	x.xxx_hidden_ClusterSlug = b.ClusterSlug
 	x.xxx_hidden_Optional = b.Optional
+	if b.WorkflowReference != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 13, 14)
+		x.xxx_hidden_WorkflowReference = b.WorkflowReference
+	}
 	return m0
 }
 
@@ -1389,16 +1424,17 @@ func (b0 VisualizeJobRequest_builder) Build() *VisualizeJobRequest {
 
 // QueryFilters contains the filters to apply to a query.
 type QueryFilters struct {
-	state                    protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_TimeInterval  *v1.TimeInterval       `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval"`
-	xxx_hidden_IdInterval    *v1.IDInterval         `protobuf:"bytes,2,opt,name=id_interval,json=idInterval"`
-	xxx_hidden_AutomationIds *[]*v1.ID              `protobuf:"bytes,3,rep,name=automation_ids,json=automationIds"`
-	xxx_hidden_States        []JobState             `protobuf:"varint,4,rep,packed,name=states,enum=workflows.v1.JobState"`
-	xxx_hidden_Name          string                 `protobuf:"bytes,5,opt,name=name"`
-	xxx_hidden_TaskStates    []TaskState            `protobuf:"varint,6,rep,packed,name=task_states,json=taskStates,enum=workflows.v1.TaskState"`
-	xxx_hidden_ClusterSlugs  []string               `protobuf:"bytes,7,rep,name=cluster_slugs,json=clusterSlugs"`
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state                         protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_TimeInterval       *v1.TimeInterval       `protobuf:"bytes,1,opt,name=time_interval,json=timeInterval"`
+	xxx_hidden_IdInterval         *v1.IDInterval         `protobuf:"bytes,2,opt,name=id_interval,json=idInterval"`
+	xxx_hidden_AutomationIds      *[]*v1.ID              `protobuf:"bytes,3,rep,name=automation_ids,json=automationIds"`
+	xxx_hidden_States             []JobState             `protobuf:"varint,4,rep,packed,name=states,enum=workflows.v1.JobState"`
+	xxx_hidden_Name               string                 `protobuf:"bytes,5,opt,name=name"`
+	xxx_hidden_TaskStates         []TaskState            `protobuf:"varint,6,rep,packed,name=task_states,json=taskStates,enum=workflows.v1.TaskState"`
+	xxx_hidden_ClusterSlugs       []string               `protobuf:"bytes,7,rep,name=cluster_slugs,json=clusterSlugs"`
+	xxx_hidden_WorkflowReferences []string               `protobuf:"bytes,8,rep,name=workflow_references,json=workflowReferences"`
+	unknownFields                 protoimpl.UnknownFields
+	sizeCache                     protoimpl.SizeCache
 }
 
 func (x *QueryFilters) Reset() {
@@ -1477,6 +1513,13 @@ func (x *QueryFilters) GetClusterSlugs() []string {
 	return nil
 }
 
+func (x *QueryFilters) GetWorkflowReferences() []string {
+	if x != nil {
+		return x.xxx_hidden_WorkflowReferences
+	}
+	return nil
+}
+
 func (x *QueryFilters) SetTimeInterval(v *v1.TimeInterval) {
 	x.xxx_hidden_TimeInterval = v
 }
@@ -1503,6 +1546,10 @@ func (x *QueryFilters) SetTaskStates(v []TaskState) {
 
 func (x *QueryFilters) SetClusterSlugs(v []string) {
 	x.xxx_hidden_ClusterSlugs = v
+}
+
+func (x *QueryFilters) SetWorkflowReferences(v []string) {
+	x.xxx_hidden_WorkflowReferences = v
 }
 
 func (x *QueryFilters) HasTimeInterval() bool {
@@ -1549,6 +1596,9 @@ type QueryFilters_builder struct {
 	TaskStates []TaskState
 	// Filter jobs by their clusters (whether they have tasks on certain clusters).
 	ClusterSlugs []string
+	// Filter jobs having at least one task scoped to any of these workflow references.
+	// Empty means no workflow filter. Unscoped tasks never match.
+	WorkflowReferences []string
 }
 
 func (b0 QueryFilters_builder) Build() *QueryFilters {
@@ -1562,6 +1612,7 @@ func (b0 QueryFilters_builder) Build() *QueryFilters {
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_TaskStates = b.TaskStates
 	x.xxx_hidden_ClusterSlugs = b.ClusterSlugs
+	x.xxx_hidden_WorkflowReferences = b.WorkflowReferences
 	return m0
 }
 
@@ -2458,7 +2509,7 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\flegacy_tasks\x18\x01 \x03(\v2\".workflows.v1.SingleTaskSubmissionB\v\xbaH\x06\x92\x01\x03\x10\xe8\a\x18\x01R\vlegacyTasks:\xab\x01\xbaH\xa7\x01\x1a\xa4\x01\n" +
 	"!submit_job_request.tasks_required\x12$At least one task must be submitted.\x1aY(this.tasks != null && this.tasks.task_groups.size() > 0) || this.legacy_tasks.size() > 0\">\n" +
 	"\rGetJobRequest\x12-\n" +
-	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\"\xa0\x04\n" +
+	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\"\xd6\x04\n" +
 	"\vTaskSummary\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x122\n" +
 	"\tparent_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x05\xaa\x01\x02\b\x01R\bparentId\x12\x18\n" +
@@ -2477,7 +2528,8 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"maxRetries\x12!\n" +
 	"\fhas_children\x18\v \x01(\bR\vhasChildren\x12!\n" +
 	"\fcluster_slug\x18\f \x01(\tR\vclusterSlug\x12\x1a\n" +
-	"\boptional\x18\r \x01(\bR\boptional\":\n" +
+	"\boptional\x18\r \x01(\bR\boptional\x124\n" +
+	"\x12workflow_reference\x18\x0e \x01(\tB\x05\xaa\x01\x02\b\x01R\x11workflowReference\":\n" +
 	"\x17JobTaskChildrenPrefetch\x12\x1f\n" +
 	"\x05limit\x18\x01 \x01(\x03B\t\xbaH\x06\"\x04\x18d(\x01R\x05limit\"\x8f\x02\n" +
 	"\x13ListJobTasksRequest\x12-\n" +
@@ -2503,7 +2555,7 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\x06job_id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x05jobId\x12B\n" +
 	"\x0erender_options\x18\x02 \x01(\v2\x1b.workflows.v1.RenderOptionsR\rrenderOptions\x128\n" +
 	"\x05theme\x18\x03 \x01(\x0e2\".workflows.v1.WorkflowDiagramThemeR\x05theme\x12(\n" +
-	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\x8e\x03\n" +
+	"\x10include_job_name\x18\x04 \x01(\bR\x0eincludeJobName\"\x9b\x05\n" +
 	"\fQueryFilters\x12=\n" +
 	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x127\n" +
 	"\vid_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalR\n" +
@@ -2513,7 +2565,9 @@ const file_workflows_v1_job_proto_rawDesc = "" +
 	"\x04name\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x18dR\x04name\x128\n" +
 	"\vtask_states\x18\x06 \x03(\x0e2\x17.workflows.v1.TaskStateR\n" +
 	"taskStates\x12#\n" +
-	"\rcluster_slugs\x18\a \x03(\tR\fclusterSlugs:#\xbaH \"\x1e\n" +
+	"\rcluster_slugs\x18\a \x03(\tR\fclusterSlugs\x12\x8a\x02\n" +
+	"\x13workflow_references\x18\b \x03(\tB\xd8\x01\xbaH\xd4\x01\x92\x01\xd0\x01\"\xcd\x01\xba\x01\x91\x01\n" +
+	"#workflow_reference.namespace_length\x121workflow namespace must be at most 100 characters\x1a7!this.contains(':') || this.split(':')[0].size() <= 100r6\x10\x01\x18\xc9\x012/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z0-9-]{1,100}$R\x12workflowReferences:#\xbaH \"\x1e\n" +
 	"\rtime_interval\n" +
 	"\vid_interval\x10\x00\"\xbd\x01\n" +
 	"\x10QueryJobsRequest\x124\n" +

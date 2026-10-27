@@ -82,7 +82,9 @@ var (
 // WorkerServiceClient is a client for the workflows.v1.WorkerService service.
 type WorkerServiceClient interface {
 	// ListRegisteredTasks is called by the runner to discover the task identifiers that a worker runtime can execute.
-	ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.TaskIdentifiers, error)
+	// These are local task definitions without workflow IDs. The managed runner binds them to its deployed workflow
+	// and adds any enabled legacy aliases when advertising capabilities to the task service.
+	ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.UnboundTaskIdentifiers, error)
 	// InitializeWorker is called by the runner to initialize a worker runtime with some known metadata about the
 	// runner. This allows us to add those metadata to any logs and traces emitted by the worker.
 	InitializeWorker(context.Context, *v1.InitializeRunnerRequest) (*v1.InitializeRunnerResponse, error)
@@ -90,6 +92,11 @@ type WorkerServiceClient interface {
 	// task, and then respond with the result of the task execution, which can either be a computed task, or a failed
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
+	// The runner preserves the executing task's scope. Workers dispatch by local name/version and resolve child scopes
+	// before returning them, defaulting to the executing task's scope rather than the release's workflow ID.
+	// During migration, the managed runner fills missing child workflow IDs from the executing task's scope for legacy
+	// workers, preserving explicit IDs. An explicit unscoped child of a scoped task cannot be expressed through this
+	// adapter; it must be removed before supporting that override. The task service does not perform inheritance.
 	ExecuteTask(context.Context, *v1.Task) (*v1.ExecuteTaskResponse, error)
 	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
 	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
@@ -138,7 +145,9 @@ func (s WorkerServiceWatchLogsClientStream) Close() error {
 // WorkerServiceHandler is an implementation of the workflows.v1.WorkerService service.
 type WorkerServiceHandler interface {
 	// ListRegisteredTasks is called by the runner to discover the task identifiers that a worker runtime can execute.
-	ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.TaskIdentifiers, error)
+	// These are local task definitions without workflow IDs. The managed runner binds them to its deployed workflow
+	// and adds any enabled legacy aliases when advertising capabilities to the task service.
+	ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.UnboundTaskIdentifiers, error)
 	// InitializeWorker is called by the runner to initialize a worker runtime with some known metadata about the
 	// runner. This allows us to add those metadata to any logs and traces emitted by the worker.
 	InitializeWorker(context.Context, *v1.InitializeRunnerRequest) (*v1.InitializeRunnerResponse, error)
@@ -146,6 +155,11 @@ type WorkerServiceHandler interface {
 	// task, and then respond with the result of the task execution, which can either be a computed task, or a failed
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
+	// The runner preserves the executing task's scope. Workers dispatch by local name/version and resolve child scopes
+	// before returning them, defaulting to the executing task's scope rather than the release's workflow ID.
+	// During migration, the managed runner fills missing child workflow IDs from the executing task's scope for legacy
+	// workers, preserving explicit IDs. An explicit unscoped child of a scoped task cannot be expressed through this
+	// adapter; it must be removed before supporting that override. The task service does not perform inheritance.
 	ExecuteTask(context.Context, *v1.Task) (*v1.ExecuteTaskResponse, error)
 	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
 	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
@@ -196,7 +210,7 @@ func (s WorkerServiceWatchLogsServerStream) Send(res *v11.LogRecord) error {
 // UnimplementedWorkerServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedWorkerServiceHandler struct{}
 
-func (UnimplementedWorkerServiceHandler) ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.TaskIdentifiers, error) {
+func (UnimplementedWorkerServiceHandler) ListRegisteredTasks(context.Context, *emptypb.Empty) (*v1.UnboundTaskIdentifiers, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.WorkerService.ListRegisteredTasks is not implemented")
 }
 
@@ -220,8 +234,8 @@ type workerServiceClient struct {
 	client *connect.Client
 }
 
-func (c *workerServiceClient) ListRegisteredTasks(ctx context.Context, req *emptypb.Empty) (*v1.TaskIdentifiers, error) {
-	var res v1.TaskIdentifiers
+func (c *workerServiceClient) ListRegisteredTasks(ctx context.Context, req *emptypb.Empty) (*v1.UnboundTaskIdentifiers, error) {
+	var res v1.UnboundTaskIdentifiers
 	if err := c.client.CallUnary(ctx, workerServiceListRegisteredTasksSpec(), req, &res); err != nil {
 		return nil, err
 	}

@@ -35,7 +35,9 @@ const (
 // WorkerService defines the RPC interface between a runner and a a worker runtime that can execute workflow tasks.
 type WorkerServiceClient interface {
 	// ListRegisteredTasks is called by the runner to discover the task identifiers that a worker runtime can execute.
-	ListRegisteredTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*TaskIdentifiers, error)
+	// These are local task definitions without workflow IDs. The managed runner binds them to its deployed workflow
+	// and adds any enabled legacy aliases when advertising capabilities to the task service.
+	ListRegisteredTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UnboundTaskIdentifiers, error)
 	// InitializeWorker is called by the runner to initialize a worker runtime with some known metadata about the
 	// runner. This allows us to add those metadata to any logs and traces emitted by the worker.
 	InitializeWorker(ctx context.Context, in *InitializeRunnerRequest, opts ...grpc.CallOption) (*InitializeRunnerResponse, error)
@@ -43,6 +45,11 @@ type WorkerServiceClient interface {
 	// task, and then respond with the result of the task execution, which can either be a computed task, or a failed
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
+	// The runner preserves the executing task's scope. Workers dispatch by local name/version and resolve child scopes
+	// before returning them, defaulting to the executing task's scope rather than the release's workflow ID.
+	// During migration, the managed runner fills missing child workflow IDs from the executing task's scope for legacy
+	// workers, preserving explicit IDs. An explicit unscoped child of a scoped task cannot be expressed through this
+	// adapter; it must be removed before supporting that override. The task service does not perform inheritance.
 	ExecuteTask(ctx context.Context, in *Task, opts ...grpc.CallOption) (*ExecuteTaskResponse, error)
 	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
 	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
@@ -70,9 +77,9 @@ func NewWorkerServiceClient(cc grpc.ClientConnInterface) WorkerServiceClient {
 	return &workerServiceClient{cc}
 }
 
-func (c *workerServiceClient) ListRegisteredTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*TaskIdentifiers, error) {
+func (c *workerServiceClient) ListRegisteredTasks(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UnboundTaskIdentifiers, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(TaskIdentifiers)
+	out := new(UnboundTaskIdentifiers)
 	err := c.cc.Invoke(ctx, WorkerService_ListRegisteredTasks_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -136,7 +143,9 @@ func (c *workerServiceClient) ShutdownWorker(ctx context.Context, in *emptypb.Em
 // WorkerService defines the RPC interface between a runner and a a worker runtime that can execute workflow tasks.
 type WorkerServiceServer interface {
 	// ListRegisteredTasks is called by the runner to discover the task identifiers that a worker runtime can execute.
-	ListRegisteredTasks(context.Context, *emptypb.Empty) (*TaskIdentifiers, error)
+	// These are local task definitions without workflow IDs. The managed runner binds them to its deployed workflow
+	// and adds any enabled legacy aliases when advertising capabilities to the task service.
+	ListRegisteredTasks(context.Context, *emptypb.Empty) (*UnboundTaskIdentifiers, error)
 	// InitializeWorker is called by the runner to initialize a worker runtime with some known metadata about the
 	// runner. This allows us to add those metadata to any logs and traces emitted by the worker.
 	InitializeWorker(context.Context, *InitializeRunnerRequest) (*InitializeRunnerResponse, error)
@@ -144,6 +153,11 @@ type WorkerServiceServer interface {
 	// task, and then respond with the result of the task execution, which can either be a computed task, or a failed
 	// task. If the worker runtime crashes or becomes unreachable during task execution, the runner will treat the task
 	// as failed with an unknown error.
+	// The runner preserves the executing task's scope. Workers dispatch by local name/version and resolve child scopes
+	// before returning them, defaulting to the executing task's scope rather than the release's workflow ID.
+	// During migration, the managed runner fills missing child workflow IDs from the executing task's scope for legacy
+	// workers, preserving explicit IDs. An explicit unscoped child of a scoped task cannot be expressed through this
+	// adapter; it must be removed before supporting that override. The task service does not perform inheritance.
 	ExecuteTask(context.Context, *Task) (*ExecuteTaskResponse, error)
 	// WatchLogs streams structured runtime logs to the local runner, independently of API log exports and raw
 	// stdout/stderr. It is available before workflow import completes and before InitializeWorker is called.
@@ -171,7 +185,7 @@ type WorkerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedWorkerServiceServer struct{}
 
-func (UnimplementedWorkerServiceServer) ListRegisteredTasks(context.Context, *emptypb.Empty) (*TaskIdentifiers, error) {
+func (UnimplementedWorkerServiceServer) ListRegisteredTasks(context.Context, *emptypb.Empty) (*UnboundTaskIdentifiers, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListRegisteredTasks not implemented")
 }
 func (UnimplementedWorkerServiceServer) InitializeWorker(context.Context, *InitializeRunnerRequest) (*InitializeRunnerResponse, error) {

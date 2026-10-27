@@ -33,6 +33,9 @@ const (
 	// TelemetryQueryServiceGetLogMessageCountsProcedure is the procedure name of the
 	// TelemetryQueryService's GetLogMessageCounts RPC.
 	TelemetryQueryServiceGetLogMessageCountsProcedure = "/workflows.v1.TelemetryQueryService/GetLogMessageCounts"
+	// TelemetryQueryServiceGetJobLogMessageCountsProcedure is the procedure name of the
+	// TelemetryQueryService's GetJobLogMessageCounts RPC.
+	TelemetryQueryServiceGetJobLogMessageCountsProcedure = "/workflows.v1.TelemetryQueryService/GetJobLogMessageCounts"
 	// TelemetryQueryServiceQueryJobSpansProcedure is the procedure name of the TelemetryQueryService's
 	// QueryJobSpans RPC.
 	TelemetryQueryServiceQueryJobSpansProcedure = "/workflows.v1.TelemetryQueryService/QueryJobSpans"
@@ -60,6 +63,13 @@ var (
 			Procedure:  TelemetryQueryServiceGetLogMessageCountsProcedure,
 		}
 	})
+	telemetryQueryServiceGetJobLogMessageCountsSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_telemetry_proto.Services().ByName("TelemetryQueryService").Methods().ByName("GetJobLogMessageCounts"),
+			Procedure:  TelemetryQueryServiceGetJobLogMessageCountsProcedure,
+		}
+	})
 	telemetryQueryServiceQueryJobSpansSpec = sync.OnceValue(func() connect.Spec {
 		return connect.Spec{
 			StreamType: connect.StreamTypeUnary,
@@ -74,6 +84,7 @@ type TelemetryQueryServiceClient interface {
 	QueryJobLogs(context.Context, *v1.QueryJobLogsRequest) (*v1.PaginatedLogsData, error)
 	QueryLogsInInterval(context.Context, *v1.QueryLogsInIntervalRequest) (*v1.PaginatedLogsData, error)
 	GetLogMessageCounts(context.Context, *v1.GetLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error)
+	GetJobLogMessageCounts(context.Context, *v1.GetJobLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error)
 	QueryJobSpans(context.Context, *v1.QueryJobSpansRequest) (*v1.PaginatedSpansData, error)
 }
 
@@ -89,6 +100,7 @@ type TelemetryQueryServiceHandler interface {
 	QueryJobLogs(context.Context, *v1.QueryJobLogsRequest) (*v1.PaginatedLogsData, error)
 	QueryLogsInInterval(context.Context, *v1.QueryLogsInIntervalRequest) (*v1.PaginatedLogsData, error)
 	GetLogMessageCounts(context.Context, *v1.GetLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error)
+	GetJobLogMessageCounts(context.Context, *v1.GetJobLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error)
 	QueryJobSpans(context.Context, *v1.QueryJobSpansRequest) (*v1.PaginatedSpansData, error)
 }
 
@@ -100,6 +112,7 @@ func RegisterTelemetryQueryServiceHandler(server *connect.Server, svc TelemetryQ
 		connect.Method{Spec: telemetryQueryServiceQueryJobLogsSpec(), Handler: adapter.queryJobLogs},
 		connect.Method{Spec: telemetryQueryServiceQueryLogsInIntervalSpec(), Handler: adapter.queryLogsInInterval},
 		connect.Method{Spec: telemetryQueryServiceGetLogMessageCountsSpec(), Handler: adapter.getLogMessageCounts},
+		connect.Method{Spec: telemetryQueryServiceGetJobLogMessageCountsSpec(), Handler: adapter.getJobLogMessageCounts},
 		connect.Method{Spec: telemetryQueryServiceQueryJobSpansSpec(), Handler: adapter.queryJobSpans},
 	)
 }
@@ -117,6 +130,10 @@ func (UnimplementedTelemetryQueryServiceHandler) QueryLogsInInterval(context.Con
 
 func (UnimplementedTelemetryQueryServiceHandler) GetLogMessageCounts(context.Context, *v1.GetLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.TelemetryQueryService.GetLogMessageCounts is not implemented")
+}
+
+func (UnimplementedTelemetryQueryServiceHandler) GetJobLogMessageCounts(context.Context, *v1.GetJobLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.TelemetryQueryService.GetJobLogMessageCounts is not implemented")
 }
 
 func (UnimplementedTelemetryQueryServiceHandler) QueryJobSpans(context.Context, *v1.QueryJobSpansRequest) (*v1.PaginatedSpansData, error) {
@@ -146,6 +163,14 @@ func (c *telemetryQueryServiceClient) QueryLogsInInterval(ctx context.Context, r
 func (c *telemetryQueryServiceClient) GetLogMessageCounts(ctx context.Context, req *v1.GetLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error) {
 	var res v1.GetLogMessageCountsResponse
 	if err := c.client.CallUnary(ctx, telemetryQueryServiceGetLogMessageCountsSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *telemetryQueryServiceClient) GetJobLogMessageCounts(ctx context.Context, req *v1.GetJobLogMessageCountsRequest) (*v1.GetLogMessageCountsResponse, error) {
+	var res v1.GetLogMessageCountsResponse
+	if err := c.client.CallUnary(ctx, telemetryQueryServiceGetJobLogMessageCountsSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -191,6 +216,18 @@ func (h telemetryQueryServiceHandler) getLogMessageCounts(ctx context.Context, _
 		return err
 	}
 	res, err := h.svc.GetLogMessageCounts(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h telemetryQueryServiceHandler) getJobLogMessageCounts(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetJobLogMessageCountsRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetJobLogMessageCounts(ctx, &req)
 	if err != nil {
 		return err
 	}

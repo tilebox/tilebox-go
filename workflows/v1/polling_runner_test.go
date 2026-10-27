@@ -18,6 +18,50 @@ import (
 	"google.golang.org/protobuf/types/known/durationpb"
 )
 
+func TestPollingTaskRunnerPreservesWorkflowScopes(t *testing.T) {
+	workflowA, workflowB, taskID := uuid.New(), uuid.New(), uuid.New()
+	identifiers := []*workflowsv1.TaskIdentifier{
+		workflowsv1.TaskIdentifier_builder{Name: "Process", Version: "v1.3", WorkflowId: tileboxv1.NewUUID(workflowA)}.Build(),
+		workflowsv1.TaskIdentifier_builder{Name: "Process", Version: "v1.3", WorkflowId: tileboxv1.NewUUID(workflowB)}.Build(),
+		workflowsv1.TaskIdentifier_builder{Name: "Process", Version: "v1.3"}.Build(),
+	}
+	task := workflowsv1.Task_builder{
+		Id: tileboxv1.NewUUID(taskID), Identifier: identifiers[0],
+		State: workflowsv1.TaskState_TASK_STATE_RUNNING,
+		Lease: workflowsv1.TaskLease_builder{
+			Lease: durationpb.New(5 * time.Minute), RecommendedWaitUntilNextExtension: durationpb.New(5 * time.Minute),
+		}.Build(),
+	}.Build()
+	computed := workflowsv1.ComputedTask_builder{
+		Id: tileboxv1.NewUUID(taskID),
+		SubTasks: workflowsv1.TaskSubmissions_builder{
+			IdentifierLookup: identifiers, ClusterSlugLookup: []string{"default"}, DisplayLookup: []string{"Process"},
+			TaskGroups: []*workflowsv1.TaskSubmissionGroup{workflowsv1.TaskSubmissionGroup_builder{
+				Inputs:             [][]byte{[]byte("a"), []byte("b"), []byte("unscoped")},
+				IdentifierPointers: []uint64{0, 1, 2}, ClusterSlugPointers: []uint64{0, 0, 0}, DisplayPointers: []uint64{0, 0, 0},
+				MaxRetriesValues: []int64{0, 0, 0}, OptionalValues: []bool{false, false, false},
+			}.Build()},
+		}.Build(),
+	}.Build()
+	wantTask, wantComputed := proto.CloneOf(task), proto.CloneOf(computed)
+	service := &requestErrorTaskService{nextTask: task}
+	executor := &failedResponseExecutor{
+		identifiers: identifiers,
+		response:    workflowsv1.ExecuteTaskResponse_builder{ComputedTask: computed}.Build(),
+	}
+	runner := NewPollingTaskRunner(service, "default", executor, slog.New(slog.DiscardHandler))
+	require.NoError(t, runner.RunAll(t.Context()))
+	require.NotEmpty(t, service.nextTaskRequests)
+	advertised := service.nextTaskRequests[0].GetIdentifiers()
+	require.Len(t, advertised, 3)
+	for i, identifier := range wantComputed.GetSubTasks().GetIdentifierLookup() {
+		assert.True(t, proto.Equal(identifier, advertised[i]))
+	}
+	assert.True(t, proto.Equal(wantTask, executor.executedTask))
+	require.Len(t, service.computedTasks, 1)
+	assert.True(t, proto.Equal(wantComputed, service.computedTasks[0]), "polling must not resolve or drop child scopes")
+}
+
 func TestPollingTaskRunnerReportsExecutorReturnedFailedTaskAsIs(t *testing.T) {
 	taskID := uuid.New()
 	taskDisplay := "Python task"
@@ -310,16 +354,22 @@ func TestPollingTaskRunnerResetsTaskFailedAfterMaxRetryableErrors(t *testing.T) 
 }
 
 type failedResponseExecutor struct {
-	response *workflowsv1.ExecuteTaskResponse
+	response     *workflowsv1.ExecuteTaskResponse
+	identifiers  []*workflowsv1.TaskIdentifier
+	executedTask *workflowsv1.Task
 }
 
 func (e *failedResponseExecutor) TaskIdentifiers() []*workflowsv1.TaskIdentifier {
+	if e.identifiers != nil {
+		return e.identifiers
+	}
 	return []*workflowsv1.TaskIdentifier{
 		workflowsv1.TaskIdentifier_builder{Name: "python.Task", Version: "v1.0"}.Build(),
 	}
 }
 
-func (e *failedResponseExecutor) ExecuteTask(context.Context, *workflowsv1.Task) (*workflowsv1.ExecuteTaskResponse, error) {
+func (e *failedResponseExecutor) ExecuteTask(_ context.Context, task *workflowsv1.Task) (*workflowsv1.ExecuteTaskResponse, error) {
+	e.executedTask = proto.CloneOf(task)
 	return e.response, nil
 }
 
