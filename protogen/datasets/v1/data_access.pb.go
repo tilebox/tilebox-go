@@ -706,6 +706,8 @@ func (b0 LogicalExpression_builder) Build() *LogicalExpression {
 // Every comparison evaluates to null (unknown) when the field is absent or explicitly null, including NOT_EQUAL.
 // Consequently, both `field != value` and `NOT(field == value)` require the field to be present. To include absent or
 // null fields, explicitly combine the comparison with FieldNullCheck using OR.
+// Enum fields support only EQUAL and NOT_EQUAL. Use a LogicalExpression with OR over equality comparisons to match
+// any of several members. Unknown enum values, numeric enum literals, and ordering comparisons are invalid arguments.
 type FieldComparison struct {
 	state                protoimpl.MessageState  `protogen:"opaque.v1"`
 	xxx_hidden_FieldName string                  `protobuf:"bytes,1,opt,name=field_name,json=fieldName"`
@@ -791,7 +793,8 @@ type FieldComparison_builder struct {
 	FieldName string
 	// Comparison operation to apply.
 	Operator FieldComparisonOperator
-	// Literal value. Its kind must match the field's protobuf descriptor.
+	// Literal value, interpreted using the field's schema. For custom enums, use string_value with a value from
+	// FieldAnnotation.enum_values.
 	Value *FieldQueryValue
 }
 
@@ -876,7 +879,6 @@ type FieldQueryValue struct {
 	xxx_hidden_StringValue    *string                `protobuf:"bytes,5,opt,name=string_value,json=stringValue"`
 	xxx_hidden_TimestampValue *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=timestamp_value,json=timestampValue"`
 	xxx_hidden_DurationValue  *durationpb.Duration   `protobuf:"bytes,7,opt,name=duration_value,json=durationValue"`
-	xxx_hidden_EnumName       *string                `protobuf:"bytes,8,opt,name=enum_name,json=enumName"`
 	xxx_hidden_BytesValue     []byte                 `protobuf:"bytes,9,opt,name=bytes_value,json=bytesValue"`
 	XXX_raceDetectHookData    protoimpl.RaceDetectHookData
 	XXX_presence              [1]uint32
@@ -961,16 +963,6 @@ func (x *FieldQueryValue) GetDurationValue() *durationpb.Duration {
 	return nil
 }
 
-func (x *FieldQueryValue) GetEnumName() string {
-	if x != nil {
-		if x.xxx_hidden_EnumName != nil {
-			return *x.xxx_hidden_EnumName
-		}
-		return ""
-	}
-	return ""
-}
-
 func (x *FieldQueryValue) GetBytesValue() []byte {
 	if x != nil {
 		return x.xxx_hidden_BytesValue
@@ -980,27 +972,27 @@ func (x *FieldQueryValue) GetBytesValue() []byte {
 
 func (x *FieldQueryValue) SetBoolValue(v bool) {
 	x.xxx_hidden_BoolValue = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
 }
 
 func (x *FieldQueryValue) SetInt64Value(v int64) {
 	x.xxx_hidden_Int64Value = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
 }
 
 func (x *FieldQueryValue) SetUint64Value(v uint64) {
 	x.xxx_hidden_Uint64Value = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 8)
 }
 
 func (x *FieldQueryValue) SetDoubleValue(v float64) {
 	x.xxx_hidden_DoubleValue = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
 }
 
 func (x *FieldQueryValue) SetStringValue(v string) {
 	x.xxx_hidden_StringValue = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
 }
 
 func (x *FieldQueryValue) SetTimestampValue(v *timestamppb.Timestamp) {
@@ -1011,17 +1003,12 @@ func (x *FieldQueryValue) SetDurationValue(v *durationpb.Duration) {
 	x.xxx_hidden_DurationValue = v
 }
 
-func (x *FieldQueryValue) SetEnumName(v string) {
-	x.xxx_hidden_EnumName = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 9)
-}
-
 func (x *FieldQueryValue) SetBytesValue(v []byte) {
 	if v == nil {
 		v = []byte{}
 	}
 	x.xxx_hidden_BytesValue = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 8, 9)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 8)
 }
 
 func (x *FieldQueryValue) HasBoolValue() bool {
@@ -1073,18 +1060,11 @@ func (x *FieldQueryValue) HasDurationValue() bool {
 	return x.xxx_hidden_DurationValue != nil
 }
 
-func (x *FieldQueryValue) HasEnumName() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
-}
-
 func (x *FieldQueryValue) HasBytesValue() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 8)
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
 }
 
 func (x *FieldQueryValue) ClearBoolValue() {
@@ -1120,13 +1100,8 @@ func (x *FieldQueryValue) ClearDurationValue() {
 	x.xxx_hidden_DurationValue = nil
 }
 
-func (x *FieldQueryValue) ClearEnumName() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
-	x.xxx_hidden_EnumName = nil
-}
-
 func (x *FieldQueryValue) ClearBytesValue() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 8)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
 	x.xxx_hidden_BytesValue = nil
 }
 
@@ -1134,16 +1109,17 @@ type FieldQueryValue_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// Exactly one typed literal must be set. Explicit presence preserves zero and empty values.
-	BoolValue      *bool
-	Int64Value     *int64
-	Uint64Value    *uint64
-	DoubleValue    *float64
+	BoolValue   *bool
+	Int64Value  *int64
+	Uint64Value *uint64
+	DoubleValue *float64
+	// Text for a string field, or a value from FieldAnnotation.enum_values for a custom enum, e.g. "L1".
+	// The server resolves enum values to their numbers. Matching is case-sensitive; unknown values are rejected.
+	// Generated protobuf names are not accepted here unless they are also declared public values.
 	StringValue    *string
 	TimestampValue *timestamppb.Timestamp
 	DurationValue  *durationpb.Duration
-	// Symbolic value from the field's enum descriptor.
-	EnumName   *string
-	BytesValue []byte
+	BytesValue     []byte
 }
 
 func (b0 FieldQueryValue_builder) Build() *FieldQueryValue {
@@ -1151,33 +1127,29 @@ func (b0 FieldQueryValue_builder) Build() *FieldQueryValue {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.BoolValue != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
 		x.xxx_hidden_BoolValue = *b.BoolValue
 	}
 	if b.Int64Value != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
 		x.xxx_hidden_Int64Value = *b.Int64Value
 	}
 	if b.Uint64Value != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 8)
 		x.xxx_hidden_Uint64Value = *b.Uint64Value
 	}
 	if b.DoubleValue != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
 		x.xxx_hidden_DoubleValue = *b.DoubleValue
 	}
 	if b.StringValue != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
 		x.xxx_hidden_StringValue = b.StringValue
 	}
 	x.xxx_hidden_TimestampValue = b.TimestampValue
 	x.xxx_hidden_DurationValue = b.DurationValue
-	if b.EnumName != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 9)
-		x.xxx_hidden_EnumName = b.EnumName
-	}
 	if b.BytesValue != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 8, 9)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 8)
 		x.xxx_hidden_BytesValue = b.BytesValue
 	}
 	return m0
@@ -1576,7 +1548,7 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\x05value\x18\x03 \x01(\v2\x1c.datasets.v1.FieldQueryValueB\x06\xbaH\x03\xc8\x01\x01R\x05value\"M\n" +
 	"\x0eFieldNullCheck\x12;\n" +
 	"\n" +
-	"field_name\x18\x01 \x01(\tB\x1c\xbaH\x19r\x17\x10\x01\x18d2\x11^[a-z][a-z0-9_]*$R\tfieldName\"\xb7\x04\n" +
+	"field_name\x18\x01 \x01(\tB\x1c\xbaH\x19r\x17\x10\x01\x18d2\x11^[a-z][a-z0-9_]*$R\tfieldName\"\x97\x04\n" +
 	"\x0fFieldQueryValue\x12$\n" +
 	"\n" +
 	"bool_value\x18\x01 \x01(\bB\x05\xaa\x01\x02\b\x01R\tboolValue\x12&\n" +
@@ -1586,10 +1558,9 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\fdouble_value\x18\x04 \x01(\x01B\x05\xaa\x01\x02\b\x01R\vdoubleValue\x12(\n" +
 	"\fstring_value\x18\x05 \x01(\tB\x05\xaa\x01\x02\b\x01R\vstringValue\x12C\n" +
 	"\x0ftimestamp_value\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\x0etimestampValue\x12@\n" +
-	"\x0eduration_value\x18\a \x01(\v2\x19.google.protobuf.DurationR\rdurationValue\x12\"\n" +
-	"\tenum_name\x18\b \x01(\tB\x05\xaa\x01\x02\b\x01R\benumName\x12&\n" +
+	"\x0eduration_value\x18\a \x01(\v2\x19.google.protobuf.DurationR\rdurationValue\x12&\n" +
 	"\vbytes_value\x18\t \x01(\fB\x05\xaa\x01\x02\b\x01R\n" +
-	"bytesValue:\x84\x01\xbaH\x80\x01\"~\n" +
+	"bytesValue:x\xbaHu\"s\n" +
 	"\n" +
 	"bool_value\n" +
 	"\vint64_value\n" +
@@ -1598,8 +1569,7 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\fstring_value\n" +
 	"\x0ftimestamp_value\n" +
 	"\x0eduration_value\n" +
-	"\tenum_name\n" +
-	"\vbytes_value\x10\x01\"\xe5\x01\n" +
+	"\vbytes_value\x10\x01J\x04\b\b\x10\tR\tenum_name\"\xe5\x01\n" +
 	"\rSpatialFilter\x129\n" +
 	"\bgeometry\x18\x01 \x01(\v2\x15.datasets.v1.GeometryB\x06\xbaH\x03\xc8\x01\x01R\bgeometry\x12<\n" +
 	"\x04mode\x18\x02 \x01(\x0e2\x1e.datasets.v1.SpatialFilterModeB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04mode\x12[\n" +

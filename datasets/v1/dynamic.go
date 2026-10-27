@@ -30,6 +30,7 @@ type DatapointDescriptor struct {
 	// MessageDescriptor is the protobuf message descriptor for datapoints in a dataset.
 	MessageDescriptor protoreflect.MessageDescriptor
 	resolver          *dynamicpb.Types
+	enumValues        map[protoreflect.FieldNumber]map[protoreflect.EnumNumber]string
 }
 
 // NewDatapointDescriptor creates a reusable datapoint descriptor from a loaded dataset.
@@ -44,7 +45,7 @@ func NewDatapointDescriptor(dataset *Dataset) (*DatapointDescriptor, error) {
 		return nil, fmt.Errorf("failed to build dataset protobuf descriptors: %w", err)
 	}
 
-	messageFullName, err := datasetMessageFullName(dataset.Type.GetDescriptorSet())
+	messageFullName, err := datasetMessageFullName(dataset.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -57,10 +58,77 @@ func NewDatapointDescriptor(dataset *Dataset) (*DatapointDescriptor, error) {
 		return nil, fmt.Errorf("dataset protobuf descriptor %q is not a message descriptor", messageFullName)
 	}
 
+	enumValues, err := customEnumValues(messageDescriptor, dataset.Type.GetFieldAnnotations())
+	if err != nil {
+		return nil, err
+	}
+
 	return &DatapointDescriptor{
 		MessageDescriptor: messageDescriptor,
 		resolver:          dynamicpb.NewTypes(files),
+		enumValues:        enumValues,
 	}, nil
+}
+
+// EnumNumber resolves a custom enum's public value to its protobuf number for ingestion.
+// Field names are protobuf field names. Matching is case-sensitive; generated symbols
+// and the reserved zero member are not public values. Repeated enum fields use the same lookup.
+func (d *DatapointDescriptor) EnumNumber(fieldName, value string) (protoreflect.EnumNumber, error) {
+	if d == nil || d.MessageDescriptor == nil {
+		return 0, errors.New("datapoint descriptor is required")
+	}
+	field := d.MessageDescriptor.Fields().ByName(protoreflect.Name(fieldName))
+	if field == nil || d.enumValues[field.Number()] == nil {
+		return 0, fmt.Errorf("field %q is not a custom enum", fieldName)
+	}
+	for number, publicValue := range d.enumValues[field.Number()] {
+		if publicValue == value {
+			return number, nil
+		}
+	}
+	return 0, fmt.Errorf("field %q: unknown custom enum value %q", fieldName, value)
+}
+
+func customEnumValues(message protoreflect.MessageDescriptor, annotations []*datasetsv1.FieldAnnotation) (map[protoreflect.FieldNumber]map[protoreflect.EnumNumber]string, error) {
+	result := make(map[protoreflect.FieldNumber]map[protoreflect.EnumNumber]string)
+	for i, annotation := range annotations {
+		values := annotation.GetEnumValues()
+		if len(values) == 0 {
+			continue
+		}
+		if len(annotations) != message.Fields().Len() {
+			return nil, errors.New("custom enum annotations must align with datapoint fields")
+		}
+		field := message.Fields().Get(i)
+		if field.Kind() != protoreflect.EnumKind {
+			return nil, fmt.Errorf("field %q has custom enum values but is not an enum", field.Name())
+		}
+		members := field.Enum().Values()
+		mapping := make(map[protoreflect.EnumNumber]string, len(values))
+		seen := make(map[string]bool, len(values))
+		index := 0
+		for j := range members.Len() {
+			number := members.Get(j).Number()
+			if number == 0 {
+				continue
+			}
+			if index >= len(values) {
+				return nil, fmt.Errorf("field %q: enum annotations do not match descriptor members", field.Name())
+			}
+			value := values[index].GetValue()
+			if value == "" || seen[value] {
+				return nil, fmt.Errorf("field %q: custom enum values must be nonempty and unique", field.Name())
+			}
+			mapping[number] = value
+			seen[value] = true
+			index++
+		}
+		if index != len(values) {
+			return nil, fmt.Errorf("field %q: enum annotations do not match descriptor members", field.Name())
+		}
+		result[field.Number()] = mapping
+	}
+	return result, nil
 }
 
 // DatapointDecoder decodes raw protobuf datapoints into JSON-like maps.
@@ -81,6 +149,8 @@ type DatapointDecoder struct {
 }
 
 // UnmarshalDatapoint decodes raw protobuf datapoint bytes into a JSON-like map.
+// Custom enums become their public string values. Missing fields are omitted;
+// custom enum numbers without a public value, including zero, return an error.
 func UnmarshalDatapoint(descriptor *DatapointDescriptor, data []byte) (map[string]any, error) {
 	return DatapointDecoder{}.Unmarshal(descriptor, data)
 }
@@ -116,7 +186,7 @@ func (d DatapointDecoder) Unmarshal(descriptor *DatapointDescriptor, data []byte
 	if err := json.Unmarshal(jsonData, &datapoint); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal datapoint JSON: %w", err)
 	}
-	if err := convertSpecialTypes(descriptor.MessageDescriptor, datapoint); err != nil {
+	if err := convertSpecialTypes(descriptor, datapoint); err != nil {
 		return nil, err
 	}
 	return datapoint, nil
@@ -168,8 +238,16 @@ func descriptorSetWithDependencies(datasetDescriptorSet *descriptorpb.FileDescri
 	return descriptorSet
 }
 
-func datasetMessageFullName(descriptorSet *descriptorpb.FileDescriptorSet) (protoreflect.FullName, error) {
-	for _, file := range descriptorSet.GetFile() {
+func datasetMessageFullName(annotatedType *datasetsv1.AnnotatedType) (protoreflect.FullName, error) {
+	if typeURL := annotatedType.GetTypeUrl(); typeURL != "" {
+		name := protoreflect.FullName(typeURL[strings.LastIndexByte(typeURL, '/')+1:])
+		if !name.IsValid() {
+			return "", fmt.Errorf("invalid dataset type URL %q", typeURL)
+		}
+		return name, nil
+	}
+	// Older dataset descriptors may omit type_url.
+	for _, file := range annotatedType.GetDescriptorSet().GetFile() {
 		if len(file.GetMessageType()) == 0 {
 			continue
 		}
@@ -186,8 +264,8 @@ func datasetMessageFullName(descriptorSet *descriptorpb.FileDescriptorSet) (prot
 	return "", errors.New("dataset protobuf descriptor does not include a message type")
 }
 
-func convertSpecialTypes(descriptor protoreflect.MessageDescriptor, datapoint map[string]any) error {
-	fields := descriptor.Fields()
+func convertSpecialTypes(descriptor *DatapointDescriptor, datapoint map[string]any) error {
+	fields := descriptor.MessageDescriptor.Fields()
 	for i := range fields.Len() {
 		field := fields.Get(i)
 		if field.IsMap() || (field.Kind() != protoreflect.MessageKind && field.Kind() != protoreflect.EnumKind) {
@@ -200,7 +278,7 @@ func convertSpecialTypes(descriptor protoreflect.MessageDescriptor, datapoint ma
 			continue
 		}
 
-		converted, err := convertSpecialType(field, value)
+		converted, err := convertSpecialType(field, value, descriptor.enumValues[field.Number()])
 		if err != nil {
 			return fmt.Errorf("failed to convert field %q: %w", name, err)
 		}
@@ -209,7 +287,7 @@ func convertSpecialTypes(descriptor protoreflect.MessageDescriptor, datapoint ma
 	return nil
 }
 
-func convertSpecialType(field protoreflect.FieldDescriptor, value any) (any, error) {
+func convertSpecialType(field protoreflect.FieldDescriptor, value any, enumValues map[protoreflect.EnumNumber]string) (any, error) {
 	if field.IsList() {
 		values, ok := value.([]any)
 		if !ok {
@@ -218,7 +296,7 @@ func convertSpecialType(field protoreflect.FieldDescriptor, value any) (any, err
 
 		converted := make([]any, len(values))
 		for i, item := range values {
-			convertedItem, err := convertSpecialScalar(field, item)
+			convertedItem, err := convertSpecialScalar(field, item, enumValues)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert item %d: %w", i, err)
 			}
@@ -227,12 +305,12 @@ func convertSpecialType(field protoreflect.FieldDescriptor, value any) (any, err
 		return converted, nil
 	}
 
-	return convertSpecialScalar(field, value)
+	return convertSpecialScalar(field, value, enumValues)
 }
 
-func convertSpecialScalar(field protoreflect.FieldDescriptor, value any) (any, error) {
+func convertSpecialScalar(field protoreflect.FieldDescriptor, value any, enumValues map[protoreflect.EnumNumber]string) (any, error) {
 	if field.Kind() == protoreflect.EnumKind {
-		return convertEnum(field.Enum(), value)
+		return convertEnum(field.Enum(), value, enumValues)
 	}
 
 	switch field.Message().FullName() {
@@ -249,10 +327,19 @@ func convertSpecialScalar(field protoreflect.FieldDescriptor, value any) (any, e
 	}
 }
 
-func convertEnum(descriptor protoreflect.EnumDescriptor, value any) (any, error) {
+func convertEnum(descriptor protoreflect.EnumDescriptor, value any, enumValues map[protoreflect.EnumNumber]string) (any, error) {
 	name, ok := value.(string)
 	if !ok {
 		return nil, fmt.Errorf("expected enum to be a string, got %T", value)
+	}
+	if enumValues != nil {
+		member := descriptor.Values().ByName(protoreflect.Name(name))
+		if member != nil {
+			if publicValue, found := enumValues[member.Number()]; found {
+				return publicValue, nil
+			}
+		}
+		return nil, fmt.Errorf("enum member %q has no public value", name)
 	}
 	prefix := screamingSnakeCase(string(descriptor.Name())) + "_"
 	return strings.TrimPrefix(name, prefix), nil

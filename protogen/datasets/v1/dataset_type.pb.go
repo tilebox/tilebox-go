@@ -204,10 +204,10 @@ type Field_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// The descriptor contains the name of the field, the type, optional labels (e.g. repeated) and other information.
-	// If the type is TYPE_MESSAGE, then the type_name must be a fully qualified name to a well known type, e.g.
-	// `datasets.v1.Vec3` or `google.protobuf.Timestamp`.
+	// For built-in message and enum types, set type_name to the full name with a leading dot, e.g. `.datasets.v1.Vec3`.
+	// For a custom enum, set TYPE_ENUM, leave type_name empty, and provide annotation.enum_values.
 	Descriptor *descriptorpb.FieldDescriptorProto
-	// Additional documentation, source mapping, and query metadata for the field.
+	// Documentation, source mapping, query metadata, and custom enum values for the field.
 	Annotation *FieldAnnotation
 }
 
@@ -220,6 +220,65 @@ func (b0 Field_builder) Build() *Field {
 	return m0
 }
 
+// EnumValue is one allowed value of a custom enum.
+type EnumValue struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Value string                 `protobuf:"bytes,1,opt,name=value"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *EnumValue) Reset() {
+	*x = EnumValue{}
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnumValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnumValue) ProtoMessage() {}
+
+func (x *EnumValue) ProtoReflect() protoreflect.Message {
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *EnumValue) GetValue() string {
+	if x != nil {
+		return x.xxx_hidden_Value
+	}
+	return ""
+}
+
+func (x *EnumValue) SetValue(v string) {
+	x.xxx_hidden_Value = v
+}
+
+type EnumValue_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// The value users ingest, query, and receive, e.g. "L1".
+	Value string
+}
+
+func (b0 EnumValue_builder) Build() *EnumValue {
+	m0 := &EnumValue{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Value = b.Value
+	return m0
+}
+
 // FieldAnnotation contains additional information about a field in a dataset.
 type FieldAnnotation struct {
 	state                        protoimpl.MessageState `protogen:"opaque.v1"`
@@ -229,6 +288,7 @@ type FieldAnnotation struct {
 	xxx_hidden_Queryable         bool                   `protobuf:"varint,4,opt,name=queryable"`
 	xxx_hidden_JsonSchemaRef     *string                `protobuf:"bytes,5,opt,name=json_schema_ref,json=jsonSchemaRef"`
 	xxx_hidden_Roles             []FieldRole            `protobuf:"varint,6,rep,packed,name=roles,enum=datasets.v1.FieldRole"`
+	xxx_hidden_EnumValues        *[]*EnumValue          `protobuf:"bytes,7,rep,name=enum_values,json=enumValues"`
 	XXX_raceDetectHookData       protoimpl.RaceDetectHookData
 	XXX_presence                 [1]uint32
 	unknownFields                protoimpl.UnknownFields
@@ -237,7 +297,7 @@ type FieldAnnotation struct {
 
 func (x *FieldAnnotation) Reset() {
 	*x = FieldAnnotation{}
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[1]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -249,7 +309,7 @@ func (x *FieldAnnotation) String() string {
 func (*FieldAnnotation) ProtoMessage() {}
 
 func (x *FieldAnnotation) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[1]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -308,6 +368,15 @@ func (x *FieldAnnotation) GetRoles() []FieldRole {
 	return nil
 }
 
+func (x *FieldAnnotation) GetEnumValues() []*EnumValue {
+	if x != nil {
+		if x.xxx_hidden_EnumValues != nil {
+			return *x.xxx_hidden_EnumValues
+		}
+	}
+	return nil
+}
+
 func (x *FieldAnnotation) SetDescription(v string) {
 	x.xxx_hidden_Description = v
 }
@@ -318,7 +387,7 @@ func (x *FieldAnnotation) SetExampleValue(v string) {
 
 func (x *FieldAnnotation) SetSourceJsonPointer(v string) {
 	x.xxx_hidden_SourceJsonPointer = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 7)
 }
 
 func (x *FieldAnnotation) SetQueryable(v bool) {
@@ -327,11 +396,15 @@ func (x *FieldAnnotation) SetQueryable(v bool) {
 
 func (x *FieldAnnotation) SetJsonSchemaRef(v string) {
 	x.xxx_hidden_JsonSchemaRef = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
 }
 
 func (x *FieldAnnotation) SetRoles(v []FieldRole) {
 	x.xxx_hidden_Roles = v
+}
+
+func (x *FieldAnnotation) SetEnumValues(v []*EnumValue) {
+	x.xxx_hidden_EnumValues = &v
 }
 
 func (x *FieldAnnotation) HasSourceJsonPointer() bool {
@@ -368,6 +441,7 @@ type FieldAnnotation_builder struct {
 	SourceJsonPointer *string
 	// Whether the field is projected into query storage and may be used in server-side filter expressions.
 	// Queryable fields are not necessarily backed by a secondary database index.
+	// Enum fields do not count toward the queryable string field limit.
 	Queryable bool
 	// Optional JSON Schema reference for this field when it corresponds to a well known schema.
 	// For example, this may reference the canonical STAC extension schema definition for a property.
@@ -375,6 +449,15 @@ type FieldAnnotation_builder struct {
 	JsonSchemaRef *string
 	// Semantic display roles fulfilled by this field.
 	Roles []FieldRole
+	// Allowed values for a custom enum field. Values must be unique; leave this empty for other field types.
+	// The server generates the protobuf enum names and numbers. Clients do not need to know its naming rules.
+	// Updates may append values without changing existing numbers. Removing, renaming, or reordering values
+	// is not supported yet.
+	//
+	// In responses, entries match the enum descriptor's members in order, excluding the generated zero member.
+	// Pair each entry with the corresponding member's number to encode and decode datapoints. List positions
+	// are not enum numbers. The zero member is not a public value; missing fields remain distinct from zero.
+	EnumValues []*EnumValue
 }
 
 func (b0 FieldAnnotation_builder) Build() *FieldAnnotation {
@@ -384,15 +467,16 @@ func (b0 FieldAnnotation_builder) Build() *FieldAnnotation {
 	x.xxx_hidden_Description = b.Description
 	x.xxx_hidden_ExampleValue = b.ExampleValue
 	if b.SourceJsonPointer != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 7)
 		x.xxx_hidden_SourceJsonPointer = b.SourceJsonPointer
 	}
 	x.xxx_hidden_Queryable = b.Queryable
 	if b.JsonSchemaRef != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
 		x.xxx_hidden_JsonSchemaRef = b.JsonSchemaRef
 	}
 	x.xxx_hidden_Roles = b.Roles
+	x.xxx_hidden_EnumValues = &b.EnumValues
 	return m0
 }
 
@@ -407,7 +491,7 @@ type DatasetType struct {
 
 func (x *DatasetType) Reset() {
 	*x = DatasetType{}
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[2]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -419,7 +503,7 @@ func (x *DatasetType) String() string {
 func (*DatasetType) ProtoMessage() {}
 
 func (x *DatasetType) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[2]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -487,7 +571,7 @@ type AnnotatedType struct {
 
 func (x *AnnotatedType) Reset() {
 	*x = AnnotatedType{}
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[3]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -499,7 +583,7 @@ func (x *AnnotatedType) String() string {
 func (*AnnotatedType) ProtoMessage() {}
 
 func (x *AnnotatedType) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[3]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -570,8 +654,9 @@ func (x *AnnotatedType) ClearDescriptorSet() {
 type AnnotatedType_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
+	// Descriptors for the dataset's datapoint message, including its generated enums.
 	DescriptorSet *descriptorpb.FileDescriptorSet
-	// the url of the type, one of the types defined in the descriptor
+	// Identifies the datapoint message in descriptor_set by name, independent of file or declaration order.
 	TypeUrl string
 	// Annotations corresponding by index to the FieldDescriptorProto entries of the message selected by type_url.
 	// Empty annotations must be retained so this positional mapping remains stable.
@@ -603,7 +688,7 @@ type TemporalDatapoint struct {
 
 func (x *TemporalDatapoint) Reset() {
 	*x = TemporalDatapoint{}
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[4]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -615,7 +700,7 @@ func (x *TemporalDatapoint) String() string {
 func (*TemporalDatapoint) ProtoMessage() {}
 
 func (x *TemporalDatapoint) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[4]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -727,7 +812,7 @@ type SpatioTemporalDatapoint struct {
 
 func (x *SpatioTemporalDatapoint) Reset() {
 	*x = SpatioTemporalDatapoint{}
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[5]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -739,7 +824,7 @@ func (x *SpatioTemporalDatapoint) String() string {
 func (*SpatioTemporalDatapoint) ProtoMessage() {}
 
 func (x *SpatioTemporalDatapoint) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_dataset_type_proto_msgTypes[5]
+	mi := &file_datasets_v1_dataset_type_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -873,14 +958,18 @@ const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"descriptor\x12<\n" +
 	"\n" +
 	"annotation\x18\x02 \x01(\v2\x1c.datasets.v1.FieldAnnotationR\n" +
-	"annotation\"\x9d\x02\n" +
+	"annotation\"*\n" +
+	"\tEnumValue\x12\x1d\n" +
+	"\x05value\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05value\"\xd6\x02\n" +
 	"\x0fFieldAnnotation\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12#\n" +
 	"\rexample_value\x18\x02 \x01(\tR\fexampleValue\x125\n" +
 	"\x13source_json_pointer\x18\x03 \x01(\tB\x05\xaa\x01\x02\b\x01R\x11sourceJsonPointer\x12\x1c\n" +
 	"\tqueryable\x18\x04 \x01(\bR\tqueryable\x12-\n" +
 	"\x0fjson_schema_ref\x18\x05 \x01(\tB\x05\xaa\x01\x02\b\x01R\rjsonSchemaRef\x12?\n" +
-	"\x05roles\x18\x06 \x03(\x0e2\x16.datasets.v1.FieldRoleB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x05roles\"s\n" +
+	"\x05roles\x18\x06 \x03(\x0e2\x16.datasets.v1.FieldRoleB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x05roles\x127\n" +
+	"\venum_values\x18\a \x03(\v2\x16.datasets.v1.EnumValueR\n" +
+	"enumValues\"s\n" +
 	"\vDatasetType\x128\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x18.datasets.v1.DatasetKindB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\x04kind\x12*\n" +
@@ -909,43 +998,45 @@ const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"\x0fcom.datasets.v1B\x10DatasetTypeProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
 var file_datasets_v1_dataset_type_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_datasets_v1_dataset_type_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_datasets_v1_dataset_type_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_datasets_v1_dataset_type_proto_goTypes = []any{
 	(DatasetKind)(0),                          // 0: datasets.v1.DatasetKind
 	(FieldRole)(0),                            // 1: datasets.v1.FieldRole
 	(*Field)(nil),                             // 2: datasets.v1.Field
-	(*FieldAnnotation)(nil),                   // 3: datasets.v1.FieldAnnotation
-	(*DatasetType)(nil),                       // 4: datasets.v1.DatasetType
-	(*AnnotatedType)(nil),                     // 5: datasets.v1.AnnotatedType
-	(*TemporalDatapoint)(nil),                 // 6: datasets.v1.TemporalDatapoint
-	(*SpatioTemporalDatapoint)(nil),           // 7: datasets.v1.SpatioTemporalDatapoint
-	(*descriptorpb.FieldDescriptorProto)(nil), // 8: google.protobuf.FieldDescriptorProto
-	(*descriptorpb.FileDescriptorSet)(nil),    // 9: google.protobuf.FileDescriptorSet
-	(*timestamppb.Timestamp)(nil),             // 10: google.protobuf.Timestamp
-	(*v1.ID)(nil),                             // 11: tilebox.v1.ID
-	(*Geometry)(nil),                          // 12: datasets.v1.Geometry
+	(*EnumValue)(nil),                         // 3: datasets.v1.EnumValue
+	(*FieldAnnotation)(nil),                   // 4: datasets.v1.FieldAnnotation
+	(*DatasetType)(nil),                       // 5: datasets.v1.DatasetType
+	(*AnnotatedType)(nil),                     // 6: datasets.v1.AnnotatedType
+	(*TemporalDatapoint)(nil),                 // 7: datasets.v1.TemporalDatapoint
+	(*SpatioTemporalDatapoint)(nil),           // 8: datasets.v1.SpatioTemporalDatapoint
+	(*descriptorpb.FieldDescriptorProto)(nil), // 9: google.protobuf.FieldDescriptorProto
+	(*descriptorpb.FileDescriptorSet)(nil),    // 10: google.protobuf.FileDescriptorSet
+	(*timestamppb.Timestamp)(nil),             // 11: google.protobuf.Timestamp
+	(*v1.ID)(nil),                             // 12: tilebox.v1.ID
+	(*Geometry)(nil),                          // 13: datasets.v1.Geometry
 }
 var file_datasets_v1_dataset_type_proto_depIdxs = []int32{
-	8,  // 0: datasets.v1.Field.descriptor:type_name -> google.protobuf.FieldDescriptorProto
-	3,  // 1: datasets.v1.Field.annotation:type_name -> datasets.v1.FieldAnnotation
+	9,  // 0: datasets.v1.Field.descriptor:type_name -> google.protobuf.FieldDescriptorProto
+	4,  // 1: datasets.v1.Field.annotation:type_name -> datasets.v1.FieldAnnotation
 	1,  // 2: datasets.v1.FieldAnnotation.roles:type_name -> datasets.v1.FieldRole
-	0,  // 3: datasets.v1.DatasetType.kind:type_name -> datasets.v1.DatasetKind
-	2,  // 4: datasets.v1.DatasetType.fields:type_name -> datasets.v1.Field
-	9,  // 5: datasets.v1.AnnotatedType.descriptor_set:type_name -> google.protobuf.FileDescriptorSet
-	3,  // 6: datasets.v1.AnnotatedType.field_annotations:type_name -> datasets.v1.FieldAnnotation
-	0,  // 7: datasets.v1.AnnotatedType.kind:type_name -> datasets.v1.DatasetKind
-	10, // 8: datasets.v1.TemporalDatapoint.time:type_name -> google.protobuf.Timestamp
-	11, // 9: datasets.v1.TemporalDatapoint.id:type_name -> tilebox.v1.ID
-	10, // 10: datasets.v1.TemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
-	10, // 11: datasets.v1.SpatioTemporalDatapoint.time:type_name -> google.protobuf.Timestamp
-	11, // 12: datasets.v1.SpatioTemporalDatapoint.id:type_name -> tilebox.v1.ID
-	10, // 13: datasets.v1.SpatioTemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
-	12, // 14: datasets.v1.SpatioTemporalDatapoint.geometry:type_name -> datasets.v1.Geometry
-	15, // [15:15] is the sub-list for method output_type
-	15, // [15:15] is the sub-list for method input_type
-	15, // [15:15] is the sub-list for extension type_name
-	15, // [15:15] is the sub-list for extension extendee
-	0,  // [0:15] is the sub-list for field type_name
+	3,  // 3: datasets.v1.FieldAnnotation.enum_values:type_name -> datasets.v1.EnumValue
+	0,  // 4: datasets.v1.DatasetType.kind:type_name -> datasets.v1.DatasetKind
+	2,  // 5: datasets.v1.DatasetType.fields:type_name -> datasets.v1.Field
+	10, // 6: datasets.v1.AnnotatedType.descriptor_set:type_name -> google.protobuf.FileDescriptorSet
+	4,  // 7: datasets.v1.AnnotatedType.field_annotations:type_name -> datasets.v1.FieldAnnotation
+	0,  // 8: datasets.v1.AnnotatedType.kind:type_name -> datasets.v1.DatasetKind
+	11, // 9: datasets.v1.TemporalDatapoint.time:type_name -> google.protobuf.Timestamp
+	12, // 10: datasets.v1.TemporalDatapoint.id:type_name -> tilebox.v1.ID
+	11, // 11: datasets.v1.TemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
+	11, // 12: datasets.v1.SpatioTemporalDatapoint.time:type_name -> google.protobuf.Timestamp
+	12, // 13: datasets.v1.SpatioTemporalDatapoint.id:type_name -> tilebox.v1.ID
+	11, // 14: datasets.v1.SpatioTemporalDatapoint.ingestion_time:type_name -> google.protobuf.Timestamp
+	13, // 15: datasets.v1.SpatioTemporalDatapoint.geometry:type_name -> datasets.v1.Geometry
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_dataset_type_proto_init() }
@@ -960,7 +1051,7 @@ func file_datasets_v1_dataset_type_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_dataset_type_proto_rawDesc), len(file_datasets_v1_dataset_type_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

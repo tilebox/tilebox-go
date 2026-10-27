@@ -194,6 +194,57 @@ func main() {
 Comparisons with absent fields evaluate to unknown and therefore do not match. Use `IsNull`, as above, when absent values
 should be included explicitly. `NotEqual` also excludes absent values.
 
+### Enum Fields
+
+Use `field.Enum` to define a finite set of public string values:
+
+```go
+fields := []datasets.Field{
+	field.Enum("processing_level", "L1", "L2-SP").Queryable(),
+}
+```
+
+Pass these fields to `Datasets.Create`, `Update`, or `CreateOrUpdate`. Values must be nonempty and unique.
+Updates may append values, but cannot remove, rename, or reorder them. The server assigns protobuf symbols and numbers;
+list positions are not enum numbers. Queryable enums do not count toward the queryable string field limit.
+Use `field.ProtoEnum` for supported built-in protobuf enum types. This replaces the previous `field.Enum(name, protobufValue)` API.
+
+Filter custom enums with case-sensitive public strings. Only `Equal` and `NotEqual` are supported; the server rejects
+unknown values, numeric literals, and ordering comparisons. Combine equality comparisons with `query.Or` to match
+several values:
+
+```go
+filter := query.Or(
+	query.Field("processing_level").Equal("L1"),
+	query.Field("processing_level").Equal("L2-SP"),
+)
+```
+
+`datasets.UnmarshalDatapoint` returns custom enums as their public strings, including repeated enum values.
+Absent fields remain absent. Zero and unknown enum numbers have no public value and produce a decoding error.
+Built-in enum decoding is unchanged.
+
+For ingestion with `dynamicpb`, resolve the public value using the returned dataset schema:
+
+```go
+descriptor, err := datasets.NewDatapointDescriptor(dataset)
+if err != nil {
+	return err
+}
+number, err := descriptor.EnumNumber("processing_level", "L2-SP")
+if err != nil {
+	return err
+}
+datapoint := dynamicpb.NewMessage(descriptor.MessageDescriptor)
+datapoint.Set(descriptor.MessageDescriptor.Fields().ByName("processing_level"), protoreflect.ValueOfEnum(number))
+datapoint.Set(descriptor.MessageDescriptor.Fields().ByName("time"), protoreflect.ValueOfMessage(timestamppb.Now().ProtoReflect()))
+datapoints := []*dynamicpb.Message{datapoint}
+_, err = client.Datapoints.Ingest(ctx, collection.ID, &datapoints, false)
+```
+
+This uses `dynamicpb`, `protoreflect`, and `timestamppb` from `google.golang.org/protobuf`. Set any other required datapoint
+fields before ingestion. Generated protobuf messages remain supported by the same `Ingest` method.
+
 ### Writing a Task
 
 Here we define a simple task that logs "Hello World!":

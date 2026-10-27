@@ -70,7 +70,7 @@ func TestInvalidExpression(t *testing.T) {
 		{name: "unsupported value", expression: Field("value").Equal([]byte("text")), wantErr: "unsupported comparison value type []uint8"},
 		{name: "NaN", expression: Field("value").Equal(math.NaN()), wantErr: "comparison value must be finite"},
 		{name: "infinity", expression: Field("value").Equal(math.Inf(1)), wantErr: "comparison value must be finite"},
-		{name: "protobuf enum", expression: Field("value").Equal(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1), wantErr: "protobuf enums are not queryable"},
+		{name: "protobuf enum", expression: Field("value").Equal(datasetsv1.ProcessingLevel_PROCESSING_LEVEL_L1), wantErr: "use a public enum string value"},
 		{name: "boolean ordering", expression: Field("value").LessThan(true), wantErr: "boolean values only support Equal and NotEqual"},
 		{name: "nil expression", expression: Not(nil), wantErr: "query expression cannot be nil"},
 	}
