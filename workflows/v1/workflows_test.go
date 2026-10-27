@@ -26,17 +26,21 @@ import (
 )
 
 func TestWorkflowClient_Create(t *testing.T) {
+	workflowID := uuid.New()
 	for _, test := range []struct {
-		name             string
-		options          []WorkflowOption
-		summary          string
-		description      string
-		hasDescription   bool
-		presentation     *workflowsv1.WorkflowPresentation
-		wantPresentation *WorkflowPresentation
+		name              string
+		options           []WorkflowOption
+		summary           string
+		description       string
+		hasDescription    bool
+		legacyTaskAliases *bool
+		presentation      *workflowsv1.WorkflowPresentation
+		wantPresentation  *WorkflowPresentation
 	}{
 		{name: "omitted description"},
 		{name: "explicit empty description", options: []WorkflowOption{WithDescription("")}, hasDescription: true},
+		{name: "scoped only", options: []WorkflowOption{WithLegacyTaskAliases(false)}, legacyTaskAliases: new(false)},
+		{name: "legacy aliases", options: []WorkflowOption{WithLegacyTaskAliases(true)}, legacyTaskAliases: new(true)},
 		{
 			name:    "summary and Markdown description",
 			options: []WorkflowOption{WithSummary("Detect changes"), WithDescription("# Changes\nLonger description.")},
@@ -63,7 +67,8 @@ func TestWorkflowClient_Create(t *testing.T) {
 						return err
 					}
 					return stream.Send(workflowsv1.Workflow_builder{
-						Slug: "change-detection", Name: "Change Detection", Summary: "Returned summary",
+						Id: tileboxv1.NewUUID(workflowID), Reference: "change-detection-ABC", ProjectSlug: "change-detection",
+						LegacyTaskAliases: test.legacyTaskAliases, Name: "Change Detection", Summary: "Returned summary",
 						Description: test.description, Presentation: test.presentation,
 					}.Build())
 				},
@@ -75,7 +80,14 @@ func TestWorkflowClient_Create(t *testing.T) {
 			assert.Equal(t, test.summary, request.GetSummary())
 			assert.Equal(t, test.hasDescription, request.HasDescription())
 			assert.Equal(t, test.description, request.GetDescription())
-			assert.Equal(t, "change-detection", createdWorkflow.Slug)
+			assert.Equal(t, test.legacyTaskAliases != nil, request.HasLegacyTaskAliases())
+			if test.legacyTaskAliases != nil {
+				assert.Equal(t, *test.legacyTaskAliases, request.GetLegacyTaskAliases())
+			}
+			assert.Equal(t, workflowID, createdWorkflow.ID)
+			assert.Equal(t, "change-detection-ABC", createdWorkflow.Reference)
+			assert.Equal(t, "change-detection", createdWorkflow.ProjectSlug)
+			assert.Equal(t, test.legacyTaskAliases, createdWorkflow.LegacyTaskAliases)
 			assert.Equal(t, "Change Detection", createdWorkflow.Name)
 			assert.Equal(t, "Returned summary", createdWorkflow.Summary)
 			assert.Equal(t, test.description, createdWorkflow.Description)
@@ -89,8 +101,8 @@ func TestWorkflowClient_List(t *testing.T) {
 	service := &fakeWorkflowService{
 		listWorkflowsResponse: workflowsv1.ListWorkflowsResponse_builder{
 			Workflows: []*workflowsv1.Workflow{
-				workflowsv1.Workflow_builder{Slug: "one", Name: "One"}.Build(),
-				workflowsv1.Workflow_builder{Slug: "two", Name: "Two"}.Build(),
+				workflowsv1.Workflow_builder{Reference: "one", Name: "One"}.Build(),
+				workflowsv1.Workflow_builder{Reference: "two", Name: "Two"}.Build(),
 			},
 		}.Build(),
 	}
@@ -100,34 +112,34 @@ func TestWorkflowClient_List(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, workflows, 2)
-	assert.Equal(t, "one", workflows[0].Slug)
-	assert.Equal(t, "two", workflows[1].Slug)
+	assert.Equal(t, "one", workflows[0].Reference)
+	assert.Equal(t, "two", workflows[1].Reference)
 }
 
 func TestWorkflowClient_ListAndListPublic_Paginate(t *testing.T) {
 	nextID := uuid.New()
 	owned := &pagingWorkflowService{owned: []*workflowsv1.ListWorkflowsResponse{
-		workflowsv1.ListWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Slug: "one"}.Build()}, NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextID)}.Build()}.Build(),
-		workflowsv1.ListWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Slug: "two"}.Build()}}.Build(),
+		workflowsv1.ListWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Reference: "one"}.Build()}, NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextID)}.Build()}.Build(),
+		workflowsv1.ListWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Reference: "two"}.Build()}}.Build(),
 	}}
 	client := workflowClient{service: owned}
 
 	workflows, err := Collect(client.List(context.Background()))
 	require.NoError(t, err)
-	assert.Equal(t, []string{"one", "two"}, []string{workflows[0].Slug, workflows[1].Slug})
+	assert.Equal(t, []string{"one", "two"}, []string{workflows[0].Reference, workflows[1].Reference})
 	require.Len(t, owned.ownedPages, 2)
 	assert.Equal(t, nextID, owned.ownedPages[1].GetStartingAfter().AsUUID())
 
 	public := &pagingWorkflowService{public: []*workflowsv1.ListPublicWorkflowsResponse{
-		workflowsv1.ListPublicWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Slug: "tilebox:example"}.Build()}, NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextID)}.Build()}.Build(),
-		workflowsv1.ListPublicWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Slug: "other:example"}.Build()}}.Build(),
+		workflowsv1.ListPublicWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Reference: "tilebox:example"}.Build()}, NextPage: tileboxv1.Pagination_builder{StartingAfter: tileboxv1.NewUUID(nextID)}.Build()}.Build(),
+		workflowsv1.ListPublicWorkflowsResponse_builder{Workflows: []*workflowsv1.Workflow{workflowsv1.Workflow_builder{Reference: "other:example"}.Build()}}.Build(),
 	}}
 	client.service = public
 	workflows, err = Collect(client.ListPublic(context.Background()))
 	require.NoError(t, err)
 	require.Len(t, workflows, 2)
-	assert.Equal(t, "tilebox:example", workflows[0].Slug)
-	assert.Equal(t, "other:example", workflows[1].Slug)
+	assert.Equal(t, "tilebox:example", workflows[0].Reference)
+	assert.Equal(t, "other:example", workflows[1].Reference)
 	require.Len(t, public.publicPages, 2)
 	assert.Equal(t, nextID, public.publicPages[1].GetStartingAfter().AsUUID())
 	assert.Empty(t, workflows[0].Releases)
@@ -156,8 +168,8 @@ func TestWorkflowClient_ListIterators(t *testing.T) {
 			t.Run(prefix+test.name, func(t *testing.T) {
 				startID, nextID := uuid.New(), uuid.New()
 				pages := [][]*workflowsv1.Workflow{
-					{workflowsv1.Workflow_builder{Slug: "one"}.Build(), workflowsv1.Workflow_builder{Slug: "two"}.Build()},
-					{workflowsv1.Workflow_builder{Slug: "three"}.Build(), workflowsv1.Workflow_builder{Slug: "four"}.Build()},
+					{workflowsv1.Workflow_builder{Reference: "one"}.Build(), workflowsv1.Workflow_builder{Reference: "two"}.Build()},
+					{workflowsv1.Workflow_builder{Reference: "three"}.Build(), workflowsv1.Workflow_builder{Reference: "four"}.Build()},
 				}
 				service := &pagingWorkflowService{}
 				for i, items := range pages {
@@ -180,7 +192,7 @@ func TestWorkflowClient_ListIterators(t *testing.T) {
 				var slugs []string
 				for item, err := range sequence {
 					require.NoError(t, err)
-					slugs = append(slugs, item.Slug)
+					slugs = append(slugs, item.Reference)
 					if test.stopEarly {
 						break
 					}
@@ -256,7 +268,7 @@ func TestWorkflowClient_UndeployRelease_OptionalIDTransport(t *testing.T) {
 			require.NoError(t, err)
 			request := transport.undeployWorkflowReleaseRequest
 			require.NotNil(t, request)
-			assert.Equal(t, "tilebox:example", request.GetWorkflowSlug())
+			assert.Equal(t, "tilebox:example", request.GetWorkflowReference())
 			assert.Equal(t, []string{"dev", "prod"}, request.GetClusterSlugs())
 			assert.Equal(t, test.wantID != nil, request.HasReleaseId())
 			if test.wantID != nil {
@@ -269,7 +281,7 @@ func TestWorkflowClient_UndeployRelease_OptionalIDTransport(t *testing.T) {
 func TestWorkflowClient_Get(t *testing.T) {
 	ctx := context.Background()
 	service := &fakeWorkflowService{
-		workflow: workflowsv1.Workflow_builder{Slug: "agentic-workflow", Name: "Agentic Workflow"}.Build(),
+		workflow: workflowsv1.Workflow_builder{Reference: "agentic-workflow", Name: "Agentic Workflow"}.Build(),
 	}
 	client := workflowClient{service: service}
 
@@ -313,7 +325,7 @@ func TestWorkflowClient_Update(t *testing.T) {
 						return err
 					}
 					return stream.Send(workflowsv1.Workflow_builder{
-						Slug: "agentic-workflow", Name: "Returned name", Summary: "Returned summary", Description: "Returned description",
+						Reference: "agentic-workflow", Name: "Returned name", Summary: "Returned summary", Description: "Returned description",
 					}.Build())
 				},
 			})
@@ -325,10 +337,10 @@ func TestWorkflowClient_Update(t *testing.T) {
 			updated, err := workflows.Workflows.Update(t.Context(), "agentic-workflow", test.options...)
 			require.NoError(t, err)
 			want := workflowsv1.UpdateWorkflowRequest_builder{
-				WorkflowSlug: "agentic-workflow", Name: test.wantName, Summary: test.summary, Description: test.description,
+				WorkflowReference: "agentic-workflow", Name: test.wantName, Summary: test.summary, Description: test.description,
 			}.Build()
 			assert.True(t, proto.Equal(want, &request), "want %v, got %v", want, &request)
-			assert.Equal(t, "agentic-workflow", updated.Slug)
+			assert.Equal(t, "agentic-workflow", updated.Reference)
 			assert.Equal(t, "Returned name", updated.Name)
 			assert.Equal(t, "Returned summary", updated.Summary)
 			assert.Equal(t, "Returned description", updated.Description)
@@ -505,8 +517,8 @@ func TestProtoToCluster_MapsDeployedWorkflows(t *testing.T) {
 		Deletable:   true,
 		DeployedReleases: []*workflowsv1.Workflow{
 			workflowsv1.Workflow_builder{
-				Slug: "agentic-workflow",
-				Name: "Agentic Workflow",
+				Reference: "agentic-workflow",
+				Name:      "Agentic Workflow",
 				Releases: []*workflowsv1.WorkflowRelease{
 					workflowsv1.WorkflowRelease_builder{Id: tileboxv1.NewUUID(releaseID)}.Build(),
 				},
@@ -519,7 +531,7 @@ func TestProtoToCluster_MapsDeployedWorkflows(t *testing.T) {
 	assert.Equal(t, "Development cluster", cluster.Description)
 	assert.True(t, cluster.Deletable)
 	require.Len(t, cluster.DeployedWorkflows, 1)
-	assert.Equal(t, "agentic-workflow", cluster.DeployedWorkflows[0].Slug)
+	assert.Equal(t, "agentic-workflow", cluster.DeployedWorkflows[0].Reference)
 	require.Len(t, cluster.DeployedWorkflows[0].Releases, 1)
 	assert.Equal(t, releaseID, cluster.DeployedWorkflows[0].Releases[0].ID)
 }
@@ -643,7 +655,7 @@ func (s *fakeWorkflowService) ListClusters(context.Context) (*workflowsv1.ListCl
 	return nil, errors.New("not implemented")
 }
 
-func (s *fakeWorkflowService) CreateWorkflow(context.Context, string, string, *string) (*workflowsv1.Workflow, error) {
+func (s *fakeWorkflowService) CreateWorkflow(context.Context, string, string, *string, *bool) (*workflowsv1.Workflow, error) {
 	return s.workflow, s.err
 }
 

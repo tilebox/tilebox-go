@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TelemetryQueryService_QueryJobLogs_FullMethodName        = "/workflows.v1.TelemetryQueryService/QueryJobLogs"
-	TelemetryQueryService_QueryLogsInInterval_FullMethodName = "/workflows.v1.TelemetryQueryService/QueryLogsInInterval"
-	TelemetryQueryService_GetLogMessageCounts_FullMethodName = "/workflows.v1.TelemetryQueryService/GetLogMessageCounts"
-	TelemetryQueryService_QueryJobSpans_FullMethodName       = "/workflows.v1.TelemetryQueryService/QueryJobSpans"
+	TelemetryQueryService_QueryJobLogs_FullMethodName           = "/workflows.v1.TelemetryQueryService/QueryJobLogs"
+	TelemetryQueryService_QueryLogsInInterval_FullMethodName    = "/workflows.v1.TelemetryQueryService/QueryLogsInInterval"
+	TelemetryQueryService_GetLogMessageCounts_FullMethodName    = "/workflows.v1.TelemetryQueryService/GetLogMessageCounts"
+	TelemetryQueryService_GetJobLogMessageCounts_FullMethodName = "/workflows.v1.TelemetryQueryService/GetJobLogMessageCounts"
+	TelemetryQueryService_QueryJobSpans_FullMethodName          = "/workflows.v1.TelemetryQueryService/QueryJobSpans"
 )
 
 // TelemetryQueryServiceClient is the client API for TelemetryQueryService service.
@@ -35,6 +36,7 @@ type TelemetryQueryServiceClient interface {
 	QueryJobLogs(ctx context.Context, in *QueryJobLogsRequest, opts ...grpc.CallOption) (*PaginatedLogsData, error)
 	QueryLogsInInterval(ctx context.Context, in *QueryLogsInIntervalRequest, opts ...grpc.CallOption) (*PaginatedLogsData, error)
 	GetLogMessageCounts(ctx context.Context, in *GetLogMessageCountsRequest, opts ...grpc.CallOption) (*GetLogMessageCountsResponse, error)
+	GetJobLogMessageCounts(ctx context.Context, in *GetJobLogMessageCountsRequest, opts ...grpc.CallOption) (*GetLogMessageCountsResponse, error)
 	QueryJobSpans(ctx context.Context, in *QueryJobSpansRequest, opts ...grpc.CallOption) (*PaginatedSpansData, error)
 }
 
@@ -76,6 +78,16 @@ func (c *telemetryQueryServiceClient) GetLogMessageCounts(ctx context.Context, i
 	return out, nil
 }
 
+func (c *telemetryQueryServiceClient) GetJobLogMessageCounts(ctx context.Context, in *GetJobLogMessageCountsRequest, opts ...grpc.CallOption) (*GetLogMessageCountsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetLogMessageCountsResponse)
+	err := c.cc.Invoke(ctx, TelemetryQueryService_GetJobLogMessageCounts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *telemetryQueryServiceClient) QueryJobSpans(ctx context.Context, in *QueryJobSpansRequest, opts ...grpc.CallOption) (*PaginatedSpansData, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PaginatedSpansData)
@@ -96,6 +108,7 @@ type TelemetryQueryServiceServer interface {
 	QueryJobLogs(context.Context, *QueryJobLogsRequest) (*PaginatedLogsData, error)
 	QueryLogsInInterval(context.Context, *QueryLogsInIntervalRequest) (*PaginatedLogsData, error)
 	GetLogMessageCounts(context.Context, *GetLogMessageCountsRequest) (*GetLogMessageCountsResponse, error)
+	GetJobLogMessageCounts(context.Context, *GetJobLogMessageCountsRequest) (*GetLogMessageCountsResponse, error)
 	QueryJobSpans(context.Context, *QueryJobSpansRequest) (*PaginatedSpansData, error)
 	mustEmbedUnimplementedTelemetryQueryServiceServer()
 }
@@ -115,6 +128,9 @@ func (UnimplementedTelemetryQueryServiceServer) QueryLogsInInterval(context.Cont
 }
 func (UnimplementedTelemetryQueryServiceServer) GetLogMessageCounts(context.Context, *GetLogMessageCountsRequest) (*GetLogMessageCountsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetLogMessageCounts not implemented")
+}
+func (UnimplementedTelemetryQueryServiceServer) GetJobLogMessageCounts(context.Context, *GetJobLogMessageCountsRequest) (*GetLogMessageCountsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetJobLogMessageCounts not implemented")
 }
 func (UnimplementedTelemetryQueryServiceServer) QueryJobSpans(context.Context, *QueryJobSpansRequest) (*PaginatedSpansData, error) {
 	return nil, status.Error(codes.Unimplemented, "method QueryJobSpans not implemented")
@@ -194,6 +210,24 @@ func _TelemetryQueryService_GetLogMessageCounts_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TelemetryQueryService_GetJobLogMessageCounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetJobLogMessageCountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TelemetryQueryServiceServer).GetJobLogMessageCounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TelemetryQueryService_GetJobLogMessageCounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TelemetryQueryServiceServer).GetJobLogMessageCounts(ctx, req.(*GetJobLogMessageCountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _TelemetryQueryService_QueryJobSpans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryJobSpansRequest)
 	if err := dec(in); err != nil {
@@ -230,6 +264,10 @@ var TelemetryQueryService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetLogMessageCounts",
 			Handler:    _TelemetryQueryService_GetLogMessageCounts_Handler,
+		},
+		{
+			MethodName: "GetJobLogMessageCounts",
+			Handler:    _TelemetryQueryService_GetJobLogMessageCounts_Handler,
 		},
 		{
 			MethodName: "QueryJobSpans",

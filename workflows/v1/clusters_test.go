@@ -167,7 +167,7 @@ func (c *fakeWorkflowsConnectClient) GetWorkflow(context.Context, *workflowsv1.G
 
 func (c *fakeWorkflowsConnectClient) UpdateWorkflow(_ context.Context, req *workflowsv1.UpdateWorkflowRequest) (*workflowsv1.Workflow, error) {
 	c.updateWorkflowRequest = req
-	return workflowsv1.Workflow_builder{Slug: "agentic-workflow"}.Build(), nil
+	return workflowsv1.Workflow_builder{Reference: "agentic-workflow"}.Build(), nil
 }
 
 func (c *fakeWorkflowsConnectClient) DeleteWorkflow(context.Context, *workflowsv1.DeleteWorkflowRequest) (*workflowsv1.DeleteWorkflowResponse, error) {

@@ -11,9 +11,20 @@ import (
 type SubmitOptions struct {
 	MaxRetries  int64
 	ClusterSlug string
+	// WorkflowID scopes all root tasks to a workflow. Nil leaves them unscoped.
+	WorkflowID *uuid.UUID
 }
 
 type SubmitOption func(*SubmitOptions)
+
+// WithWorkflowID scopes all root tasks in this submission to the given workflow.
+// Resolve a workflow reference with Workflows.Get and use its ID. The ID must be nonzero.
+// Omitting this option leaves tasks unscoped, including submissions made inside a task.
+func WithWorkflowID(workflowID uuid.UUID) SubmitOption {
+	return func(cfg *SubmitOptions) {
+		cfg.WorkflowID = &workflowID
+	}
+}
 
 // WithMaxRetries sets the maximum number of times a job can be automatically retried.
 //
@@ -128,6 +139,8 @@ type QueryOptions struct {
 	AutomationIDs []uuid.UUID
 	// ClusterSlugs filters jobs by the clusters they were submitted to.
 	ClusterSlugs []string
+	// WorkflowReferences filters jobs containing tasks scoped to any of these workflows.
+	WorkflowReferences []string
 	// States filters jobs by their states.
 	States []State
 	// TaskStates filters jobs by the states of their tasks.
@@ -430,6 +443,14 @@ func WithAutomationIDs(automationIDs ...uuid.UUID) QueryOption {
 func WithClusterSlugs(clusterSlugs ...string) QueryOption {
 	return queryOptionFunc(func(cfg *QueryOptions) {
 		cfg.ClusterSlugs = append(cfg.ClusterSlugs, clusterSlugs...)
+	})
+}
+
+// WithWorkflowReferences filters jobs containing at least one task scoped to any supplied workflow.
+// References are resolved by the server. Unscoped tasks do not match, and an empty list adds no filter.
+func WithWorkflowReferences(references ...string) QueryOption {
+	return queryOptionFunc(func(cfg *QueryOptions) {
+		cfg.WorkflowReferences = append(cfg.WorkflowReferences, references...)
 	})
 }
 

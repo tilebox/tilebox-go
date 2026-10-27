@@ -30,6 +30,9 @@ type AutomationTaskPrototype struct {
 	ClusterSlug string
 	// Identifier identifies the task implementation.
 	Identifier TaskIdentifier
+	// WorkflowID scopes the task to a workflow. Nil means unscoped.
+	// Update replaces scope as well: fetch the prototype first to preserve it.
+	WorkflowID *uuid.UUID
 	// Display is a human-readable task label.
 	Display string
 	// Dependencies are task dependency indexes.
@@ -168,6 +171,10 @@ func (p *AutomationTaskPrototype) toProto() *workflowsv1.SingleTaskSubmission {
 	var identifier *workflowsv1.TaskIdentifier
 	if p.Identifier != nil {
 		identifier = workflowsv1.TaskIdentifier_builder{Name: p.Identifier.Name(), Version: p.Identifier.Version()}.Build()
+		if p.WorkflowID != nil {
+			// Preserve an explicit zero ID so the server rejects it rather than unscoping the task.
+			identifier.SetWorkflowId(tileboxv1.ID_builder{Uuid: p.WorkflowID[:]}.Build())
+		}
 	}
 	return workflowsv1.SingleTaskSubmission_builder{
 		ClusterSlug: p.ClusterSlug, Identifier: identifier, Display: p.Display,
@@ -213,6 +220,7 @@ func protoToAutomationTaskPrototype(prototype *workflowsv1.SingleTaskSubmission)
 	return &AutomationTaskPrototype{
 		ClusterSlug:  prototype.GetClusterSlug(),
 		Identifier:   identifier,
+		WorkflowID:   uuidPointerFromProto(prototype.GetIdentifier().GetWorkflowId()),
 		Display:      prototype.GetDisplay(),
 		Dependencies: prototype.GetDependencies(),
 		MaxRetries:   prototype.GetMaxRetries(),

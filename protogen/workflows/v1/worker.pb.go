@@ -489,9 +489,9 @@ const file_workflows_v1_worker_proto_rawDesc = "" +
 	"\vfailed_task\x18\x02 \x01(\v2\x1f.workflows.v1.TaskFailedRequestR\n" +
 	"failedTask:!\xbaH\x1e\"\x1c\n" +
 	"\rcomputed_task\n" +
-	"\vfailed_task2\x9d\x03\n" +
-	"\rWorkerService\x12L\n" +
-	"\x13ListRegisteredTasks\x12\x16.google.protobuf.Empty\x1a\x1d.workflows.v1.TaskIdentifiers\x12c\n" +
+	"\vfailed_task2\xa4\x03\n" +
+	"\rWorkerService\x12S\n" +
+	"\x13ListRegisteredTasks\x12\x16.google.protobuf.Empty\x1a$.workflows.v1.UnboundTaskIdentifiers\x12c\n" +
 	"\x10InitializeWorker\x12%.workflows.v1.InitializeRunnerRequest\x1a&.workflows.v1.InitializeRunnerResponse\"\x00\x12F\n" +
 	"\vExecuteTask\x12\x12.workflows.v1.Task\x1a!.workflows.v1.ExecuteTaskResponse\"\x00\x12M\n" +
 	"\tWatchLogs\x12\x16.google.protobuf.Empty\x1a&.opentelemetry.proto.logs.v1.LogRecord0\x01\x12B\n" +
@@ -511,7 +511,7 @@ var file_workflows_v1_worker_proto_goTypes = []any{
 	(*TaskFailedRequest)(nil),        // 8: workflows.v1.TaskFailedRequest
 	(*emptypb.Empty)(nil),            // 9: google.protobuf.Empty
 	(*Task)(nil),                     // 10: workflows.v1.Task
-	(*TaskIdentifiers)(nil),          // 11: workflows.v1.TaskIdentifiers
+	(*UnboundTaskIdentifiers)(nil),   // 11: workflows.v1.UnboundTaskIdentifiers
 	(*v11.LogRecord)(nil),            // 12: opentelemetry.proto.logs.v1.LogRecord
 }
 var file_workflows_v1_worker_proto_depIdxs = []int32{
@@ -526,7 +526,7 @@ var file_workflows_v1_worker_proto_depIdxs = []int32{
 	10, // 8: workflows.v1.WorkerService.ExecuteTask:input_type -> workflows.v1.Task
 	9,  // 9: workflows.v1.WorkerService.WatchLogs:input_type -> google.protobuf.Empty
 	9,  // 10: workflows.v1.WorkerService.ShutdownWorker:input_type -> google.protobuf.Empty
-	11, // 11: workflows.v1.WorkerService.ListRegisteredTasks:output_type -> workflows.v1.TaskIdentifiers
+	11, // 11: workflows.v1.WorkerService.ListRegisteredTasks:output_type -> workflows.v1.UnboundTaskIdentifiers
 	2,  // 12: workflows.v1.WorkerService.InitializeWorker:output_type -> workflows.v1.InitializeRunnerResponse
 	3,  // 13: workflows.v1.WorkerService.ExecuteTask:output_type -> workflows.v1.ExecuteTaskResponse
 	12, // 14: workflows.v1.WorkerService.WatchLogs:output_type -> opentelemetry.proto.logs.v1.LogRecord

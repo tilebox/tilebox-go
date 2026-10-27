@@ -9,6 +9,7 @@ import (
 
 	"connectrpc.com/connect/v2"
 	"connectrpc.com/connect/v2/connecthttp"
+	"connectrpc.com/connect/v2/connectinprocess"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -73,6 +74,11 @@ func TestAutomationClientWrites(t *testing.T) {
 						Display: "Process scene", MaxRetries: 4, Input: []byte{0x0a, 0x03, 'a', 'b', 'c'},
 					}.Build(),
 				}.Build()
+				if kind == "cron" {
+					workflowID := uuid.MustParse("019e4f3c-4646-7312-b8fe-2e7fa83c1550")
+					input.Prototype.WorkflowID = &workflowID
+					request.GetPrototype().GetIdentifier().SetWorkflowId(tileboxv1.NewUUID(workflowID))
+				}
 				if kind == "cron" {
 					input.CronTriggers = []*CronTrigger{
 						{ID: retainedTriggerID, Schedule: "0 6 * * 1-5"}, {Schedule: "CRON_TZ=Europe/Vienna 30 9 * * 6"},
@@ -140,6 +146,57 @@ func TestAutomationClientWrites(t *testing.T) {
 	}
 }
 
+func TestAutomationClientWorkflowScopeReadAndUpdate(t *testing.T) {
+	workflowID := uuid.New()
+	definition := workflowsv1.AutomationPrototype_builder{
+		Id: tileboxv1.NewUUID(uuid.New()), Name: "Scoped automation",
+		Prototype: workflowsv1.SingleTaskSubmission_builder{
+			Identifier: workflowsv1.TaskIdentifier_builder{Name: "Process", Version: "v1.0", WorkflowId: tileboxv1.NewUUID(workflowID)}.Build(),
+		}.Build(),
+	}.Build()
+	server := connect.NewServer()
+	var writes []*workflowsv1.AutomationPrototype
+	workflowsv1connect.RegisterAutomationServiceHandler(server, automationRPCService{
+		get: func(context.Context, *tileboxv1.ID) (*workflowsv1.AutomationPrototype, error) {
+			return definition, nil
+		},
+		list: func(context.Context, *emptypb.Empty) (*workflowsv1.Automations, error) {
+			return workflowsv1.Automations_builder{Automations: []*workflowsv1.AutomationPrototype{definition}}.Build(), nil
+		},
+		write: func(_ context.Context, request *workflowsv1.AutomationPrototype) (*workflowsv1.AutomationPrototype, error) {
+			writes = append(writes, proto.CloneOf(request))
+			return request, nil
+		},
+	})
+	c := NewClient(client.New(client.WithTransport(connectinprocess.New(server)))).Automations
+	automation, err := c.Get(t.Context(), definition.GetId().AsUUID())
+	require.NoError(t, err)
+	assert.Equal(t, &workflowID, automation.Prototype.WorkflowID)
+	listed, err := c.List(t.Context())
+	require.NoError(t, err)
+	require.Len(t, listed, 1)
+	assert.Equal(t, &workflowID, listed[0].Prototype.WorkflowID)
+
+	automation.Name = "Renamed"
+	automation.Prototype.Identifier = NewTaskIdentifier("OtherTask", "v2.3")
+	_, err = c.Update(t.Context(), automation)
+	require.NoError(t, err)
+	assert.Equal(t, workflowID, writes[0].GetPrototype().GetIdentifier().GetWorkflowId().AsUUID())
+
+	automation.Prototype.WorkflowID = nil
+	cleared, err := c.Update(t.Context(), automation)
+	require.NoError(t, err)
+	assert.False(t, writes[1].GetPrototype().GetIdentifier().HasWorkflowId())
+	assert.Nil(t, cleared.Prototype.WorkflowID)
+
+	automation.Prototype.WorkflowID = new(uuid.Nil)
+	_, err = c.Update(t.Context(), automation)
+	require.NoError(t, err)
+	identifier := writes[2].GetPrototype().GetIdentifier()
+	assert.True(t, identifier.HasWorkflowId(), "leave explicit zero present for server validation")
+	assert.Equal(t, uuid.Nil[:], identifier.GetWorkflowId().GetUuid())
+}
+
 func TestAutomationClientDelete(t *testing.T) {
 	id := uuid.MustParse("019e4f3c-4646-7312-b8fe-2e7fa83c1546")
 	for _, cancelJobs := range []bool{false, true} {
@@ -165,6 +222,16 @@ type automationRPCService struct {
 
 	write            func(context.Context, *workflowsv1.AutomationPrototype) (*workflowsv1.AutomationPrototype, error)
 	deleteAutomation func(context.Context, *workflowsv1.DeleteAutomationRequest) (*emptypb.Empty, error)
+	get              func(context.Context, *tileboxv1.ID) (*workflowsv1.AutomationPrototype, error)
+	list             func(context.Context, *emptypb.Empty) (*workflowsv1.Automations, error)
+}
+
+func (s automationRPCService) GetAutomation(ctx context.Context, request *tileboxv1.ID) (*workflowsv1.AutomationPrototype, error) {
+	return s.get(ctx, request)
+}
+
+func (s automationRPCService) ListAutomations(ctx context.Context, request *emptypb.Empty) (*workflowsv1.Automations, error) {
+	return s.list(ctx, request)
 }
 
 func (s automationRPCService) CreateAutomation(ctx context.Context, request *workflowsv1.AutomationPrototype) (*workflowsv1.AutomationPrototype, error) {
