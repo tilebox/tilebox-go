@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"slices"
 
 	datasetsv1 "github.com/tilebox/tilebox-go/protogen/datasets/v1"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -21,8 +22,9 @@ type Expression interface {
 
 // Field identifies a top-level queryable dataset field by name.
 // For custom enums, compare public string values (for example, "L1"), not
-// protobuf symbols or numbers. Only Equal and NotEqual are supported for enums;
-// the server validates values and operators against the field's schema.
+// protobuf symbols or numbers. Scalar enums support Equal and NotEqual; repeated
+// custom enums support ContainsAll and ContainsAny. The server validates values and
+// operators against the field's schema.
 type Field string
 
 // Equal compares the field with value for equality.
@@ -64,6 +66,20 @@ func (f Field) IsNull() Expression {
 // IsNotNull matches datapoints for which the field is present and non-null.
 func (f Field) IsNotNull() Expression {
 	return Not(f.IsNull())
+}
+
+// ContainsAll matches repeated custom enum fields containing every requested public
+// value. Missing and empty fields are empty sets; no requested values matches all
+// datapoints. At most 100 nonempty strings may be requested, including duplicates.
+func (f Field) ContainsAll(values ...string) Expression {
+	return arrayExpression{fieldName: string(f), operator: datasetsv1.FieldArrayOperator_FIELD_ARRAY_OPERATOR_CONTAINS_ALL, values: slices.Clone(values)}
+}
+
+// ContainsAny matches repeated custom enum fields containing any requested public value.
+// Missing and empty fields never match. No requested values matches no datapoints.
+// At most 100 nonempty strings may be requested, including duplicates.
+func (f Field) ContainsAny(values ...string) Expression {
+	return arrayExpression{fieldName: string(f), operator: datasetsv1.FieldArrayOperator_FIELD_ARRAY_OPERATOR_OVERLAPS, values: slices.Clone(values)}
 }
 
 // And combines two or more expressions using logical AND.
@@ -125,6 +141,28 @@ type nullExpression struct {
 func (expression nullExpression) toProto() (*datasetsv1.FilterExpression, error) {
 	return datasetsv1.FilterExpression_builder{
 		IsNull: datasetsv1.FieldNullCheck_builder{FieldName: expression.fieldName}.Build(),
+	}.Build(), nil
+}
+
+type arrayExpression struct {
+	fieldName string
+	operator  datasetsv1.FieldArrayOperator
+	values    []string
+}
+
+func (expression arrayExpression) toProto() (*datasetsv1.FilterExpression, error) {
+	if len(expression.values) > 100 {
+		return nil, fmt.Errorf("field %q: array predicates support at most 100 values", expression.fieldName)
+	}
+	if slices.Contains(expression.values, "") {
+		return nil, fmt.Errorf("field %q: array predicate values must not be empty strings", expression.fieldName)
+	}
+	return datasetsv1.FilterExpression_builder{
+		ArrayPredicate: datasetsv1.FieldArrayPredicate_builder{
+			FieldName: expression.fieldName,
+			Operator:  expression.operator,
+			Values:    slices.Clone(expression.values),
+		}.Build(),
 	}.Build(), nil
 }
 

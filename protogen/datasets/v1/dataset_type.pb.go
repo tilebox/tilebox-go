@@ -449,14 +449,16 @@ type FieldAnnotation_builder struct {
 	JsonSchemaRef *string
 	// Semantic display roles fulfilled by this field.
 	Roles []FieldRole
-	// Allowed values for a custom enum field. Values must be unique; leave this empty for other field types.
+	// Allowed values for a custom enum field. Values must be unique, with at most 100 entries; leave empty for other types.
 	// The server generates the protobuf enum names and numbers. Clients do not need to know its naming rules.
-	// Updates may append values without changing existing numbers. Removing, renaming, or reordering values
-	// is not supported yet.
+	// The server validates enum vocabulary changes when updating a dataset.
 	//
 	// In responses, entries match the enum descriptor's members in order, excluding the generated zero member.
 	// Pair each entry with the corresponding member's number to encode and decode datapoints. List positions
 	// are not enum numbers. The zero member is not a public value; missing fields remain distinct from zero.
+	// Repeated enum fields are deduplicated at ingestion, preserving first-occurrence order in the stored payload.
+	// Every element must be a declared nonzero member, so the stored list has at most 100 elements.
+	// Omitted and empty repeated fields are equivalent. Queryable repeated enums support FieldArrayPredicate.
 	EnumValues []*EnumValue
 }
 
@@ -960,15 +962,15 @@ const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"annotation\x18\x02 \x01(\v2\x1c.datasets.v1.FieldAnnotationR\n" +
 	"annotation\"*\n" +
 	"\tEnumValue\x12\x1d\n" +
-	"\x05value\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05value\"\xd6\x02\n" +
+	"\x05value\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05value\"\xe0\x02\n" +
 	"\x0fFieldAnnotation\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12#\n" +
 	"\rexample_value\x18\x02 \x01(\tR\fexampleValue\x125\n" +
 	"\x13source_json_pointer\x18\x03 \x01(\tB\x05\xaa\x01\x02\b\x01R\x11sourceJsonPointer\x12\x1c\n" +
 	"\tqueryable\x18\x04 \x01(\bR\tqueryable\x12-\n" +
 	"\x0fjson_schema_ref\x18\x05 \x01(\tB\x05\xaa\x01\x02\b\x01R\rjsonSchemaRef\x12?\n" +
-	"\x05roles\x18\x06 \x03(\x0e2\x16.datasets.v1.FieldRoleB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x05roles\x127\n" +
-	"\venum_values\x18\a \x03(\v2\x16.datasets.v1.EnumValueR\n" +
+	"\x05roles\x18\x06 \x03(\x0e2\x16.datasets.v1.FieldRoleB\x11\xbaH\x0e\x92\x01\v\x18\x01\"\a\x82\x01\x04\x10\x01 \x00R\x05roles\x12A\n" +
+	"\venum_values\x18\a \x03(\v2\x16.datasets.v1.EnumValueB\b\xbaH\x05\x92\x01\x02\x10dR\n" +
 	"enumValues\"s\n" +
 	"\vDatasetType\x128\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x18.datasets.v1.DatasetKindB\n" +

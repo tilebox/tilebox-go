@@ -201,15 +201,17 @@ Use `field.Enum` to define a finite set of public string values:
 ```go
 fields := []datasets.Field{
 	field.Enum("processing_level", "L1", "L2-SP").Queryable(),
+	field.Enum("use_cases", "defense", "agriculture", "wind-power").Repeated().Queryable(),
 }
 ```
 
-Pass these fields to `Datasets.Create`, `Update`, or `CreateOrUpdate`. Values must be nonempty and unique.
-Updates may append values, but cannot remove, rename, or reorder them. The server assigns protobuf symbols and numbers;
+Pass these fields to `Datasets.Create`, `Update`, or `CreateOrUpdate`. Supply 1–100 nonempty, unique values per enum.
+The server enforces schema compatibility: non-empty datasets may only append values; empty datasets may replace or reorder the vocabulary.
+The server assigns protobuf symbols and numbers;
 list positions are not enum numbers. Queryable enums do not count toward the queryable string field limit.
 Use `field.ProtoEnum` for supported built-in protobuf enum types. This replaces the previous `field.Enum(name, protobufValue)` API.
 
-Filter custom enums with case-sensitive public strings. Only `Equal` and `NotEqual` are supported; the server rejects
+Filter scalar custom enums with case-sensitive public strings. Only `Equal` and `NotEqual` are supported; the server rejects
 unknown values, numeric literals, and ordering comparisons. Combine equality comparisons with `query.Or` to match
 several values:
 
@@ -219,6 +221,17 @@ filter := query.Or(
 	query.Field("processing_level").Equal("L2-SP"),
 )
 ```
+
+For repeated custom enums, use `ContainsAll` to require every requested string, or `ContainsAny` to match any:
+
+```go
+all := query.Field("use_cases").ContainsAll("defense", "agriculture")
+any := query.Field("use_cases").ContainsAny("wind-power")
+```
+
+Both accept 0–100 nonempty public strings, including duplicates. The server validates vocabulary membership.
+Missing and empty fields are empty sets: `ContainsAll()` matches every datapoint; `ContainsAny()` matches none.
+`Not(ContainsAny(...))` includes missing and empty fields. Scalar comparisons and null checks are unsupported for repeated fields.
 
 `datasets.UnmarshalDatapoint` returns custom enums as their public strings, including repeated enum values.
 Absent fields remain absent. Zero and unknown enum numbers have no public value and produce a decoding error.

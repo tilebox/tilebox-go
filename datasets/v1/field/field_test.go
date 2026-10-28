@@ -130,7 +130,12 @@ func TestDescriptor_ToProtoWithEnum(t *testing.T) {
 	for i, want := range []string{"L1", "L2-SP", "Level 3"} {
 		assert.Equal(t, want, field.GetAnnotation().GetEnumValues()[i].GetValue())
 	}
-	assert.Equal(t, descriptorpb.FieldDescriptorProto_LABEL_REPEATED, descriptor.Repeated().ToProto().GetDescriptor().GetLabel())
+	repeated := descriptor.Repeated().ToProto()
+	assert.Equal(t, descriptorpb.FieldDescriptorProto_LABEL_REPEATED, repeated.GetDescriptor().GetLabel())
+	assert.True(t, repeated.GetAnnotation().GetQueryable())
+	assert.Empty(t, repeated.GetDescriptor().GetTypeName())
+	assert.Nil(t, repeated.GetDescriptor().GetOptions(), "the server owns presence semantics")
+	assert.Equal(t, "L2-SP", repeated.GetAnnotation().GetEnumValues()[1].GetValue())
 }
 
 func TestDescriptor_ToProtoWithSTACTypes(t *testing.T) {
