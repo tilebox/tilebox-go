@@ -152,8 +152,10 @@ func ProtoEnum(name string, enum protoreflect.Enum) *Descriptor {
 }
 
 // Enum returns a new enum field with the given public string values.
-// Values must be nonempty and unique. The server assigns protobuf names and numbers.
-// Schema updates may append values, but cannot remove, rename, or reorder them.
+// Supply 1–100 nonempty, unique values. The server assigns protobuf names and numbers.
+// The server permits only append-only vocabulary updates on non-empty datasets;
+// empty datasets may replace or reorder the vocabulary.
+// Repeated custom enums can be queryable; filter them with ContainsAll or ContainsAny.
 func Enum(name string, values ...string) *Descriptor {
 	return &Descriptor{
 		name:       name,
@@ -215,7 +217,7 @@ func (d *Descriptor) SourceJSONPointer(sourceJSONPointer string) *Descriptor {
 // Queryable marks the field for projection into query storage and server-side filtering.
 // Only optional fields created with String, Bool, Int32, Int64, Uint64, Float64, Enum, or ProtoEnum can be queryable.
 // Enum fields do not count toward the queryable string field limit.
-// Repeated fields and fields of all other types are not supported.
+// Repeated fields created with Enum are also supported; other repeated fields are not.
 func (d *Descriptor) Queryable() *Descriptor {
 	d.queryable = true
 	return d

@@ -26,6 +26,53 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// FieldArrayOperator selects a CQL2 set-membership operation.
+type FieldArrayOperator int32
+
+const (
+	FieldArrayOperator_FIELD_ARRAY_OPERATOR_UNSPECIFIED FieldArrayOperator = 0
+	// CQL2 A_CONTAINS: the field contains every requested value.
+	FieldArrayOperator_FIELD_ARRAY_OPERATOR_CONTAINS_ALL FieldArrayOperator = 1
+	// CQL2 A_OVERLAPS: the field contains at least one requested value.
+	FieldArrayOperator_FIELD_ARRAY_OPERATOR_OVERLAPS FieldArrayOperator = 2
+)
+
+// Enum value maps for FieldArrayOperator.
+var (
+	FieldArrayOperator_name = map[int32]string{
+		0: "FIELD_ARRAY_OPERATOR_UNSPECIFIED",
+		1: "FIELD_ARRAY_OPERATOR_CONTAINS_ALL",
+		2: "FIELD_ARRAY_OPERATOR_OVERLAPS",
+	}
+	FieldArrayOperator_value = map[string]int32{
+		"FIELD_ARRAY_OPERATOR_UNSPECIFIED":  0,
+		"FIELD_ARRAY_OPERATOR_CONTAINS_ALL": 1,
+		"FIELD_ARRAY_OPERATOR_OVERLAPS":     2,
+	}
+)
+
+func (x FieldArrayOperator) Enum() *FieldArrayOperator {
+	p := new(FieldArrayOperator)
+	*p = x
+	return p
+}
+
+func (x FieldArrayOperator) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (FieldArrayOperator) Descriptor() protoreflect.EnumDescriptor {
+	return file_datasets_v1_data_access_proto_enumTypes[0].Descriptor()
+}
+
+func (FieldArrayOperator) Type() protoreflect.EnumType {
+	return &file_datasets_v1_data_access_proto_enumTypes[0]
+}
+
+func (x FieldArrayOperator) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 // LogicalOperator specifies how nested filter expressions are combined.
 type LogicalOperator int32
 
@@ -63,11 +110,11 @@ func (x LogicalOperator) String() string {
 }
 
 func (LogicalOperator) Descriptor() protoreflect.EnumDescriptor {
-	return file_datasets_v1_data_access_proto_enumTypes[0].Descriptor()
+	return file_datasets_v1_data_access_proto_enumTypes[1].Descriptor()
 }
 
 func (LogicalOperator) Type() protoreflect.EnumType {
-	return &file_datasets_v1_data_access_proto_enumTypes[0]
+	return &file_datasets_v1_data_access_proto_enumTypes[1]
 }
 
 func (x LogicalOperator) Number() protoreflect.EnumNumber {
@@ -120,11 +167,11 @@ func (x FieldComparisonOperator) String() string {
 }
 
 func (FieldComparisonOperator) Descriptor() protoreflect.EnumDescriptor {
-	return file_datasets_v1_data_access_proto_enumTypes[1].Descriptor()
+	return file_datasets_v1_data_access_proto_enumTypes[2].Descriptor()
 }
 
 func (FieldComparisonOperator) Type() protoreflect.EnumType {
-	return &file_datasets_v1_data_access_proto_enumTypes[1]
+	return &file_datasets_v1_data_access_proto_enumTypes[2]
 }
 
 func (x FieldComparisonOperator) Number() protoreflect.EnumNumber {
@@ -172,11 +219,11 @@ func (x SpatialFilterMode) String() string {
 }
 
 func (SpatialFilterMode) Descriptor() protoreflect.EnumDescriptor {
-	return file_datasets_v1_data_access_proto_enumTypes[2].Descriptor()
+	return file_datasets_v1_data_access_proto_enumTypes[3].Descriptor()
 }
 
 func (SpatialFilterMode) Type() protoreflect.EnumType {
-	return &file_datasets_v1_data_access_proto_enumTypes[2]
+	return &file_datasets_v1_data_access_proto_enumTypes[3]
 }
 
 func (x SpatialFilterMode) Number() protoreflect.EnumNumber {
@@ -221,11 +268,11 @@ func (x SpatialCoordinateSystem) String() string {
 }
 
 func (SpatialCoordinateSystem) Descriptor() protoreflect.EnumDescriptor {
-	return file_datasets_v1_data_access_proto_enumTypes[3].Descriptor()
+	return file_datasets_v1_data_access_proto_enumTypes[4].Descriptor()
 }
 
 func (SpatialCoordinateSystem) Type() protoreflect.EnumType {
-	return &file_datasets_v1_data_access_proto_enumTypes[3]
+	return &file_datasets_v1_data_access_proto_enumTypes[4]
 }
 
 func (x SpatialCoordinateSystem) Number() protoreflect.EnumNumber {
@@ -503,16 +550,17 @@ func (b0 QueryFilters_builder) Build() *QueryFilters {
 	return m0
 }
 
-// FilterExpression is a typed filter expression compatible with the Basic CQL2 property-to-literal subset.
+// FilterExpression supports Basic CQL2 property-to-literal comparisons and custom enum array predicates.
 // Expressions use three-valued Boolean logic compatible with SQL and CQL2: true, false, and null (unknown). A datapoint
 // matches only when the complete filter expression evaluates to true; false and null results are excluded.
 type FilterExpression struct {
-	state                 protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Logical    *LogicalExpression     `protobuf:"bytes,1,opt,name=logical"`
-	xxx_hidden_Comparison *FieldComparison       `protobuf:"bytes,2,opt,name=comparison"`
-	xxx_hidden_IsNull     *FieldNullCheck        `protobuf:"bytes,3,opt,name=is_null,json=isNull"`
-	unknownFields         protoimpl.UnknownFields
-	sizeCache             protoimpl.SizeCache
+	state                     protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Logical        *LogicalExpression     `protobuf:"bytes,1,opt,name=logical"`
+	xxx_hidden_Comparison     *FieldComparison       `protobuf:"bytes,2,opt,name=comparison"`
+	xxx_hidden_IsNull         *FieldNullCheck        `protobuf:"bytes,3,opt,name=is_null,json=isNull"`
+	xxx_hidden_ArrayPredicate *FieldArrayPredicate   `protobuf:"bytes,4,opt,name=array_predicate,json=arrayPredicate"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *FilterExpression) Reset() {
@@ -561,6 +609,13 @@ func (x *FilterExpression) GetIsNull() *FieldNullCheck {
 	return nil
 }
 
+func (x *FilterExpression) GetArrayPredicate() *FieldArrayPredicate {
+	if x != nil {
+		return x.xxx_hidden_ArrayPredicate
+	}
+	return nil
+}
+
 func (x *FilterExpression) SetLogical(v *LogicalExpression) {
 	x.xxx_hidden_Logical = v
 }
@@ -571,6 +626,10 @@ func (x *FilterExpression) SetComparison(v *FieldComparison) {
 
 func (x *FilterExpression) SetIsNull(v *FieldNullCheck) {
 	x.xxx_hidden_IsNull = v
+}
+
+func (x *FilterExpression) SetArrayPredicate(v *FieldArrayPredicate) {
+	x.xxx_hidden_ArrayPredicate = v
 }
 
 func (x *FilterExpression) HasLogical() bool {
@@ -594,6 +653,13 @@ func (x *FilterExpression) HasIsNull() bool {
 	return x.xxx_hidden_IsNull != nil
 }
 
+func (x *FilterExpression) HasArrayPredicate() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_ArrayPredicate != nil
+}
+
 func (x *FilterExpression) ClearLogical() {
 	x.xxx_hidden_Logical = nil
 }
@@ -606,13 +672,18 @@ func (x *FilterExpression) ClearIsNull() {
 	x.xxx_hidden_IsNull = nil
 }
 
+func (x *FilterExpression) ClearArrayPredicate() {
+	x.xxx_hidden_ArrayPredicate = nil
+}
+
 type FilterExpression_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	// Exactly one expression node must be set.
-	Logical    *LogicalExpression
-	Comparison *FieldComparison
-	IsNull     *FieldNullCheck
+	Logical        *LogicalExpression
+	Comparison     *FieldComparison
+	IsNull         *FieldNullCheck
+	ArrayPredicate *FieldArrayPredicate
 }
 
 func (b0 FilterExpression_builder) Build() *FilterExpression {
@@ -622,6 +693,99 @@ func (b0 FilterExpression_builder) Build() *FilterExpression {
 	x.xxx_hidden_Logical = b.Logical
 	x.xxx_hidden_Comparison = b.Comparison
 	x.xxx_hidden_IsNull = b.IsNull
+	x.xxx_hidden_ArrayPredicate = b.ArrayPredicate
+	return m0
+}
+
+// FieldArrayPredicate tests membership of public values in a queryable repeated custom enum field.
+// Values are case-sensitive and must belong to the field's vocabulary. Order and duplicates do not affect matching.
+// Omitted and empty fields both represent the empty set.
+// CONTAINS_ALL with no values is true; OVERLAPS with no values is false. These predicates never return null.
+// Scalar comparisons and null checks are not supported on repeated fields.
+type FieldArrayPredicate struct {
+	state                protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_FieldName string                 `protobuf:"bytes,1,opt,name=field_name,json=fieldName"`
+	xxx_hidden_Operator  FieldArrayOperator     `protobuf:"varint,2,opt,name=operator,enum=datasets.v1.FieldArrayOperator"`
+	xxx_hidden_Values    []string               `protobuf:"bytes,3,rep,name=values"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *FieldArrayPredicate) Reset() {
+	*x = FieldArrayPredicate{}
+	mi := &file_datasets_v1_data_access_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FieldArrayPredicate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FieldArrayPredicate) ProtoMessage() {}
+
+func (x *FieldArrayPredicate) ProtoReflect() protoreflect.Message {
+	mi := &file_datasets_v1_data_access_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *FieldArrayPredicate) GetFieldName() string {
+	if x != nil {
+		return x.xxx_hidden_FieldName
+	}
+	return ""
+}
+
+func (x *FieldArrayPredicate) GetOperator() FieldArrayOperator {
+	if x != nil {
+		return x.xxx_hidden_Operator
+	}
+	return FieldArrayOperator_FIELD_ARRAY_OPERATOR_UNSPECIFIED
+}
+
+func (x *FieldArrayPredicate) GetValues() []string {
+	if x != nil {
+		return x.xxx_hidden_Values
+	}
+	return nil
+}
+
+func (x *FieldArrayPredicate) SetFieldName(v string) {
+	x.xxx_hidden_FieldName = v
+}
+
+func (x *FieldArrayPredicate) SetOperator(v FieldArrayOperator) {
+	x.xxx_hidden_Operator = v
+}
+
+func (x *FieldArrayPredicate) SetValues(v []string) {
+	x.xxx_hidden_Values = v
+}
+
+type FieldArrayPredicate_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Name of a top-level queryable repeated custom enum field.
+	FieldName string
+	Operator  FieldArrayOperator
+	// Public enum values, not protobuf symbols or numbers. An empty list is allowed.
+	Values []string
+}
+
+func (b0 FieldArrayPredicate_builder) Build() *FieldArrayPredicate {
+	m0 := &FieldArrayPredicate{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_FieldName = b.FieldName
+	x.xxx_hidden_Operator = b.Operator
+	x.xxx_hidden_Values = b.Values
 	return m0
 }
 
@@ -637,7 +801,7 @@ type LogicalExpression struct {
 
 func (x *LogicalExpression) Reset() {
 	*x = LogicalExpression{}
-	mi := &file_datasets_v1_data_access_proto_msgTypes[3]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -649,7 +813,7 @@ func (x *LogicalExpression) String() string {
 func (*LogicalExpression) ProtoMessage() {}
 
 func (x *LogicalExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_access_proto_msgTypes[3]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -706,8 +870,9 @@ func (b0 LogicalExpression_builder) Build() *LogicalExpression {
 // Every comparison evaluates to null (unknown) when the field is absent or explicitly null, including NOT_EQUAL.
 // Consequently, both `field != value` and `NOT(field == value)` require the field to be present. To include absent or
 // null fields, explicitly combine the comparison with FieldNullCheck using OR.
-// Enum fields support only EQUAL and NOT_EQUAL. Use a LogicalExpression with OR over equality comparisons to match
+// Scalar enum fields support only EQUAL and NOT_EQUAL. Use a LogicalExpression with OR over equality comparisons to match
 // any of several members. Unknown enum values, numeric enum literals, and ordering comparisons are invalid arguments.
+// For repeated custom enums, use FieldArrayPredicate instead.
 type FieldComparison struct {
 	state                protoimpl.MessageState  `protogen:"opaque.v1"`
 	xxx_hidden_FieldName string                  `protobuf:"bytes,1,opt,name=field_name,json=fieldName"`
@@ -719,7 +884,7 @@ type FieldComparison struct {
 
 func (x *FieldComparison) Reset() {
 	*x = FieldComparison{}
-	mi := &file_datasets_v1_data_access_proto_msgTypes[4]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -731,7 +896,7 @@ func (x *FieldComparison) String() string {
 func (*FieldComparison) ProtoMessage() {}
 
 func (x *FieldComparison) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_access_proto_msgTypes[4]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -820,7 +985,7 @@ type FieldNullCheck struct {
 
 func (x *FieldNullCheck) Reset() {
 	*x = FieldNullCheck{}
-	mi := &file_datasets_v1_data_access_proto_msgTypes[5]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -832,7 +997,7 @@ func (x *FieldNullCheck) String() string {
 func (*FieldNullCheck) ProtoMessage() {}
 
 func (x *FieldNullCheck) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_access_proto_msgTypes[5]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -888,7 +1053,7 @@ type FieldQueryValue struct {
 
 func (x *FieldQueryValue) Reset() {
 	*x = FieldQueryValue{}
-	mi := &file_datasets_v1_data_access_proto_msgTypes[6]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -900,7 +1065,7 @@ func (x *FieldQueryValue) String() string {
 func (*FieldQueryValue) ProtoMessage() {}
 
 func (x *FieldQueryValue) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_access_proto_msgTypes[6]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1167,7 +1332,7 @@ type SpatialFilter struct {
 
 func (x *SpatialFilter) Reset() {
 	*x = SpatialFilter{}
-	mi := &file_datasets_v1_data_access_proto_msgTypes[7]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1179,7 +1344,7 @@ func (x *SpatialFilter) String() string {
 func (*SpatialFilter) ProtoMessage() {}
 
 func (x *SpatialFilter) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_access_proto_msgTypes[7]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1269,7 +1434,7 @@ type QueryRequest struct {
 
 func (x *QueryRequest) Reset() {
 	*x = QueryRequest{}
-	mi := &file_datasets_v1_data_access_proto_msgTypes[8]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1281,7 +1446,7 @@ func (x *QueryRequest) String() string {
 func (*QueryRequest) ProtoMessage() {}
 
 func (x *QueryRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_access_proto_msgTypes[8]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1420,7 +1585,7 @@ type QueryResultPage struct {
 
 func (x *QueryResultPage) Reset() {
 	*x = QueryResultPage{}
-	mi := &file_datasets_v1_data_access_proto_msgTypes[9]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1432,7 +1597,7 @@ func (x *QueryResultPage) String() string {
 func (*QueryResultPage) ProtoMessage() {}
 
 func (x *QueryResultPage) ProtoReflect() protoreflect.Message {
-	mi := &file_datasets_v1_data_access_proto_msgTypes[9]
+	mi := &file_datasets_v1_data_access_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1523,17 +1688,25 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\x0espatial_extent\x18\x03 \x01(\v2\x1a.datasets.v1.SpatialFilterR\rspatialExtent\x12I\n" +
 	"\vexpressions\x18\x04 \x03(\v2\x1d.datasets.v1.FilterExpressionB\b\xbaH\x05\x92\x01\x02\x10@R\vexpressions:*\xbaH'\"%\n" +
 	"\rtime_interval\n" +
-	"\x12datapoint_interval\x10\x01\"\xe7\x01\n" +
+	"\x12datapoint_interval\x10\x01\"\xc3\x02\n" +
 	"\x10FilterExpression\x128\n" +
 	"\alogical\x18\x01 \x01(\v2\x1e.datasets.v1.LogicalExpressionR\alogical\x12<\n" +
 	"\n" +
 	"comparison\x18\x02 \x01(\v2\x1c.datasets.v1.FieldComparisonR\n" +
 	"comparison\x124\n" +
-	"\ais_null\x18\x03 \x01(\v2\x1b.datasets.v1.FieldNullCheckR\x06isNull:%\xbaH\"\" \n" +
+	"\ais_null\x18\x03 \x01(\v2\x1b.datasets.v1.FieldNullCheckR\x06isNull\x12I\n" +
+	"\x0farray_predicate\x18\x04 \x01(\v2 .datasets.v1.FieldArrayPredicateR\x0earrayPredicate:6\xbaH3\"1\n" +
 	"\alogical\n" +
 	"\n" +
 	"comparison\n" +
-	"\ais_null\x10\x01\"\xdb\x02\n" +
+	"\ais_null\n" +
+	"\x0farray_predicate\x10\x01\"\xc3\x01\n" +
+	"\x13FieldArrayPredicate\x12;\n" +
+	"\n" +
+	"field_name\x18\x01 \x01(\tB\x1c\xbaH\x19r\x17\x10\x01\x18d2\x11^[a-z][a-z0-9_]*$R\tfieldName\x12G\n" +
+	"\boperator\x18\x02 \x01(\x0e2\x1f.datasets.v1.FieldArrayOperatorB\n" +
+	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\boperator\x12&\n" +
+	"\x06values\x18\x03 \x03(\tB\x0e\xbaH\v\x92\x01\b\x10d\"\x04r\x02\x10\x01R\x06values\"\xdb\x02\n" +
 	"\x11LogicalExpression\x12D\n" +
 	"\boperator\x18\x01 \x01(\x0e2\x1c.datasets.v1.LogicalOperatorB\n" +
 	"\xbaH\a\x82\x01\x04\x10\x01 \x00R\boperator\x12E\n" +
@@ -1584,7 +1757,11 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\tskip_data\x18\x04 \x01(\bR\bskipData\"{\n" +
 	"\x0fQueryResultPage\x12,\n" +
 	"\x04data\x18\x01 \x01(\v2\x18.datasets.v1.RepeatedAnyR\x04data\x12:\n" +
-	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage*\x80\x01\n" +
+	"\tnext_page\x18\x02 \x01(\v2\x16.tilebox.v1.PaginationB\x05\xaa\x01\x02\b\x01R\bnextPage*\x84\x01\n" +
+	"\x12FieldArrayOperator\x12$\n" +
+	" FIELD_ARRAY_OPERATOR_UNSPECIFIED\x10\x00\x12%\n" +
+	"!FIELD_ARRAY_OPERATOR_CONTAINS_ALL\x10\x01\x12!\n" +
+	"\x1dFIELD_ARRAY_OPERATOR_OVERLAPS\x10\x02*\x80\x01\n" +
 	"\x0fLogicalOperator\x12 \n" +
 	"\x1cLOGICAL_OPERATOR_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14LOGICAL_OPERATOR_AND\x10\x01\x12\x17\n" +
@@ -1612,68 +1789,72 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\x05Query\x12\x19.datasets.v1.QueryRequest\x1a\x1c.datasets.v1.QueryResultPage\"\x00B\xb3\x01\n" +
 	"\x0fcom.datasets.v1B\x0fDataAccessProtoP\x01Z=github.com/tilebox/tilebox-go/protogen/datasets/v1;datasetsv1\xa2\x02\x03DXX\xaa\x02\vDatasets.V1\xca\x02\vDatasets\\V1\xe2\x02\x17Datasets\\V1\\GPBMetadata\xea\x02\fDatasets::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_datasets_v1_data_access_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_datasets_v1_data_access_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_datasets_v1_data_access_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_datasets_v1_data_access_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_datasets_v1_data_access_proto_goTypes = []any{
-	(LogicalOperator)(0),          // 0: datasets.v1.LogicalOperator
-	(FieldComparisonOperator)(0),  // 1: datasets.v1.FieldComparisonOperator
-	(SpatialFilterMode)(0),        // 2: datasets.v1.SpatialFilterMode
-	(SpatialCoordinateSystem)(0),  // 3: datasets.v1.SpatialCoordinateSystem
-	(*QueryByIDRequest)(nil),      // 4: datasets.v1.QueryByIDRequest
-	(*QueryFilters)(nil),          // 5: datasets.v1.QueryFilters
-	(*FilterExpression)(nil),      // 6: datasets.v1.FilterExpression
-	(*LogicalExpression)(nil),     // 7: datasets.v1.LogicalExpression
-	(*FieldComparison)(nil),       // 8: datasets.v1.FieldComparison
-	(*FieldNullCheck)(nil),        // 9: datasets.v1.FieldNullCheck
-	(*FieldQueryValue)(nil),       // 10: datasets.v1.FieldQueryValue
-	(*SpatialFilter)(nil),         // 11: datasets.v1.SpatialFilter
-	(*QueryRequest)(nil),          // 12: datasets.v1.QueryRequest
-	(*QueryResultPage)(nil),       // 13: datasets.v1.QueryResultPage
-	(*v1.ID)(nil),                 // 14: tilebox.v1.ID
-	(*v1.TimeInterval)(nil),       // 15: tilebox.v1.TimeInterval
-	(*v1.IDInterval)(nil),         // 16: tilebox.v1.IDInterval
-	(*timestamppb.Timestamp)(nil), // 17: google.protobuf.Timestamp
-	(*durationpb.Duration)(nil),   // 18: google.protobuf.Duration
-	(*Geometry)(nil),              // 19: datasets.v1.Geometry
-	(*v1.Pagination)(nil),         // 20: tilebox.v1.Pagination
-	(*RepeatedAny)(nil),           // 21: datasets.v1.RepeatedAny
-	(*Any)(nil),                   // 22: datasets.v1.Any
+	(FieldArrayOperator)(0),       // 0: datasets.v1.FieldArrayOperator
+	(LogicalOperator)(0),          // 1: datasets.v1.LogicalOperator
+	(FieldComparisonOperator)(0),  // 2: datasets.v1.FieldComparisonOperator
+	(SpatialFilterMode)(0),        // 3: datasets.v1.SpatialFilterMode
+	(SpatialCoordinateSystem)(0),  // 4: datasets.v1.SpatialCoordinateSystem
+	(*QueryByIDRequest)(nil),      // 5: datasets.v1.QueryByIDRequest
+	(*QueryFilters)(nil),          // 6: datasets.v1.QueryFilters
+	(*FilterExpression)(nil),      // 7: datasets.v1.FilterExpression
+	(*FieldArrayPredicate)(nil),   // 8: datasets.v1.FieldArrayPredicate
+	(*LogicalExpression)(nil),     // 9: datasets.v1.LogicalExpression
+	(*FieldComparison)(nil),       // 10: datasets.v1.FieldComparison
+	(*FieldNullCheck)(nil),        // 11: datasets.v1.FieldNullCheck
+	(*FieldQueryValue)(nil),       // 12: datasets.v1.FieldQueryValue
+	(*SpatialFilter)(nil),         // 13: datasets.v1.SpatialFilter
+	(*QueryRequest)(nil),          // 14: datasets.v1.QueryRequest
+	(*QueryResultPage)(nil),       // 15: datasets.v1.QueryResultPage
+	(*v1.ID)(nil),                 // 16: tilebox.v1.ID
+	(*v1.TimeInterval)(nil),       // 17: tilebox.v1.TimeInterval
+	(*v1.IDInterval)(nil),         // 18: tilebox.v1.IDInterval
+	(*timestamppb.Timestamp)(nil), // 19: google.protobuf.Timestamp
+	(*durationpb.Duration)(nil),   // 20: google.protobuf.Duration
+	(*Geometry)(nil),              // 21: datasets.v1.Geometry
+	(*v1.Pagination)(nil),         // 22: tilebox.v1.Pagination
+	(*RepeatedAny)(nil),           // 23: datasets.v1.RepeatedAny
+	(*Any)(nil),                   // 24: datasets.v1.Any
 }
 var file_datasets_v1_data_access_proto_depIdxs = []int32{
-	14, // 0: datasets.v1.QueryByIDRequest.dataset_id:type_name -> tilebox.v1.ID
-	14, // 1: datasets.v1.QueryByIDRequest.collection_ids:type_name -> tilebox.v1.ID
-	14, // 2: datasets.v1.QueryByIDRequest.id:type_name -> tilebox.v1.ID
-	15, // 3: datasets.v1.QueryFilters.time_interval:type_name -> tilebox.v1.TimeInterval
-	16, // 4: datasets.v1.QueryFilters.datapoint_interval:type_name -> tilebox.v1.IDInterval
-	11, // 5: datasets.v1.QueryFilters.spatial_extent:type_name -> datasets.v1.SpatialFilter
-	6,  // 6: datasets.v1.QueryFilters.expressions:type_name -> datasets.v1.FilterExpression
-	7,  // 7: datasets.v1.FilterExpression.logical:type_name -> datasets.v1.LogicalExpression
-	8,  // 8: datasets.v1.FilterExpression.comparison:type_name -> datasets.v1.FieldComparison
-	9,  // 9: datasets.v1.FilterExpression.is_null:type_name -> datasets.v1.FieldNullCheck
-	0,  // 10: datasets.v1.LogicalExpression.operator:type_name -> datasets.v1.LogicalOperator
-	6,  // 11: datasets.v1.LogicalExpression.operands:type_name -> datasets.v1.FilterExpression
-	1,  // 12: datasets.v1.FieldComparison.operator:type_name -> datasets.v1.FieldComparisonOperator
-	10, // 13: datasets.v1.FieldComparison.value:type_name -> datasets.v1.FieldQueryValue
-	17, // 14: datasets.v1.FieldQueryValue.timestamp_value:type_name -> google.protobuf.Timestamp
-	18, // 15: datasets.v1.FieldQueryValue.duration_value:type_name -> google.protobuf.Duration
-	19, // 16: datasets.v1.SpatialFilter.geometry:type_name -> datasets.v1.Geometry
-	2,  // 17: datasets.v1.SpatialFilter.mode:type_name -> datasets.v1.SpatialFilterMode
-	3,  // 18: datasets.v1.SpatialFilter.coordinate_system:type_name -> datasets.v1.SpatialCoordinateSystem
-	14, // 19: datasets.v1.QueryRequest.dataset_id:type_name -> tilebox.v1.ID
-	14, // 20: datasets.v1.QueryRequest.collection_ids:type_name -> tilebox.v1.ID
-	5,  // 21: datasets.v1.QueryRequest.filters:type_name -> datasets.v1.QueryFilters
-	20, // 22: datasets.v1.QueryRequest.page:type_name -> tilebox.v1.Pagination
-	21, // 23: datasets.v1.QueryResultPage.data:type_name -> datasets.v1.RepeatedAny
-	20, // 24: datasets.v1.QueryResultPage.next_page:type_name -> tilebox.v1.Pagination
-	4,  // 25: datasets.v1.DataAccessService.QueryByID:input_type -> datasets.v1.QueryByIDRequest
-	12, // 26: datasets.v1.DataAccessService.Query:input_type -> datasets.v1.QueryRequest
-	22, // 27: datasets.v1.DataAccessService.QueryByID:output_type -> datasets.v1.Any
-	13, // 28: datasets.v1.DataAccessService.Query:output_type -> datasets.v1.QueryResultPage
-	27, // [27:29] is the sub-list for method output_type
-	25, // [25:27] is the sub-list for method input_type
-	25, // [25:25] is the sub-list for extension type_name
-	25, // [25:25] is the sub-list for extension extendee
-	0,  // [0:25] is the sub-list for field type_name
+	16, // 0: datasets.v1.QueryByIDRequest.dataset_id:type_name -> tilebox.v1.ID
+	16, // 1: datasets.v1.QueryByIDRequest.collection_ids:type_name -> tilebox.v1.ID
+	16, // 2: datasets.v1.QueryByIDRequest.id:type_name -> tilebox.v1.ID
+	17, // 3: datasets.v1.QueryFilters.time_interval:type_name -> tilebox.v1.TimeInterval
+	18, // 4: datasets.v1.QueryFilters.datapoint_interval:type_name -> tilebox.v1.IDInterval
+	13, // 5: datasets.v1.QueryFilters.spatial_extent:type_name -> datasets.v1.SpatialFilter
+	7,  // 6: datasets.v1.QueryFilters.expressions:type_name -> datasets.v1.FilterExpression
+	9,  // 7: datasets.v1.FilterExpression.logical:type_name -> datasets.v1.LogicalExpression
+	10, // 8: datasets.v1.FilterExpression.comparison:type_name -> datasets.v1.FieldComparison
+	11, // 9: datasets.v1.FilterExpression.is_null:type_name -> datasets.v1.FieldNullCheck
+	8,  // 10: datasets.v1.FilterExpression.array_predicate:type_name -> datasets.v1.FieldArrayPredicate
+	0,  // 11: datasets.v1.FieldArrayPredicate.operator:type_name -> datasets.v1.FieldArrayOperator
+	1,  // 12: datasets.v1.LogicalExpression.operator:type_name -> datasets.v1.LogicalOperator
+	7,  // 13: datasets.v1.LogicalExpression.operands:type_name -> datasets.v1.FilterExpression
+	2,  // 14: datasets.v1.FieldComparison.operator:type_name -> datasets.v1.FieldComparisonOperator
+	12, // 15: datasets.v1.FieldComparison.value:type_name -> datasets.v1.FieldQueryValue
+	19, // 16: datasets.v1.FieldQueryValue.timestamp_value:type_name -> google.protobuf.Timestamp
+	20, // 17: datasets.v1.FieldQueryValue.duration_value:type_name -> google.protobuf.Duration
+	21, // 18: datasets.v1.SpatialFilter.geometry:type_name -> datasets.v1.Geometry
+	3,  // 19: datasets.v1.SpatialFilter.mode:type_name -> datasets.v1.SpatialFilterMode
+	4,  // 20: datasets.v1.SpatialFilter.coordinate_system:type_name -> datasets.v1.SpatialCoordinateSystem
+	16, // 21: datasets.v1.QueryRequest.dataset_id:type_name -> tilebox.v1.ID
+	16, // 22: datasets.v1.QueryRequest.collection_ids:type_name -> tilebox.v1.ID
+	6,  // 23: datasets.v1.QueryRequest.filters:type_name -> datasets.v1.QueryFilters
+	22, // 24: datasets.v1.QueryRequest.page:type_name -> tilebox.v1.Pagination
+	23, // 25: datasets.v1.QueryResultPage.data:type_name -> datasets.v1.RepeatedAny
+	22, // 26: datasets.v1.QueryResultPage.next_page:type_name -> tilebox.v1.Pagination
+	5,  // 27: datasets.v1.DataAccessService.QueryByID:input_type -> datasets.v1.QueryByIDRequest
+	14, // 28: datasets.v1.DataAccessService.Query:input_type -> datasets.v1.QueryRequest
+	24, // 29: datasets.v1.DataAccessService.QueryByID:output_type -> datasets.v1.Any
+	15, // 30: datasets.v1.DataAccessService.Query:output_type -> datasets.v1.QueryResultPage
+	29, // [29:31] is the sub-list for method output_type
+	27, // [27:29] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_data_access_proto_init() }
@@ -1688,8 +1869,8 @@ func file_datasets_v1_data_access_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_datasets_v1_data_access_proto_rawDesc), len(file_datasets_v1_data_access_proto_rawDesc)),
-			NumEnums:      4,
-			NumMessages:   10,
+			NumEnums:      5,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

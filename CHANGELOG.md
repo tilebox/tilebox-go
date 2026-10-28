@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-10-28
+
+### Added
+
+- `query`: Filter repeated custom enums with `Field.ContainsAll` and `Field.ContainsAny`, using 0–100 nonempty public strings. Empty requests and missing fields follow set semantics.
+- `datasets`: Support queryable repeated custom enum fields with `field.Enum(...).Repeated().Queryable()` and the updated API descriptors.
+
+### Changed
+
+- Update dependencies.
+
 ## [0.17.0] - 2026-10-27
 
 ### Added
@@ -277,7 +288,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/tilebox/tilebox-go/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/tilebox/tilebox-go/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/tilebox/tilebox-go/compare/v0.15.1...v0.16.0
 [0.15.1]: https://github.com/tilebox/tilebox-go/compare/v0.15.0...v0.15.1
