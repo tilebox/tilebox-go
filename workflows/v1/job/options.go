@@ -223,6 +223,16 @@ type LogQueryOption interface {
 	ApplyLogQueryOption(*LogQueryOptions)
 }
 
+// LogCountOptions contains options for counting job logs.
+type LogCountOptions struct {
+	// TaskID restricts counts to one task. Nil counts all tasks in the job.
+	TaskID *uuid.UUID
+}
+
+type LogCountOption interface {
+	ApplyLogCountOption(*LogCountOptions)
+}
+
 type sharedQueryOption interface {
 	QueryOption
 	TelemetryQueryOption
@@ -251,6 +261,7 @@ type ParentTaskIDOption = taskCollectionOption
 type telemetryQueryOption interface {
 	TelemetryQueryOption
 	LogQueryOption
+	LogCountOption
 }
 
 type TaskIDOption = telemetryQueryOption
@@ -360,6 +371,10 @@ func (o taskIDOption) ApplyTelemetryQueryOption(cfg *TelemetryQueryOptions) {
 }
 
 func (o taskIDOption) ApplyLogQueryOption(cfg *LogQueryOptions) {
+	cfg.TaskID = &o.taskID
+}
+
+func (o taskIDOption) ApplyLogCountOption(cfg *LogCountOptions) {
 	cfg.TaskID = &o.taskID
 }
 
@@ -499,7 +514,7 @@ func WithSortDirection(direction SortDirection) SortDirectionOption {
 	return sortDirectionOption{direction: direction}
 }
 
-// WithTaskID filters job logs or spans by task ID.
+// WithTaskID filters job logs, log counts, or spans by task ID.
 func WithTaskID(taskID uuid.UUID) TaskIDOption {
 	return taskIDOption{taskID: taskID}
 }

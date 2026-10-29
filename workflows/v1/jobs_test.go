@@ -6,11 +6,15 @@ import (
 	"testing"
 	"time"
 
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connectinprocess"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/tilebox/tilebox-go/client"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
+	"github.com/tilebox/tilebox-go/protogen/workflows/v1/workflowsv1connect"
 	"github.com/tilebox/tilebox-go/query"
 	"github.com/tilebox/tilebox-go/workflows/v1/job"
 	commonv1 "go.opentelemetry.io/proto/otlp/common/v1"
@@ -547,6 +551,63 @@ func TestJobClient_QueryWorkflowReferences(t *testing.T) {
 		_, err := client.QueryPage(t.Context(), job.WithWorkflowReferences())
 		require.NoError(t, err)
 		assert.Empty(t, service.queryFilters[1].GetWorkflowReferences())
+	}
+}
+
+func TestJobClient_CountLogs(t *testing.T) {
+	jobID, taskID := uuid.New(), uuid.New()
+	for _, test := range []struct {
+		name    string
+		options []job.LogCountOption
+		taskID  *uuid.UUID
+		code    connect.Code
+	}{
+		{name: "whole job"},
+		{name: "one task", options: []job.LogCountOption{job.WithTaskID(taskID)}, taskID: &taskID},
+		{name: "missing job", code: connect.CodeNotFound},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			server := connect.NewServer()
+			var request workflowsv1.GetJobLogMessageCountsRequest
+			server.Register(connect.Method{
+				Spec: connect.Spec{Procedure: workflowsv1connect.TelemetryQueryServiceGetJobLogMessageCountsProcedure, StreamType: connect.StreamTypeUnary},
+				Handler: func(_ context.Context, _ connect.Spec, stream connect.ServerStream) error {
+					if err := stream.Receive(&request); err != nil {
+						return err
+					}
+					if test.code != 0 {
+						return connect.NewError(test.code, "job not found")
+					}
+					return stream.Send(workflowsv1.GetLogMessageCountsResponse_builder{
+						TotalMessages: new(int64(17)),
+						Counts: []*workflowsv1.LogSeverityCount{
+							workflowsv1.LogSeverityCount_builder{Severity: workflowsv1.LogSeverityGroup_LOG_SEVERITY_GROUP_INFO.Enum(), Count: new(int64(11))}.Build(),
+							workflowsv1.LogSeverityCount_builder{Severity: workflowsv1.LogSeverityGroup_LOG_SEVERITY_GROUP_ERROR.Enum(), Count: new(int64(4))}.Build(),
+							workflowsv1.LogSeverityCount_builder{Severity: workflowsv1.LogSeverityGroup_LOG_SEVERITY_GROUP_UNSPECIFIED.Enum(), Count: new(int64(2))}.Build(),
+						},
+					}.Build())
+				},
+			})
+			client := NewClient(client.New(client.WithTransport(connectinprocess.New(server))))
+			counts, err := client.Jobs.CountLogs(t.Context(), jobID, test.options...)
+			if test.code != 0 {
+				require.Error(t, err)
+				assert.Equal(t, test.code, connect.CodeOf(err))
+				assert.Nil(t, counts)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, jobID, request.GetJobId().AsUUID())
+			assert.Equal(t, test.taskID != nil, request.HasTaskId())
+			if test.taskID != nil {
+				assert.Equal(t, *test.taskID, request.GetTaskId().AsUUID())
+			}
+			assert.Equal(t, &LogMessageCounts{TotalMessages: 17, Counts: []LogSeverityCount{
+				{Severity: job.LogSeverityInfo, Count: 11},
+				{Severity: job.LogSeverityError, Count: 4},
+				{Severity: 0, Count: 2},
+			}}, counts)
+		})
 	}
 }
 

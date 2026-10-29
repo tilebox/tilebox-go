@@ -43,8 +43,15 @@
 - Avoid `init` functions; prefer explicit constructors.
 - Keep comments focused on intent/constraints, not restating obvious code.
 
+## Changelog
+- Describe the final, user-facing features, behavior changes, and significant fixes. Keep entries concise and focused on what users gain or need to change.
+- Treat `Unreleased` as an editable release summary. Refine, shorten, and consolidate existing entries as a feature evolves instead of adding a bullet for each incremental request or implementation step.
+- Group related refinements under their feature; keep unrelated changes separate. Omit internal refactors, implementation details, minor wording changes, and fixes to features that have not shipped unless they materially affect the release summary.
+- Preserve breaking changes, migration steps, compatibility requirements, and data-loss warnings. Put detailed API semantics and edge cases in Go documentation or guides rather than the changelog.
+
 ## Typical Development Flow
 1. Make code changes in public packages (`datasets/v1`, `workflows/v1`, etc.) and supporting internals.
 2. If protobuf contracts changed, update proto source in the owning repo and run `go generate ./...`.
 3. Run `go test ./...`.
 4. Run `golangci-lint run ./...`.
+5. Update the `Unreleased` summary in CHANGELOG.md when the user-facing release outcome changes, following the Changelog guidance above; an incremental change does not automatically need a new entry.

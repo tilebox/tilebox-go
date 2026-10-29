@@ -85,6 +85,19 @@ type ReleaseContent struct {
 	RunnerObjectPath string
 	// CommandOverride is an optional custom command for starting a worker runtime.
 	CommandOverride []string
+	// BuildConfig preserves the release's build rules. Nil means no build metadata was supplied.
+	BuildConfig *BuildConfig
+}
+
+// BuildConfig contains build rules relative to the release's build root.
+type BuildConfig struct {
+	// Include contains file patterns to include in the artifact.
+	Include []string
+	// Exclude contains file patterns to exclude from the artifact.
+	Exclude []string
+	// UseGitignore controls Git ignore rules. Nil means the default, true.
+	// Builders must preserve applicable ignore files or normalize the rules to remove that dependency.
+	UseGitignore *bool
 }
 
 // Path represents a file or directory path in release content.
@@ -108,6 +121,7 @@ type WorkflowReleaseDeployment struct {
 }
 
 type workflowOptions struct {
+	projectSlug       string
 	summary           string
 	description       *string
 	legacyTaskAliases *bool
@@ -115,6 +129,14 @@ type workflowOptions struct {
 
 // WorkflowOption configures workflow create requests.
 type WorkflowOption func(*workflowOptions)
+
+// WithProjectSlug sets the portable project slug independently of the display name.
+// Empty derives the slug from the name. Reference collisions add a suffix only to the remote reference.
+func WithProjectSlug(slug string) WorkflowOption {
+	return func(options *workflowOptions) {
+		options.projectSlug = slug
+	}
+}
 
 // WithSummary sets the workflow's short text summary.
 func WithSummary(summary string) WorkflowOption {
@@ -198,7 +220,7 @@ type workflowClient struct {
 
 func (c workflowClient) Create(ctx context.Context, name string, options ...WorkflowOption) (*Workflow, error) {
 	appliedOptions := applyWorkflowOptions(options...)
-	response, err := c.service.CreateWorkflow(ctx, name, appliedOptions.summary, appliedOptions.description, appliedOptions.legacyTaskAliases)
+	response, err := c.service.CreateWorkflow(ctx, name, appliedOptions.projectSlug, appliedOptions.summary, appliedOptions.description, appliedOptions.legacyTaskAliases)
 	if err != nil {
 		return nil, err
 	}
@@ -420,6 +442,20 @@ func protoToReleaseContent(content *workflowsv1.ReleaseContent) *ReleaseContent 
 		Files:            protoToPaths(content.GetFiles()),
 		RunnerObjectPath: content.GetRunnerObjectPath(),
 		CommandOverride:  content.GetCommandOverride(),
+		BuildConfig:      protoToBuildConfig(content.GetBuildConfig()),
+	}
+}
+
+func protoToBuildConfig(config *workflowsv1.BuildConfig) *BuildConfig {
+	if config == nil {
+		return nil
+	}
+	var useGitignore *bool
+	if config.HasUseGitignore() {
+		useGitignore = new(config.GetUseGitignore())
+	}
+	return &BuildConfig{
+		Include: config.GetInclude(), Exclude: config.GetExclude(), UseGitignore: useGitignore,
 	}
 }
 
@@ -489,12 +525,20 @@ func releaseContentToProto(content *ReleaseContent) (*workflowsv1.ReleaseContent
 		return nil, err
 	}
 
+	var buildConfig *workflowsv1.BuildConfig
+	if config := content.BuildConfig; config != nil {
+		buildConfig = workflowsv1.BuildConfig_builder{
+			Include: config.Include, Exclude: config.Exclude, UseGitignore: config.UseGitignore,
+		}.Build()
+	}
+
 	return workflowsv1.ReleaseContent_builder{
 		Fingerprint:      content.Fingerprint,
 		Tasks:            tasks,
 		Files:            pathsToProto(content.Files),
 		RunnerObjectPath: content.RunnerObjectPath,
 		CommandOverride:  content.CommandOverride,
+		BuildConfig:      buildConfig,
 	}.Build(), nil
 }
 

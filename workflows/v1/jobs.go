@@ -197,6 +197,19 @@ type LogPage struct {
 	NextCursor *job.Cursor
 }
 
+// LogMessageCounts contains log counts grouped by severity.
+type LogMessageCounts struct {
+	Counts []LogSeverityCount
+	// TotalMessages is the server-reported total across all severities.
+	TotalMessages int64
+}
+
+// LogSeverityCount is the number of messages in one severity group.
+type LogSeverityCount struct {
+	Severity job.LogSeverityGroup
+	Count    int64
+}
+
 // SpanPage is a single page of spans returned by a manual page query.
 type SpanPage struct {
 	// Spans is the list of spans in this page.
@@ -342,6 +355,10 @@ type JobClient interface {
 	//   - job.WithSortDirection: sorts records ascending or descending. Defaults to the server default.
 	//   - job.WithLogSeverityGroups: filters logs by severity group. Defaults to all severities.
 	QueryLogsPage(ctx context.Context, jobID uuid.UUID, options ...job.LogQueryOption) (*LogPage, error)
+
+	// CountLogs returns log counts across all severities for a job.
+	// Use job.WithTaskID to restrict counts to one task.
+	CountLogs(ctx context.Context, jobID uuid.UUID, options ...job.LogCountOption) (*LogMessageCounts, error)
 
 	// QuerySpans returns the spans emitted while running a job.
 	//
@@ -528,6 +545,22 @@ func (c jobClient) QueryPage(ctx context.Context, options ...job.QueryOption) (*
 		option.ApplyQueryOption(opts)
 	}
 	return c.queryPage(ctx, opts)
+}
+
+func (c jobClient) CountLogs(ctx context.Context, jobID uuid.UUID, options ...job.LogCountOption) (*LogMessageCounts, error) {
+	opts := &job.LogCountOptions{}
+	for _, option := range options {
+		option.ApplyLogCountOption(opts)
+	}
+	response, err := c.telemetryService.GetJobLogMessageCounts(ctx, jobID, taskIDToProto(opts.TaskID))
+	if err != nil {
+		return nil, err
+	}
+	counts := make([]LogSeverityCount, len(response.GetCounts()))
+	for i, count := range response.GetCounts() {
+		counts[i] = LogSeverityCount{Severity: job.LogSeverityGroup(count.GetSeverity()), Count: count.GetCount()}
+	}
+	return &LogMessageCounts{Counts: counts, TotalMessages: response.GetTotalMessages()}, nil
 }
 
 func (c jobClient) QueryLogs(ctx context.Context, jobID uuid.UUID, options ...job.LogQueryOption) iter.Seq2[*LogRecord, error] {

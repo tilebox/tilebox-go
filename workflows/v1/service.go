@@ -100,6 +100,7 @@ type JobService interface {
 
 type TelemetryService interface {
 	QueryJobLogs(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection, filters *workflowsv1.LogQueryFilters) (*workflowsv1.PaginatedLogsData, error)
+	GetJobLogMessageCounts(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID) (*workflowsv1.GetLogMessageCountsResponse, error)
 	QueryJobSpans(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error)
 }
 
@@ -232,6 +233,18 @@ func (s *telemetryService) QueryJobLogs(ctx context.Context, jobID uuid.UUID, ta
 	})
 }
 
+func (s *telemetryService) GetJobLogMessageCounts(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID) (*workflowsv1.GetLogMessageCountsResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/count_logs", func(ctx context.Context) (*workflowsv1.GetLogMessageCountsResponse, error) {
+		res, err := s.telemetryClient.GetJobLogMessageCounts(ctx, workflowsv1.GetJobLogMessageCountsRequest_builder{
+			JobId: tileboxv1.NewUUID(jobID), TaskId: taskID,
+		}.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to count job logs: %w", err)
+		}
+		return res, nil
+	})
+}
+
 func (s *telemetryService) QueryJobSpans(ctx context.Context, jobID uuid.UUID, taskID *tileboxv1.ID, page *tileboxv1.Pagination, sortDirection *tileboxv1.SortDirection) (*workflowsv1.PaginatedSpansData, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/jobs/query_spans", func(ctx context.Context) (*workflowsv1.PaginatedSpansData, error) {
 		res, err := s.telemetryClient.QueryJobSpans(ctx, workflowsv1.QueryJobSpansRequest_builder{
@@ -319,7 +332,7 @@ type WorkflowService interface {
 	DeleteCluster(ctx context.Context, slug string) error
 	ListClusters(ctx context.Context) (*workflowsv1.ListClustersResponse, error)
 
-	CreateWorkflow(ctx context.Context, name, summary string, description *string, legacyTaskAliases *bool) (*workflowsv1.Workflow, error)
+	CreateWorkflow(ctx context.Context, name, projectSlug, summary string, description *string, legacyTaskAliases *bool) (*workflowsv1.Workflow, error)
 	ListWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListWorkflowsResponse, error)
 	ListPublicWorkflows(ctx context.Context, page *tileboxv1.Pagination) (*workflowsv1.ListPublicWorkflowsResponse, error)
 	GetWorkflow(ctx context.Context, reference string) (*workflowsv1.Workflow, error)
@@ -412,10 +425,11 @@ func (s *workflowService) ListClusters(ctx context.Context) (*workflowsv1.ListCl
 	})
 }
 
-func (s *workflowService) CreateWorkflow(ctx context.Context, name, summary string, description *string, legacyTaskAliases *bool) (*workflowsv1.Workflow, error) {
+func (s *workflowService) CreateWorkflow(ctx context.Context, name, projectSlug, summary string, description *string, legacyTaskAliases *bool) (*workflowsv1.Workflow, error) {
 	return observability.WithSpanResult(ctx, s.tracer, "workflows/workflows/create", func(ctx context.Context) (*workflowsv1.Workflow, error) {
 		res, err := s.workflowClient.CreateWorkflow(ctx, workflowsv1.CreateWorkflowRequest_builder{
 			Name:              name,
+			ProjectSlug:       projectSlug,
 			Summary:           summary,
 			Description:       description,
 			LegacyTaskAliases: legacyTaskAliases,
