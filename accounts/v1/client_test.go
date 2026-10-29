@@ -108,6 +108,7 @@ func TestClient_GetUsageReport(t *testing.T) {
 		name                string
 		options             []UsageReportOption
 		expectedHistoryDays uint64
+		expectedMetricKeys  []string
 	}{
 		{
 			name: "current usage",
@@ -116,6 +117,21 @@ func TestClient_GetUsageReport(t *testing.T) {
 			name:                "usage with history",
 			options:             []UsageReportOption{WithHistoryDays(30)},
 			expectedHistoryDays: 30,
+		},
+		{
+			name:               "selected metrics",
+			options:            []UsageReportOption{WithMetricKeys("storage_bytes", "task_computations")},
+			expectedMetricKeys: []string{"storage_bytes", "task_computations"},
+		},
+		{
+			name:                "selected metrics with maximum history",
+			options:             []UsageReportOption{WithMetricKeys("storage_bytes"), WithHistoryDays(370)},
+			expectedHistoryDays: 370,
+			expectedMetricKeys:  []string{"storage_bytes"},
+		},
+		{
+			name:    "empty selection means all metrics",
+			options: []UsageReportOption{WithMetricKeys()},
 		},
 	}
 
@@ -130,6 +146,7 @@ func TestClient_GetUsageReport(t *testing.T) {
 			require.Len(t, report.GetMetrics(), 1)
 			assert.Equal(t, "storage_bytes", report.GetMetrics()[0].GetKey())
 			assert.Equal(t, tt.expectedHistoryDays, service.historyDays)
+			assert.Equal(t, tt.expectedMetricKeys, service.metricKeys)
 			assert.Equal(t, "Bearer test-api-key", service.authorization)
 		})
 	}
@@ -159,6 +176,7 @@ type fakeAccountsService struct {
 	authorization  string
 	clientMetadata string
 	historyDays    uint64
+	metricKeys     []string
 	userName       string
 }
 
@@ -190,6 +208,7 @@ func (s *fakeAccountsService) GetUsageReport(ctx context.Context, request *accou
 	info, _ := connect.CallInfoForServerContext(ctx)
 	s.authorization = info.RequestHeader().Get("Authorization")
 	s.historyDays = request.GetHistoryDays()
+	s.metricKeys = request.GetMetricKeys()
 	return accountsv1alpha1.UsageReport_builder{
 		Metrics: []*accountsv1alpha1.UsageMetric{
 			accountsv1alpha1.UsageMetric_builder{Key: "storage_bytes"}.Build(),

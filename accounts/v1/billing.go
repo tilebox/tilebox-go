@@ -19,6 +19,7 @@ type BillingClient interface {
 	//
 	// Options:
 	//   - WithHistoryDays: includes historical values for the requested number of days.
+	//   - WithMetricKeys: returns only the selected metrics; defaults to all metrics.
 	GetUsageReport(ctx context.Context, options ...UsageReportOption) (*accountsv1alpha1.UsageReport, error)
 }
 
@@ -45,6 +46,7 @@ func (c *billingClient) GetUsageReport(ctx context.Context, options ...UsageRepo
 	return observability.WithSpanResult(ctx, c.tracer, "accounts/billing/usage_report/get", func(ctx context.Context) (*accountsv1alpha1.UsageReport, error) {
 		response, err := c.connectClient.GetUsageReport(ctx, accountsv1alpha1.GetUsageReportRequest_builder{
 			HistoryDays: usageReportOptions.historyDays,
+			MetricKeys:  usageReportOptions.metricKeys,
 		}.Build())
 		if err != nil {
 			return nil, fmt.Errorf("failed to get usage report: %w", err)
@@ -56,16 +58,25 @@ func (c *billingClient) GetUsageReport(ctx context.Context, options ...UsageRepo
 
 type usageReportOptions struct {
 	historyDays uint64
+	metricKeys  []string
 }
 
 // UsageReportOption configures a usage report request.
 type UsageReportOption func(*usageReportOptions)
 
 // WithHistoryDays includes historical usage values for the requested number of days.
-// The API supports up to 365 days.
+// The API supports up to 370 days.
 func WithHistoryDays(historyDays uint64) UsageReportOption {
 	return func(options *usageReportOptions) {
 		options.historyDays = historyDays
+	}
+}
+
+// WithMetricKeys selects the metrics to include in the usage report and its history.
+// Without keys, the API returns all metrics.
+func WithMetricKeys(keys ...string) UsageReportOption {
+	return func(options *usageReportOptions) {
+		options.metricKeys = append(options.metricKeys, keys...)
 	}
 }
 

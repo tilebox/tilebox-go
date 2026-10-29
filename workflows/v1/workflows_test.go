@@ -30,6 +30,7 @@ func TestWorkflowClient_Create(t *testing.T) {
 	for _, test := range []struct {
 		name              string
 		options           []WorkflowOption
+		projectSlug       string
 		summary           string
 		description       string
 		hasDescription    bool
@@ -39,6 +40,8 @@ func TestWorkflowClient_Create(t *testing.T) {
 	}{
 		{name: "omitted description"},
 		{name: "explicit empty description", options: []WorkflowOption{WithDescription("")}, hasDescription: true},
+		{name: "explicit project slug", options: []WorkflowOption{WithProjectSlug("scene-qa")}, projectSlug: "scene-qa"},
+		{name: "derived project slug", options: []WorkflowOption{WithProjectSlug("")}},
 		{name: "scoped only", options: []WorkflowOption{WithLegacyTaskAliases(false)}, legacyTaskAliases: new(false)},
 		{name: "legacy aliases", options: []WorkflowOption{WithLegacyTaskAliases(true)}, legacyTaskAliases: new(true)},
 		{
@@ -77,6 +80,7 @@ func TestWorkflowClient_Create(t *testing.T) {
 			createdWorkflow, err := workflows.Workflows.Create(t.Context(), "Change Detection", test.options...)
 			require.NoError(t, err)
 			assert.Equal(t, "Change Detection", request.GetName())
+			assert.Equal(t, test.projectSlug, request.GetProjectSlug())
 			assert.Equal(t, test.summary, request.GetSummary())
 			assert.Equal(t, test.hasDescription, request.HasDescription())
 			assert.Equal(t, test.description, request.GetDescription())
@@ -428,6 +432,73 @@ func TestWorkflowClient_PublishRelease(t *testing.T) {
 	assert.Equal(t, createdAt, release.CreatedAt)
 }
 
+func TestWorkflowClient_ReleaseBuildConfig(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		config *BuildConfig
+		wire   *workflowsv1.BuildConfig
+	}{
+		{name: "legacy release"},
+		{name: "empty config", config: &BuildConfig{}, wire: &workflowsv1.BuildConfig{}},
+		{
+			name:   "default gitignore",
+			config: &BuildConfig{Include: []string{"src/**", "uv.lock"}, Exclude: []string{"src/tests/**"}},
+			wire:   workflowsv1.BuildConfig_builder{Include: []string{"src/**", "uv.lock"}, Exclude: []string{"src/tests/**"}}.Build(),
+		},
+		{
+			name:   "gitignore disabled",
+			config: &BuildConfig{Include: []string{"**/*.py"}, UseGitignore: new(false)},
+			wire:   workflowsv1.BuildConfig_builder{Include: []string{"**/*.py"}, UseGitignore: new(false)}.Build(),
+		},
+		{
+			name:   "gitignore enabled",
+			config: &BuildConfig{Include: []string{"runner.py"}, UseGitignore: new(true)},
+			wire:   workflowsv1.BuildConfig_builder{Include: []string{"runner.py"}, UseGitignore: new(true)}.Build(),
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			server := connect.NewServer()
+			wireRelease := workflowsv1.WorkflowRelease_builder{
+				Content: workflowsv1.ReleaseContent_builder{BuildConfig: test.wire}.Build(),
+			}.Build()
+			var request workflowsv1.PublishWorkflowReleaseRequest
+			server.Register(connect.Method{
+				Spec: connect.Spec{Procedure: workflowsv1connect.WorkflowsServicePublishWorkflowReleaseProcedure, StreamType: connect.StreamTypeUnary},
+				Handler: func(_ context.Context, _ connect.Spec, stream connect.ServerStream) error {
+					if err := stream.Receive(&request); err != nil {
+						return err
+					}
+					return stream.Send(wireRelease)
+				},
+			})
+			server.Register(connect.Method{
+				Spec: connect.Spec{Procedure: workflowsv1connect.WorkflowsServiceGetWorkflowProcedure, StreamType: connect.StreamTypeUnary},
+				Handler: func(_ context.Context, _ connect.Spec, stream connect.ServerStream) error {
+					var request workflowsv1.GetWorkflowRequest
+					if err := stream.Receive(&request); err != nil {
+						return err
+					}
+					return stream.Send(workflowsv1.Workflow_builder{Releases: []*workflowsv1.WorkflowRelease{wireRelease}}.Build())
+				},
+			})
+			client := NewClient(client.New(client.WithTransport(connectinprocess.New(server))))
+			release, err := client.Workflows.PublishRelease(t.Context(), "scene-qa", uuid.New(), &ReleaseContent{
+				Tasks: []TaskIdentifier{NewTaskIdentifier("Process", "v1.0")}, BuildConfig: test.config,
+			})
+			require.NoError(t, err)
+			assert.Equal(t, test.wire != nil, request.GetContent().HasBuildConfig())
+			assert.True(t, proto.Equal(test.wire, request.GetContent().GetBuildConfig()), "build rules and optional presence must reach the API")
+			require.NotNil(t, release.Content)
+			assert.Equal(t, test.config, release.Content.BuildConfig)
+
+			fetched, err := client.Workflows.Get(t.Context(), "scene-qa")
+			require.NoError(t, err)
+			require.Len(t, fetched.Releases, 1)
+			assert.Equal(t, test.config, fetched.Releases[0].Content.BuildConfig)
+		})
+	}
+}
+
 func TestWorkflowClient_UnpublishRelease(t *testing.T) {
 	ctx := context.Background()
 	releaseID := uuid.New()
@@ -655,7 +726,7 @@ func (s *fakeWorkflowService) ListClusters(context.Context) (*workflowsv1.ListCl
 	return nil, errors.New("not implemented")
 }
 
-func (s *fakeWorkflowService) CreateWorkflow(context.Context, string, string, *string, *bool) (*workflowsv1.Workflow, error) {
+func (s *fakeWorkflowService) CreateWorkflow(context.Context, string, string, string, *string, *bool) (*workflowsv1.Workflow, error) {
 	return s.workflow, s.err
 }
 
