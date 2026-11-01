@@ -63,9 +63,10 @@ type PollingTaskRunner struct {
 	activeMu          sync.Mutex
 	activeTask        *workflowsv1.Task
 	cancelActiveLease context.CancelFunc
+	hosted            *hostedSlot
 }
 
-func NewPollingTaskRunner(service TaskService, clusterSlug string, executor TaskExecutor, logger *slog.Logger) *PollingTaskRunner {
+func NewPollingTaskRunner(service TaskService, clusterSlug string, executor TaskExecutor, logger *slog.Logger, options ...PollingRunnerOption) *PollingTaskRunner {
 	if logger == nil {
 		logger = slog.Default()
 	}
@@ -76,6 +77,9 @@ func NewPollingTaskRunner(service TaskService, clusterSlug string, executor Task
 		executor:    executor,
 	}
 	runner.requestNewTasks.Store(true)
+	for _, option := range options {
+		option(runner)
+	}
 	return runner
 }
 
@@ -92,6 +96,9 @@ func (r *PollingTaskRunner) StopRequestingNewTasks() {
 }
 
 func (r *PollingTaskRunner) IsRequestingTasks() bool {
+	if r.hosted != nil && !r.hosted.lifecycle.requesting() {
+		return false
+	}
 	return r.requestNewTasks.Load()
 }
 
@@ -118,6 +125,9 @@ func (r *PollingTaskRunner) InterruptActiveTask(ctx context.Context) error {
 }
 
 func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error {
+	if r.hosted != nil {
+		r.hosted.lifecycle.wait(ctx)
+	}
 	var work *workflowsv1.NextTaskResponse
 	pending := pendingReport{}
 	// currentTaskLogContext carries task_id and trace context for logs related to the task
@@ -147,6 +157,7 @@ func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error 
 				}
 				continue
 			case reportResetRunner:
+				r.hosted.abandonReport()
 				work = nil
 				pending = pendingReport{}
 				currentTaskLogContext = ctx
@@ -166,7 +177,7 @@ func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error 
 			}
 
 			// check whether the runner should still request a new task
-			requestingNewTasks := r.requestNewTasks.Load()
+			requestingNewTasks := r.IsRequestingTasks()
 			if !requestingNewTasks && lastComputedTask == nil {
 				return nil
 			}
@@ -239,7 +250,7 @@ func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error 
 				}
 			} else {
 				// work stealing:
-				taskResponse, err := r.service.NextTask(ctx, nil, nextTaskToRun)
+				taskResponse, err := r.nextTask(ctx, nil, nextTaskToRun)
 				if err != nil {
 					// easy retry case, since we don't have a task result to report anyway
 					logFailure(r.logger, ctx, slog.LevelWarn, err, "failed to request next task, will retry")
@@ -267,6 +278,7 @@ func (r *PollingTaskRunner) run(ctx context.Context, stopWhenIdling bool) error 
 			}
 
 			response, err := r.executeTask(ctx, task)
+			r.hosted.executed()
 			if err != nil {
 				pending = pendingReport{
 					result: workflowsv1.ExecuteTaskResponse_builder{FailedTask: r.failedTaskFromError(task, err)}.Build(),
@@ -372,6 +384,7 @@ func (p pendingReport) hasComputedTaskToReport() bool {
 func (r *PollingTaskRunner) reportPendingFailure(ctx, logCtx context.Context, pending pendingReport) (pendingReport, reportOutcome) {
 	failedTask := pending.result.GetFailedTask()
 	_, err := r.service.TaskFailed(ctx, failedTask.GetTaskId().AsUUID(), failedTask.GetDisplay(), failedTask.GetWasWorkflowError(), failedTask.GetProgressUpdates())
+	r.hosted.reported(err)
 	if err == nil {
 		return pendingReport{}, reportSucceeded
 	}
@@ -418,7 +431,7 @@ func (r *PollingTaskRunner) reportPendingFailure(ctx, logCtx context.Context, pe
 // payload-shape errors from an isolated computed-task report are converted into workflow failures.
 func (r *PollingTaskRunner) reportPendingComputed(ctx, logCtx context.Context, pending pendingReport, nextTaskToRun *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, pendingReport, reportOutcome) {
 	computedTask := pending.result.GetComputedTask()
-	taskResponse, err := r.service.NextTask(ctx, computedTask, nextTaskToRun)
+	taskResponse, err := r.nextTask(ctx, computedTask, nextTaskToRun)
 	if err == nil {
 		return taskResponse, pendingReport{}, reportSucceeded
 	}
@@ -429,7 +442,7 @@ func (r *PollingTaskRunner) reportPendingComputed(ctx, logCtx context.Context, p
 
 	if nextTaskToRun != nil {
 		logFailure(r.logger, logCtx, slog.LevelWarn, err, "failed to report computed task and request next task due to request error, retrying without new work request", slog.String("task_id", computedTask.GetId().AsUUID().String()), slog.String("task_display", computedTask.GetDisplay()))
-		taskResponse, err = r.service.NextTask(ctx, computedTask, nil)
+		taskResponse, err = r.nextTask(ctx, computedTask, nil)
 		if err == nil {
 			return taskResponse, pendingReport{}, reportSucceeded
 		}
@@ -494,10 +507,14 @@ func (r *PollingTaskRunner) extendTaskLease(ctx context.Context, taskID uuid.UUI
 		r.logger.DebugContext(ctx, "extending task lease", slog.String("task_id", taskID.String()), slog.Duration("lease", lease), slog.Duration("wait", wait))
 		extension, err := r.service.ExtendTaskLease(ctx, taskID, 2*lease)
 		if err != nil {
+			if ctx.Err() == nil {
+				r.hosted.leaseFailed()
+			}
 			logFailure(r.logger, ctx, slog.LevelError, err, "failed to extend task lease", slog.String("task_id", taskID.String()))
 			return
 		}
 		if extension.GetLease() == nil {
+			r.hosted.leaseFailed()
 			r.logger.DebugContext(ctx, "task lease extension not granted", slog.String("task_id", taskID.String()))
 			return
 		}

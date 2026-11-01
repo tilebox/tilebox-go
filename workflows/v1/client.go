@@ -75,14 +75,14 @@ func (c *Client) NewTaskRunner(ctx context.Context, options ...runner.Option) (*
 }
 
 // NewPollingTaskRunner creates a polling task runner for a resolved cluster and custom task executor.
-func (c *Client) NewPollingTaskRunner(cluster *Cluster, executor TaskExecutor, logger *slog.Logger) (*PollingTaskRunner, error) {
+func (c *Client) NewPollingTaskRunner(cluster *Cluster, executor TaskExecutor, logger *slog.Logger, options ...PollingRunnerOption) (*PollingTaskRunner, error) {
 	if cluster == nil {
 		return nil, errors.New("cluster is required")
 	}
 	if strings.TrimSpace(cluster.Slug) == "" {
 		return nil, errors.New("cluster slug is required")
 	}
-	return NewPollingTaskRunner(c.taskService, cluster.Slug, executor, logger), nil
+	return NewPollingTaskRunner(c.taskService, cluster.Slug, executor, logger, options...), nil
 }
 
 // clientConfig contains the configuration for Tilebox Workflows client.

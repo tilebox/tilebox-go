@@ -83,6 +83,22 @@ func TestRetryHTTPClientMakesFiveTotalAttempts(t *testing.T) {
 	assert.Equal(t, int32(5), attempts.Load())
 }
 
+func TestWithoutHTTPRetriesExposesFirstAmbiguousOutcome(t *testing.T) {
+	var attempts atomic.Int32
+	httpClient := NewRetryHTTPClient(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		attempts.Add(1)
+		return nil, io.EOF
+	})}, DefaultRetryPolicy())
+	request, err := http.NewRequestWithContext(WithoutHTTPRetries(t.Context()), http.MethodPost, "http://localhost/claim", strings.NewReader("claim"))
+	require.NoError(t, err)
+	response, err := httpClient.Do(request)
+	if response != nil {
+		require.NoError(t, response.Body.Close())
+	}
+	require.ErrorIs(t, err, io.EOF)
+	assert.EqualValues(t, 1, attempts.Load())
+}
+
 func TestExponentialJitterBackoffIsBounded(t *testing.T) {
 	const (
 		minimum = 20 * time.Millisecond
