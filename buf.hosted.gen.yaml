@@ -1,0 +1,20 @@
+# Bounded local prototype generation; no registry publish or unrelated schema changes.
+# Optional override, run from the SDK root: buf generate --template buf.hosted.gen.yaml
+# Requires the api checkout beside this repository and protoc-gen-go v1.36.12 on PATH.
+# Normal go generate / buf.gen.yaml continues to use buf.build/tilebox/api.
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/tilebox/tilebox-go/protogen
+plugins:
+  - local: protoc-gen-go
+    out: protogen
+    opt:
+      - paths=source_relative
+      - default_api_level=API_OPAQUE
+inputs:
+  - directory: ../api
+    paths:
+      - ../api/apis/workflows/v1/hosted_runner.proto

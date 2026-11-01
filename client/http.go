@@ -118,7 +118,20 @@ type retryHTTPClient struct {
 	client *retryablehttp.Client
 }
 
+type disableHTTPRetriesKey struct{}
+
+// WithoutHTTPRetries makes SDK-owned HTTP clients expose the first RPC outcome.
+// Use it for claims without request deduplication: a replay can otherwise hide a
+// committed claim whose reply was lost. Custom HTTP clients must honor this
+// constraint separately; the SDK cannot control their internal retries.
+func WithoutHTTPRetries(ctx context.Context) context.Context {
+	return context.WithValue(ctx, disableHTTPRetriesKey{}, true)
+}
+
 func (client *retryHTTPClient) Do(request *http.Request) (*http.Response, error) {
+	if request.Context().Value(disableHTTPRetriesKey{}) == true {
+		return client.client.HTTPClient.Do(request)
+	}
 	if request.Body != nil && request.Body != http.NoBody && request.GetBody == nil {
 		return client.client.HTTPClient.Do(request)
 	}
