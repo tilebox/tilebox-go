@@ -21,11 +21,12 @@ const (
 
 // Client is a Tilebox Workflows client.
 type Client struct {
-	Jobs             JobClient
-	Clusters         ClusterClient
-	Workflows        WorkflowClient
-	Automations      AutomationClient
-	StorageLocations StorageLocationClient
+	Jobs                 JobClient
+	Clusters             ClusterClient
+	Workflows            WorkflowClient
+	Automations          AutomationClient
+	StorageLocations     StorageLocationClient
+	EnvironmentVariables EnvironmentVariableClient
 
 	// Used by NewTaskRunner
 	taskService TaskService
@@ -58,6 +59,7 @@ func NewClient(rpcClient *connect.Client, options ...ClientOption) *Client {
 		StorageLocations: &storageLocationClient{
 			service: storageLocationService,
 		},
+		EnvironmentVariables: &environmentVariableClient{service: workflowsv1connect.NewResourceServiceClient(rpcClient), tracer: tracer},
 
 		taskService: newTaskService(taskConnectClient, tracer),
 		tracer:      tracer,

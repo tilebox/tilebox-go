@@ -329,6 +329,7 @@ type WorkflowService interface {
 	CreateCluster(ctx context.Context, name, description, slug string) (*workflowsv1.Cluster, error)
 	UpdateCluster(ctx context.Context, slug string, name, description *string) (*workflowsv1.Cluster, error)
 	GetCluster(ctx context.Context, slug string) (*workflowsv1.Cluster, error)
+	GetClusterRunnerEnvironment(ctx context.Context, slug string) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error)
 	DeleteCluster(ctx context.Context, slug string) error
 	ListClusters(ctx context.Context) (*workflowsv1.ListClustersResponse, error)
 
@@ -397,6 +398,18 @@ func (s *workflowService) GetCluster(ctx context.Context, slug string) (*workflo
 			return nil, fmt.Errorf("failed to get cluster: %w", err)
 		}
 
+		return res, nil
+	})
+}
+
+func (s *workflowService) GetClusterRunnerEnvironment(ctx context.Context, slug string) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error) {
+	return observability.WithSpanResult(ctx, s.tracer, "workflows/clusters/get_runner_environment", func(ctx context.Context) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error) {
+		res, err := s.workflowClient.GetClusterRunnerEnvironment(ctx, workflowsv1.GetClusterRunnerEnvironmentRequest_builder{
+			ClusterSlug: slug,
+		}.Build())
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster runner environment: %w", err)
+		}
 		return res, nil
 	})
 }

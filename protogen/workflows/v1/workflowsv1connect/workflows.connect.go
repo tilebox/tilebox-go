@@ -32,6 +32,9 @@ const (
 	// WorkflowsServiceGetClusterProcedure is the procedure name of the WorkflowsService's GetCluster
 	// RPC.
 	WorkflowsServiceGetClusterProcedure = "/workflows.v1.WorkflowsService/GetCluster"
+	// WorkflowsServiceGetClusterRunnerEnvironmentProcedure is the procedure name of the
+	// WorkflowsService's GetClusterRunnerEnvironment RPC.
+	WorkflowsServiceGetClusterRunnerEnvironmentProcedure = "/workflows.v1.WorkflowsService/GetClusterRunnerEnvironment"
 	// WorkflowsServiceUpdateClusterProcedure is the procedure name of the WorkflowsService's
 	// UpdateCluster RPC.
 	WorkflowsServiceUpdateClusterProcedure = "/workflows.v1.WorkflowsService/UpdateCluster"
@@ -86,6 +89,13 @@ var (
 			StreamType: connect.StreamTypeUnary,
 			Schema:     v1.File_workflows_v1_workflows_proto.Services().ByName("WorkflowsService").Methods().ByName("GetCluster"),
 			Procedure:  WorkflowsServiceGetClusterProcedure,
+		}
+	})
+	workflowsServiceGetClusterRunnerEnvironmentSpec = sync.OnceValue(func() connect.Spec {
+		return connect.Spec{
+			StreamType: connect.StreamTypeUnary,
+			Schema:     v1.File_workflows_v1_workflows_proto.Services().ByName("WorkflowsService").Methods().ByName("GetClusterRunnerEnvironment"),
+			Procedure:  WorkflowsServiceGetClusterRunnerEnvironmentProcedure,
 		}
 	})
 	workflowsServiceUpdateClusterSpec = sync.OnceValue(func() connect.Spec {
@@ -185,6 +195,7 @@ var (
 type WorkflowsServiceClient interface {
 	CreateCluster(context.Context, *v1.CreateClusterRequest) (*v1.Cluster, error)
 	GetCluster(context.Context, *v1.GetClusterRequest) (*v1.Cluster, error)
+	GetClusterRunnerEnvironment(context.Context, *v1.GetClusterRunnerEnvironmentRequest) (*v1.GetClusterRunnerEnvironmentResponse, error)
 	UpdateCluster(context.Context, *v1.UpdateClusterRequest) (*v1.Cluster, error)
 	DeleteCluster(context.Context, *v1.DeleteClusterRequest) (*v1.DeleteClusterResponse, error)
 	ListClusters(context.Context, *v1.ListClustersRequest) (*v1.ListClustersResponse, error)
@@ -210,6 +221,7 @@ func NewWorkflowsServiceClient(client *connect.Client) WorkflowsServiceClient {
 type WorkflowsServiceHandler interface {
 	CreateCluster(context.Context, *v1.CreateClusterRequest) (*v1.Cluster, error)
 	GetCluster(context.Context, *v1.GetClusterRequest) (*v1.Cluster, error)
+	GetClusterRunnerEnvironment(context.Context, *v1.GetClusterRunnerEnvironmentRequest) (*v1.GetClusterRunnerEnvironmentResponse, error)
 	UpdateCluster(context.Context, *v1.UpdateClusterRequest) (*v1.Cluster, error)
 	DeleteCluster(context.Context, *v1.DeleteClusterRequest) (*v1.DeleteClusterResponse, error)
 	ListClusters(context.Context, *v1.ListClustersRequest) (*v1.ListClustersResponse, error)
@@ -232,6 +244,7 @@ func RegisterWorkflowsServiceHandler(server *connect.Server, svc WorkflowsServic
 	server.Register(
 		connect.Method{Spec: workflowsServiceCreateClusterSpec(), Handler: adapter.createCluster},
 		connect.Method{Spec: workflowsServiceGetClusterSpec(), Handler: adapter.getCluster},
+		connect.Method{Spec: workflowsServiceGetClusterRunnerEnvironmentSpec(), Handler: adapter.getClusterRunnerEnvironment},
 		connect.Method{Spec: workflowsServiceUpdateClusterSpec(), Handler: adapter.updateCluster},
 		connect.Method{Spec: workflowsServiceDeleteClusterSpec(), Handler: adapter.deleteCluster},
 		connect.Method{Spec: workflowsServiceListClustersSpec(), Handler: adapter.listClusters},
@@ -257,6 +270,10 @@ func (UnimplementedWorkflowsServiceHandler) CreateCluster(context.Context, *v1.C
 
 func (UnimplementedWorkflowsServiceHandler) GetCluster(context.Context, *v1.GetClusterRequest) (*v1.Cluster, error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.WorkflowsService.GetCluster is not implemented")
+}
+
+func (UnimplementedWorkflowsServiceHandler) GetClusterRunnerEnvironment(context.Context, *v1.GetClusterRunnerEnvironmentRequest) (*v1.GetClusterRunnerEnvironmentResponse, error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, "workflows.v1.WorkflowsService.GetClusterRunnerEnvironment is not implemented")
 }
 
 func (UnimplementedWorkflowsServiceHandler) UpdateCluster(context.Context, *v1.UpdateClusterRequest) (*v1.Cluster, error) {
@@ -326,6 +343,14 @@ func (c *workflowsServiceClient) CreateCluster(ctx context.Context, req *v1.Crea
 func (c *workflowsServiceClient) GetCluster(ctx context.Context, req *v1.GetClusterRequest) (*v1.Cluster, error) {
 	var res v1.Cluster
 	if err := c.client.CallUnary(ctx, workflowsServiceGetClusterSpec(), req, &res); err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func (c *workflowsServiceClient) GetClusterRunnerEnvironment(ctx context.Context, req *v1.GetClusterRunnerEnvironmentRequest) (*v1.GetClusterRunnerEnvironmentResponse, error) {
+	var res v1.GetClusterRunnerEnvironmentResponse
+	if err := c.client.CallUnary(ctx, workflowsServiceGetClusterRunnerEnvironmentSpec(), req, &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
@@ -455,6 +480,18 @@ func (h workflowsServiceHandler) getCluster(ctx context.Context, _ connect.Spec,
 		return err
 	}
 	res, err := h.svc.GetCluster(ctx, &req)
+	if err != nil {
+		return err
+	}
+	return stream.Send(res)
+}
+
+func (h workflowsServiceHandler) getClusterRunnerEnvironment(ctx context.Context, _ connect.Spec, stream connect.ServerStream) error {
+	var req v1.GetClusterRunnerEnvironmentRequest
+	if err := stream.Receive(&req); err != nil {
+		return err
+	}
+	res, err := h.svc.GetClusterRunnerEnvironment(ctx, &req)
 	if err != nil {
 		return err
 	}

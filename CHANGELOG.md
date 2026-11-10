@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-11-10
+
+### Added
+
+- `workflows`: Manage cluster-scoped environment variables and secrets through `Client.EnvironmentVariables`, with presence-aware updates, explicit secret reveal, and paginated inventory or effective-cluster reads.
+- `workflows`: Poll cluster deployments and resolved runtime variables, including secrets, through `Clusters.GetRunnerEnvironment`.
+
+### Changed
+
+- **Breaking:** Custom `ClusterClient` and `WorkflowService` implementations must implement `GetRunnerEnvironment` and `GetClusterRunnerEnvironment`, respectively.
+- **Breaking:** Generated Connect/gRPC workflow client implementations and mocks must add `GetClusterRunnerEnvironment`. Custom handlers and servers must also add it unless they embed the supplied unimplemented handler or server.
+
 ## [0.19.0] - 2026-10-29
 
 ### Added
@@ -302,7 +314,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/tilebox/tilebox-go/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/tilebox/tilebox-go/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/tilebox/tilebox-go/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/tilebox/tilebox-go/compare/v0.16.0...v0.17.0

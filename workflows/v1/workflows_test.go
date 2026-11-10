@@ -718,6 +718,10 @@ func (s *fakeWorkflowService) GetCluster(context.Context, string) (*workflowsv1.
 	return nil, errors.New("not implemented")
 }
 
+func (s *fakeWorkflowService) GetClusterRunnerEnvironment(context.Context, string) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error) {
+	return nil, errors.New("not implemented")
+}
+
 func (s *fakeWorkflowService) DeleteCluster(context.Context, string) error {
 	return errors.New("not implemented")
 }

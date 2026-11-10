@@ -21,21 +21,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WorkflowsService_CreateCluster_FullMethodName            = "/workflows.v1.WorkflowsService/CreateCluster"
-	WorkflowsService_GetCluster_FullMethodName               = "/workflows.v1.WorkflowsService/GetCluster"
-	WorkflowsService_UpdateCluster_FullMethodName            = "/workflows.v1.WorkflowsService/UpdateCluster"
-	WorkflowsService_DeleteCluster_FullMethodName            = "/workflows.v1.WorkflowsService/DeleteCluster"
-	WorkflowsService_ListClusters_FullMethodName             = "/workflows.v1.WorkflowsService/ListClusters"
-	WorkflowsService_CreateWorkflow_FullMethodName           = "/workflows.v1.WorkflowsService/CreateWorkflow"
-	WorkflowsService_ListWorkflows_FullMethodName            = "/workflows.v1.WorkflowsService/ListWorkflows"
-	WorkflowsService_ListPublicWorkflows_FullMethodName      = "/workflows.v1.WorkflowsService/ListPublicWorkflows"
-	WorkflowsService_GetWorkflow_FullMethodName              = "/workflows.v1.WorkflowsService/GetWorkflow"
-	WorkflowsService_UpdateWorkflow_FullMethodName           = "/workflows.v1.WorkflowsService/UpdateWorkflow"
-	WorkflowsService_DeleteWorkflow_FullMethodName           = "/workflows.v1.WorkflowsService/DeleteWorkflow"
-	WorkflowsService_PublishWorkflowRelease_FullMethodName   = "/workflows.v1.WorkflowsService/PublishWorkflowRelease"
-	WorkflowsService_UnpublishWorkflowRelease_FullMethodName = "/workflows.v1.WorkflowsService/UnpublishWorkflowRelease"
-	WorkflowsService_DeployWorkflowRelease_FullMethodName    = "/workflows.v1.WorkflowsService/DeployWorkflowRelease"
-	WorkflowsService_UndeployWorkflowRelease_FullMethodName  = "/workflows.v1.WorkflowsService/UndeployWorkflowRelease"
+	WorkflowsService_CreateCluster_FullMethodName               = "/workflows.v1.WorkflowsService/CreateCluster"
+	WorkflowsService_GetCluster_FullMethodName                  = "/workflows.v1.WorkflowsService/GetCluster"
+	WorkflowsService_GetClusterRunnerEnvironment_FullMethodName = "/workflows.v1.WorkflowsService/GetClusterRunnerEnvironment"
+	WorkflowsService_UpdateCluster_FullMethodName               = "/workflows.v1.WorkflowsService/UpdateCluster"
+	WorkflowsService_DeleteCluster_FullMethodName               = "/workflows.v1.WorkflowsService/DeleteCluster"
+	WorkflowsService_ListClusters_FullMethodName                = "/workflows.v1.WorkflowsService/ListClusters"
+	WorkflowsService_CreateWorkflow_FullMethodName              = "/workflows.v1.WorkflowsService/CreateWorkflow"
+	WorkflowsService_ListWorkflows_FullMethodName               = "/workflows.v1.WorkflowsService/ListWorkflows"
+	WorkflowsService_ListPublicWorkflows_FullMethodName         = "/workflows.v1.WorkflowsService/ListPublicWorkflows"
+	WorkflowsService_GetWorkflow_FullMethodName                 = "/workflows.v1.WorkflowsService/GetWorkflow"
+	WorkflowsService_UpdateWorkflow_FullMethodName              = "/workflows.v1.WorkflowsService/UpdateWorkflow"
+	WorkflowsService_DeleteWorkflow_FullMethodName              = "/workflows.v1.WorkflowsService/DeleteWorkflow"
+	WorkflowsService_PublishWorkflowRelease_FullMethodName      = "/workflows.v1.WorkflowsService/PublishWorkflowRelease"
+	WorkflowsService_UnpublishWorkflowRelease_FullMethodName    = "/workflows.v1.WorkflowsService/UnpublishWorkflowRelease"
+	WorkflowsService_DeployWorkflowRelease_FullMethodName       = "/workflows.v1.WorkflowsService/DeployWorkflowRelease"
+	WorkflowsService_UndeployWorkflowRelease_FullMethodName     = "/workflows.v1.WorkflowsService/UndeployWorkflowRelease"
 )
 
 // WorkflowsServiceClient is the client API for WorkflowsService service.
@@ -46,6 +47,7 @@ const (
 type WorkflowsServiceClient interface {
 	CreateCluster(ctx context.Context, in *CreateClusterRequest, opts ...grpc.CallOption) (*Cluster, error)
 	GetCluster(ctx context.Context, in *GetClusterRequest, opts ...grpc.CallOption) (*Cluster, error)
+	GetClusterRunnerEnvironment(ctx context.Context, in *GetClusterRunnerEnvironmentRequest, opts ...grpc.CallOption) (*GetClusterRunnerEnvironmentResponse, error)
 	UpdateCluster(ctx context.Context, in *UpdateClusterRequest, opts ...grpc.CallOption) (*Cluster, error)
 	DeleteCluster(ctx context.Context, in *DeleteClusterRequest, opts ...grpc.CallOption) (*DeleteClusterResponse, error)
 	ListClusters(ctx context.Context, in *ListClustersRequest, opts ...grpc.CallOption) (*ListClustersResponse, error)
@@ -83,6 +85,16 @@ func (c *workflowsServiceClient) GetCluster(ctx context.Context, in *GetClusterR
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Cluster)
 	err := c.cc.Invoke(ctx, WorkflowsService_GetCluster_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *workflowsServiceClient) GetClusterRunnerEnvironment(ctx context.Context, in *GetClusterRunnerEnvironmentRequest, opts ...grpc.CallOption) (*GetClusterRunnerEnvironmentResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetClusterRunnerEnvironmentResponse)
+	err := c.cc.Invoke(ctx, WorkflowsService_GetClusterRunnerEnvironment_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -227,6 +239,7 @@ func (c *workflowsServiceClient) UndeployWorkflowRelease(ctx context.Context, in
 type WorkflowsServiceServer interface {
 	CreateCluster(context.Context, *CreateClusterRequest) (*Cluster, error)
 	GetCluster(context.Context, *GetClusterRequest) (*Cluster, error)
+	GetClusterRunnerEnvironment(context.Context, *GetClusterRunnerEnvironmentRequest) (*GetClusterRunnerEnvironmentResponse, error)
 	UpdateCluster(context.Context, *UpdateClusterRequest) (*Cluster, error)
 	DeleteCluster(context.Context, *DeleteClusterRequest) (*DeleteClusterResponse, error)
 	ListClusters(context.Context, *ListClustersRequest) (*ListClustersResponse, error)
@@ -255,6 +268,9 @@ func (UnimplementedWorkflowsServiceServer) CreateCluster(context.Context, *Creat
 }
 func (UnimplementedWorkflowsServiceServer) GetCluster(context.Context, *GetClusterRequest) (*Cluster, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCluster not implemented")
+}
+func (UnimplementedWorkflowsServiceServer) GetClusterRunnerEnvironment(context.Context, *GetClusterRunnerEnvironmentRequest) (*GetClusterRunnerEnvironmentResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetClusterRunnerEnvironment not implemented")
 }
 func (UnimplementedWorkflowsServiceServer) UpdateCluster(context.Context, *UpdateClusterRequest) (*Cluster, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateCluster not implemented")
@@ -348,6 +364,24 @@ func _WorkflowsService_GetCluster_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(WorkflowsServiceServer).GetCluster(ctx, req.(*GetClusterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _WorkflowsService_GetClusterRunnerEnvironment_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetClusterRunnerEnvironmentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkflowsServiceServer).GetClusterRunnerEnvironment(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: WorkflowsService_GetClusterRunnerEnvironment_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkflowsServiceServer).GetClusterRunnerEnvironment(ctx, req.(*GetClusterRunnerEnvironmentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -600,6 +634,10 @@ var WorkflowsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCluster",
 			Handler:    _WorkflowsService_GetCluster_Handler,
+		},
+		{
+			MethodName: "GetClusterRunnerEnvironment",
+			Handler:    _WorkflowsService_GetClusterRunnerEnvironment_Handler,
 		},
 		{
 			MethodName: "UpdateCluster",
