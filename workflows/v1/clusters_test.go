@@ -3,14 +3,80 @@ package workflows
 import (
 	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
+	"connectrpc.com/connect/v2"
+	"connectrpc.com/connect/v2/connecthttp"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
 	workflowsv1 "github.com/tilebox/tilebox-go/protogen/workflows/v1"
+	"github.com/tilebox/tilebox-go/protogen/workflows/v1/workflowsv1connect"
 	"github.com/tilebox/tilebox-go/workflows/v1/cluster"
 	"go.opentelemetry.io/otel/trace/noop"
 )
+
+type runnerEnvironmentAPI struct {
+	workflowsv1connect.UnimplementedWorkflowsServiceHandler
+
+	get func(*workflowsv1.GetClusterRunnerEnvironmentRequest) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error)
+}
+
+func (s *runnerEnvironmentAPI) GetClusterRunnerEnvironment(_ context.Context, request *workflowsv1.GetClusterRunnerEnvironmentRequest) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error) {
+	return s.get(request)
+}
+
+func TestClusterRunnerEnvironment(t *testing.T) {
+	id, releaseID := uuid.New(), uuid.New()
+	for _, slug := range []string{"", "workers"} {
+		t.Run("cluster="+slug, func(t *testing.T) {
+			service := &runnerEnvironmentAPI{get: func(request *workflowsv1.GetClusterRunnerEnvironmentRequest) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error) {
+				assert.Equal(t, slug, request.GetClusterSlug())
+				return workflowsv1.GetClusterRunnerEnvironmentResponse_builder{
+					Cluster: workflowsv1.Cluster_builder{Slug: slug, DeployedReleases: []*workflowsv1.Workflow{
+						workflowsv1.Workflow_builder{Releases: []*workflowsv1.WorkflowRelease{
+							workflowsv1.WorkflowRelease_builder{Id: tileboxv1.NewUUID(releaseID)}.Build(),
+						}}.Build(),
+					}}.Build(),
+					EnvironmentVariables: []*workflowsv1.RunnerEnvironmentVariable{
+						workflowsv1.RunnerEnvironmentVariable_builder{Id: tileboxv1.NewUUID(id), Name: "TOKEN", Value: " literal\n$VALUE=a ", IsSecret: true}.Build(),
+					},
+				}.Build(), nil
+			}}
+			server := connect.NewServer()
+			workflowsv1connect.RegisterWorkflowsServiceHandler(server, service)
+			mux := http.NewServeMux()
+			connecthttp.Mount(mux, server)
+			httpServer := httptest.NewServer(mux)
+			t.Cleanup(httpServer.Close)
+			client := NewClient(connect.NewClient(connecthttp.NewTransport(httpServer.Client(), httpServer.URL)), WithDisableTracing())
+			result, err := client.Clusters.GetRunnerEnvironment(t.Context(), slug)
+			require.NoError(t, err)
+			assert.Equal(t, slug, result.Cluster.Slug)
+			require.Len(t, result.Cluster.DeployedWorkflows, 1)
+			require.Len(t, result.Cluster.DeployedWorkflows[0].Releases, 1)
+			assert.Equal(t, releaseID, result.Cluster.DeployedWorkflows[0].Releases[0].ID)
+			assert.Equal(t, []RunnerEnvironmentVariable{{ID: id, Name: "TOKEN", Value: " literal\n$VALUE=a ", IsSecret: true}}, result.EnvironmentVariables)
+
+			service.get = func(*workflowsv1.GetClusterRunnerEnvironmentRequest) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error) {
+				return workflowsv1.GetClusterRunnerEnvironmentResponse_builder{Cluster: workflowsv1.Cluster_builder{Slug: slug}.Build()}.Build(), nil
+			}
+			result, err = client.Clusters.GetRunnerEnvironment(t.Context(), slug)
+			require.NoError(t, err)
+			assert.Empty(t, result.EnvironmentVariables)
+			for _, code := range []connect.Code{connect.CodeUnimplemented, connect.CodePermissionDenied} {
+				service.get = func(*workflowsv1.GetClusterRunnerEnvironmentRequest) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error) {
+					return nil, connect.NewError(code, "unavailable")
+				}
+				_, err = client.Clusters.GetRunnerEnvironment(t.Context(), slug)
+				assert.Equal(t, code, connect.CodeOf(err))
+			}
+		})
+	}
+}
 
 func Test_clusterClient_Get(t *testing.T) {
 	ctx := context.Background()
@@ -136,6 +202,10 @@ func (c *fakeWorkflowsConnectClient) UpdateCluster(_ context.Context, req *workf
 }
 
 func (c *fakeWorkflowsConnectClient) GetCluster(context.Context, *workflowsv1.GetClusterRequest) (*workflowsv1.Cluster, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (c *fakeWorkflowsConnectClient) GetClusterRunnerEnvironment(context.Context, *workflowsv1.GetClusterRunnerEnvironmentRequest) (*workflowsv1.GetClusterRunnerEnvironmentResponse, error) {
 	return nil, errors.New("not implemented")
 }
 

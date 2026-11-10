@@ -216,6 +216,7 @@ func Test_isEmpty(t *testing.T) {
 type mockMinimalTaskService struct {
 	computedTasks          []*workflowsv1.ComputedTask
 	nextTask               *workflowsv1.Task
+	afterNextTask          func()
 	idlingDuration         time.Duration
 	failed                 bool
 	failedDisplay          string
@@ -226,6 +227,9 @@ type mockMinimalTaskService struct {
 var _ TaskService = &mockMinimalTaskService{}
 
 func (m *mockMinimalTaskService) NextTask(_ context.Context, computedTask *workflowsv1.ComputedTask, _ *workflowsv1.NextTaskToRun) (*workflowsv1.NextTaskResponse, error) {
+	if m.afterNextTask != nil {
+		defer m.afterNextTask()
+	}
 	if computedTask != nil {
 		m.computedTasks = append(m.computedTasks, computedTask)
 	}
@@ -304,8 +308,13 @@ func TestTaskRunner_RunForever(t *testing.T) {
 	err = runner.RegisterTasks(task)
 	require.NoError(t, err, "failed to register task")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond) // run our one task, then stop
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
+	mockTaskClient.afterNextTask = func() {
+		if len(mockTaskClient.computedTasks) > 0 {
+			cancel()
+		}
+	}
 	require.NoError(t, runner.RunForever(ctx))
 
 	assert.False(t, mockTaskClient.failed, "task should not have failed")
@@ -383,10 +392,19 @@ func TestTaskRunner_RunForeverReportsComputedTaskOnce(t *testing.T) {
 	runner.service = mockTaskClient
 	require.NoError(t, runner.RegisterTasks(task))
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
 	defer cancel()
+	polls := 0
+	mockTaskClient.afterNextTask = func() {
+		polls++
+		// Receive and report the task, then poll three more times while idle.
+		if polls == 5 {
+			cancel()
+		}
+	}
 	require.NoError(t, runner.RunForever(ctx))
 
+	require.Equal(t, 5, polls)
 	require.Len(t, mockTaskClient.computedTasks, 1)
 	assert.Equal(t, mockNextTask.GetId(), mockTaskClient.computedTasks[0].GetId())
 }

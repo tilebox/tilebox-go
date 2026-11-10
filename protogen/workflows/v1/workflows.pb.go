@@ -295,6 +295,155 @@ func (b0 GetClusterRequest_builder) Build() *GetClusterRequest {
 	return m0
 }
 
+// GetClusterRunnerEnvironmentRequest lets runners poll for deployments and environment changes.
+type GetClusterRunnerEnvironmentRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ClusterSlug string                 `protobuf:"bytes,1,opt,name=cluster_slug,json=clusterSlug"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *GetClusterRunnerEnvironmentRequest) Reset() {
+	*x = GetClusterRunnerEnvironmentRequest{}
+	mi := &file_workflows_v1_workflows_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClusterRunnerEnvironmentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClusterRunnerEnvironmentRequest) ProtoMessage() {}
+
+func (x *GetClusterRunnerEnvironmentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_workflows_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *GetClusterRunnerEnvironmentRequest) GetClusterSlug() string {
+	if x != nil {
+		return x.xxx_hidden_ClusterSlug
+	}
+	return ""
+}
+
+func (x *GetClusterRunnerEnvironmentRequest) SetClusterSlug(v string) {
+	x.xxx_hidden_ClusterSlug = v
+}
+
+type GetClusterRunnerEnvironmentRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// An active cluster in the caller's namespace. Empty selects the default cluster.
+	ClusterSlug string
+}
+
+func (b0 GetClusterRunnerEnvironmentRequest_builder) Build() *GetClusterRunnerEnvironmentRequest {
+	m0 := &GetClusterRunnerEnvironmentRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_ClusterSlug = b.ClusterSlug
+	return m0
+}
+
+// GetClusterRunnerEnvironmentResponse combines cluster deployments with resolved environment values.
+// Deployments and values are read separately and may reflect concurrent changes.
+// Never log or cache this response.
+type GetClusterRunnerEnvironmentResponse struct {
+	state                           protoimpl.MessageState        `protogen:"opaque.v1"`
+	xxx_hidden_Cluster              *Cluster                      `protobuf:"bytes,1,opt,name=cluster"`
+	xxx_hidden_EnvironmentVariables *[]*RunnerEnvironmentVariable `protobuf:"bytes,2,rep,name=environment_variables,json=environmentVariables"`
+	unknownFields                   protoimpl.UnknownFields
+	sizeCache                       protoimpl.SizeCache
+}
+
+func (x *GetClusterRunnerEnvironmentResponse) Reset() {
+	*x = GetClusterRunnerEnvironmentResponse{}
+	mi := &file_workflows_v1_workflows_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetClusterRunnerEnvironmentResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetClusterRunnerEnvironmentResponse) ProtoMessage() {}
+
+func (x *GetClusterRunnerEnvironmentResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_workflows_v1_workflows_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *GetClusterRunnerEnvironmentResponse) GetCluster() *Cluster {
+	if x != nil {
+		return x.xxx_hidden_Cluster
+	}
+	return nil
+}
+
+func (x *GetClusterRunnerEnvironmentResponse) GetEnvironmentVariables() []*RunnerEnvironmentVariable {
+	if x != nil {
+		if x.xxx_hidden_EnvironmentVariables != nil {
+			return *x.xxx_hidden_EnvironmentVariables
+		}
+	}
+	return nil
+}
+
+func (x *GetClusterRunnerEnvironmentResponse) SetCluster(v *Cluster) {
+	x.xxx_hidden_Cluster = v
+}
+
+func (x *GetClusterRunnerEnvironmentResponse) SetEnvironmentVariables(v []*RunnerEnvironmentVariable) {
+	x.xxx_hidden_EnvironmentVariables = &v
+}
+
+func (x *GetClusterRunnerEnvironmentResponse) HasCluster() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Cluster != nil
+}
+
+func (x *GetClusterRunnerEnvironmentResponse) ClearCluster() {
+	x.xxx_hidden_Cluster = nil
+}
+
+type GetClusterRunnerEnvironmentResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	// Includes deployed releases and artifacts, as in GetCluster.
+	Cluster *Cluster
+	// One entry per name, including full secret values. Cluster-specific values win over all-clusters values.
+	// Values are literal strings, without interpolation. Replace the previous environment, even when this list is empty.
+	EnvironmentVariables []*RunnerEnvironmentVariable
+}
+
+func (b0 GetClusterRunnerEnvironmentResponse_builder) Build() *GetClusterRunnerEnvironmentResponse {
+	m0 := &GetClusterRunnerEnvironmentResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Cluster = b.Cluster
+	x.xxx_hidden_EnvironmentVariables = &b.EnvironmentVariables
+	return m0
+}
+
 // UpdateClusterRequest updates an existing cluster, by updating all fields that are set to their new values.
 // If a field is not set, it will not be updated.
 type UpdateClusterRequest struct {
@@ -310,7 +459,7 @@ type UpdateClusterRequest struct {
 
 func (x *UpdateClusterRequest) Reset() {
 	*x = UpdateClusterRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[3]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -322,7 +471,7 @@ func (x *UpdateClusterRequest) String() string {
 func (*UpdateClusterRequest) ProtoMessage() {}
 
 func (x *UpdateClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[3]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -432,7 +581,7 @@ type DeleteClusterRequest struct {
 
 func (x *DeleteClusterRequest) Reset() {
 	*x = DeleteClusterRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[4]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -444,7 +593,7 @@ func (x *DeleteClusterRequest) String() string {
 func (*DeleteClusterRequest) ProtoMessage() {}
 
 func (x *DeleteClusterRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[4]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -490,7 +639,7 @@ type DeleteClusterResponse struct {
 
 func (x *DeleteClusterResponse) Reset() {
 	*x = DeleteClusterResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[5]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -502,7 +651,7 @@ func (x *DeleteClusterResponse) String() string {
 func (*DeleteClusterResponse) ProtoMessage() {}
 
 func (x *DeleteClusterResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[5]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -534,7 +683,7 @@ type ListClustersRequest struct {
 
 func (x *ListClustersRequest) Reset() {
 	*x = ListClustersRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[6]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -546,7 +695,7 @@ func (x *ListClustersRequest) String() string {
 func (*ListClustersRequest) ProtoMessage() {}
 
 func (x *ListClustersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[6]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -579,7 +728,7 @@ type ListClustersResponse struct {
 
 func (x *ListClustersResponse) Reset() {
 	*x = ListClustersResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[7]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -591,7 +740,7 @@ func (x *ListClustersResponse) String() string {
 func (*ListClustersResponse) ProtoMessage() {}
 
 func (x *ListClustersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[7]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -640,7 +789,7 @@ type GetWorkflowRequest struct {
 
 func (x *GetWorkflowRequest) Reset() {
 	*x = GetWorkflowRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[8]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -652,7 +801,7 @@ func (x *GetWorkflowRequest) String() string {
 func (*GetWorkflowRequest) ProtoMessage() {}
 
 func (x *GetWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[8]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -707,7 +856,7 @@ type UpdateWorkflowRequest struct {
 
 func (x *UpdateWorkflowRequest) Reset() {
 	*x = UpdateWorkflowRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[9]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -719,7 +868,7 @@ func (x *UpdateWorkflowRequest) String() string {
 func (*UpdateWorkflowRequest) ProtoMessage() {}
 
 func (x *UpdateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[9]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -865,7 +1014,7 @@ type DeleteWorkflowRequest struct {
 
 func (x *DeleteWorkflowRequest) Reset() {
 	*x = DeleteWorkflowRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[10]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -877,7 +1026,7 @@ func (x *DeleteWorkflowRequest) String() string {
 func (*DeleteWorkflowRequest) ProtoMessage() {}
 
 func (x *DeleteWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[10]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -925,7 +1074,7 @@ type DeleteWorkflowResponse struct {
 
 func (x *DeleteWorkflowResponse) Reset() {
 	*x = DeleteWorkflowResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[11]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -937,7 +1086,7 @@ func (x *DeleteWorkflowResponse) String() string {
 func (*DeleteWorkflowResponse) ProtoMessage() {}
 
 func (x *DeleteWorkflowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[11]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -972,7 +1121,7 @@ type PublishWorkflowReleaseRequest struct {
 
 func (x *PublishWorkflowReleaseRequest) Reset() {
 	*x = PublishWorkflowReleaseRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[12]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -984,7 +1133,7 @@ func (x *PublishWorkflowReleaseRequest) String() string {
 func (*PublishWorkflowReleaseRequest) ProtoMessage() {}
 
 func (x *PublishWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[12]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1082,7 +1231,7 @@ type UnpublishWorkflowReleaseRequest struct {
 
 func (x *UnpublishWorkflowReleaseRequest) Reset() {
 	*x = UnpublishWorkflowReleaseRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[13]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1094,7 +1243,7 @@ func (x *UnpublishWorkflowReleaseRequest) String() string {
 func (*UnpublishWorkflowReleaseRequest) ProtoMessage() {}
 
 func (x *UnpublishWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[13]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1167,7 +1316,7 @@ type UnpublishWorkflowReleaseResponse struct {
 
 func (x *UnpublishWorkflowReleaseResponse) Reset() {
 	*x = UnpublishWorkflowReleaseResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[14]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1179,7 +1328,7 @@ func (x *UnpublishWorkflowReleaseResponse) String() string {
 func (*UnpublishWorkflowReleaseResponse) ProtoMessage() {}
 
 func (x *UnpublishWorkflowReleaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[14]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1212,7 +1361,7 @@ type ListWorkflowsRequest struct {
 
 func (x *ListWorkflowsRequest) Reset() {
 	*x = ListWorkflowsRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[15]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1224,7 +1373,7 @@ func (x *ListWorkflowsRequest) String() string {
 func (*ListWorkflowsRequest) ProtoMessage() {}
 
 func (x *ListWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[15]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1283,7 +1432,7 @@ type ListWorkflowsResponse struct {
 
 func (x *ListWorkflowsResponse) Reset() {
 	*x = ListWorkflowsResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[16]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1295,7 +1444,7 @@ func (x *ListWorkflowsResponse) String() string {
 func (*ListWorkflowsResponse) ProtoMessage() {}
 
 func (x *ListWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[16]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1369,7 +1518,7 @@ type ListPublicWorkflowsRequest struct {
 
 func (x *ListPublicWorkflowsRequest) Reset() {
 	*x = ListPublicWorkflowsRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[17]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1381,7 +1530,7 @@ func (x *ListPublicWorkflowsRequest) String() string {
 func (*ListPublicWorkflowsRequest) ProtoMessage() {}
 
 func (x *ListPublicWorkflowsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[17]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1440,7 +1589,7 @@ type ListPublicWorkflowsResponse struct {
 
 func (x *ListPublicWorkflowsResponse) Reset() {
 	*x = ListPublicWorkflowsResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[18]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1452,7 +1601,7 @@ func (x *ListPublicWorkflowsResponse) String() string {
 func (*ListPublicWorkflowsResponse) ProtoMessage() {}
 
 func (x *ListPublicWorkflowsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[18]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1532,7 +1681,7 @@ type CreateWorkflowRequest struct {
 
 func (x *CreateWorkflowRequest) Reset() {
 	*x = CreateWorkflowRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[19]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1544,7 +1693,7 @@ func (x *CreateWorkflowRequest) String() string {
 func (*CreateWorkflowRequest) ProtoMessage() {}
 
 func (x *CreateWorkflowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[19]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1696,7 +1845,7 @@ type Workflow struct {
 
 func (x *Workflow) Reset() {
 	*x = Workflow{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[20]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1708,7 +1857,7 @@ func (x *Workflow) String() string {
 func (*Workflow) ProtoMessage() {}
 
 func (x *Workflow) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[20]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1913,7 +2062,7 @@ type WorkflowPresentation struct {
 
 func (x *WorkflowPresentation) Reset() {
 	*x = WorkflowPresentation{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[21]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1925,7 +2074,7 @@ func (x *WorkflowPresentation) String() string {
 func (*WorkflowPresentation) ProtoMessage() {}
 
 func (x *WorkflowPresentation) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[21]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2028,7 +2177,7 @@ type WorkflowRelease struct {
 
 func (x *WorkflowRelease) Reset() {
 	*x = WorkflowRelease{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[22]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2040,7 +2189,7 @@ func (x *WorkflowRelease) String() string {
 func (*WorkflowRelease) ProtoMessage() {}
 
 func (x *WorkflowRelease) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[22]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2186,7 +2335,7 @@ type Artifact struct {
 
 func (x *Artifact) Reset() {
 	*x = Artifact{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[23]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2198,7 +2347,7 @@ func (x *Artifact) String() string {
 func (*Artifact) ProtoMessage() {}
 
 func (x *Artifact) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[23]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2275,7 +2424,7 @@ type ReleaseContent struct {
 
 func (x *ReleaseContent) Reset() {
 	*x = ReleaseContent{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[24]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2287,7 +2436,7 @@ func (x *ReleaseContent) String() string {
 func (*ReleaseContent) ProtoMessage() {}
 
 func (x *ReleaseContent) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[24]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2427,7 +2576,7 @@ type BuildConfig struct {
 
 func (x *BuildConfig) Reset() {
 	*x = BuildConfig{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[25]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2439,7 +2588,7 @@ func (x *BuildConfig) String() string {
 func (*BuildConfig) ProtoMessage() {}
 
 func (x *BuildConfig) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[25]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2503,8 +2652,7 @@ type BuildConfig_builder struct {
 	Include []string
 	// File patterns to exclude, relative to the build root.
 	Exclude []string
-	// Whether to apply Git ignore rules. Omitted means true; preserve presence when reconstructing configuration.
-	// Artifact builders must preserve the applicable ignore files or normalize the rules to remove that dependency.
+	// Whether to apply Git ignore rules. Omitted means true.
 	UseGitignore *bool
 }
 
@@ -2533,7 +2681,7 @@ type Path struct {
 
 func (x *Path) Reset() {
 	*x = Path{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[26]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2545,7 +2693,7 @@ func (x *Path) String() string {
 func (*Path) ProtoMessage() {}
 
 func (x *Path) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[26]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2622,7 +2770,7 @@ type DeployWorkflowReleaseRequest struct {
 
 func (x *DeployWorkflowReleaseRequest) Reset() {
 	*x = DeployWorkflowReleaseRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[27]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2634,7 +2782,7 @@ func (x *DeployWorkflowReleaseRequest) String() string {
 func (*DeployWorkflowReleaseRequest) ProtoMessage() {}
 
 func (x *DeployWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[27]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2722,7 +2870,7 @@ type DeployWorkflowReleaseResponse struct {
 
 func (x *DeployWorkflowReleaseResponse) Reset() {
 	*x = DeployWorkflowReleaseResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[28]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2734,7 +2882,7 @@ func (x *DeployWorkflowReleaseResponse) String() string {
 func (*DeployWorkflowReleaseResponse) ProtoMessage() {}
 
 func (x *DeployWorkflowReleaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[28]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2810,7 +2958,7 @@ type UndeployWorkflowReleaseRequest struct {
 
 func (x *UndeployWorkflowReleaseRequest) Reset() {
 	*x = UndeployWorkflowReleaseRequest{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[29]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2822,7 +2970,7 @@ func (x *UndeployWorkflowReleaseRequest) String() string {
 func (*UndeployWorkflowReleaseRequest) ProtoMessage() {}
 
 func (x *UndeployWorkflowReleaseRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[29]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2910,7 +3058,7 @@ type UndeployWorkflowReleaseResponse struct {
 
 func (x *UndeployWorkflowReleaseResponse) Reset() {
 	*x = UndeployWorkflowReleaseResponse{}
-	mi := &file_workflows_v1_workflows_proto_msgTypes[30]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2922,7 +3070,7 @@ func (x *UndeployWorkflowReleaseResponse) String() string {
 func (*UndeployWorkflowReleaseResponse) ProtoMessage() {}
 
 func (x *UndeployWorkflowReleaseResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_workflows_v1_workflows_proto_msgTypes[30]
+	mi := &file_workflows_v1_workflows_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2989,7 +3137,7 @@ var File_workflows_v1_workflows_proto protoreflect.FileDescriptor
 
 const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\n" +
-	"\x1cworkflows/v1/workflows.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\"\xcb\x01\n" +
+	"\x1cworkflows/v1/workflows.proto\x12\fworkflows.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\x1a\x17workflows/v1/core.proto\x1a\x1bworkflows/v1/resource.proto\"\xcb\x01\n" +
 	"\aCluster\x12\x12\n" +
 	"\x04slug\x18\x02 \x01(\tR\x04slug\x12!\n" +
 	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12 \n" +
@@ -3001,7 +3149,12 @@ const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\vdescription\x18\x02 \x01(\tB\t\xbaH\x06r\x04\x18І\x03R\vdescription\x12,\n" +
 	"\x04slug\x18\x03 \x01(\tB\x18\xbaH\x15r\x13\x18d2\x0f^[A-Za-z0-9-]*$R\x04slug\"P\n" +
 	"\x11GetClusterRequest\x12;\n" +
-	"\fcluster_slug\x18\x01 \x01(\tB\x18\xbaH\x15r\x13\x18d2\x0f^[A-Za-z0-9-]*$R\vclusterSlug\"\xab\x01\n" +
+	"\fcluster_slug\x18\x01 \x01(\tB\x18\xbaH\x15r\x13\x18d2\x0f^[A-Za-z0-9-]*$R\vclusterSlug\"a\n" +
+	"\"GetClusterRunnerEnvironmentRequest\x12;\n" +
+	"\fcluster_slug\x18\x01 \x01(\tB\x18\xbaH\x15r\x13\x18d2\x0f^[A-Za-z0-9-]*$R\vclusterSlug\"\xb9\x01\n" +
+	"#GetClusterRunnerEnvironmentResponse\x12/\n" +
+	"\acluster\x18\x01 \x01(\v2\x15.workflows.v1.ClusterR\acluster\x12a\n" +
+	"\x15environment_variables\x18\x02 \x03(\v2'.workflows.v1.RunnerEnvironmentVariableB\x03\x80\x01\x01R\x14environmentVariables\"\xab\x01\n" +
 	"\x14UpdateClusterRequest\x12=\n" +
 	"\fcluster_slug\x18\x01 \x01(\tB\x1a\xbaH\x17r\x15\x10\x01\x18d2\x0f^[A-Za-z0-9-]*$R\vclusterSlug\x12\"\n" +
 	"\x04name\x18\x02 \x01(\tB\x0e\xbaH\x06r\x04\x10\x01\x18d\xaa\x01\x02\b\x01R\x04name\x120\n" +
@@ -3112,12 +3265,12 @@ const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\rcluster_slugs\x18\x03 \x03(\tB!\xbaH\x1e\x92\x01\x1b\b\x00\"\x17r\x15\x18d \x012\x0f^[A-Za-z0-9-]*$R\fclusterSlugs\"\x8d\x01\n" +
 	"\x1fUndeployWorkflowReleaseResponse\x127\n" +
 	"\arelease\x18\x01 \x01(\v2\x1d.workflows.v1.WorkflowReleaseR\arelease\x121\n" +
-	"\bclusters\x18\x02 \x03(\v2\x15.workflows.v1.ClusterR\bclusters2\xf6\n" +
-	"\n" +
+	"\bclusters\x18\x02 \x03(\v2\x15.workflows.v1.ClusterR\bclusters2\xfb\v\n" +
 	"\x10WorkflowsService\x12J\n" +
 	"\rCreateCluster\x12\".workflows.v1.CreateClusterRequest\x1a\x15.workflows.v1.Cluster\x12D\n" +
 	"\n" +
-	"GetCluster\x12\x1f.workflows.v1.GetClusterRequest\x1a\x15.workflows.v1.Cluster\x12J\n" +
+	"GetCluster\x12\x1f.workflows.v1.GetClusterRequest\x1a\x15.workflows.v1.Cluster\x12\x82\x01\n" +
+	"\x1bGetClusterRunnerEnvironment\x120.workflows.v1.GetClusterRunnerEnvironmentRequest\x1a1.workflows.v1.GetClusterRunnerEnvironmentResponse\x12J\n" +
 	"\rUpdateCluster\x12\".workflows.v1.UpdateClusterRequest\x1a\x15.workflows.v1.Cluster\x12X\n" +
 	"\rDeleteCluster\x12\".workflows.v1.DeleteClusterRequest\x1a#.workflows.v1.DeleteClusterResponse\x12U\n" +
 	"\fListClusters\x12!.workflows.v1.ListClustersRequest\x1a\".workflows.v1.ListClustersResponse\x12M\n" +
@@ -3133,110 +3286,117 @@ const file_workflows_v1_workflows_proto_rawDesc = "" +
 	"\x17UndeployWorkflowRelease\x12,.workflows.v1.UndeployWorkflowReleaseRequest\x1a-.workflows.v1.UndeployWorkflowReleaseResponseB\xb9\x01\n" +
 	"\x10com.workflows.v1B\x0eWorkflowsProtoP\x01Z?github.com/tilebox/tilebox-go/protogen/workflows/v1;workflowsv1\xa2\x02\x03WXX\xaa\x02\fWorkflows.V1\xca\x02\fWorkflows\\V1\xe2\x02\x18Workflows\\V1\\GPBMetadata\xea\x02\rWorkflows::V1\x92\x03\x02\b\x02b\beditionsp\xe8\a"
 
-var file_workflows_v1_workflows_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_workflows_v1_workflows_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_workflows_v1_workflows_proto_goTypes = []any{
-	(*Cluster)(nil),                          // 0: workflows.v1.Cluster
-	(*CreateClusterRequest)(nil),             // 1: workflows.v1.CreateClusterRequest
-	(*GetClusterRequest)(nil),                // 2: workflows.v1.GetClusterRequest
-	(*UpdateClusterRequest)(nil),             // 3: workflows.v1.UpdateClusterRequest
-	(*DeleteClusterRequest)(nil),             // 4: workflows.v1.DeleteClusterRequest
-	(*DeleteClusterResponse)(nil),            // 5: workflows.v1.DeleteClusterResponse
-	(*ListClustersRequest)(nil),              // 6: workflows.v1.ListClustersRequest
-	(*ListClustersResponse)(nil),             // 7: workflows.v1.ListClustersResponse
-	(*GetWorkflowRequest)(nil),               // 8: workflows.v1.GetWorkflowRequest
-	(*UpdateWorkflowRequest)(nil),            // 9: workflows.v1.UpdateWorkflowRequest
-	(*DeleteWorkflowRequest)(nil),            // 10: workflows.v1.DeleteWorkflowRequest
-	(*DeleteWorkflowResponse)(nil),           // 11: workflows.v1.DeleteWorkflowResponse
-	(*PublishWorkflowReleaseRequest)(nil),    // 12: workflows.v1.PublishWorkflowReleaseRequest
-	(*UnpublishWorkflowReleaseRequest)(nil),  // 13: workflows.v1.UnpublishWorkflowReleaseRequest
-	(*UnpublishWorkflowReleaseResponse)(nil), // 14: workflows.v1.UnpublishWorkflowReleaseResponse
-	(*ListWorkflowsRequest)(nil),             // 15: workflows.v1.ListWorkflowsRequest
-	(*ListWorkflowsResponse)(nil),            // 16: workflows.v1.ListWorkflowsResponse
-	(*ListPublicWorkflowsRequest)(nil),       // 17: workflows.v1.ListPublicWorkflowsRequest
-	(*ListPublicWorkflowsResponse)(nil),      // 18: workflows.v1.ListPublicWorkflowsResponse
-	(*CreateWorkflowRequest)(nil),            // 19: workflows.v1.CreateWorkflowRequest
-	(*Workflow)(nil),                         // 20: workflows.v1.Workflow
-	(*WorkflowPresentation)(nil),             // 21: workflows.v1.WorkflowPresentation
-	(*WorkflowRelease)(nil),                  // 22: workflows.v1.WorkflowRelease
-	(*Artifact)(nil),                         // 23: workflows.v1.Artifact
-	(*ReleaseContent)(nil),                   // 24: workflows.v1.ReleaseContent
-	(*BuildConfig)(nil),                      // 25: workflows.v1.BuildConfig
-	(*Path)(nil),                             // 26: workflows.v1.Path
-	(*DeployWorkflowReleaseRequest)(nil),     // 27: workflows.v1.DeployWorkflowReleaseRequest
-	(*DeployWorkflowReleaseResponse)(nil),    // 28: workflows.v1.DeployWorkflowReleaseResponse
-	(*UndeployWorkflowReleaseRequest)(nil),   // 29: workflows.v1.UndeployWorkflowReleaseRequest
-	(*UndeployWorkflowReleaseResponse)(nil),  // 30: workflows.v1.UndeployWorkflowReleaseResponse
-	(*v1.ID)(nil),                            // 31: tilebox.v1.ID
-	(*v1.Pagination)(nil),                    // 32: tilebox.v1.Pagination
-	(*timestamppb.Timestamp)(nil),            // 33: google.protobuf.Timestamp
-	(*UnboundTaskIdentifier)(nil),            // 34: workflows.v1.UnboundTaskIdentifier
+	(*Cluster)(nil),                             // 0: workflows.v1.Cluster
+	(*CreateClusterRequest)(nil),                // 1: workflows.v1.CreateClusterRequest
+	(*GetClusterRequest)(nil),                   // 2: workflows.v1.GetClusterRequest
+	(*GetClusterRunnerEnvironmentRequest)(nil),  // 3: workflows.v1.GetClusterRunnerEnvironmentRequest
+	(*GetClusterRunnerEnvironmentResponse)(nil), // 4: workflows.v1.GetClusterRunnerEnvironmentResponse
+	(*UpdateClusterRequest)(nil),                // 5: workflows.v1.UpdateClusterRequest
+	(*DeleteClusterRequest)(nil),                // 6: workflows.v1.DeleteClusterRequest
+	(*DeleteClusterResponse)(nil),               // 7: workflows.v1.DeleteClusterResponse
+	(*ListClustersRequest)(nil),                 // 8: workflows.v1.ListClustersRequest
+	(*ListClustersResponse)(nil),                // 9: workflows.v1.ListClustersResponse
+	(*GetWorkflowRequest)(nil),                  // 10: workflows.v1.GetWorkflowRequest
+	(*UpdateWorkflowRequest)(nil),               // 11: workflows.v1.UpdateWorkflowRequest
+	(*DeleteWorkflowRequest)(nil),               // 12: workflows.v1.DeleteWorkflowRequest
+	(*DeleteWorkflowResponse)(nil),              // 13: workflows.v1.DeleteWorkflowResponse
+	(*PublishWorkflowReleaseRequest)(nil),       // 14: workflows.v1.PublishWorkflowReleaseRequest
+	(*UnpublishWorkflowReleaseRequest)(nil),     // 15: workflows.v1.UnpublishWorkflowReleaseRequest
+	(*UnpublishWorkflowReleaseResponse)(nil),    // 16: workflows.v1.UnpublishWorkflowReleaseResponse
+	(*ListWorkflowsRequest)(nil),                // 17: workflows.v1.ListWorkflowsRequest
+	(*ListWorkflowsResponse)(nil),               // 18: workflows.v1.ListWorkflowsResponse
+	(*ListPublicWorkflowsRequest)(nil),          // 19: workflows.v1.ListPublicWorkflowsRequest
+	(*ListPublicWorkflowsResponse)(nil),         // 20: workflows.v1.ListPublicWorkflowsResponse
+	(*CreateWorkflowRequest)(nil),               // 21: workflows.v1.CreateWorkflowRequest
+	(*Workflow)(nil),                            // 22: workflows.v1.Workflow
+	(*WorkflowPresentation)(nil),                // 23: workflows.v1.WorkflowPresentation
+	(*WorkflowRelease)(nil),                     // 24: workflows.v1.WorkflowRelease
+	(*Artifact)(nil),                            // 25: workflows.v1.Artifact
+	(*ReleaseContent)(nil),                      // 26: workflows.v1.ReleaseContent
+	(*BuildConfig)(nil),                         // 27: workflows.v1.BuildConfig
+	(*Path)(nil),                                // 28: workflows.v1.Path
+	(*DeployWorkflowReleaseRequest)(nil),        // 29: workflows.v1.DeployWorkflowReleaseRequest
+	(*DeployWorkflowReleaseResponse)(nil),       // 30: workflows.v1.DeployWorkflowReleaseResponse
+	(*UndeployWorkflowReleaseRequest)(nil),      // 31: workflows.v1.UndeployWorkflowReleaseRequest
+	(*UndeployWorkflowReleaseResponse)(nil),     // 32: workflows.v1.UndeployWorkflowReleaseResponse
+	(*RunnerEnvironmentVariable)(nil),           // 33: workflows.v1.RunnerEnvironmentVariable
+	(*v1.ID)(nil),                               // 34: tilebox.v1.ID
+	(*v1.Pagination)(nil),                       // 35: tilebox.v1.Pagination
+	(*timestamppb.Timestamp)(nil),               // 36: google.protobuf.Timestamp
+	(*UnboundTaskIdentifier)(nil),               // 37: workflows.v1.UnboundTaskIdentifier
 }
 var file_workflows_v1_workflows_proto_depIdxs = []int32{
-	20, // 0: workflows.v1.Cluster.deployed_releases:type_name -> workflows.v1.Workflow
-	0,  // 1: workflows.v1.ListClustersResponse.clusters:type_name -> workflows.v1.Cluster
-	31, // 2: workflows.v1.PublishWorkflowReleaseRequest.artifact_id:type_name -> tilebox.v1.ID
-	24, // 3: workflows.v1.PublishWorkflowReleaseRequest.content:type_name -> workflows.v1.ReleaseContent
-	31, // 4: workflows.v1.UnpublishWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
-	32, // 5: workflows.v1.ListWorkflowsRequest.page:type_name -> tilebox.v1.Pagination
-	20, // 6: workflows.v1.ListWorkflowsResponse.workflows:type_name -> workflows.v1.Workflow
-	32, // 7: workflows.v1.ListWorkflowsResponse.next_page:type_name -> tilebox.v1.Pagination
-	32, // 8: workflows.v1.ListPublicWorkflowsRequest.page:type_name -> tilebox.v1.Pagination
-	20, // 9: workflows.v1.ListPublicWorkflowsResponse.workflows:type_name -> workflows.v1.Workflow
-	32, // 10: workflows.v1.ListPublicWorkflowsResponse.next_page:type_name -> tilebox.v1.Pagination
-	31, // 11: workflows.v1.Workflow.id:type_name -> tilebox.v1.ID
-	22, // 12: workflows.v1.Workflow.releases:type_name -> workflows.v1.WorkflowRelease
-	21, // 13: workflows.v1.Workflow.presentation:type_name -> workflows.v1.WorkflowPresentation
-	31, // 14: workflows.v1.WorkflowRelease.id:type_name -> tilebox.v1.ID
-	23, // 15: workflows.v1.WorkflowRelease.artifact:type_name -> workflows.v1.Artifact
-	24, // 16: workflows.v1.WorkflowRelease.content:type_name -> workflows.v1.ReleaseContent
-	33, // 17: workflows.v1.WorkflowRelease.created_at:type_name -> google.protobuf.Timestamp
-	0,  // 18: workflows.v1.WorkflowRelease.clusters:type_name -> workflows.v1.Cluster
-	31, // 19: workflows.v1.Artifact.id:type_name -> tilebox.v1.ID
-	34, // 20: workflows.v1.ReleaseContent.tasks:type_name -> workflows.v1.UnboundTaskIdentifier
-	26, // 21: workflows.v1.ReleaseContent.files:type_name -> workflows.v1.Path
-	25, // 22: workflows.v1.ReleaseContent.build_config:type_name -> workflows.v1.BuildConfig
-	26, // 23: workflows.v1.Path.children:type_name -> workflows.v1.Path
-	31, // 24: workflows.v1.DeployWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
-	22, // 25: workflows.v1.DeployWorkflowReleaseResponse.release:type_name -> workflows.v1.WorkflowRelease
-	0,  // 26: workflows.v1.DeployWorkflowReleaseResponse.clusters:type_name -> workflows.v1.Cluster
-	31, // 27: workflows.v1.UndeployWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
-	22, // 28: workflows.v1.UndeployWorkflowReleaseResponse.release:type_name -> workflows.v1.WorkflowRelease
-	0,  // 29: workflows.v1.UndeployWorkflowReleaseResponse.clusters:type_name -> workflows.v1.Cluster
-	1,  // 30: workflows.v1.WorkflowsService.CreateCluster:input_type -> workflows.v1.CreateClusterRequest
-	2,  // 31: workflows.v1.WorkflowsService.GetCluster:input_type -> workflows.v1.GetClusterRequest
-	3,  // 32: workflows.v1.WorkflowsService.UpdateCluster:input_type -> workflows.v1.UpdateClusterRequest
-	4,  // 33: workflows.v1.WorkflowsService.DeleteCluster:input_type -> workflows.v1.DeleteClusterRequest
-	6,  // 34: workflows.v1.WorkflowsService.ListClusters:input_type -> workflows.v1.ListClustersRequest
-	19, // 35: workflows.v1.WorkflowsService.CreateWorkflow:input_type -> workflows.v1.CreateWorkflowRequest
-	15, // 36: workflows.v1.WorkflowsService.ListWorkflows:input_type -> workflows.v1.ListWorkflowsRequest
-	17, // 37: workflows.v1.WorkflowsService.ListPublicWorkflows:input_type -> workflows.v1.ListPublicWorkflowsRequest
-	8,  // 38: workflows.v1.WorkflowsService.GetWorkflow:input_type -> workflows.v1.GetWorkflowRequest
-	9,  // 39: workflows.v1.WorkflowsService.UpdateWorkflow:input_type -> workflows.v1.UpdateWorkflowRequest
-	10, // 40: workflows.v1.WorkflowsService.DeleteWorkflow:input_type -> workflows.v1.DeleteWorkflowRequest
-	12, // 41: workflows.v1.WorkflowsService.PublishWorkflowRelease:input_type -> workflows.v1.PublishWorkflowReleaseRequest
-	13, // 42: workflows.v1.WorkflowsService.UnpublishWorkflowRelease:input_type -> workflows.v1.UnpublishWorkflowReleaseRequest
-	27, // 43: workflows.v1.WorkflowsService.DeployWorkflowRelease:input_type -> workflows.v1.DeployWorkflowReleaseRequest
-	29, // 44: workflows.v1.WorkflowsService.UndeployWorkflowRelease:input_type -> workflows.v1.UndeployWorkflowReleaseRequest
-	0,  // 45: workflows.v1.WorkflowsService.CreateCluster:output_type -> workflows.v1.Cluster
-	0,  // 46: workflows.v1.WorkflowsService.GetCluster:output_type -> workflows.v1.Cluster
-	0,  // 47: workflows.v1.WorkflowsService.UpdateCluster:output_type -> workflows.v1.Cluster
-	5,  // 48: workflows.v1.WorkflowsService.DeleteCluster:output_type -> workflows.v1.DeleteClusterResponse
-	7,  // 49: workflows.v1.WorkflowsService.ListClusters:output_type -> workflows.v1.ListClustersResponse
-	20, // 50: workflows.v1.WorkflowsService.CreateWorkflow:output_type -> workflows.v1.Workflow
-	16, // 51: workflows.v1.WorkflowsService.ListWorkflows:output_type -> workflows.v1.ListWorkflowsResponse
-	18, // 52: workflows.v1.WorkflowsService.ListPublicWorkflows:output_type -> workflows.v1.ListPublicWorkflowsResponse
-	20, // 53: workflows.v1.WorkflowsService.GetWorkflow:output_type -> workflows.v1.Workflow
-	20, // 54: workflows.v1.WorkflowsService.UpdateWorkflow:output_type -> workflows.v1.Workflow
-	11, // 55: workflows.v1.WorkflowsService.DeleteWorkflow:output_type -> workflows.v1.DeleteWorkflowResponse
-	22, // 56: workflows.v1.WorkflowsService.PublishWorkflowRelease:output_type -> workflows.v1.WorkflowRelease
-	14, // 57: workflows.v1.WorkflowsService.UnpublishWorkflowRelease:output_type -> workflows.v1.UnpublishWorkflowReleaseResponse
-	28, // 58: workflows.v1.WorkflowsService.DeployWorkflowRelease:output_type -> workflows.v1.DeployWorkflowReleaseResponse
-	30, // 59: workflows.v1.WorkflowsService.UndeployWorkflowRelease:output_type -> workflows.v1.UndeployWorkflowReleaseResponse
-	45, // [45:60] is the sub-list for method output_type
-	30, // [30:45] is the sub-list for method input_type
-	30, // [30:30] is the sub-list for extension type_name
-	30, // [30:30] is the sub-list for extension extendee
-	0,  // [0:30] is the sub-list for field type_name
+	22, // 0: workflows.v1.Cluster.deployed_releases:type_name -> workflows.v1.Workflow
+	0,  // 1: workflows.v1.GetClusterRunnerEnvironmentResponse.cluster:type_name -> workflows.v1.Cluster
+	33, // 2: workflows.v1.GetClusterRunnerEnvironmentResponse.environment_variables:type_name -> workflows.v1.RunnerEnvironmentVariable
+	0,  // 3: workflows.v1.ListClustersResponse.clusters:type_name -> workflows.v1.Cluster
+	34, // 4: workflows.v1.PublishWorkflowReleaseRequest.artifact_id:type_name -> tilebox.v1.ID
+	26, // 5: workflows.v1.PublishWorkflowReleaseRequest.content:type_name -> workflows.v1.ReleaseContent
+	34, // 6: workflows.v1.UnpublishWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
+	35, // 7: workflows.v1.ListWorkflowsRequest.page:type_name -> tilebox.v1.Pagination
+	22, // 8: workflows.v1.ListWorkflowsResponse.workflows:type_name -> workflows.v1.Workflow
+	35, // 9: workflows.v1.ListWorkflowsResponse.next_page:type_name -> tilebox.v1.Pagination
+	35, // 10: workflows.v1.ListPublicWorkflowsRequest.page:type_name -> tilebox.v1.Pagination
+	22, // 11: workflows.v1.ListPublicWorkflowsResponse.workflows:type_name -> workflows.v1.Workflow
+	35, // 12: workflows.v1.ListPublicWorkflowsResponse.next_page:type_name -> tilebox.v1.Pagination
+	34, // 13: workflows.v1.Workflow.id:type_name -> tilebox.v1.ID
+	24, // 14: workflows.v1.Workflow.releases:type_name -> workflows.v1.WorkflowRelease
+	23, // 15: workflows.v1.Workflow.presentation:type_name -> workflows.v1.WorkflowPresentation
+	34, // 16: workflows.v1.WorkflowRelease.id:type_name -> tilebox.v1.ID
+	25, // 17: workflows.v1.WorkflowRelease.artifact:type_name -> workflows.v1.Artifact
+	26, // 18: workflows.v1.WorkflowRelease.content:type_name -> workflows.v1.ReleaseContent
+	36, // 19: workflows.v1.WorkflowRelease.created_at:type_name -> google.protobuf.Timestamp
+	0,  // 20: workflows.v1.WorkflowRelease.clusters:type_name -> workflows.v1.Cluster
+	34, // 21: workflows.v1.Artifact.id:type_name -> tilebox.v1.ID
+	37, // 22: workflows.v1.ReleaseContent.tasks:type_name -> workflows.v1.UnboundTaskIdentifier
+	28, // 23: workflows.v1.ReleaseContent.files:type_name -> workflows.v1.Path
+	27, // 24: workflows.v1.ReleaseContent.build_config:type_name -> workflows.v1.BuildConfig
+	28, // 25: workflows.v1.Path.children:type_name -> workflows.v1.Path
+	34, // 26: workflows.v1.DeployWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
+	24, // 27: workflows.v1.DeployWorkflowReleaseResponse.release:type_name -> workflows.v1.WorkflowRelease
+	0,  // 28: workflows.v1.DeployWorkflowReleaseResponse.clusters:type_name -> workflows.v1.Cluster
+	34, // 29: workflows.v1.UndeployWorkflowReleaseRequest.release_id:type_name -> tilebox.v1.ID
+	24, // 30: workflows.v1.UndeployWorkflowReleaseResponse.release:type_name -> workflows.v1.WorkflowRelease
+	0,  // 31: workflows.v1.UndeployWorkflowReleaseResponse.clusters:type_name -> workflows.v1.Cluster
+	1,  // 32: workflows.v1.WorkflowsService.CreateCluster:input_type -> workflows.v1.CreateClusterRequest
+	2,  // 33: workflows.v1.WorkflowsService.GetCluster:input_type -> workflows.v1.GetClusterRequest
+	3,  // 34: workflows.v1.WorkflowsService.GetClusterRunnerEnvironment:input_type -> workflows.v1.GetClusterRunnerEnvironmentRequest
+	5,  // 35: workflows.v1.WorkflowsService.UpdateCluster:input_type -> workflows.v1.UpdateClusterRequest
+	6,  // 36: workflows.v1.WorkflowsService.DeleteCluster:input_type -> workflows.v1.DeleteClusterRequest
+	8,  // 37: workflows.v1.WorkflowsService.ListClusters:input_type -> workflows.v1.ListClustersRequest
+	21, // 38: workflows.v1.WorkflowsService.CreateWorkflow:input_type -> workflows.v1.CreateWorkflowRequest
+	17, // 39: workflows.v1.WorkflowsService.ListWorkflows:input_type -> workflows.v1.ListWorkflowsRequest
+	19, // 40: workflows.v1.WorkflowsService.ListPublicWorkflows:input_type -> workflows.v1.ListPublicWorkflowsRequest
+	10, // 41: workflows.v1.WorkflowsService.GetWorkflow:input_type -> workflows.v1.GetWorkflowRequest
+	11, // 42: workflows.v1.WorkflowsService.UpdateWorkflow:input_type -> workflows.v1.UpdateWorkflowRequest
+	12, // 43: workflows.v1.WorkflowsService.DeleteWorkflow:input_type -> workflows.v1.DeleteWorkflowRequest
+	14, // 44: workflows.v1.WorkflowsService.PublishWorkflowRelease:input_type -> workflows.v1.PublishWorkflowReleaseRequest
+	15, // 45: workflows.v1.WorkflowsService.UnpublishWorkflowRelease:input_type -> workflows.v1.UnpublishWorkflowReleaseRequest
+	29, // 46: workflows.v1.WorkflowsService.DeployWorkflowRelease:input_type -> workflows.v1.DeployWorkflowReleaseRequest
+	31, // 47: workflows.v1.WorkflowsService.UndeployWorkflowRelease:input_type -> workflows.v1.UndeployWorkflowReleaseRequest
+	0,  // 48: workflows.v1.WorkflowsService.CreateCluster:output_type -> workflows.v1.Cluster
+	0,  // 49: workflows.v1.WorkflowsService.GetCluster:output_type -> workflows.v1.Cluster
+	4,  // 50: workflows.v1.WorkflowsService.GetClusterRunnerEnvironment:output_type -> workflows.v1.GetClusterRunnerEnvironmentResponse
+	0,  // 51: workflows.v1.WorkflowsService.UpdateCluster:output_type -> workflows.v1.Cluster
+	7,  // 52: workflows.v1.WorkflowsService.DeleteCluster:output_type -> workflows.v1.DeleteClusterResponse
+	9,  // 53: workflows.v1.WorkflowsService.ListClusters:output_type -> workflows.v1.ListClustersResponse
+	22, // 54: workflows.v1.WorkflowsService.CreateWorkflow:output_type -> workflows.v1.Workflow
+	18, // 55: workflows.v1.WorkflowsService.ListWorkflows:output_type -> workflows.v1.ListWorkflowsResponse
+	20, // 56: workflows.v1.WorkflowsService.ListPublicWorkflows:output_type -> workflows.v1.ListPublicWorkflowsResponse
+	22, // 57: workflows.v1.WorkflowsService.GetWorkflow:output_type -> workflows.v1.Workflow
+	22, // 58: workflows.v1.WorkflowsService.UpdateWorkflow:output_type -> workflows.v1.Workflow
+	13, // 59: workflows.v1.WorkflowsService.DeleteWorkflow:output_type -> workflows.v1.DeleteWorkflowResponse
+	24, // 60: workflows.v1.WorkflowsService.PublishWorkflowRelease:output_type -> workflows.v1.WorkflowRelease
+	16, // 61: workflows.v1.WorkflowsService.UnpublishWorkflowRelease:output_type -> workflows.v1.UnpublishWorkflowReleaseResponse
+	30, // 62: workflows.v1.WorkflowsService.DeployWorkflowRelease:output_type -> workflows.v1.DeployWorkflowReleaseResponse
+	32, // 63: workflows.v1.WorkflowsService.UndeployWorkflowRelease:output_type -> workflows.v1.UndeployWorkflowReleaseResponse
+	48, // [48:64] is the sub-list for method output_type
+	32, // [32:48] is the sub-list for method input_type
+	32, // [32:32] is the sub-list for extension type_name
+	32, // [32:32] is the sub-list for extension extendee
+	0,  // [0:32] is the sub-list for field type_name
 }
 
 func init() { file_workflows_v1_workflows_proto_init() }
@@ -3245,13 +3405,14 @@ func file_workflows_v1_workflows_proto_init() {
 		return
 	}
 	file_workflows_v1_core_proto_init()
+	file_workflows_v1_resource_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_workflows_v1_workflows_proto_rawDesc), len(file_workflows_v1_workflows_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   31,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
