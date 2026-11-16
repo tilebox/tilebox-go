@@ -525,17 +525,18 @@ func (x *QueryFilters) ClearSpatialExtent() {
 type QueryFilters_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	TimeInterval      *v1.TimeInterval
+	// The time interval to query data points for. If absent or neither bound is set, the query covers the full available
+	// time range. If only start_time is set, it is used as the lower bound. If only end_time is set, it is used as the
+	// upper bound. start_exclusive and end_inclusive control whether each bound is included, meaning data points
+	// that fall exactly on the same millisecond as the bounds. Only one of time_interval or datapoint_interval can be set.
+	TimeInterval *v1.TimeInterval
+	// Instead of filtering by time, the query can filter by a range of data point ids. The same open-ended interval
+	// semantics apply as for time_interval. Only one of time_interval or datapoint_interval can be set.
 	DatapointInterval *v1.IDInterval
 	SpatialExtent     *SpatialFilter
 	// Additional expressions over fields marked queryable in the dataset schema.
 	// All top-level expressions are combined with each other and with the interval and spatial filters using logical AND.
 	// Use a nested LogicalExpression for explicit OR, NOT, or grouped boolean logic.
-	// Protovalidate limits each list of expressions to 64 items. Before compiling a query, the server must also enforce:
-	// - at most 256 FilterExpression nodes in total across all top-level and nested expressions;
-	// - a maximum expression depth of 8, where a top-level FilterExpression has depth 1 and each nested operand adds 1;
-	// - every referenced field exists and is marked queryable; and
-	// - every comparison operator and literal kind is valid for the referenced field's descriptor.
 	Expressions []*FilterExpression
 }
 
@@ -1681,14 +1682,14 @@ const file_datasets_v1_data_access_proto_rawDesc = "" +
 	"\x0ecollection_ids\x18\x01 \x03(\v2\x0e.tilebox.v1.IDB\n" +
 	"\xbaH\a\x92\x01\x04\b\x00\x10dR\rcollectionIds\x12&\n" +
 	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\x1b\n" +
-	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\xce\x02\n" +
+	"\tskip_data\x18\x03 \x01(\bR\bskipData\"\xcc\x02\n" +
 	"\fQueryFilters\x12=\n" +
 	"\rtime_interval\x18\x01 \x01(\v2\x18.tilebox.v1.TimeIntervalR\ftimeInterval\x12E\n" +
 	"\x12datapoint_interval\x18\x02 \x01(\v2\x16.tilebox.v1.IDIntervalR\x11datapointInterval\x12A\n" +
 	"\x0espatial_extent\x18\x03 \x01(\v2\x1a.datasets.v1.SpatialFilterR\rspatialExtent\x12I\n" +
-	"\vexpressions\x18\x04 \x03(\v2\x1d.datasets.v1.FilterExpressionB\b\xbaH\x05\x92\x01\x02\x10@R\vexpressions:*\xbaH'\"%\n" +
+	"\vexpressions\x18\x04 \x03(\v2\x1d.datasets.v1.FilterExpressionB\b\xbaH\x05\x92\x01\x02\x10@R\vexpressions:(\xbaH%\"#\n" +
 	"\rtime_interval\n" +
-	"\x12datapoint_interval\x10\x01\"\xc3\x02\n" +
+	"\x12datapoint_interval\"\xc3\x02\n" +
 	"\x10FilterExpression\x128\n" +
 	"\alogical\x18\x01 \x01(\v2\x1e.datasets.v1.LogicalExpressionR\alogical\x12<\n" +
 	"\n" +

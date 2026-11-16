@@ -26,14 +26,15 @@ const (
 
 // CreateDatasetRequest is used to create a new dataset.
 type CreateDatasetRequest struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Name        string                 `protobuf:"bytes,1,opt,name=name"`
-	xxx_hidden_Type        *DatasetType           `protobuf:"bytes,2,opt,name=type"`
-	xxx_hidden_Summary     string                 `protobuf:"bytes,3,opt,name=summary"`
-	xxx_hidden_CodeName    string                 `protobuf:"bytes,4,opt,name=code_name,json=codeName"`
-	xxx_hidden_Description string                 `protobuf:"bytes,5,opt,name=description"`
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Name         string                 `protobuf:"bytes,1,opt,name=name"`
+	xxx_hidden_Type         *DatasetType           `protobuf:"bytes,2,opt,name=type"`
+	xxx_hidden_Summary      string                 `protobuf:"bytes,3,opt,name=summary"`
+	xxx_hidden_CodeName     string                 `protobuf:"bytes,4,opt,name=code_name,json=codeName"`
+	xxx_hidden_Description  string                 `protobuf:"bytes,5,opt,name=description"`
+	xxx_hidden_Presentation *DatasetPresentation   `protobuf:"bytes,6,opt,name=presentation"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *CreateDatasetRequest) Reset() {
@@ -96,6 +97,13 @@ func (x *CreateDatasetRequest) GetDescription() string {
 	return ""
 }
 
+func (x *CreateDatasetRequest) GetPresentation() *DatasetPresentation {
+	if x != nil {
+		return x.xxx_hidden_Presentation
+	}
+	return nil
+}
+
 func (x *CreateDatasetRequest) SetName(v string) {
 	x.xxx_hidden_Name = v
 }
@@ -116,6 +124,10 @@ func (x *CreateDatasetRequest) SetDescription(v string) {
 	x.xxx_hidden_Description = v
 }
 
+func (x *CreateDatasetRequest) SetPresentation(v *DatasetPresentation) {
+	x.xxx_hidden_Presentation = v
+}
+
 func (x *CreateDatasetRequest) HasType() bool {
 	if x == nil {
 		return false
@@ -123,8 +135,19 @@ func (x *CreateDatasetRequest) HasType() bool {
 	return x.xxx_hidden_Type != nil
 }
 
+func (x *CreateDatasetRequest) HasPresentation() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Presentation != nil
+}
+
 func (x *CreateDatasetRequest) ClearType() {
 	x.xxx_hidden_Type = nil
+}
+
+func (x *CreateDatasetRequest) ClearPresentation() {
+	x.xxx_hidden_Presentation = nil
 }
 
 type CreateDatasetRequest_builder struct {
@@ -140,6 +163,8 @@ type CreateDatasetRequest_builder struct {
 	CodeName string
 	// optional description of the dataset, in markdown format
 	Description string
+	// Optional metadata for catalog display and client-side discovery.
+	Presentation *DatasetPresentation
 }
 
 func (b0 CreateDatasetRequest_builder) Build() *CreateDatasetRequest {
@@ -151,6 +176,7 @@ func (b0 CreateDatasetRequest_builder) Build() *CreateDatasetRequest {
 	x.xxx_hidden_Summary = b.Summary
 	x.xxx_hidden_CodeName = b.CodeName
 	x.xxx_hidden_Description = b.Description
+	x.xxx_hidden_Presentation = b.Presentation
 	return m0
 }
 
@@ -243,17 +269,18 @@ func (b0 GetDatasetRequest_builder) Build() *GetDatasetRequest {
 // UpdateDatasetRequest updates a dataset, by updating all fields that are set to their new values.
 // If a field is not set, it will not be updated.
 type UpdateDatasetRequest struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Id          *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
-	xxx_hidden_Name        *string                `protobuf:"bytes,2,opt,name=name"`
-	xxx_hidden_Type        *DatasetType           `protobuf:"bytes,3,opt,name=type"`
-	xxx_hidden_Summary     *string                `protobuf:"bytes,4,opt,name=summary"`
-	xxx_hidden_CodeName    *string                `protobuf:"bytes,5,opt,name=code_name,json=codeName"`
-	xxx_hidden_Description *string                `protobuf:"bytes,6,opt,name=description"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Id           *v1.ID                 `protobuf:"bytes,1,opt,name=id"`
+	xxx_hidden_Name         *string                `protobuf:"bytes,2,opt,name=name"`
+	xxx_hidden_Type         *DatasetType           `protobuf:"bytes,3,opt,name=type"`
+	xxx_hidden_Summary      *string                `protobuf:"bytes,4,opt,name=summary"`
+	xxx_hidden_CodeName     *string                `protobuf:"bytes,5,opt,name=code_name,json=codeName"`
+	xxx_hidden_Description  *string                `protobuf:"bytes,6,opt,name=description"`
+	xxx_hidden_Presentation *DatasetPresentation   `protobuf:"bytes,7,opt,name=presentation"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *UpdateDatasetRequest) Reset() {
@@ -335,13 +362,20 @@ func (x *UpdateDatasetRequest) GetDescription() string {
 	return ""
 }
 
+func (x *UpdateDatasetRequest) GetPresentation() *DatasetPresentation {
+	if x != nil {
+		return x.xxx_hidden_Presentation
+	}
+	return nil
+}
+
 func (x *UpdateDatasetRequest) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
 
 func (x *UpdateDatasetRequest) SetName(v string) {
 	x.xxx_hidden_Name = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 7)
 }
 
 func (x *UpdateDatasetRequest) SetType(v *DatasetType) {
@@ -350,17 +384,21 @@ func (x *UpdateDatasetRequest) SetType(v *DatasetType) {
 
 func (x *UpdateDatasetRequest) SetSummary(v string) {
 	x.xxx_hidden_Summary = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 7)
 }
 
 func (x *UpdateDatasetRequest) SetCodeName(v string) {
 	x.xxx_hidden_CodeName = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 7)
 }
 
 func (x *UpdateDatasetRequest) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 6)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 7)
+}
+
+func (x *UpdateDatasetRequest) SetPresentation(v *DatasetPresentation) {
+	x.xxx_hidden_Presentation = v
 }
 
 func (x *UpdateDatasetRequest) HasId() bool {
@@ -405,6 +443,13 @@ func (x *UpdateDatasetRequest) HasDescription() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
 }
 
+func (x *UpdateDatasetRequest) HasPresentation() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Presentation != nil
+}
+
 func (x *UpdateDatasetRequest) ClearId() {
 	x.xxx_hidden_Id = nil
 }
@@ -433,6 +478,10 @@ func (x *UpdateDatasetRequest) ClearDescription() {
 	x.xxx_hidden_Description = nil
 }
 
+func (x *UpdateDatasetRequest) ClearPresentation() {
+	x.xxx_hidden_Presentation = nil
+}
+
 type UpdateDatasetRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -448,6 +497,8 @@ type UpdateDatasetRequest_builder struct {
 	CodeName *string
 	// updated description of the dataset, in markdown format
 	Description *string
+	// Replaces the entire presentation when supplied. Omit to leave unchanged; send an empty message to clear it.
+	Presentation *DatasetPresentation
 }
 
 func (b0 UpdateDatasetRequest_builder) Build() *UpdateDatasetRequest {
@@ -456,22 +507,23 @@ func (b0 UpdateDatasetRequest_builder) Build() *UpdateDatasetRequest {
 	_, _ = b, x
 	x.xxx_hidden_Id = b.Id
 	if b.Name != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 7)
 		x.xxx_hidden_Name = b.Name
 	}
 	x.xxx_hidden_Type = b.Type
 	if b.Summary != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 7)
 		x.xxx_hidden_Summary = b.Summary
 	}
 	if b.CodeName != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 7)
 		x.xxx_hidden_CodeName = b.CodeName
 	}
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 6)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 7)
 		x.xxx_hidden_Description = b.Description
 	}
+	x.xxx_hidden_Presentation = b.Presentation
 	return m0
 }
 
@@ -793,25 +845,27 @@ var File_datasets_v1_datasets_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_datasets_proto_rawDesc = "" +
 	"\n" +
-	"\x1adatasets/v1/datasets.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\x16datasets/v1/core.proto\x1a\x1edatasets/v1/dataset_type.proto\x1a\x13tilebox/v1/id.proto\"\xfe\x01\n" +
+	"\x1adatasets/v1/datasets.proto\x12\vdatasets.v1\x1a\x1bbuf/validate/validate.proto\x1a\x16datasets/v1/core.proto\x1a\x1edatasets/v1/dataset_type.proto\x1a\x1edatasets/v1/presentation.proto\x1a\x13tilebox/v1/id.proto\"\xc4\x02\n" +
 	"\x14CreateDatasetRequest\x12 \n" +
 	"\x04name\x18\x01 \x01(\tB\f\xbaH\t\xc8\x01\x01r\x04\x10\x01\x18dR\x04name\x124\n" +
 	"\x04type\x18\x02 \x01(\v2\x18.datasets.v1.DatasetTypeB\x06\xbaH\x03\xc8\x01\x01R\x04type\x12#\n" +
 	"\asummary\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x18І\x03R\asummary\x12<\n" +
 	"\tcode_name\x18\x04 \x01(\tB\x1f\xbaH\x1c\xc8\x01\x01r\x17\x10\x01\x18d2\x11^[a-z][a-z0-9_]*$R\bcodeName\x12+\n" +
-	"\vdescription\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x18\xc0\x84=R\vdescription\"\x86\x01\n" +
+	"\vdescription\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x18\xc0\x84=R\vdescription\x12D\n" +
+	"\fpresentation\x18\x06 \x01(\v2 .datasets.v1.DatasetPresentationR\fpresentation\"\x86\x01\n" +
 	"\x11GetDatasetRequest\x12>\n" +
 	"\x04slug\x18\x01 \x01(\tB*\xbaH'r%2#^[a-zA-Z0-9_]+(?:\\.[a-zA-Z0-9_]+)*$R\x04slug\x12\x1e\n" +
 	"\x02id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\x02id:\x11\xbaH\x0e\"\f\n" +
 	"\x04slug\n" +
-	"\x02id\x10\x01\"\xb3\x02\n" +
+	"\x02id\x10\x01\"\x80\x03\n" +
 	"\x14UpdateDatasetRequest\x12&\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\x12\"\n" +
 	"\x04name\x18\x02 \x01(\tB\x0e\xbaH\x06r\x04\x10\x01\x18d\xaa\x01\x02\b\x01R\x04name\x123\n" +
 	"\x04type\x18\x03 \x01(\v2\x18.datasets.v1.DatasetTypeB\x05\xaa\x01\x02\b\x01R\x04type\x12(\n" +
 	"\asummary\x18\x04 \x01(\tB\x0e\xbaH\x06r\x04\x18І\x03\xaa\x01\x02\b\x01R\asummary\x12>\n" +
 	"\tcode_name\x18\x05 \x01(\tB!\xbaH\x19r\x17\x10\x01\x18d2\x11^[a-z][a-z0-9_]*$\xaa\x01\x02\b\x01R\bcodeName\x120\n" +
-	"\vdescription\x18\x06 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\">\n" +
+	"\vdescription\x18\x06 \x01(\tB\x0e\xbaH\x06r\x04\x18\xc0\x84=\xaa\x01\x02\b\x01R\vdescription\x12K\n" +
+	"\fpresentation\x18\a \x01(\v2 .datasets.v1.DatasetPresentationB\x05\xaa\x01\x02\b\x01R\fpresentation\">\n" +
 	"\x14DeleteDatasetRequest\x12&\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDB\x06\xbaH\x03\xc8\x01\x01R\x02id\"1\n" +
 	"\x15DeleteDatasetResponse\x12\x18\n" +
@@ -842,33 +896,36 @@ var file_datasets_v1_datasets_proto_goTypes = []any{
 	(*ListDatasetsRequest)(nil),   // 5: datasets.v1.ListDatasetsRequest
 	(*ListDatasetsResponse)(nil),  // 6: datasets.v1.ListDatasetsResponse
 	(*DatasetType)(nil),           // 7: datasets.v1.DatasetType
-	(*v1.ID)(nil),                 // 8: tilebox.v1.ID
-	(*Dataset)(nil),               // 9: datasets.v1.Dataset
-	(*DatasetGroup)(nil),          // 10: datasets.v1.DatasetGroup
+	(*DatasetPresentation)(nil),   // 8: datasets.v1.DatasetPresentation
+	(*v1.ID)(nil),                 // 9: tilebox.v1.ID
+	(*Dataset)(nil),               // 10: datasets.v1.Dataset
+	(*DatasetGroup)(nil),          // 11: datasets.v1.DatasetGroup
 }
 var file_datasets_v1_datasets_proto_depIdxs = []int32{
 	7,  // 0: datasets.v1.CreateDatasetRequest.type:type_name -> datasets.v1.DatasetType
-	8,  // 1: datasets.v1.GetDatasetRequest.id:type_name -> tilebox.v1.ID
-	8,  // 2: datasets.v1.UpdateDatasetRequest.id:type_name -> tilebox.v1.ID
-	7,  // 3: datasets.v1.UpdateDatasetRequest.type:type_name -> datasets.v1.DatasetType
-	8,  // 4: datasets.v1.DeleteDatasetRequest.id:type_name -> tilebox.v1.ID
-	9,  // 5: datasets.v1.ListDatasetsResponse.datasets:type_name -> datasets.v1.Dataset
-	10, // 6: datasets.v1.ListDatasetsResponse.groups:type_name -> datasets.v1.DatasetGroup
-	0,  // 7: datasets.v1.DatasetService.CreateDataset:input_type -> datasets.v1.CreateDatasetRequest
-	1,  // 8: datasets.v1.DatasetService.GetDataset:input_type -> datasets.v1.GetDatasetRequest
-	2,  // 9: datasets.v1.DatasetService.UpdateDataset:input_type -> datasets.v1.UpdateDatasetRequest
-	3,  // 10: datasets.v1.DatasetService.DeleteDataset:input_type -> datasets.v1.DeleteDatasetRequest
-	5,  // 11: datasets.v1.DatasetService.ListDatasets:input_type -> datasets.v1.ListDatasetsRequest
-	9,  // 12: datasets.v1.DatasetService.CreateDataset:output_type -> datasets.v1.Dataset
-	9,  // 13: datasets.v1.DatasetService.GetDataset:output_type -> datasets.v1.Dataset
-	9,  // 14: datasets.v1.DatasetService.UpdateDataset:output_type -> datasets.v1.Dataset
-	4,  // 15: datasets.v1.DatasetService.DeleteDataset:output_type -> datasets.v1.DeleteDatasetResponse
-	6,  // 16: datasets.v1.DatasetService.ListDatasets:output_type -> datasets.v1.ListDatasetsResponse
-	12, // [12:17] is the sub-list for method output_type
-	7,  // [7:12] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	8,  // 1: datasets.v1.CreateDatasetRequest.presentation:type_name -> datasets.v1.DatasetPresentation
+	9,  // 2: datasets.v1.GetDatasetRequest.id:type_name -> tilebox.v1.ID
+	9,  // 3: datasets.v1.UpdateDatasetRequest.id:type_name -> tilebox.v1.ID
+	7,  // 4: datasets.v1.UpdateDatasetRequest.type:type_name -> datasets.v1.DatasetType
+	8,  // 5: datasets.v1.UpdateDatasetRequest.presentation:type_name -> datasets.v1.DatasetPresentation
+	9,  // 6: datasets.v1.DeleteDatasetRequest.id:type_name -> tilebox.v1.ID
+	10, // 7: datasets.v1.ListDatasetsResponse.datasets:type_name -> datasets.v1.Dataset
+	11, // 8: datasets.v1.ListDatasetsResponse.groups:type_name -> datasets.v1.DatasetGroup
+	0,  // 9: datasets.v1.DatasetService.CreateDataset:input_type -> datasets.v1.CreateDatasetRequest
+	1,  // 10: datasets.v1.DatasetService.GetDataset:input_type -> datasets.v1.GetDatasetRequest
+	2,  // 11: datasets.v1.DatasetService.UpdateDataset:input_type -> datasets.v1.UpdateDatasetRequest
+	3,  // 12: datasets.v1.DatasetService.DeleteDataset:input_type -> datasets.v1.DeleteDatasetRequest
+	5,  // 13: datasets.v1.DatasetService.ListDatasets:input_type -> datasets.v1.ListDatasetsRequest
+	10, // 14: datasets.v1.DatasetService.CreateDataset:output_type -> datasets.v1.Dataset
+	10, // 15: datasets.v1.DatasetService.GetDataset:output_type -> datasets.v1.Dataset
+	10, // 16: datasets.v1.DatasetService.UpdateDataset:output_type -> datasets.v1.Dataset
+	4,  // 17: datasets.v1.DatasetService.DeleteDataset:output_type -> datasets.v1.DeleteDatasetResponse
+	6,  // 18: datasets.v1.DatasetService.ListDatasets:output_type -> datasets.v1.ListDatasetsResponse
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_datasets_proto_init() }
@@ -878,6 +935,7 @@ func file_datasets_v1_datasets_proto_init() {
 	}
 	file_datasets_v1_core_proto_init()
 	file_datasets_v1_dataset_type_proto_init()
+	file_datasets_v1_presentation_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

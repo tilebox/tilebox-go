@@ -21,11 +21,14 @@ var _ TemporalExtent = &TimeInterval{}
 
 // TimeInterval represents a time interval.
 //
-// Both the Start and End time can be exclusive or inclusive.
+// A zero Start or End leaves that bound unspecified. Dataset queries resolve omitted
+// bounds from the selected collections' availability. The zero-value interval leaves
+// both bounds unspecified; use NewEmptyTimeInterval for an empty interval.
+// Explicit bounds can be exclusive or inclusive. Flags on omitted bounds are ignored.
 type TimeInterval struct {
-	// Start is the start time of the interval.
+	// Start is the start time of the interval, or zero to omit the lower bound.
 	Start time.Time
-	// End is the end time of the interval.
+	// End is the end time of the interval, or zero to omit the upper bound.
 	End time.Time
 
 	// We use exclusive for Start and inclusive for End, because that way when both are false,
@@ -35,6 +38,7 @@ type TimeInterval struct {
 }
 
 // NewTimeInterval creates a new half-open TimeInterval which includes the start time but excludes the end time.
+// A zero start or end leaves that bound unspecified.
 // In case you want to control the inclusivity of the start and end time, consider instantiating a TimeInterval struct
 // directly.
 func NewTimeInterval(start, end time.Time) *TimeInterval {
@@ -56,6 +60,8 @@ func NewPointInTime(t time.Time) *TimeInterval {
 	}
 }
 
+// NewEmptyTimeInterval creates an interval containing no times, unlike the zero-value
+// TimeInterval, which leaves both bounds unspecified.
 func NewEmptyTimeInterval() *TimeInterval {
 	return &TimeInterval{
 		Start:          time.Unix(0, 0).UTC(),
@@ -65,26 +71,38 @@ func NewEmptyTimeInterval() *TimeInterval {
 	}
 }
 
+// ProtoToTimeInterval preserves omitted bounds in a non-nil message.
+// A nil message represents an empty interval, as used for absent collection availability.
 func ProtoToTimeInterval(t *tileboxv1.TimeInterval) *TimeInterval {
 	if t == nil {
 		return NewEmptyTimeInterval()
 	}
 
-	return &TimeInterval{
-		Start:          t.GetStartTime().AsTime(),
-		End:            t.GetEndTime().AsTime(),
+	interval := &TimeInterval{
 		StartExclusive: t.GetStartExclusive(),
 		EndInclusive:   t.GetEndInclusive(),
 	}
+	if t.HasStartTime() {
+		interval.Start = t.GetStartTime().AsTime()
+	}
+	if t.HasEndTime() {
+		interval.End = t.GetEndTime().AsTime()
+	}
+	return interval
 }
 
 func (t *TimeInterval) ToProtoTimeInterval() *tileboxv1.TimeInterval {
-	return tileboxv1.TimeInterval_builder{
-		StartTime:      timestamppb.New(t.Start),
-		EndTime:        timestamppb.New(t.End),
+	interval := tileboxv1.TimeInterval_builder{
 		StartExclusive: t.StartExclusive,
 		EndInclusive:   t.EndInclusive,
 	}.Build()
+	if !t.Start.IsZero() {
+		interval.SetStartTime(timestamppb.New(t.Start))
+	}
+	if !t.End.IsZero() {
+		interval.SetEndTime(timestamppb.New(t.End))
+	}
+	return interval
 }
 
 func (t *TimeInterval) ToProtoIDInterval() *tileboxv1.IDInterval {
@@ -92,13 +110,14 @@ func (t *TimeInterval) ToProtoIDInterval() *tileboxv1.IDInterval {
 }
 
 // ToHalfOpen converts the TimeInterval to a half-open interval [Start, End).
+// Omitted bounds remain unspecified.
 func (t *TimeInterval) ToHalfOpen() *TimeInterval {
 	start := t.Start
-	if t.StartExclusive {
+	if !start.IsZero() && t.StartExclusive {
 		start = start.Add(smallestPossibleTimeDelta)
 	}
 	end := t.End
-	if t.EndInclusive {
+	if !end.IsZero() && t.EndInclusive {
 		end = end.Add(smallestPossibleTimeDelta)
 	}
 
@@ -121,15 +140,22 @@ func (t *TimeInterval) String() string {
 		return "<empty>"
 	}
 
+	start := t.Start.String()
 	startCh := "["
-	if t.StartExclusive {
+	if t.Start.IsZero() {
+		start = ".."
+		startCh = "("
+	} else if t.StartExclusive {
 		startCh = "("
 	}
 
+	end := t.End.String()
 	endCh := ")"
-	if t.EndInclusive {
+	if t.End.IsZero() {
+		end = ".."
+	} else if t.EndInclusive {
 		endCh = "]"
 	}
 
-	return fmt.Sprintf("%s%s, %s%s", startCh, t.Start, t.End, endCh)
+	return fmt.Sprintf("%s%s, %s%s", startCh, start, end, endCh)
 }

@@ -357,6 +357,52 @@ func Test_datapointClient_QueryPage(t *testing.T) {
 	assert.Equal(t, mockNextCursorID, page.NextCursor.StartingAfter())
 }
 
+func Test_datapointClient_QueryPage_OpenBounds(t *testing.T) {
+	start := time.Date(2026, time.May, 1, 0, 0, 0, 0, time.UTC)
+	end := start.Add(60 * time.Hour)
+	for _, tc := range []struct {
+		name               string
+		interval           *query.TimeInterval
+		wantStart, wantEnd *time.Time
+	}{
+		{name: "no temporal extent"},
+		{name: "both omitted", interval: &query.TimeInterval{}},
+		{name: "start only", interval: &query.TimeInterval{Start: start}, wantStart: &start},
+		{name: "end only", interval: &query.TimeInterval{End: end}, wantEnd: &end},
+		{name: "both explicit", interval: query.NewTimeInterval(start, end), wantStart: &start, wantEnd: &end},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			service := &capturingDataAccessService{}
+			client := &datapointClient{dataAccessService: service}
+			options := []QueryOption{WithFilters(query.Field("cloud_cover").LessThan(20.0))}
+			if tc.interval != nil {
+				options = append(options, WithTemporalExtent(tc.interval))
+			}
+			_, err := client.QueryPage(t.Context(), uuid.New(), options...)
+			require.NoError(t, err)
+			require.NotNil(t, service.filters)
+			assert.Nil(t, service.filters.GetDatapointInterval())
+			require.Len(t, service.filters.GetExpressions(), 1)
+			interval := service.filters.GetTimeInterval()
+			if tc.interval == nil {
+				assert.Nil(t, interval)
+				return
+			}
+			require.NotNil(t, interval)
+			assert.Equal(t, tc.wantStart != nil, interval.HasStartTime())
+			assert.Equal(t, tc.wantEnd != nil, interval.HasEndTime())
+			if tc.wantStart != nil {
+				assert.Equal(t, *tc.wantStart, interval.GetStartTime().AsTime())
+			}
+			if tc.wantEnd != nil {
+				assert.Equal(t, *tc.wantEnd, interval.GetEndTime().AsTime())
+			}
+			assert.False(t, interval.GetStartExclusive())
+			assert.False(t, interval.GetEndInclusive())
+		})
+	}
+}
+
 func Test_datapointClient_QueryPage_WithFilters(t *testing.T) {
 	service := &capturingDataAccessService{}
 	client := &datapointClient{dataAccessService: service}
