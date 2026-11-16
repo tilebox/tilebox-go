@@ -35,7 +35,7 @@ type DatapointClient interface {
 	//
 	// Options:
 	//   - WithCollections / WithCollectionIDs: specifies the collections to query. If no collections are specified, all collections of the dataset will be queried. (Optional)
-	//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
+	//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. Defaults to collection availability. (Optional)
 	//   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
 	//   - WithFilters: specifies filters over queryable dataset fields. (Optional)
 	//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning required datapoint fields. (Optional)
@@ -66,7 +66,7 @@ type DatapointClient interface {
 	//
 	// Options:
 	//   - WithCollections / WithCollectionIDs: specifies the collections to query. If no collections are specified, all collections of the dataset will be queried. (Optional)
-	//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. (Required)
+	//   - WithTemporalExtent: specifies the time or data point interval for which data should be loaded. Defaults to collection availability. (Optional)
 	//   - WithSpatialExtent: specifies the spatial extent for which data should be loaded. (Optional)
 	//   - WithFilters: specifies filters over queryable dataset fields. (Optional)
 	//   - WithSkipData: can be used to skip the actual data when loading datapoints, only returning required datapoint fields. (Optional)
@@ -150,8 +150,11 @@ type queryOptions struct {
 // QueryOption configures a datapoint query or lookup. Individual operations document which options they support.
 type QueryOption func(*queryOptions)
 
-// WithTemporalExtent specifies the time interval for which data should be queried.
-// Right now, a temporal extent is required for every query.
+// WithTemporalExtent specifies the time or datapoint ID interval to query.
+// If omitted, the backend queries the selected collections' available time range.
+// A query.TimeInterval may also omit either bound by leaving it zero.
+// Omitted time bounds require backend support for open-bounded time intervals.
+// Datapoint ID intervals still require both bounds.
 func WithTemporalExtent(temporalExtent query.TemporalExtent) QueryOption {
 	return func(cfg *queryOptions) {
 		cfg.temporalExtent = temporalExtent
@@ -488,15 +491,14 @@ func (d datapointClient) DeleteIDs(ctx context.Context, collectionID uuid.UUID, 
 }
 
 func (d datapointClient) queryPage(ctx context.Context, datasetID uuid.UUID, cfg *queryOptions) (*DatapointPage, error) {
-	if cfg.temporalExtent == nil {
-		// right now we return an error, in the future we might want to support queries without a temporal extent
-		return nil, errors.New("temporal extent is required")
-	}
-
-	timeInterval := cfg.temporalExtent.ToProtoTimeInterval()
-	datapointInterval := cfg.temporalExtent.ToProtoIDInterval()
-	if timeInterval == nil && datapointInterval == nil {
-		return nil, errors.New("invalid temporal extent")
+	var timeInterval *tileboxv1.TimeInterval
+	var datapointInterval *tileboxv1.IDInterval
+	if cfg.temporalExtent != nil {
+		timeInterval = cfg.temporalExtent.ToProtoTimeInterval()
+		datapointInterval = cfg.temporalExtent.ToProtoIDInterval()
+		if timeInterval == nil && datapointInterval == nil {
+			return nil, errors.New("invalid temporal extent")
+		}
 	}
 
 	filters := datasetsv1.QueryFilters_builder{

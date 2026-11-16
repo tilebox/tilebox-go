@@ -439,9 +439,7 @@ type FieldAnnotation_builder struct {
 	// RFC 6901 JSON Pointer locating the field value in the source document.
 	// This allows flattened dataset fields to be reconstructed without relying on their protobuf field names.
 	SourceJsonPointer *string
-	// Whether the field is projected into query storage and may be used in server-side filter expressions.
-	// Queryable fields are not necessarily backed by a secondary database index.
-	// Enum fields do not count toward the queryable string field limit.
+	// Whether the field can be used in server-side filter expressions.
 	Queryable bool
 	// Optional JSON Schema reference for this field when it corresponds to a well known schema.
 	// For example, this may reference the canonical STAC extension schema definition for a property.
@@ -449,7 +447,7 @@ type FieldAnnotation_builder struct {
 	JsonSchemaRef *string
 	// Semantic display roles fulfilled by this field.
 	Roles []FieldRole
-	// Allowed values for a custom enum field. Values must be unique, with at most 100 entries; leave empty for other types.
+	// Allowed values for a custom enum field. Values must be unique; leave empty for other types.
 	// The server generates the protobuf enum names and numbers. Clients do not need to know its naming rules.
 	// The server validates enum vocabulary changes when updating a dataset.
 	//
@@ -457,7 +455,7 @@ type FieldAnnotation_builder struct {
 	// Pair each entry with the corresponding member's number to encode and decode datapoints. List positions
 	// are not enum numbers. The zero member is not a public value; missing fields remain distinct from zero.
 	// Repeated enum fields are deduplicated at ingestion, preserving first-occurrence order in the stored payload.
-	// Every element must be a declared nonzero member, so the stored list has at most 100 elements.
+	// Every element must be a declared nonzero member.
 	// Omitted and empty repeated fields are equivalent. Queryable repeated enums support FieldArrayPredicate.
 	EnumValues []*EnumValue
 }
@@ -960,9 +958,10 @@ const file_datasets_v1_dataset_type_proto_rawDesc = "" +
 	"descriptor\x12<\n" +
 	"\n" +
 	"annotation\x18\x02 \x01(\v2\x1c.datasets.v1.FieldAnnotationR\n" +
-	"annotation\"*\n" +
-	"\tEnumValue\x12\x1d\n" +
-	"\x05value\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05value\"\xe0\x02\n" +
+	"annotation\"-\n" +
+	"\tEnumValue\x12 \n" +
+	"\x05value\x18\x01 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\x01\x18\x80\x01R\x05value\"\xe0\x02\n" +
 	"\x0fFieldAnnotation\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12#\n" +
 	"\rexample_value\x18\x02 \x01(\tR\fexampleValue\x125\n" +

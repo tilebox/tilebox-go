@@ -6,7 +6,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	tileboxv1 "github.com/tilebox/tilebox-go/protogen/tilebox/v1"
+	"google.golang.org/protobuf/proto"
 	"pgregory.net/rapid"
 )
 
@@ -88,6 +90,44 @@ func TestTimeInterval_Equals(t *testing.T) {
 			timeIntervalA: &TimeInterval{Start: now, End: now, StartExclusive: false, EndInclusive: true},
 			timeIntervalB: NewPointInTime(now),
 			wantEqual:     true,
+		},
+		{
+			name:          "missing bounds ignore inclusion flags",
+			timeIntervalA: &TimeInterval{StartExclusive: true, EndInclusive: true},
+			timeIntervalB: &TimeInterval{},
+			wantEqual:     true,
+		},
+		{
+			name:          "unbounded is not empty",
+			timeIntervalA: &TimeInterval{},
+			timeIntervalB: NewEmptyTimeInterval(),
+		},
+		{
+			name:          "missing start is not the epoch",
+			timeIntervalA: &TimeInterval{End: now},
+			timeIntervalB: NewTimeInterval(time.Unix(0, 0).UTC(), now),
+		},
+		{
+			name:          "missing end is not the epoch",
+			timeIntervalA: &TimeInterval{Start: now},
+			timeIntervalB: NewTimeInterval(now, time.Unix(0, 0).UTC()),
+		},
+		{
+			name:          "start-only exclusive equals shifted inclusive start",
+			timeIntervalA: &TimeInterval{Start: now, StartExclusive: true, EndInclusive: true},
+			timeIntervalB: &TimeInterval{Start: now.Add(time.Nanosecond)},
+			wantEqual:     true,
+		},
+		{
+			name:          "end-only inclusive equals shifted exclusive end",
+			timeIntervalA: &TimeInterval{End: now, StartExclusive: true, EndInclusive: true},
+			timeIntervalB: &TimeInterval{End: now.Add(time.Nanosecond)},
+			wantEqual:     true,
+		},
+		{
+			name:          "explicit start inclusion still matters",
+			timeIntervalA: &TimeInterval{Start: now, StartExclusive: true},
+			timeIntervalB: &TimeInterval{Start: now},
 		},
 	}
 	for _, tt := range tests {
@@ -183,10 +223,17 @@ func TestTimeInterval_ToProtoTimeInterval(t *testing.T) {
 }
 
 func Test_protoToTimeIntervalRoundtrip(t *testing.T) {
+	genTime := rapid.OneOf(
+		rapid.Just(time.Time{}),
+		rapid.Just(time.Unix(0, 0).UTC()),
+		rapid.Custom(func(t *rapid.T) time.Time {
+			return time.Unix(rapid.Int64Range(-2208988800, 4102444800).Draw(t, "seconds"), rapid.Int64Range(0, 999999999).Draw(t, "nanoseconds")).UTC()
+		}),
+	)
 	genTimeInterval := rapid.Custom(func(t *rapid.T) *TimeInterval {
 		return &TimeInterval{
-			Start:          time.Unix(rapid.Int64().Draw(t, "Start"), 0).UTC(),
-			End:            time.Unix(rapid.Int64().Draw(t, "End"), 0).UTC(),
+			Start:          genTime.Draw(t, "Start"),
+			End:            genTime.Draw(t, "End"),
 			StartExclusive: rapid.Bool().Draw(t, "StartExclusive"),
 			EndInclusive:   rapid.Bool().Draw(t, "EndInclusive"),
 		}
@@ -195,11 +242,43 @@ func Test_protoToTimeIntervalRoundtrip(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		input := genTimeInterval.Draw(t, "time interval")
 
-		got := ProtoToTimeInterval(input.ToProtoTimeInterval())
+		encoded, err := proto.Marshal(input.ToProtoTimeInterval())
+		require.NoError(t, err)
+		wire := &tileboxv1.TimeInterval{}
+		require.NoError(t, proto.Unmarshal(encoded, wire))
+		assert.Equal(t, !input.Start.IsZero(), wire.HasStartTime())
+		assert.Equal(t, !input.End.IsZero(), wire.HasEndTime())
+		got := ProtoToTimeInterval(wire)
 
 		assert.Equal(t, input.Start, got.Start)
 		assert.Equal(t, input.End, got.End)
 		assert.Equal(t, input.StartExclusive, got.StartExclusive)
 		assert.Equal(t, input.EndInclusive, got.EndInclusive)
 	})
+}
+
+func TestTimeInterval_OpenBounds(t *testing.T) {
+	bound := time.Date(2026, time.May, 3, 12, 30, 0, 0, time.UTC)
+	for _, tc := range []struct {
+		name     string
+		interval *TimeInterval
+		halfOpen *TimeInterval
+		text     string
+	}{
+		{"both omitted", &TimeInterval{}, &TimeInterval{}, "(.., ..)"},
+		{"omitted flags ignored", &TimeInterval{StartExclusive: true, EndInclusive: true}, &TimeInterval{}, "(.., ..)"},
+		{"start only", &TimeInterval{Start: bound}, &TimeInterval{Start: bound}, "[2026-05-03 12:30:00 +0000 UTC, ..)"},
+		{"exclusive start", &TimeInterval{Start: bound, StartExclusive: true, EndInclusive: true}, &TimeInterval{Start: bound.Add(time.Nanosecond)}, "(2026-05-03 12:30:00 +0000 UTC, ..)"},
+		{"end only", &TimeInterval{End: bound}, &TimeInterval{End: bound}, "(.., 2026-05-03 12:30:00 +0000 UTC)"},
+		{"inclusive end", &TimeInterval{End: bound, StartExclusive: true, EndInclusive: true}, &TimeInterval{End: bound.Add(time.Nanosecond)}, "(.., 2026-05-03 12:30:00 +0000 UTC]"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.halfOpen, tc.interval.ToHalfOpen())
+			assert.Equal(t, tc.text, tc.interval.String())
+		})
+	}
+
+	assert.Equal(t, NewEmptyTimeInterval(), ProtoToTimeInterval(nil))
+	assert.Equal(t, &TimeInterval{}, ProtoToTimeInterval(&tileboxv1.TimeInterval{}))
+	assert.Equal(t, "<empty>", NewEmptyTimeInterval().String())
 }

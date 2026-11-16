@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.20.1] - 2026-11-16
+
+### Added
+
+- `query`: Treat zero `TimeInterval.Start` and `End` values as omitted bounds, preserving them through protobuf conversion and interval helpers. The zero-value interval now leaves both bounds unspecified; use `NewEmptyTimeInterval()` for an empty interval.
+- `datasets`: Allow queries without a temporal extent or with one-sided time bounds. The backend resolves omitted bounds from collection availability; requires backend support for open-bounded time intervals. Datapoint ID intervals are unchanged.
+
 ## [0.20.0] - 2026-11-10
 
 ### Added
@@ -314,7 +321,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Tilebox Observability, including logging and tracing helpers.
 - Added examples for using the library.
 
-[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/tilebox/tilebox-go/compare/v0.20.1...HEAD
+[0.20.1]: https://github.com/tilebox/tilebox-go/compare/v0.20.0...v0.20.1
 [0.20.0]: https://github.com/tilebox/tilebox-go/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/tilebox/tilebox-go/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/tilebox/tilebox-go/compare/v0.17.0...v0.18.0

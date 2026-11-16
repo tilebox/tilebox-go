@@ -1817,8 +1817,6 @@ type TaskSubmissionGroup_builder struct {
 	// containing TaskSubmissions message.
 	DependenciesOnOtherGroups []uint32
 	// The input parameters for each task.
-	// We explicitly don't group the fields into a submessage and then have a single repeated field for that submessage,
-	// to enable packed encoding of the repeated fields.
 	Inputs [][]byte
 	// Index of the task identifier in the identifier_lookup field of the containing TaskSubmissions message
 	// for each task.
@@ -1829,9 +1827,9 @@ type TaskSubmissionGroup_builder struct {
 	// Index of the display name in the display_lookup field of the containing TaskSubmissions message for each task,
 	// specifying a human-readable description of the task.
 	DisplayPointers []uint64
-	// The maximum number of retries for each task. Not a pointer to a lookup table, since we just inline the values.
+	// The maximum number of retries for each task.
 	MaxRetriesValues []int64
-	// Flag indicating whether each task is optional. Not a pointer to a lookup table, since we just inline the values.
+	// Flag indicating whether each task is optional.
 	OptionalValues []bool
 }
 

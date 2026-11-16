@@ -508,6 +508,7 @@ type Dataset struct {
 	xxx_hidden_Slug         string                 `protobuf:"bytes,12,opt,name=slug"`
 	xxx_hidden_TypeEditable bool                   `protobuf:"varint,13,opt,name=type_editable,json=typeEditable"`
 	xxx_hidden_Collections  *[]*CollectionInfo     `protobuf:"bytes,14,rep,name=collections"`
+	xxx_hidden_Presentation *DatasetPresentation   `protobuf:"bytes,15,opt,name=presentation"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
@@ -630,6 +631,13 @@ func (x *Dataset) GetCollections() []*CollectionInfo {
 	return nil
 }
 
+func (x *Dataset) GetPresentation() *DatasetPresentation {
+	if x != nil {
+		return x.xxx_hidden_Presentation
+	}
+	return nil
+}
+
 func (x *Dataset) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
@@ -682,6 +690,10 @@ func (x *Dataset) SetCollections(v []*CollectionInfo) {
 	x.xxx_hidden_Collections = &v
 }
 
+func (x *Dataset) SetPresentation(v *DatasetPresentation) {
+	x.xxx_hidden_Presentation = v
+}
+
 func (x *Dataset) HasId() bool {
 	if x == nil {
 		return false
@@ -703,6 +715,13 @@ func (x *Dataset) HasType() bool {
 	return x.xxx_hidden_Type != nil
 }
 
+func (x *Dataset) HasPresentation() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Presentation != nil
+}
+
 func (x *Dataset) ClearId() {
 	x.xxx_hidden_Id = nil
 }
@@ -713,6 +732,10 @@ func (x *Dataset) ClearGroupId() {
 
 func (x *Dataset) ClearType() {
 	x.xxx_hidden_Type = nil
+}
+
+func (x *Dataset) ClearPresentation() {
+	x.xxx_hidden_Presentation = nil
 }
 
 type Dataset_builder struct {
@@ -744,6 +767,9 @@ type Dataset_builder struct {
 	TypeEditable bool
 	// list of collections in the dataset
 	Collections []*CollectionInfo
+	// Optional curated metadata for catalog display and client-side search/filtering, returned in list and get responses.
+	// Absence means no presentation metadata has been supplied, not that the dataset lacks these capabilities.
+	Presentation *DatasetPresentation
 }
 
 func (b0 Dataset_builder) Build() *Dataset {
@@ -763,6 +789,7 @@ func (b0 Dataset_builder) Build() *Dataset {
 	x.xxx_hidden_Slug = b.Slug
 	x.xxx_hidden_TypeEditable = b.TypeEditable
 	x.xxx_hidden_Collections = &b.Collections
+	x.xxx_hidden_Presentation = b.Presentation
 	return m0
 }
 
@@ -774,6 +801,7 @@ type DatasetGroup struct {
 	xxx_hidden_CodeName string                 `protobuf:"bytes,3,opt,name=code_name,json=codeName"`
 	xxx_hidden_Name     string                 `protobuf:"bytes,4,opt,name=name"`
 	xxx_hidden_Icon     string                 `protobuf:"bytes,5,opt,name=icon"`
+	xxx_hidden_Summary  string                 `protobuf:"bytes,6,opt,name=summary"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -838,6 +866,13 @@ func (x *DatasetGroup) GetIcon() string {
 	return ""
 }
 
+func (x *DatasetGroup) GetSummary() string {
+	if x != nil {
+		return x.xxx_hidden_Summary
+	}
+	return ""
+}
+
 func (x *DatasetGroup) SetId(v *v1.ID) {
 	x.xxx_hidden_Id = v
 }
@@ -856,6 +891,10 @@ func (x *DatasetGroup) SetName(v string) {
 
 func (x *DatasetGroup) SetIcon(v string) {
 	x.xxx_hidden_Icon = v
+}
+
+func (x *DatasetGroup) SetSummary(v string) {
+	x.xxx_hidden_Summary = v
 }
 
 func (x *DatasetGroup) HasId() bool {
@@ -893,6 +932,8 @@ type DatasetGroup_builder struct {
 	Name string
 	// optional icon of the group
 	Icon string
+	// Optional short description for the group heading in the catalog. Dataset facets are not inherited from groups.
+	Summary string
 }
 
 func (b0 DatasetGroup_builder) Build() *DatasetGroup {
@@ -904,6 +945,7 @@ func (b0 DatasetGroup_builder) Build() *DatasetGroup {
 	x.xxx_hidden_CodeName = b.CodeName
 	x.xxx_hidden_Name = b.Name
 	x.xxx_hidden_Icon = b.Icon
+	x.xxx_hidden_Summary = b.Summary
 	return m0
 }
 
@@ -911,7 +953,7 @@ var File_datasets_v1_core_proto protoreflect.FileDescriptor
 
 const file_datasets_v1_core_proto_rawDesc = "" +
 	"\n" +
-	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"6\n" +
+	"\x16datasets/v1/core.proto\x12\vdatasets.v1\x1a\x1edatasets/v1/dataset_type.proto\x1a\x1edatasets/v1/presentation.proto\x1a\x13tilebox/v1/id.proto\x1a\x16tilebox/v1/query.proto\"6\n" +
 	"\x03Any\x12\x19\n" +
 	"\btype_url\x18\x01 \x01(\tR\atypeUrl\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\">\n" +
@@ -927,7 +969,7 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"collection\x18\x01 \x01(\v2\x17.datasets.v1.CollectionR\n" +
 	"collection\x12C\n" +
 	"\favailability\x18\x02 \x01(\v2\x18.tilebox.v1.TimeIntervalB\x05\xaa\x01\x02\b\x01R\favailability\x12\x1b\n" +
-	"\x05count\x18\x03 \x01(\x04B\x05\xaa\x01\x02\b\x01R\x05count\"\xf8\x03\n" +
+	"\x05count\x18\x03 \x01(\x04B\x05\xaa\x01\x02\b\x01R\x05count\"\xbe\x04\n" +
 	"\aDataset\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12)\n" +
 	"\bgroup_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\agroupId\x12.\n" +
@@ -944,13 +986,15 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 	"visibility\x12\x12\n" +
 	"\x04slug\x18\f \x01(\tR\x04slug\x12#\n" +
 	"\rtype_editable\x18\r \x01(\bR\ftypeEditable\x12=\n" +
-	"\vcollections\x18\x0e \x03(\v2\x1b.datasets.v1.CollectionInfoR\vcollections\"\xa0\x01\n" +
+	"\vcollections\x18\x0e \x03(\v2\x1b.datasets.v1.CollectionInfoR\vcollections\x12D\n" +
+	"\fpresentation\x18\x0f \x01(\v2 .datasets.v1.DatasetPresentationR\fpresentation\"\xba\x01\n" +
 	"\fDatasetGroup\x12\x1e\n" +
 	"\x02id\x18\x01 \x01(\v2\x0e.tilebox.v1.IDR\x02id\x12+\n" +
 	"\tparent_id\x18\x02 \x01(\v2\x0e.tilebox.v1.IDR\bparentId\x12\x1b\n" +
 	"\tcode_name\x18\x03 \x01(\tR\bcodeName\x12\x12\n" +
 	"\x04name\x18\x04 \x01(\tR\x04name\x12\x12\n" +
-	"\x04icon\x18\x05 \x01(\tR\x04icon*\x9b\x01\n" +
+	"\x04icon\x18\x05 \x01(\tR\x04icon\x12\x18\n" +
+	"\asummary\x18\x06 \x01(\tR\asummary*\x9b\x01\n" +
 	"\x11DatasetPermission\x12\"\n" +
 	"\x1eDATASET_PERMISSION_UNSPECIFIED\x10\x00\x12\"\n" +
 	"\x1eDATASET_PERMISSION_ACCESS_DATA\x10\x01\x12!\n" +
@@ -967,17 +1011,18 @@ const file_datasets_v1_core_proto_rawDesc = "" +
 var file_datasets_v1_core_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_datasets_v1_core_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_datasets_v1_core_proto_goTypes = []any{
-	(DatasetPermission)(0),  // 0: datasets.v1.DatasetPermission
-	(Visibility)(0),         // 1: datasets.v1.Visibility
-	(*Any)(nil),             // 2: datasets.v1.Any
-	(*RepeatedAny)(nil),     // 3: datasets.v1.RepeatedAny
-	(*Collection)(nil),      // 4: datasets.v1.Collection
-	(*CollectionInfo)(nil),  // 5: datasets.v1.CollectionInfo
-	(*Dataset)(nil),         // 6: datasets.v1.Dataset
-	(*DatasetGroup)(nil),    // 7: datasets.v1.DatasetGroup
-	(*v1.ID)(nil),           // 8: tilebox.v1.ID
-	(*v1.TimeInterval)(nil), // 9: tilebox.v1.TimeInterval
-	(*AnnotatedType)(nil),   // 10: datasets.v1.AnnotatedType
+	(DatasetPermission)(0),      // 0: datasets.v1.DatasetPermission
+	(Visibility)(0),             // 1: datasets.v1.Visibility
+	(*Any)(nil),                 // 2: datasets.v1.Any
+	(*RepeatedAny)(nil),         // 3: datasets.v1.RepeatedAny
+	(*Collection)(nil),          // 4: datasets.v1.Collection
+	(*CollectionInfo)(nil),      // 5: datasets.v1.CollectionInfo
+	(*Dataset)(nil),             // 6: datasets.v1.Dataset
+	(*DatasetGroup)(nil),        // 7: datasets.v1.DatasetGroup
+	(*v1.ID)(nil),               // 8: tilebox.v1.ID
+	(*v1.TimeInterval)(nil),     // 9: tilebox.v1.TimeInterval
+	(*AnnotatedType)(nil),       // 10: datasets.v1.AnnotatedType
+	(*DatasetPresentation)(nil), // 11: datasets.v1.DatasetPresentation
 }
 var file_datasets_v1_core_proto_depIdxs = []int32{
 	8,  // 0: datasets.v1.Collection.id:type_name -> tilebox.v1.ID
@@ -989,13 +1034,14 @@ var file_datasets_v1_core_proto_depIdxs = []int32{
 	0,  // 6: datasets.v1.Dataset.permissions:type_name -> datasets.v1.DatasetPermission
 	1,  // 7: datasets.v1.Dataset.visibility:type_name -> datasets.v1.Visibility
 	5,  // 8: datasets.v1.Dataset.collections:type_name -> datasets.v1.CollectionInfo
-	8,  // 9: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
-	8,  // 10: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	11, // 9: datasets.v1.Dataset.presentation:type_name -> datasets.v1.DatasetPresentation
+	8,  // 10: datasets.v1.DatasetGroup.id:type_name -> tilebox.v1.ID
+	8,  // 11: datasets.v1.DatasetGroup.parent_id:type_name -> tilebox.v1.ID
+	12, // [12:12] is the sub-list for method output_type
+	12, // [12:12] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_datasets_v1_core_proto_init() }
@@ -1004,6 +1050,7 @@ func file_datasets_v1_core_proto_init() {
 		return
 	}
 	file_datasets_v1_dataset_type_proto_init()
+	file_datasets_v1_presentation_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
